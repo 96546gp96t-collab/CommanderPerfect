@@ -1,0 +1,16 @@
+# Godot cache and generated files
+.godot/
+
+# Original game data is copyrighted: it must never be committed.
+# Only the README and the .gdignore marker in game_data/ are tracked.
+/game_data/*
+!/game_data/README.md
+!/game_data/.gdignore
+
+# Output of tools/export_graphics.gd (derived from the original game data)
+/exported/
+
+# OS and editor clutter
+.DS_Store
+Thumbs.db
+__pycache__/
