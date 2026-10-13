@@ -12,10 +12,15 @@ extends RefCounted
 
 const DATA_DIR_OPTION := "--data-dir="
 const DEFAULT_SUBFOLDER := "game_data/keen1"
-const REQUIRED_FILES: PackedStringArray = ["EGAHEAD.CK1", "EGALATCH.CK1", "EGASPRIT.CK1"]
+const EXECUTABLE := "KEEN1.EXE"
+const REQUIRED_FILES: PackedStringArray = [
+	"EGAHEAD.CK1", "EGALATCH.CK1", "EGASPRIT.CK1", EXECUTABLE
+]
 const WORLD_MAP_LEVEL := 80
 const ENDING_LEVEL := 81
 const BACKDROPS_LEVEL := 90
+const FIRST_LEVEL := 1
+const LAST_LEVEL := 16
 
 var directory: String
 ## Upper-case file name -> real file name on disk.
@@ -80,6 +85,12 @@ func level_numbers() -> PackedInt32Array:
 				numbers.append(number.to_int())
 	numbers.sort()
 	return numbers
+
+
+## Whether [param level_number] is a level that Keen plays in (not the world
+## map or one of the special maps).
+static func is_playable_level(level_number: int) -> bool:
+	return level_number >= FIRST_LEVEL and level_number <= LAST_LEVEL
 
 
 static func level_file_name(level_number: int) -> String:

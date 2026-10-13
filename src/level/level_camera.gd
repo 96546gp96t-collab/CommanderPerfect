@@ -8,12 +8,26 @@ extends Camera2D
 ## centered on that axis, with black bars on both sides.
 
 const SMOOTHING_SPEED := 8.0
+## Part of the view on each side of the center that Keen can move through
+## without the view scrolling. Still to be compared with the original.
+const DEAD_ZONE := Vector2(0.1, 0.2)
 
 
 func _ready() -> void:
 	position_smoothing_enabled = true
 	position_smoothing_speed = SMOOTHING_SPEED
 	limit_smoothed = true
+
+
+## Lets the followed node move freely near the center of the view
+## ([param enabled], for Keen), or keeps it exactly centered (free look).
+func use_dead_zone(enabled: bool) -> void:
+	drag_horizontal_enabled = enabled
+	drag_vertical_enabled = enabled
+	drag_left_margin = DEAD_ZONE.x
+	drag_right_margin = DEAD_ZONE.x
+	drag_top_margin = DEAD_ZONE.y
+	drag_bottom_margin = DEAD_ZONE.y
 
 
 ## Sets the scroll limits for a level area of [param area] pixels seen

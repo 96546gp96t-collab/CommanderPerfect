@@ -1,8 +1,9 @@
 class_name FreeLook
 extends Node2D
 ## A point that the player moves with the movement keys to look around a
-## level. The [LevelCamera] child follows it. Keen takes over this job in
-## milestone 3.
+## map. The [LevelCamera] follows it on the world map and the special maps,
+## where Keen cannot play yet (the world map follows in milestone 5). In the
+## levels the camera follows [Keen] instead.
 
 ## Game pixels per second.
 const SCROLL_SPEED := 240.0

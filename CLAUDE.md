@@ -31,7 +31,8 @@ Real-ESRGAN graphics. Singleplayer comes first; local co-op may follow later.
 
 ```
 src/data/      Reading the original files (decompression, EGA graphics, levels)
-src/level/     Drawing a level: TileSet, TileMapLayer, camera
+src/level/     Drawing a level (TileSet, TileMapLayer, camera) and tile collisions
+src/keen/      Keen: movement physics, input, sprite
 src/game/      Game screen (main scene) and display settings
 src/viewer/    Data viewer scene
 tests/         Headless test runner and test suites
@@ -48,7 +49,7 @@ Godot 4.7 is required (`godot` must be on the PATH).
 godot --headless --path . --import                                # first run: build the class cache
 godot --headless --path . --script res://tests/run_tests.gd       # run all tests
 godot --headless --path . --script res://tools/export_graphics.gd # dump graphics to exported/
-godot --path .                                                    # start the game (level view)
+godot --path .                                                    # start the game (play level 1)
 godot --path . res://src/viewer/data_viewer.tscn                  # open the data viewer
 gdformat src tests tools && gdlint src tests tools                # format + lint (pip install gdtoolkit)
 ```

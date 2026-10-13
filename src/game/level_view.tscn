@@ -1,9 +1,10 @@
-[gd_scene load_steps=5 format=3]
+[gd_scene load_steps=6 format=3]
 
 [ext_resource type="Script" path="res://src/game/level_view.gd" id="1_view"]
 [ext_resource type="Script" path="res://src/level/level_map.gd" id="2_map"]
 [ext_resource type="Script" path="res://src/level/free_look.gd" id="3_look"]
 [ext_resource type="Script" path="res://src/level/level_camera.gd" id="4_camera"]
+[ext_resource type="Script" path="res://src/keen/keen.gd" id="5_keen"]
 
 [node name="LevelView" type="Control"]
 layout_mode = 3
@@ -51,6 +52,10 @@ script = ExtResource("3_look")
 unique_name_in_owner = true
 script = ExtResource("4_camera")
 
+[node name="Keen" type="Node2D" parent="World"]
+unique_name_in_owner = true
+script = ExtResource("5_keen")
+
 [node name="Overlay" type="MarginContainer" parent="."]
 layout_mode = 1
 anchors_preset = 15
@@ -85,4 +90,4 @@ unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 4
-text = "Arrows / WASD: look around    Page Up / Page Down: other level    F2: original / widescreen    F3: 4:3 monitor / square pixels    F1: hide this help"
+text = "Arrows / WASD: walk    Ctrl / Z: jump    Alt / X: pogo    Page Up / Down: level    F2: widescreen    F3: pixel shape    F1: hide help"
