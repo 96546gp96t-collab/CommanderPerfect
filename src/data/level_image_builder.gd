@@ -2,8 +2,9 @@ class_name LevelImageBuilder
 extends RefCounted
 ## Draws a complete level into a single image.
 ##
-## This is a preview for the data viewer and the export tool. The real game
-## renderer (milestone 2) will draw levels with a TileMapLayer instead.
+## This is a preview for the data viewer and the export tool. The game itself
+## draws levels with [LevelMap] instead. Unlike the game, this preview also
+## shows the border around the playable area.
 
 const INFO_MARKER_COLOR := Color(1.0, 0.0, 1.0, 0.45)
 

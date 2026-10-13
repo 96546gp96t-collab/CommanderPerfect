@@ -13,6 +13,10 @@ extends RefCounted
 ##   word 2  number of layers (always 2)
 ##   word 7  size of one layer in bytes
 ## The tile layer follows directly after the header, then the info layer.
+##
+## Every map has a border of [constant BORDER_CELLS] cells on each side that
+## the original never scrolls into view; only the [method playable_rect] is
+## ever shown.
 
 const HEADER_WORDS := 16
 const WIDTH_WORD := 0
@@ -20,6 +24,9 @@ const HEIGHT_WORD := 1
 const LAYER_COUNT_WORD := 2
 const LAYER_SIZE_WORD := 7
 const EXPECTED_LAYER_COUNT := 2
+const BORDER_CELLS := 2
+## Info layer value that marks where Keen starts (in levels and on the map).
+const PLAYER_START_INFO := 255
 
 var width: int
 var height: int
@@ -61,3 +68,18 @@ func tile_at(cell: Vector2i) -> int:
 
 func info_at(cell: Vector2i) -> int:
 	return infos[cell.y * width + cell.x]
+
+
+## The cells inside the border: the part of the map the player can see.
+func playable_rect() -> Rect2i:
+	var border := Vector2i(BORDER_CELLS, BORDER_CELLS)
+	return Rect2i(border, Vector2i(width, height) - border * 2)
+
+
+## Returns the first cell (row by row) whose info value is [param value], or
+## [code]Vector2i(-1, -1)[/code] when there is none.
+func find_info(value: int) -> Vector2i:
+	var index := infos.find(value)
+	if index < 0:
+		return Vector2i(-1, -1)
+	return Vector2i(index % width, index / width)

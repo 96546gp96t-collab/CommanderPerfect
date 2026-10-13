@@ -106,6 +106,15 @@ The decompressed words:
 | 16… | Tile layer: tile number per cell, row by row |
 | 16 + layer size / 2 … | Info layer: what starts in each cell (0 = nothing) |
 
+**Border.** Every map is surrounded by a border of two cells (tile 144 in the
+levels, 155 on the world map). The original never scrolls the border into
+view: the 24-cell-wide levels are exactly 20 cells, or 320 pixels, wide inside
+it. CommanderPerfect therefore only draws the cells inside the border.
+
+**Info layer.** The value 255 marks where Keen starts. Every level and the
+world map have exactly one. The meaning of the other values follows in
+milestones 4 and 5.
+
 Special maps:
 
 | Level | Contents |

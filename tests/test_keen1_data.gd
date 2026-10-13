@@ -34,3 +34,31 @@ func test_first_level_has_known_size() -> void:
 	var files := GameFiles.locate()
 	var level := LevelData.parse(files.read(GameFiles.level_file_name(1)))
 	assert_equal(Vector2i(level.width, level.height), Vector2i(120, 21), "level 1 size")
+
+
+## The original screen shows 320x200 pixels and never scrolls past the border,
+## so every map must be at least that big.
+func test_playable_areas_fill_the_original_screen() -> void:
+	var files := GameFiles.locate()
+	for number in files.level_numbers():
+		var level := LevelData.parse(files.read(GameFiles.level_file_name(number)))
+		var size := LevelMap.playable_pixels(level).size
+		assert_true(
+			size.x >= DisplaySettings.ORIGINAL_SIZE.x and size.y >= DisplaySettings.ORIGINAL_SIZE.y,
+			"level %d is only %s pixels" % [number, size]
+		)
+
+
+func test_every_level_has_one_player_start() -> void:
+	var files := GameFiles.locate()
+	for number in range(1, 17) + [GameFiles.WORLD_MAP_LEVEL]:
+		var level := LevelData.parse(files.read(GameFiles.level_file_name(number)))
+		assert_equal(
+			level.infos.count(LevelData.PLAYER_START_INFO), 1, "starts in level %d" % number
+		)
+
+
+func test_first_level_starts_at_known_cell() -> void:
+	var files := GameFiles.locate()
+	var level := LevelData.parse(files.read(GameFiles.level_file_name(1)))
+	assert_equal(level.find_info(LevelData.PLAYER_START_INFO), Vector2i(3, 15), "level 1 start")

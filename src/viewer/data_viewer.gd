@@ -68,8 +68,7 @@ func _show_error(message: String) -> void:
 
 func _fill_level_select() -> void:
 	for number in _files.level_numbers():
-		var label := "World map" if number == GameFiles.WORLD_MAP_LEVEL else "Level %d" % number
-		_level_select.add_item(label, number)
+		_level_select.add_item(GameFiles.level_title(number), number)
 
 
 func _show_selected_level() -> void:
