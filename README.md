@@ -5,8 +5,9 @@ Keen 1 ("Marooned on Mars", 1990) on modern computers, with optional modern
 extras: widescreen, a higher frame rate, xBRZ pixel-art scaling and
 AI-upscaled graphics.
 
-> **Status:** early development. Milestone 1 (reading the original game files)
-> is done; the game is not playable yet. See [PROGRESS.md](PROGRESS.md).
+> **Status:** early development. The original files can be read and levels
+> can be viewed with a scrolling camera, but Keen cannot be played yet. See
+> [PROGRESS.md](PROGRESS.md).
 
 ## You need your own game files
 
@@ -20,11 +21,21 @@ Pack* on Steam or GOG, or the shareware release) into `game_data/keen1/`. See
 Requires [Godot 4.7](https://godotengine.org/download).
 
 ```sh
-godot --path .                     # open the data viewer
-godot --path . -- --data-dir=PATH  # use game files from another folder
+godot --path .                                    # look around in level 1
+godot --path . -- --level=80                      # start on the world map
+godot --path . -- --data-dir=PATH                 # use game files from another folder
+godot --path . res://src/viewer/data_viewer.tscn  # browse all graphics and levels
 ```
 
 Or open the project in the Godot editor and press F5.
+
+| Key | Action |
+|---|---|
+| Arrows / WASD / D-pad / left stick | Look around the level |
+| Page Up / Page Down / shoulder buttons | Previous / next level |
+| F2 | Original view (320x200) or widescreen (16:9) |
+| F3 | Pixels as on a 4:3 monitor, or square pixels |
+| F1 | Show or hide the help line |
 
 ## Development
 

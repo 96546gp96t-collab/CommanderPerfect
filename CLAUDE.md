@@ -31,7 +31,9 @@ Real-ESRGAN graphics. Singleplayer comes first; local co-op may follow later.
 
 ```
 src/data/      Reading the original files (decompression, EGA graphics, levels)
-src/viewer/    Data viewer scene (main scene for now)
+src/level/     Drawing a level: TileSet, TileMapLayer, camera
+src/game/      Game screen (main scene) and display settings
+src/viewer/    Data viewer scene
 tests/         Headless test runner and test suites
 tools/         Command-line tools (graphics export, shareware diskette extraction)
 docs/          File format documentation
@@ -46,7 +48,8 @@ Godot 4.7 is required (`godot` must be on the PATH).
 godot --headless --path . --import                                # first run: build the class cache
 godot --headless --path . --script res://tests/run_tests.gd       # run all tests
 godot --headless --path . --script res://tools/export_graphics.gd # dump graphics to exported/
-godot --path .                                                    # open the data viewer
+godot --path .                                                    # start the game (level view)
+godot --path . res://src/viewer/data_viewer.tscn                  # open the data viewer
 gdformat src tests tools && gdlint src tests tools                # format + lint (pip install gdtoolkit)
 ```
 
@@ -54,16 +57,19 @@ All tests must pass and `gdlint` must be clean before committing.
 
 ## Cloud sessions (claude.ai/code)
 
-The cloud container starts without Godot and without game data, and its
-network blocks the Godot download site and most game archives.
+The cloud container starts without Godot and without game data. The Godot
+download site and most game archives are blocked, but GitHub release assets
+are not.
 
-- **Godot:** build it from source (about 25 minutes on 4 cores, run it in the
-  background):
+- **Godot:** download the official build from GitHub Releases (takes about a
+  minute; building from source is not needed):
   ```sh
-  git clone --depth 1 --branch 4.7.2-stable https://github.com/godotengine/godot
-  pip install scons
-  cd godot && scons platform=linuxbsd target=editor vulkan=no wayland=no d3d12=no accesskit=no -j4
-  ln -sf "$PWD/bin/godot.linuxbsd.editor.x86_64" /usr/local/bin/godot
+  mkdir -p ~/godot && cd ~/godot
+  base=https://github.com/godotengine/godot/releases/download/4.7.2-stable
+  curl -sSLO "$base/Godot_v4.7.2-stable_linux.x86_64.zip" && curl -sSLO "$base/SHA512-SUMS.txt"
+  grep 'stable_linux.x86_64.zip' SHA512-SUMS.txt | sha512sum -c
+  unzip -q Godot_v4.7.2-stable_linux.x86_64.zip
+  ln -sf "$PWD/Godot_v4.7.2-stable_linux.x86_64" /usr/local/bin/godot
   ```
 - **Game data:** the Keen 1 shareware release (v1.1, freely distributable) is
   available as a PCjs diskette image in the public GitHub repository

@@ -14,6 +14,8 @@ const DATA_DIR_OPTION := "--data-dir="
 const DEFAULT_SUBFOLDER := "game_data/keen1"
 const REQUIRED_FILES: PackedStringArray = ["EGAHEAD.CK1", "EGALATCH.CK1", "EGASPRIT.CK1"]
 const WORLD_MAP_LEVEL := 80
+const ENDING_LEVEL := 81
+const BACKDROPS_LEVEL := 90
 
 var directory: String
 ## Upper-case file name -> real file name on disk.
@@ -82,3 +84,15 @@ func level_numbers() -> PackedInt32Array:
 
 static func level_file_name(level_number: int) -> String:
 	return "LEVEL%02d.CK1" % level_number
+
+
+## Name of a level for menus and status lines, e.g. "Level 3" or "World map".
+static func level_title(level_number: int) -> String:
+	match level_number:
+		WORLD_MAP_LEVEL:
+			return "World map"
+		ENDING_LEVEL:
+			return "Ending"
+		BACKDROPS_LEVEL:
+			return "Backdrops"
+	return "Level %d" % level_number
