@@ -97,10 +97,28 @@ func test_opening_door_sinks_and_disappears() -> void:
 	assert_true(door.removed, "gone")
 
 
-func test_exit_completes_the_level() -> void:
+func test_keen_walks_through_the_exit_door() -> void:
 	var session := _session_with_items("......E.............")
-	_run(session, KeenInput.create(1), WALK_TICKS)
+	var keen := session.keen
+	while keen.state != KeenBody.State.EXITING:
+		session.step(KeenInput.create(1))
+	var x := keen.position.x
+	_run(session, KeenInput.create(-1, true, true, true), 30)
+	assert_true(keen.position.x > x, "keeps walking right, whatever the buttons")
+	assert_equal(session.outcome, LevelSession.Outcome.PLAYING, "not done yet")
+	keen.kill()
+	assert_true(not keen.is_dead, "nothing can kill him now")
+	_run(session, KeenInput.create(0), KeenPhysics.EXIT_TICKS)
+	assert_equal(keen.visible_width(), 0.0, "hidden behind the door")
 	assert_equal(session.outcome, LevelSession.Outcome.COMPLETED, "completed")
+
+
+func test_exit_needs_keen_on_the_ground() -> void:
+	var session := _session_with_items("......E.............")
+	session.inventory.has_pogo = true
+	_run(session, KeenInput.create(0, false, true), 2)
+	_run(session, KeenInput.create(1), 60)
+	assert_true(session.keen.state != KeenBody.State.EXITING, "not on the pogo stick")
 
 
 func test_statue_speaks_once() -> void:

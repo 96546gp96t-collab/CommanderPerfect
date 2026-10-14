@@ -97,6 +97,16 @@ const DIE_DRIFT_SPEED := 16 * SUBPIXEL
 ## Once Keen has risen this far he is surely off the screen.
 const DIE_RISE_DISTANCE := 240.0
 
+# --- Leaving a level ----------------------------------------------------------
+## Keen walks slowly through the exit door by himself.
+const EXIT_WALK_SPEED := 12 * SUBPIXEL
+## Ticks from touching the exit until the level is over.
+const EXIT_TICKS := 200
+## Keen disappears behind a line this many pixels into the exit door,
+## counted from the left of the exit tile he touched: the doorway is two
+## tiles wide and he is hidden 2 pixels before its right side.
+const EXIT_HIDE_DISTANCE := 2 * 16 - 2
+
 # --- Enemies ------------------------------------------------------------------
 ## A push from a Yorp or robot dies down by this much per tick. While it
 ## lasts, Keen cannot walk. An estimate, still to be compared with the original.

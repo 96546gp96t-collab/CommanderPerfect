@@ -7,7 +7,7 @@ extends RefCounted
 ## What Keen touches:
 ##   items    picked up: the tile is replaced by the background
 ##   doors    open when Keen has the keycard of their color, which is used up
-##   exit     completes the level
+##   exit     Keen walks through the door; then the level is complete
 ##   statues  show a message once, then stop glowing
 ## Enemies start where the info layer of the level says (see
 ## [constant ENEMY_INFOS]); their shots, and Keen's, are actors too.
@@ -102,13 +102,15 @@ func step(input: KeenInput) -> void:
 	keen.step(input)
 	if keen.fired:
 		_fire()
-	if not keen.is_dead:
+	if not keen.is_dead and keen.state != KeenBody.State.EXITING:
 		_touch_tiles(keen.hitbox())
 	# Actors can add new actors while they step; those start next tick.
 	for actor in actors.duplicate():
 		actor.step(self)
 	_resolve_hits()
 	actors = actors.filter(func(actor: Actor) -> bool: return not actor.removed)
+	if keen.exit_finished:
+		outcome = Outcome.COMPLETED
 	if keen.death_finished and outcome == Outcome.PLAYING:
 		inventory.lose_life()
 		outcome = Outcome.DIED
@@ -206,8 +208,8 @@ func _touch_tiles(box: Rect2) -> void:
 		var tile := collision.tile_at(cell)
 		if properties.is_item(tile):
 			_pick_up(cell, tile)
-		elif properties.is_exit(tile):
-			outcome = Outcome.COMPLETED
+		elif properties.is_exit(tile) and keen.can_exit():
+			keen.start_exit(cell.x)
 		elif properties.is_hint(tile):
 			var garg := tile >= FIRST_GARG_STATUE and tile <= LAST_GARG_STATUE
 			set_tile(cell, SILENT_GARG_STATUE if garg else SILENT_YORP_STATUE)

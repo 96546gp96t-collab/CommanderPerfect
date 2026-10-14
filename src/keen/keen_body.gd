@@ -11,12 +11,14 @@ extends RefCounted
 ##   FALLING          going down, after a jump or off a ledge
 ##   POGO_COMPRESSED  on the ground on the pogo stick, about to bounce
 ##   DYING            killed: lies still for a moment, then flies off the screen
+##   EXITING          walks by himself through the exit door and disappears
+##                    behind it
 ## The pogo stick is a separate switch: with it out, Keen keeps bouncing.
 ## Firing the raygun is one too: Keen holds it out for a moment, and on the
 ## ground he stands still meanwhile. An ice chunk freezes him: for a while he
 ## ignores all buttons, but still slides and falls.
 
-enum State { STANDING, CROUCHING, RISING, FALLING, POGO_COMPRESSED, DYING }
+enum State { STANDING, CROUCHING, RISING, FALLING, POGO_COMPRESSED, DYING, EXITING }
 
 var collision: LevelCollision
 ## Top left of the sprite, in level pixels.
@@ -35,6 +37,10 @@ var is_dead := false
 var invincible := false
 ## The dying animation is over, or Keen fell out of the level.
 var death_finished := false
+## Keen walked through the exit door and the level is over.
+var exit_finished := false
+## While exiting: Keen is hidden to the right of this x (level pixels).
+var exit_hide_x := INF
 ## Set during a tick in which Keen pulled the trigger. Whether a shot comes
 ## out depends on the charges, which [LevelSession] keeps.
 var fired := false
@@ -72,6 +78,8 @@ func reset(start: Vector2) -> void:
 	on_pogo = false
 	is_dead = false
 	death_finished = false
+	exit_finished = false
+	exit_hide_x = INF
 	fired = false
 	_shoot_timer = 0
 	_frozen_ticks = 0
@@ -92,7 +100,7 @@ func is_shooting() -> bool:
 ## Kills Keen: he starts the dying animation. Nothing happens if he is
 ## already dead.
 func kill() -> void:
-	if is_dead or invincible:
+	if is_dead or invincible or state == State.EXITING:
 		return
 	is_dead = true
 	on_pogo = false
@@ -116,13 +124,13 @@ func push(speed: float) -> void:
 
 ## Makes Keen hop up from where he is, for example off a Yorp's head.
 func bounce(speed: float) -> void:
-	if not is_dead:
+	if not is_dead and state != State.EXITING:
 		_launch(speed)
 
 
 ## Freezes Keen in a block of ice and pushes him with [param push_speed].
 func freeze(push_speed: float) -> void:
-	if is_dead:
+	if is_dead or state == State.EXITING:
 		return
 	_frozen_ticks = KeenPhysics.FROZEN_TICKS
 	on_pogo = false
@@ -132,11 +140,38 @@ func freeze(push_speed: float) -> void:
 		_enter_ground_state(State.STANDING)
 
 
+## Whether Keen can walk through an exit door now: only when he stands on
+## the ground, without the pogo stick and without firing.
+func can_exit() -> bool:
+	return state == State.STANDING and not on_pogo and not is_shooting() and not is_dead
+
+
+## Starts walking through the exit door whose tile Keen touched in
+## [param exit_column]. From now on he ignores the buttons.
+func start_exit(exit_column: int) -> void:
+	state = State.EXITING
+	facing = 1
+	velocity = Vector2(KeenPhysics.EXIT_WALK_SPEED, 0.0)
+	_frozen_ticks = 0
+	_push_speed = 0.0
+	_timer = 0
+	exit_hide_x = exit_column * EgaGraphics.TILE_SIZE + KeenPhysics.EXIT_HIDE_DISTANCE
+
+
+## How many pixels of the sprite, from its left side, are in front of the
+## exit door.
+func visible_width() -> float:
+	return clampf(exit_hide_x - position.x, 0.0, KeenPhysics.SPRITE_SIZE.x)
+
+
 ## Advances one tick with the buttons in [param input].
 func step(input: KeenInput) -> void:
 	fired = false
 	if state == State.DYING:
 		_die()
+		return
+	if state == State.EXITING:
+		_walk_through_exit()
 		return
 	if is_dead:
 		return
@@ -241,6 +276,19 @@ func _handle_fire_button(input: KeenInput) -> void:
 	on_pogo = false
 	if state == State.CROUCHING or state == State.POGO_COMPRESSED:
 		state = State.STANDING
+
+
+## Walks right at a slow pace, through everything and without falling,
+## until he is behind the door; then waits until the level is over.
+func _walk_through_exit() -> void:
+	_timer += 1
+	if visible_width() > 0.0:
+		position.x += velocity.x
+		_advance_walk_animation()
+	else:
+		_stop_walk_animation()
+	if _timer >= KeenPhysics.EXIT_TICKS:
+		exit_finished = true
 
 
 ## Lies still for a moment, then flies up and off the screen, through

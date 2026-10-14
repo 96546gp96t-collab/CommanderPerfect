@@ -26,10 +26,16 @@ code are guesses that still have to be compared with the original.
 | 15 | Raygun | 5 charges |
 | 16 | Pogo stick | Keen can use the pogo stick from now on |
 | 18-21 | Keycard (yellow, red, green, blue) | Opens one door of that color |
-| 17 | Exit | Completes the level |
+| 17 | Exit | Keen walks through the door, then the level is complete |
 
 A picked-up item leaves the gray background tile 143 behind. Keen gets an extra
 life at every 20,000 points and starts with 4 lives and no charges.
+
+**The exit** only works while Keen stands on the ground, without the pogo
+stick and without firing. He then walks right by himself at 12/32 pixel per
+tick, through everything, and disappears behind a line 30 pixels to the right
+of the exit tile he touched. The level is over 200 ticks after he touched
+it; meanwhile nothing can kill him.
 
 **Statues** (behavior 22) show a message from `KEEN1.EXE` the first time
 Keen touches them (see `docs/file-formats.md`); the game pauses until Enter.

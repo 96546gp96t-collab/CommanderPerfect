@@ -25,6 +25,11 @@ func set_graphics(graphics: EgaGraphics) -> void:
 func show_body(body: KeenBody) -> void:
 	position = body.position.floor()
 	_sprite.texture = _texture(body.sprite_index())
+	# Walking through the exit door, Keen disappears behind it bit by bit.
+	var width := body.visible_width()
+	_sprite.visible = width >= 1.0
+	_sprite.region_enabled = width < KeenPhysics.SPRITE_SIZE.x
+	_sprite.region_rect = Rect2(Vector2.ZERO, Vector2(floorf(width), KeenPhysics.SPRITE_SIZE.y))
 
 
 func _texture(sprite_index: int) -> ImageTexture:
