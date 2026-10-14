@@ -16,8 +16,8 @@ func hit_by_shot(_session: LevelSession) -> void:
 	pass
 
 
-func touch_keen(session: LevelSession) -> void:
-	_push_keen(session, facing, push_speed)
+func touch_keen(_session: LevelSession, keen: KeenBody) -> void:
+	_push_keen(keen, facing, push_speed)
 
 
 func is_turning() -> bool:

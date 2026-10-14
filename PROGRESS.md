@@ -15,8 +15,8 @@ Wat elke mijlpaal precies inhoudt, staat in [docs/roadmap.md](docs/roadmap.md).
 | 4 | Vijanden, items, deuren, sleutelkaarten, straalgeweer | ✅ Gemerged naar `main` (PR #4); speeltesten loopt nog |
 | 5 | Wereldkaart, levelovergangen, scheepsonderdelen, einde | ✅ Getest door de gebruiker en gemerged naar `main` (PR #5) |
 | 6 | Geluid, menu's, opslaan | ✅ Getest door de gebruiker en gemerged naar `main` (PR #6) |
-| 7 | Hogere framerate (interpolatie), xBRZ met wisselknop, Real-ESRGAN-pipeline, Windows-build | 🔶 Gebouwd, nog speeltesten (branch `milestone-7-polish`) |
-| 8 | Lokale co-op, later eventueel online | |
+| 7 | Hogere framerate (interpolatie), xBRZ met wisselknop, Real-ESRGAN-pipeline, Windows-build | ✅ Gemerged naar `main` (PR #7) |
+| 8 | Twee spelers op één toetsenbord, dynamisch split-screen; later eventueel online | 🔶 Gebouwd, speeltest door de gebruiker loopt (branch `milestone-8-coop`) |
 
 ## Mijlpaal 1: wat er nu is
 
@@ -157,6 +157,29 @@ optiemenu in origineel, xBRZ, (nep-)HD en met vloeiende beweging via
 screenshots gecontroleerd. De Windows-build is gemaakt maar nog niet op een
 Windows-pc gestart. Vloeiende beweging moet met het oog beoordeeld worden.
 
+## Mijlpaal 8: wat er nu is
+
+Afspraken met de gebruiker (14-10-2026): twee spelers op één toetsenbord
+(geen controllers), op elk moment in- en uitstappen, gedeelde voorraad,
+doodgaan zoals het origineel (één Keen dood = allebei terug naar de kaart),
+op de kaart loopt speler 1 alleen. Alleen spelen blijft precies zoals het
+was, ook de toetsen. Uitleg van alles: `docs/two-players.md`.
+
+- **Meedoen.** F7 of "Add Player 2" / "Remove Player 2" in het menu tijdens een spel. In een level verschijnt Keen 2 bij Keen 1; op de kaart doet hij mee vanaf het volgende level. Keen 2 heeft andere kleuren (alle tinten een halve kleurcirkel gedraaid, `player_colors.gdshader`): blauwe helm.
+- **Toetsen** (`KeyBindings`): drie sets. Alleen: zoals altijd. Speler 1: WASD, linker Shift springen, Z vuren, ` pogo. Speler 2: pijltjes, . springen, / pogo, rechter Shift vuren. Linker en rechter Shift zijn verschillende toetsen (Godot `location`); een toets wordt bewaard als keycode + kant. Controls heeft nu drie pagina's. Op de kaart sturen alle toetsen samen speler 1 (`KeenInput.combine`). Geen Ctrl voor twee spelers: Ctrl+pijltje wisselt op de Mac van bureaublad.
+- **Level-logica** (`LevelSession`): `keens` (speler 1 is nog steeds `keen`), `add_player`, `remove_player`, `step_players`. Items, deuren, schieten, beelden en de uitgang werken voor beide Keens. Vijanden gaan op de dichtstbijzijnde levende Keen af en raken beide; ze worden wakker in het beeld van elk van beide spelers (`view_rects`). De uitgang gaat niet open terwijl de andere Keen doodgaat; wie de uitgang in loopt, maakt het level voor allebei af.
+- **Split-screen** (`SplitScreen` rekent, `TwoPlayerView` tekent): samen één beeld; als een speler verder komt dan halverwege het midden en de rand, glijden de camera's uit elkaar en splitst het scherm met een donkere lijn door het midden, loodrecht op de lijn tussen de spelers (draait mee). Bij de rand van een level blijft het langer één scherm, en het komt pas weer samen 8 pixels verder (geen flikkeren). Een tweede viewport (`World2`) deelt het level met `World`; `split_screen.gdshader` legt zijn beeld over de helft van speler 2, onder de HUD. Er is geen pijltje naar de andere speler: na de speeltest wilde de gebruiker het weg (je ziet aan de split welke kant je op moet). Voor online multiplayer is het wel nodig; dat staat beschreven in `docs/two-players.md` onder "Later: online".
+- `LevelView` werd te lang: het twee-spelersdeel staat in `TwoPlayerView`, de hulpregel in `StatusLine`, het instellen van een viewport in `DisplaySettings.set_up_viewport`.
+- `tools/scripted_play.gd` kent nu `LeftShift` / `RightShift`.
+- Tests: `test_two_players.gd` (twee Keens: meedoen, eigen besturing, gedeelde items en munitie, doodgaan, uitgang, vijanden, wakker worden, vertrekken, god mode; de standaardtoetsen, linker/rechter Shift, overlappende sets, opslaan met kant, gecombineerde invoer op de kaart), `test_split_screen.gd` (één scherm, splitsen, geen sprong, binnen het level, bij de rand, smal level, dode speler, dode zone), plus menutests (speler 2 toevoegen, toets van speler 2 wijzigen).
+
+Getest met Godot 4.7.2 en de shareware-versie 1.1: alle tests slagen, gdlint
+is schoon, en met gescripte invoer is in level 1 gecontroleerd dat speler 2
+erbij komt, apart bestuurd wordt (pijltjes en .), andere kleuren heeft, en
+dat het scherm splitst met de lijn. De gebruiker heeft het gespeeld en vindt
+het er goed uitzien (14-10-2026); alleen de pijltjes naar de andere speler
+moesten weg.
+
 ## Bekende beperkingen
 
 - De natuurkunde-getallen zijn startwaarden (overgenomen van Commander Genius als documentatie, zie `docs/keen-physics.md`). Ze moeten nog naast het origineel (DOSBox) worden gelegd; de lijst met punten staat onderaan dat document.
@@ -178,6 +201,8 @@ Windows-pc gestart. Vloeiende beweging moet met het oog beoordeeld worden.
 - Op schermen hoger dan 1200 pixels (Retina) wordt xBRZ (6x) nog een beetje glad vergroot.
 - Vloeiende beweging toont alles één tick (17 ms) later.
 - Of de wereldkaart ook precies een rand van 2 tiles verbergt, is aangenomen maar niet vergeleken met het origineel.
+- Twee spelers: de controller bestuurt alleen speler 1; twee controllers worden nog niet uit elkaar gehouden. Of speler 2 meespeelt, wordt niet in een opgeslagen spel bewaard. De toetsenregel (F1) noemt alleen de toetsen voor één speler.
+- Met 4:3-pixels is de scheidslijn liggend iets dikker dan staand (hij wordt in spelpixels getekend).
 
 ## Open beslissingen
 
@@ -186,8 +211,6 @@ Windows-pc gestart. Vloeiende beweging moet met het oog beoordeeld worden.
 
 ## Volgende stap
 
-1. **Voor de gebruiker:** speel de nieuwe build (`build/CommanderPerfect.app`). Zet in Options (of met F5/F6) xBRZ en vloeiende beweging aan en uit en kijk of het beeld klopt: geen naden tussen tiles, geen rare randen aan sprites, menu's en HUD goed leesbaar, en of bewegen echt vloeiender voelt (vooral op een 120 Hz-scherm). Controleer ook dat alles uit precies het oude beeld geeft.
-2. **HD:** de Real-ESRGAN-versie is gemaakt en bekeken; de gebruiker vindt hem lelijk en xBRZ mooier. HD met nieuwe details via generatieve AI staat geparkeerd (zie "Open beslissingen" en `docs/graphics.md`).
-3. **Windows:** kopieer de hele map `build/windows` naar de Windows-pc en start `CommanderPerfect.exe`. Kijk of het start, of het geluid werkt en of de instellingen en saves bewaard blijven (in `%APPDATA%\Godot\app_userdata\CommanderPerfect`).
-4. Mijlpaal 7 afronden met wat uit die tests komt, en mergen naar `main`.
-5. Daarna mijlpaal 8 (lokale co-op), of eerst de openstaande punten: natuurkunde en vijanden naast DOSBox leggen, de intro, en de vraag of de hulpregel in 4:3 standaard weg moet.
+1. **Voor de gebruiker:** speel verder met z'n tweeën (`build/CommanderPerfect.app`, nu zonder pijltjes) en kijk vooral naar doodgaan, de uitgang, de kaart en F7 om speler 2 weg te halen. Als alles goed is: mergen naar `main`.
+2. Mijlpaal 7 staat op `main`; de punten uit de vorige lijst (xBRZ/vloeiende beweging bekijken, Windows-build op een pc starten) staan nog open.
+3. Daarna: de openstaande punten (natuurkunde en vijanden naast DOSBox leggen, de intro, de hulpregel in 4:3), eventueel twee controllers voor twee spelers, en later misschien online.

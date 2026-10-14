@@ -15,6 +15,8 @@ var _motion := Interpolation.new()
 
 func _init() -> void:
 	_sprite.centered = false
+	# A material on this node (player 2's colors) goes for the sprite too.
+	_sprite.use_parent_material = true
 	add_child(_sprite)
 
 

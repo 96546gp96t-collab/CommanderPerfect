@@ -64,7 +64,12 @@ zoals het titelscherm.
   lokaal zelf uit; de resultaten worden nooit gedeeld.
 - Export naar macOS en Windows.
 
-## 8. Co-op (optioneel)
+## 8. Co-op
 
-- Eerst lokaal: twee spelers op één scherm met twee controllers.
-- Later eventueel online.
+- Lokaal: twee spelers op één toetsenbord (speler 1 op WASD, speler 2 op de
+  pijltjes), op elk moment in of uit te stappen.
+- Dynamisch split-screen: samen één scherm, ver uit elkaar twee helften met
+  een donkere lijn en een pijltje naar de ander.
+- Later eventueel online. Dan is wel een pijltje nodig dat naar de andere
+  speler wijst, want elke speler ziet alleen zijn eigen scherm (zie
+  [two-players.md](two-players.md#later-online)).

@@ -30,6 +30,14 @@ func use_dead_zone(enabled: bool) -> void:
 	drag_bottom_margin = DEAD_ZONE.y
 
 
+## Puts the camera exactly on the followed node, without smoothing or dead
+## zone ([param exact]), when something else already did that: the
+## [SplitScreen] when two play. Otherwise it follows Keen as usual.
+func follow_exactly(exact: bool) -> void:
+	position_smoothing_enabled = not exact
+	use_dead_zone(not exact)
+
+
 ## Sets the scroll limits for a level area of [param area] pixels seen
 ## through a view of [param view_size] pixels.
 func frame(area: Rect2i, view_size: Vector2i) -> void:

@@ -36,9 +36,8 @@ func hitbox() -> Rect2:
 
 func step(session: LevelSession) -> void:
 	if not is_active:
-		var area := session.active_area()
 		# Cannons have no size, so their position counts too.
-		if not area.intersects(hitbox()) and not area.has_point(position):
+		if not session.is_in_view(hitbox()) and not session.is_point_in_view(position):
 			return
 		is_active = true
 	_think(session)
@@ -81,9 +80,9 @@ func death_sound() -> Sound.Id:
 	return Sound.Id.NONE
 
 
-## Keen touches this enemy. Most enemies kill him.
-func touch_keen(session: LevelSession) -> void:
-	session.keen.kill()
+## [param keen] touches this enemy. Most enemies kill him.
+func touch_keen(_session: LevelSession, keen: KeenBody) -> void:
+	keen.kill()
 
 
 ## What the enemy does in one tick once it is active.
@@ -120,19 +119,30 @@ func _at_ledge(session: LevelSession) -> bool:
 	return on_ground and session.collision.floor_under(ahead) == TileProperties.Floor.NONE
 
 
-## -1 when Keen is to the left, 1 when he is to the right.
+## -1 when the nearest Keen is to the left, 1 when he is to the right.
 func _direction_to_keen(session: LevelSession) -> int:
-	var keen_center := session.keen.hitbox().get_center().x
-	return -1 if keen_center < hitbox().get_center().x else 1
+	return _direction_to(session.nearest_keen(hitbox().get_center()))
 
 
-## Whether Keen stands at about the same height, so that the enemy can see
-## him along the floor.
-func _keen_at_same_height(session: LevelSession) -> bool:
-	var keen_feet := session.keen.hitbox().end.y
-	return absf(keen_feet - hitbox().end.y) < EgaGraphics.TILE_SIZE
+## -1 when [param keen] is to the left, 1 when he is to the right.
+func _direction_to(keen: KeenBody) -> int:
+	return -1 if keen.hitbox().get_center().x < hitbox().get_center().x else 1
 
 
-## Pushes Keen away from this enemy with [param speed].
-func _push_keen(session: LevelSession, direction: int, speed: float) -> void:
-	session.keen.push(direction * speed)
+## The nearest living Keen that stands at about the same height, so that
+## the enemy can see him along the floor; null when there is none.
+func _keen_at_same_height(session: LevelSession) -> KeenBody:
+	var found: KeenBody = null
+	var center := hitbox().get_center()
+	for keen in session.keens:
+		if keen.is_dead or absf(keen.hitbox().end.y - hitbox().end.y) >= EgaGraphics.TILE_SIZE:
+			continue
+		var distance := keen.hitbox().get_center().distance_to(center)
+		if found == null or distance < found.hitbox().get_center().distance_to(center):
+			found = keen
+	return found
+
+
+## Pushes [param keen] away from this enemy with [param speed].
+func _push_keen(keen: KeenBody, direction: int, speed: float) -> void:
+	keen.push(direction * speed)

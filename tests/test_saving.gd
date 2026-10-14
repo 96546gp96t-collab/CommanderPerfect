@@ -117,7 +117,7 @@ func test_controller_buttons_stay_when_keys_change() -> void:
 	KeyBindings.reset()
 	var events := InputMap.action_get_events("jump").size()
 	var keys := KeyBindings.keys_of("jump").size()
-	KeyBindings.set_keys("jump", [KEY_K] as Array[Key])
+	KeyBindings.set_keys("jump", [KEY_K] as Array[int])
 	assert_equal(InputMap.action_get_events("jump").size(), events - keys + 1, "buttons kept")
 	KeyBindings.reset()
 

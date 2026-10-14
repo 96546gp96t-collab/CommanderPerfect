@@ -4,6 +4,12 @@ extends RefCounted
 ## one fixed tick at a time (see [KeenPhysics]). This is only the logic, so
 ## that the tests can play a level; [LevelView] draws it.
 ##
+## When two play, there is a second Keen ([method add_player]). Both share
+## the [Inventory], and everything below goes for either of them; enemies
+## go after the nearest one. As in the original, the attempt is over as soon
+## as one of them has died; it is complete when one of them walks out
+## through the exit.
+##
 ## What Keen touches:
 ##   items    picked up: the tile is replaced by the background
 ##   doors    open when Keen has the keycard of their color, which is used up
@@ -74,14 +80,18 @@ var level: LevelData
 var properties: TileProperties
 var collision: LevelCollision
 var inventory: Inventory
+## Every Keen in the level: player 1 first, then player 2 if two play.
+var keens: Array[KeenBody] = []
+## Player 1's Keen, the only one when one plays.
 var keen: KeenBody
 var actors: Array[Actor] = []
 var outcome := Outcome.PLAYING
 var rng := RandomNumberGenerator.new()
-## What the player sees, in level pixels; set by the view every frame.
-## Enemies wake up when they come into it. Without a view (in the tests) it
-## is the area of an original 320x200 screen around Keen.
-var view_rect := Rect2()
+## What the players see, in level pixels: one rectangle, or one per player
+## when the screen is split. Set by the view every frame. Enemies wake up
+## when they come into it. Without a view (in the tests) it is the area of
+## an original 320x200 screen around each Keen.
+var view_rects: Array[Rect2] = []
 
 
 ## Starts an attempt at [param level_data] with Keen's sprite at [param start].
@@ -99,46 +109,100 @@ static func create(
 	session.properties = tile_properties
 	session.collision = LevelCollision.create(level_data, tile_properties)
 	session.inventory = keen_inventory
-	session.keen = KeenBody.create(session.collision, start)
-	session.keen.sound_played.connect(session.play_sound)
+	session.keen = session._create_keen(start)
 	keen_inventory.enter_level()
 	session._spawn_enemies(level_number == COMMANDER_LEVEL)
 	return session
 
 
-## Advances one tick with the buttons in [param input].
+## A second player joins: a new Keen with his sprite at [param start],
+## looking the same way as player 1.
+func add_player(start: Vector2) -> KeenBody:
+	var body := _create_keen(start)
+	body.invincible = keen.invincible
+	body.facing = keen.facing
+	return body
+
+
+## Player 2 leaves: his Keen is taken out of the level. Player 1 stays.
+func remove_player(body: KeenBody) -> void:
+	if body != keen:
+		keens.erase(body)
+
+
+## God mode (a cheat) for every Keen, also for one that joins later.
+func set_invincible(invincible: bool) -> void:
+	for body in keens:
+		body.invincible = invincible
+
+
+## Advances one tick with the buttons in [param input], for player 1.
 func step(input: KeenInput) -> void:
+	step_players([input])
+
+
+## Advances one tick with the buttons of each player in [param inputs], in
+## the order of [member keens]. A Keen without input stands still.
+func step_players(inputs: Array[KeenInput]) -> void:
 	if outcome != Outcome.PLAYING:
 		return
-	keen.has_pogo = inventory.has_pogo
-	keen.step(input)
-	if keen.fired:
-		_fire()
-	if not keen.is_dead and keen.state != KeenBody.State.EXITING:
-		_touch_tiles(keen.hitbox())
+	for index in keens.size():
+		var body := keens[index]
+		body.has_pogo = inventory.has_pogo
+		body.step(inputs[index] if index < inputs.size() else KeenInput.new())
+		if body.fired:
+			_fire(body)
+		if not body.is_dead and body.state != KeenBody.State.EXITING:
+			_touch_tiles(body)
 	# Actors can add new actors while they step; those start next tick.
 	for actor in actors.duplicate():
 		actor.step(self)
 	_resolve_hits()
 	actors = actors.filter(func(actor: Actor) -> bool: return not actor.removed)
-	if keen.exit_finished:
-		outcome = Outcome.COMPLETED
-	if keen.death_finished and outcome == Outcome.PLAYING:
-		inventory.lose_life()
-		outcome = Outcome.DIED
+	_check_outcome()
 
 
 func add_actor(actor: Actor) -> void:
 	actors.append(actor)
 
 
-## The area in which enemies wake up: the view, and one tile around it so
-## that they are already moving when they scroll into sight.
-func active_area() -> Rect2:
-	var area := view_rect
-	if not area.has_area():
-		area = Rect2(keen.hitbox().get_center() - DEFAULT_VIEW_SIZE / 2.0, DEFAULT_VIEW_SIZE)
-	return area.grow(EgaGraphics.TILE_SIZE)
+## Whether [param box] is in sight, so that an enemy there wakes up. One
+## tile around the view counts too, so that enemies are already moving when
+## they scroll into sight.
+func is_in_view(box: Rect2) -> bool:
+	for area in _view_areas():
+		if area.intersects(box):
+			return true
+	return false
+
+
+func is_point_in_view(point: Vector2) -> bool:
+	for area in _view_areas():
+		if area.has_point(point):
+			return true
+	return false
+
+
+## The living Keen nearest to [param point]; player 1 when all are dead.
+func nearest_keen(point: Vector2) -> KeenBody:
+	var nearest := keen
+	var nearest_distance := INF
+	for body in keens:
+		var distance := body.hitbox().get_center().distance_to(point)
+		if not body.is_dead and distance < nearest_distance:
+			nearest = body
+			nearest_distance = distance
+	return nearest
+
+
+## Whether one of the Keens is dead or dying.
+func has_dead_keen() -> bool:
+	return keens.any(func(body: KeenBody) -> bool: return body.is_dead)
+
+
+## Whether one of the Keens is walking out through the exit.
+func is_exiting() -> bool:
+	return keens.any(func(body: KeenBody) -> bool: return body.state == KeenBody.State.EXITING)
 
 
 ## The enemies of the level that are still around, dead or alive.
@@ -155,8 +219,9 @@ func crush(area: Rect2) -> void:
 	for enemy in enemies():
 		if enemy.touches_keen() and enemy.hitbox().intersects(area):
 			_kill(enemy, enemy.die)
-	if keen.hitbox().intersects(area):
-		keen.kill()
+	for body in keens:
+		if body.hitbox().intersects(area):
+			body.kill()
 
 
 func play_sound(sound: Sound.Id) -> void:
@@ -166,7 +231,7 @@ func play_sound(sound: Sound.Id) -> void:
 ## Plays [param sound] only when [param point] is in sight, so that cannons
 ## and robots far away stay quiet.
 func play_sound_at(sound: Sound.Id, point: Vector2) -> void:
-	if active_area().has_point(point):
+	if is_point_in_view(point):
 		play_sound(sound)
 
 
@@ -174,6 +239,44 @@ func play_sound_at(sound: Sound.Id, point: Vector2) -> void:
 func set_tile(cell: Vector2i, tile: int) -> void:
 	level.set_tile(cell, tile)
 	tile_changed.emit(cell, tile)
+
+
+func _create_keen(start: Vector2) -> KeenBody:
+	var body := KeenBody.create(collision, start)
+	body.sound_played.connect(play_sound)
+	keens.append(body)
+	return body
+
+
+## The views, one tile larger on every side.
+func _view_areas() -> Array[Rect2]:
+	var areas: Array[Rect2] = []
+	for rect in view_rects:
+		if rect.has_area():
+			areas.append(rect.grow(EgaGraphics.TILE_SIZE))
+	if areas.is_empty():
+		for body in keens:
+			var center := body.hitbox().get_center()
+			var area := Rect2(center - DEFAULT_VIEW_SIZE / 2.0, DEFAULT_VIEW_SIZE)
+			areas.append(area.grow(EgaGraphics.TILE_SIZE))
+	return areas
+
+
+## The level is complete when a Keen has walked out through the exit, and
+## over when a Keen has died. Once a Keen is on his way out, nothing can
+## stop that any more.
+func _check_outcome() -> void:
+	for body in keens:
+		if body.exit_finished:
+			outcome = Outcome.COMPLETED
+			return
+	if is_exiting():
+		return
+	for body in keens:
+		if body.death_finished and outcome == Outcome.PLAYING:
+			inventory.lose_life()
+			outcome = Outcome.DIED
+			return
 
 
 func _spawn_enemies(has_commander: bool) -> void:
@@ -205,7 +308,7 @@ static func _create_enemy(info: int, start: Vector2, has_commander: bool) -> Ene
 	return null
 
 
-## Shots against enemies and Keen, and enemies against Keen.
+## Shots against enemies and Keens, and enemies against Keens.
 func _resolve_hits() -> void:
 	var targets := enemies()
 	for actor in actors:
@@ -213,9 +316,7 @@ func _resolve_hits() -> void:
 		if shot == null or not shot.is_flying():
 			continue
 		if not shot.from_keen:
-			if not keen.is_dead and shot.hitbox().intersects(keen.hitbox()):
-				keen.kill()
-				shot.splash()
+			_shoot_keens(shot)
 			continue
 		for enemy in targets:
 			if enemy.stops_shots() and shot.hitbox().intersects(enemy.hitbox()):
@@ -223,11 +324,21 @@ func _resolve_hits() -> void:
 				_kill(enemy, enemy.hit_by_shot.bind(self))
 				shot.splash()
 				break
-	if keen.is_dead:
-		return
-	for enemy in targets:
-		if enemy.touches_keen() and enemy.hitbox().intersects(keen.hitbox()):
-			enemy.touch_keen(self)
+	for body in keens:
+		if body.is_dead:
+			continue
+		for enemy in targets:
+			if enemy.touches_keen() and enemy.hitbox().intersects(body.hitbox()):
+				enemy.touch_keen(self, body)
+
+
+## An enemy's [param shot] kills the first Keen it hits.
+func _shoot_keens(shot: RaygunShot) -> void:
+	for body in keens:
+		if not body.is_dead and shot.hitbox().intersects(body.hitbox()):
+			body.kill()
+			shot.splash()
+			return
 
 
 ## Does [param attack] to [param enemy], and lets it scream if that kills it.
@@ -238,22 +349,25 @@ func _kill(enemy: Enemy, attack: Callable) -> void:
 		play_sound(enemy.death_sound())
 
 
-func _fire() -> void:
+func _fire(body: KeenBody) -> void:
 	if inventory.charges <= 0:
 		play_sound(Sound.Id.GUN_CLICK)
 		return
 	play_sound(Sound.Id.KEEN_FIRE)
 	inventory.charges -= 1
-	add_actor(RaygunShot.create(keen.shot_position(), keen.facing))
+	add_actor(RaygunShot.create(body.shot_position(), body.facing))
 
 
-func _touch_tiles(box: Rect2) -> void:
+## What [param body] touches. A Keen cannot walk out while the other one is
+## dying: the attempt is lost then, as in the original.
+func _touch_tiles(body: KeenBody) -> void:
+	var box := body.hitbox()
 	for cell in LevelCollision.cells_under(box):
 		var tile := collision.tile_at(cell)
 		if properties.is_item(tile):
 			_pick_up(cell, tile)
-		elif properties.is_exit(tile) and keen.can_exit():
-			keen.start_exit(cell.x)
+		elif properties.is_exit(tile) and body.can_exit() and not has_dead_keen():
+			body.start_exit(cell.x)
 			play_sound(Sound.Id.LEVEL_DONE)
 		elif properties.is_teleporter(tile) and outcome == Outcome.PLAYING:
 			outcome = Outcome.TELEPORTED

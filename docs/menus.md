@@ -23,12 +23,13 @@ the spinning ball of the font (characters 9-15) as the cursor.
 | Choice | What it does |
 |---|---|
 | Return to Game | Only during a game: closes the menu |
+| Add Player 2 / Remove Player 2 | Only during a game: a second player joins or leaves (the same as F7), see [two-players.md](two-players.md) |
 | New Game | Starts at the world map with 4 lives |
 | Continue Game | Picks one of the 9 saved games (also with the keys 1-9) |
 | Save Game | Only during a game, and only on the world map (like the original). A taken position asks before it is overwritten |
 | Story | `STORYTXT.CK1`; up/down and Page Up/Page Down scroll |
 | High Scores | The table |
-| Controls | Pick an action, then press its new key. The new key replaces the first key of the action; a key belongs to one action only. Escape and F1-F6 cannot be used. "Reset to defaults" puts all keys back |
+| Controls | Three sets of keys: "One player", and "Two players: player 1" and "player 2". Pick an action, then press its new key. The new key replaces the first key of the action; a key belongs to one action only among the keys used at the same time (one player's keys and two players' keys may overlap; Status is in both). Left and right Shift, Alt and Ctrl count as different keys. Escape and F1-F7 cannot be used. "Reset to defaults" puts all keys back |
 | Options | Sound, widescreen, 4:3 pixels, full screen and smooth motion on or off; graphics original, xBRZ or HD (HD only once the player has made it, see [graphics.md](graphics.md)) |
 | Quit to Title | Only during a game |
 | Quit | Closes the program |

@@ -67,10 +67,10 @@ func test_enemies_wait_until_keen_is_near() -> void:
 func test_enemies_wake_up_when_they_come_into_view() -> void:
 	var session := _session(FIELD)
 	var garg := _add(session, Garg.create(_on_floor(Garg.BODY_BOX, 25)))
-	session.view_rect = Rect2(_column_left(0), _row_top(0), 320, 200)
+	session.view_rects = [Rect2(_column_left(0), _row_top(0), 320, 200)]
 	_run(session, KeenInput.create(0), 5)
 	assert_true(not garg.is_active, "out of view")
-	session.view_rect.size.x = 426
+	session.view_rects[0].size.x = 426
 	_run(session, KeenInput.create(0), 1)
 	assert_true(garg.is_active, "in view on a wider screen")
 

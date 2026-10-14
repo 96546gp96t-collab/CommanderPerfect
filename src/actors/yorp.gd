@@ -75,10 +75,9 @@ func death_sound() -> Sound.Id:
 	return Sound.Id.YORP_SCREAM
 
 
-func touch_keen(session: LevelSession) -> void:
+func touch_keen(session: LevelSession, keen: KeenBody) -> void:
 	if mode == Mode.STUNNED:
 		return
-	var keen := session.keen
 	if keen.hitbox().end.y < hitbox().end.y - EgaGraphics.TILE_SIZE:
 		# Landed on its head.
 		_set_mode(Mode.STUNNED)
@@ -88,7 +87,7 @@ func touch_keen(session: LevelSession) -> void:
 	else:
 		if not keen.is_pushed():
 			session.play_sound(Sound.Id.YORP_BUMP)
-		_push_keen(session, _direction_to_keen(session), PUSH_SPEED)
+		_push_keen(keen, _direction_to(keen), PUSH_SPEED)
 
 
 func _think(session: LevelSession) -> void:

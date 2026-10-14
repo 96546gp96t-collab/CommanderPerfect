@@ -22,6 +22,8 @@ signal name_entered(player_name: String)
 signal closed
 
 const CHOICE_RESUME := &"resume"
+## A second player joins, or leaves when two are playing.
+const CHOICE_SECOND_PLAYER := &"second_player"
 const CHOICE_NEW_GAME := &"new_game"
 const CHOICE_LOAD := &"load"
 const CHOICE_SAVE := &"save"
@@ -34,6 +36,7 @@ const SLOTS_LOAD := &"slots_load"
 const SLOTS_SAVE := &"slots_save"
 const OVERWRITE := &"overwrite"
 const CONTROLS := &"controls"
+const KEY_SET := &"key_set"
 const PRESS_KEY := &"press_key"
 const OPTIONS := &"options"
 const STORY := &"story"
@@ -64,6 +67,9 @@ var _story_offset := 0
 var _pending_slot := 0
 ## The action waiting for its new key.
 var _pending_action := ""
+## The set of keys shown in the key set menu: 0 for one player, 1 and 2 for
+## the players when two play.
+var _key_set := 0
 var _typed_name := ""
 var _place_word := ""
 
@@ -72,13 +78,16 @@ func is_open() -> bool:
 	return not _stack.is_empty()
 
 
-## The main menu. [param in_game] adds "Return to game" and "Save game";
-## saving is only possible when [param can_save] (on the world map).
-func open_main(in_game: bool, can_save: bool) -> void:
+## The main menu. [param in_game] adds "Return to game", "Save game" and
+## adding or removing the second player ([param two_players] says whether
+## two are playing now); saving is only possible when [param can_save] (on
+## the world map).
+func open_main(in_game: bool, can_save: bool, two_players := false) -> void:
 	_stack.clear()
 	var menu := Menu.create(MAIN, ["     MAIN MENU"])
 	if in_game:
 		menu.add("Return to Game", CHOICE_RESUME)
+		menu.add("Remove Player 2" if two_players else "Add Player 2", CHOICE_SECOND_PLAYER)
 	menu.add("New Game", CHOICE_NEW_GAME)
 	menu.add("Continue Game", SLOTS_LOAD)
 	if in_game:
@@ -187,6 +196,8 @@ func _pick(menu: Menu, item: Menu.Item) -> void:
 			if item.id == &"yes":
 				_save(_pending_slot)
 		CONTROLS:
+			_pick_key_set(item)
+		KEY_SET:
 			_pick_control(item.id)
 		OPTIONS:
 			_toggle_option(item.id)
@@ -229,22 +240,39 @@ func _slots_menu(kind: StringName, header: PackedStringArray) -> Menu:
 	return menu
 
 
+## The keys for playing alone, and for each of two players.
 func _controls_menu() -> Menu:
-	var menu := Menu.create(CONTROLS, ["  CONTROLS", "  Pick one to change it"])
-	for action: String in KeyBindings.ACTIONS:
-		menu.add(
-			"%-7s %s" % [KeyBindings.ACTIONS[action], KeyBindings.describe(action)],
-			StringName(action)
-		)
+	var menu := Menu.create(CONTROLS, ["  CONTROLS"])
+	menu.add("One player", KEY_SET, 0)
+	menu.add("Two players: player 1", KEY_SET, 1)
+	menu.add("Two players: player 2", KEY_SET, 2)
 	menu.add("Reset to defaults", &"reset")
 	return menu
 
 
-func _pick_control(id: StringName) -> void:
-	if id == &"reset":
+func _pick_key_set(item: Menu.Item) -> void:
+	if item.id == &"reset":
 		KeyBindings.reset()
-		_refresh_controls()
+		settings.save()
+		show_message(["All keys are back as", "they were.  Press a key"])
 		return
+	_key_set = item.value
+	_push(_key_set_menu())
+
+
+## The keys of one set (see [member _key_set]); pick one to change it.
+func _key_set_menu() -> Menu:
+	var title := "  ONE PLAYER" if _key_set == 0 else "  PLAYER %d OF TWO" % _key_set
+	var menu := Menu.create(KEY_SET, [title, "  Pick one to change it"])
+	var actions: Dictionary = (
+		KeyBindings.ACTIONS if _key_set == 0 else KeyBindings.PLAYER_ACTIONS[_key_set - 1]
+	)
+	for action: String in actions:
+		menu.add("%-7s %s" % [actions[action], KeyBindings.describe(action)], StringName(action))
+	return menu
+
+
+func _pick_control(id: StringName) -> void:
 	_pending_action = String(id)
 	_push(
 		(
@@ -253,7 +281,7 @@ func _pick_control(id: StringName) -> void:
 				PRESS_KEY,
 				[
 					"Press the new key for",
-					"%s, or Escape." % KeyBindings.ACTIONS[_pending_action].to_upper(),
+					"%s, or Escape." % KeyBindings.action_name(_pending_action).to_upper(),
 				]
 			)
 		)
@@ -267,18 +295,19 @@ func _handle_new_key(event: InputEvent) -> void:
 	if key.physical_keycode == KEY_ESCAPE:
 		_pop()
 		return
-	if not KeyBindings.can_bind(key.physical_keycode):
+	var code := KeyBindings.code_of(key)
+	if not KeyBindings.can_bind(code):
 		return
-	KeyBindings.bind(_pending_action, key.physical_keycode)
+	KeyBindings.bind(_pending_action, code)
 	settings.save()
 	_pop()
 	_refresh_controls()
 
 
-## Rebuilds the controls menu so that it shows the new keys.
+## Rebuilds the menu of the key set so that it shows the new keys.
 func _refresh_controls() -> void:
 	var cursor := _top().cursor
-	_stack[-1] = _controls_menu()
+	_stack[-1] = _key_set_menu()
 	_top().cursor = cursor
 	settings.save()
 	_redraw()
