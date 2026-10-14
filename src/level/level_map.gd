@@ -55,6 +55,13 @@ func show_level(level: LevelData, properties: TileProperties = null) -> void:
 			_draw_tile(cell, tile)
 
 
+## Draws the level with [param new_tile_set] from now on (other graphics,
+## the same tile numbers), keeping every cell.
+func use_tile_set(new_tile_set: TileSet) -> void:
+	tile_set = new_tile_set
+	_foreground.tile_set = new_tile_set
+
+
 ## Changes the tile in [param cell], for example when Keen picks up an item.
 func set_tile(cell: Vector2i, tile: int) -> void:
 	if _properties != null and _properties.is_animated(tile):

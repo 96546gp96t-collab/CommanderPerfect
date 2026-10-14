@@ -2,16 +2,30 @@ class_name ActorLayer
 extends Node2D
 ## Draws the [Actor]s of a [LevelSession]: one Sprite2D per actor, created
 ## when the actor appears and freed when it is gone.
+##
+## [method show_actors] is called after every tick; [method place] puts the
+## sprites on the screen every frame (see [Interpolation]).
 
-var _graphics: EgaGraphics
-var _sprite_textures: Dictionary[int, ImageTexture] = {}
+var _textures: GraphicsTextures
 var _sprites: Dictionary[Actor, Sprite2D] = {}
+var _motions: Dictionary[Actor, Interpolation] = {}
 
 
-## Uses the sprites and tiles in [param graphics] for drawing.
-func set_graphics(graphics: EgaGraphics) -> void:
-	_graphics = graphics
-	_sprite_textures.clear()
+## Uses the sprites and tiles in [param textures] for drawing.
+func set_textures(textures: GraphicsTextures) -> void:
+	_textures = textures
+	refresh()
+
+
+## Takes the textures again, after the graphics changed.
+func refresh() -> void:
+	for actor in _sprites:
+		var sprite := _sprites[actor]
+		if actor is OpeningDoor:
+			sprite.texture = _textures.door(actor.tiles)
+		else:
+			sprite.texture = null
+			_update_sprite(sprite, actor)
 
 
 ## Removes every sprite, for example when a level starts.
@@ -19,6 +33,7 @@ func clear() -> void:
 	for sprite in _sprites.values():
 		sprite.queue_free()
 	_sprites.clear()
+	_motions.clear()
 
 
 ## Shows [param actors] as they are now.
@@ -27,26 +42,36 @@ func show_actors(actors: Array[Actor]) -> void:
 		if actor.removed or not actors.has(actor):
 			_sprites[actor].queue_free()
 			_sprites.erase(actor)
+			_motions.erase(actor)
 	for actor in actors:
 		var sprite: Sprite2D = _sprites.get(actor)
 		if sprite == null:
 			sprite = _create_sprite(actor)
 			_sprites[actor] = sprite
+			_motions[actor] = Interpolation.new()
+		_motions[actor].move_to(actor.position)
 		_update_sprite(sprite, actor)
+	place(1.0, false)
+
+
+## Puts every sprite [param blend] of the way from the previous tick to the
+## last one; see [method Interpolation.at].
+func place(blend: float, smooth: bool) -> void:
+	for actor in _sprites:
+		_sprites[actor].position = _motions[actor].at(blend, smooth)
 
 
 func _create_sprite(actor: Actor) -> Sprite2D:
 	var sprite := Sprite2D.new()
 	sprite.centered = false
 	if actor is OpeningDoor:
-		sprite.texture = _door_texture(actor.tiles)
+		sprite.texture = _textures.door(actor.tiles)
 		sprite.region_enabled = true
 	add_child(sprite)
 	return sprite
 
 
 func _update_sprite(sprite: Sprite2D, actor: Actor) -> void:
-	sprite.position = actor.position.floor()
 	if actor is OpeningDoor:
 		# The door sinks into the floor: only its top part is still visible.
 		sprite.region_rect = Rect2(0, 0, EgaGraphics.TILE_SIZE, actor.visible_height)
@@ -54,20 +79,4 @@ func _update_sprite(sprite: Sprite2D, actor: Actor) -> void:
 	var index := actor.sprite_index()
 	sprite.visible = index >= 0
 	if index >= 0:
-		sprite.texture = _sprite_texture(index)
-
-
-func _sprite_texture(index: int) -> ImageTexture:
-	if not _sprite_textures.has(index) and index < _graphics.sprites.size():
-		_sprite_textures[index] = ImageTexture.create_from_image(_graphics.sprites[index])
-	return _sprite_textures.get(index)
-
-
-## The door tiles stacked on top of each other in one picture.
-func _door_texture(tiles: PackedInt32Array) -> ImageTexture:
-	var size := EgaGraphics.TILE_SIZE
-	var image := Image.create_empty(size, size * tiles.size(), false, Image.FORMAT_RGBA8)
-	for i in tiles.size():
-		var tile := _graphics.tiles[tiles[i]]
-		image.blit_rect(tile, Rect2i(0, 0, size, size), Vector2i(0, i * size))
-	return ImageTexture.create_from_image(image)
+		sprite.texture = _textures.sprite(index)

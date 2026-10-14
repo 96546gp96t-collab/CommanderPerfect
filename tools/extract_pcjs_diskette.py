@@ -6,7 +6,7 @@ table with an MD5 hash per file. This script rebuilds the raw FAT12 disk,
 copies every file in the root directory to the output folder and checks it
 against the hash.
 
-Used in cloud sessions to get the Keen 1 shareware files, see CLAUDE.md.
+Used by tools/get_shareware.sh to get the Keen 1 shareware files.
 
 Usage:
     python3 tools/extract_pcjs_diskette.py KEEN1-V11.json game_data/keen1

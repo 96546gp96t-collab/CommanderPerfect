@@ -10,6 +10,9 @@
 # Exported builds (tools/build_macos.sh); they hold a copy of the game data.
 /build/
 
+# Real-ESRGAN, downloaded for tools/make_hd_graphics.sh (not our code)
+/tools/realesrgan/
+
 # Output of tools/export_graphics.gd (derived from the original game data)
 /exported/
 

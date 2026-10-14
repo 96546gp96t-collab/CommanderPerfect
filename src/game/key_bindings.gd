@@ -20,7 +20,7 @@ const ACTIONS: Dictionary[String, String] = {
 	"status": "Status",
 }
 ## Keys the game itself uses; they cannot be given to an action.
-const RESERVED_KEYS: Array[Key] = [KEY_ESCAPE, KEY_F1, KEY_F2, KEY_F3, KEY_F4]
+const RESERVED_KEYS: Array[Key] = [KEY_ESCAPE, KEY_F1, KEY_F2, KEY_F3, KEY_F4, KEY_F5, KEY_F6]
 
 
 ## The physical keycodes of the keys of [param action], in order.

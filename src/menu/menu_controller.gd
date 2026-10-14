@@ -44,6 +44,9 @@ const NAME := &"name"
 const TEXT_WIDTH := EndingSequence.TEXT_WIDTH
 const TEXT_LINES := EndingSequence.TEXT_LINES
 const PAGE_KEYS: Dictionary[Key, int] = {KEY_PAGEUP: -TEXT_LINES, KEY_PAGEDOWN: TEXT_LINES}
+## How the options menu names the graphics, in the order of
+## [enum DisplaySettings.Graphics].
+const GRAPHICS_LABELS: Array[String] = ["ORIGINAL", "XBRZ", "HD"]
 const FIRST_PRINTABLE := 32
 const LAST_PRINTABLE := 126
 
@@ -52,6 +55,8 @@ var saves := SaveGames.new()
 var settings := UserSettings.new()
 ## The story, laid out for the window; empty when STORYTXT.CK1 is missing.
 var story := PackedStringArray()
+## Whether the player has made HD graphics, so that they can be picked.
+var hd_available := false
 var _stack: Array[Menu] = []
 var _seconds := 0.0
 var _story_offset := 0
@@ -282,14 +287,27 @@ func _refresh_controls() -> void:
 func _options_menu() -> Menu:
 	var display := settings.display
 	var menu := Menu.create(OPTIONS, ["  OPTIONS"])
-	menu.add("Sound        " + _on_off(settings.sound_enabled), &"sound")
+	menu.add("Sound         " + _on_off(settings.sound_enabled), &"sound")
 	menu.add(
-		"Widescreen   " + _on_off(display.aspect == DisplaySettings.Aspect.WIDESCREEN),
+		"Widescreen    " + _on_off(display.aspect == DisplaySettings.Aspect.WIDESCREEN),
 		&"widescreen"
 	)
-	menu.add("4:3 pixels   " + _on_off(display.correct_pixel_aspect), &"pixels")
-	menu.add("Full screen  " + _on_off(settings.fullscreen), &"fullscreen")
+	menu.add("4:3 pixels    " + _on_off(display.correct_pixel_aspect), &"pixels")
+	menu.add("Full screen   " + _on_off(settings.fullscreen), &"fullscreen")
+	menu.add("Smooth motion " + _on_off(display.smooth_motion), &"smooth_motion")
+	menu.add("Graphics      " + GRAPHICS_LABELS[display.graphics], &"graphics")
 	return menu
+
+
+## The graphics after [param current] when the player switches; HD only
+## when the player has made them ([param with_hd]).
+static func next_graphics(
+	current: DisplaySettings.Graphics, with_hd: bool
+) -> DisplaySettings.Graphics:
+	var next := (current + 1) % DisplaySettings.Graphics.size() as DisplaySettings.Graphics
+	if next == DisplaySettings.Graphics.HD and not with_hd:
+		next = DisplaySettings.Graphics.ORIGINAL
+	return next
 
 
 func _toggle_option(id: StringName) -> void:
@@ -307,6 +325,10 @@ func _toggle_option(id: StringName) -> void:
 			display.correct_pixel_aspect = not display.correct_pixel_aspect
 		&"fullscreen":
 			settings.fullscreen = not settings.fullscreen
+		&"smooth_motion":
+			display.smooth_motion = not display.smooth_motion
+		&"graphics":
+			display.graphics = next_graphics(display.graphics, hd_available)
 	settings.save()
 	settings_changed.emit()
 	var cursor := _top().cursor

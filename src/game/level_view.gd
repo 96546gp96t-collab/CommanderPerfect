@@ -22,8 +22,13 @@ extends Control
 ## Shift+N / Shift+P go to the next or previous map, Shift+I gives every
 ## item, Shift+G toggles god mode.
 ##
-## Everything is rendered at its original resolution into the World viewport.
-## That picture is then stretched to fit the window, see [DisplaySettings].
+## Everything is drawn in game pixels into the World viewport. With the
+## original picture that viewport has the original resolution; with xBRZ,
+## HD graphics or smooth motion it is a whole number of times larger, about
+## as large as the window, so that the finer graphics and the positions in
+## between pixels can be seen. The picture is then stretched to fit the
+## window with every game pixel the same size, see [DisplaySettings] and
+## docs/graphics.md. F5 switches the graphics, F6 smooth motion.
 ##
 ## Command-line options: [code]-- --level=N[/code] starts in level N
 ## (80 is the world map) instead of at the title; [code]-- --ending[/code]
@@ -45,6 +50,12 @@ const GAME_OVER_CELLS := Vector2i(14, 3)
 const MESSAGE_SECONDS := 3.0
 ## Seconds the "Keens Left" window stays open, unless a button closes it.
 const LIVES_SECONDS := 3.0
+## The largest number of screen pixels per game pixel that the World
+## viewport uses.
+const MAX_RENDER_SCALE := 8
+const EVEN_PIXELS_SHADER := preload("res://src/graphics/even_pixels.gdshader")
+const GRAPHICS_TITLES: Array[String] = ["Original graphics", "xBRZ graphics", "HD graphics"]
+const MISSING_HD_MESSAGE := "No HD graphics yet: make them with tools/make_hd_graphics.sh"
 const MISSING_DATA_MESSAGE := (
 	"Keen 1 data not found. Put the files in game_data/keen1 "
 	+ "(see game_data/README.md) or start with: -- --data-dir=PATH"
@@ -81,6 +92,9 @@ var _god_mode := false
 var _sounds := SoundPlayer.new()
 var _menus := MenuController.new()
 var _textures: GraphicsTextures
+var _graphics_loader: GraphicsLoader
+## The picture of Keen's house; null when FINALE.CK1 could not be read.
+var _finale_image: Image
 var _saves := SaveGames.new()
 var _high_scores := HighScores.new()
 ## The words for the places in the high score table; null when not found.
@@ -126,6 +140,9 @@ func _ready() -> void:
 	_apply_window_mode()
 	resized.connect(_fit_screen)
 	_screen.texture = _world.get_texture()
+	_screen.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
+	_screen.material = ShaderMaterial.new()
+	_screen.material.shader = EVEN_PIXELS_SHADER
 	_apply_display_settings()
 
 	_files = GameFiles.locate()
@@ -145,15 +162,19 @@ func _ready() -> void:
 		_show_error("The tile properties in %s could not be read." % GameFiles.EXECUTABLE)
 		return
 
-	_level_map.tile_set = LevelTileSet.build(_graphics)
-	_keen.set_graphics(_graphics)
-	_mark.set_graphics(_graphics)
-	_actor_layer.set_graphics(_graphics)
 	_textures = GraphicsTextures.create(_graphics)
+	_level_map.tile_set = LevelTileSet.build(_graphics, _textures)
+	_keen.set_textures(_textures)
+	_mark.set_textures(_textures)
+	_actor_layer.set_textures(_textures)
 	_window.set_textures(_textures)
 	_pictures.set_textures(_textures)
 	_hud.set_textures(_textures)
 	_load_texts()
+	_finale_image = FinaleImage.load_from(_files)
+	_graphics_loader = GraphicsLoader.create(_files, _graphics, _finale_image)
+	_menus.hd_available = HdPack.exists(_files)
+	_apply_graphics()
 	if _files.has_file(GameFiles.SOUNDS):
 		_sounds.load_sounds(SoundFile.load_from(_files))
 	if OS.get_cmdline_user_args().has(ENDING_OPTION):
@@ -181,8 +202,15 @@ func _load_texts() -> void:
 		)
 
 
+func _exit_tree() -> void:
+	if _graphics_loader != null:
+		_graphics_loader.finish()
+
+
 func _process(delta: float) -> void:
 	_message_time_left -= delta
+	if _graphics_loader != null and _graphics_loader.poll():
+		_apply_graphics()
 	if _menus.is_open():
 		_update_status()
 		return
@@ -198,7 +226,7 @@ func _process(delta: float) -> void:
 func _play(delta: float) -> void:
 	_time_left = minf(_time_left + delta, KeenPhysics.MAX_TICKS_PER_FRAME * KeenPhysics.TICK)
 	if _session != null:
-		var view_size := Vector2(_world.size)
+		var view_size := Vector2(_settings.game_size())
 		_session.view_rect = Rect2(
 			_camera.get_screen_center_position() - view_size / 2.0, view_size
 		)
@@ -206,7 +234,17 @@ func _play(delta: float) -> void:
 	while _time_left >= KeenPhysics.TICK and _mode == mode:
 		_time_left -= KeenPhysics.TICK
 		_tick(KeenInput.from_actions())
-	_show_sprites()
+		_show_sprites()
+	_place_sprites(_time_left / KeenPhysics.TICK)
+
+
+## Puts the sprites [param blend] of the way from the previous tick to the
+## last one, when motion is smooth; otherwise on the last one.
+func _place_sprites(blend: float) -> void:
+	var smooth := _settings.smooth_motion
+	_keen.place(blend, smooth)
+	_mark.place(blend, smooth)
+	_actor_layer.place(blend, smooth)
 
 
 ## One tick of whatever is going on.
@@ -264,8 +302,9 @@ func _unhandled_input(event: InputEvent) -> void:
 	get_viewport().set_input_as_handled()
 
 
-## F1-F4: the help line, widescreen, the shape of the pixels and full
-## screen. Returns whether [param event] was one of them.
+## F1-F6: the help line, widescreen, the shape of the pixels, full screen,
+## the graphics and smooth motion. Returns whether [param event] was one of
+## them.
 func _handle_display_keys(event: InputEvent) -> bool:
 	if event.is_action_pressed("toggle_fullscreen"):
 		_user_settings.fullscreen = not _is_fullscreen()
@@ -278,6 +317,13 @@ func _handle_display_keys(event: InputEvent) -> bool:
 		)
 	elif event.is_action_pressed("toggle_pixel_aspect"):
 		_settings.correct_pixel_aspect = not _settings.correct_pixel_aspect
+	elif event.is_action_pressed("toggle_graphics"):
+		_settings.graphics = MenuController.next_graphics(_settings.graphics, _menus.hd_available)
+		_show_message(GRAPHICS_TITLES[_settings.graphics])
+		_apply_graphics()
+	elif event.is_action_pressed("toggle_smooth_motion"):
+		_settings.smooth_motion = not _settings.smooth_motion
+		_show_message("Smooth motion " + ("on" if _settings.smooth_motion else "off"))
 	elif event.is_action_pressed("toggle_help"):
 		_show_help = not _show_help
 		return true
@@ -425,7 +471,45 @@ func _load_game(slot: int) -> void:
 func _on_settings_changed() -> void:
 	_sounds.set_enabled(_user_settings.sound_enabled)
 	_apply_window_mode()
+	_apply_graphics()
 	_apply_display_settings()
+
+
+## Switches to the graphics the settings ask for. xBRZ and HD graphics are
+## made on a worker thread the first time; until they are ready the current
+## graphics stay.
+func _apply_graphics() -> void:
+	if _textures == null:
+		return
+	var style := _settings.graphics
+	if style == DisplaySettings.Graphics.ORIGINAL:
+		_use_graphics(null)
+		return
+	var scaled := _graphics_loader.fetch(style)
+	if scaled != null:
+		_use_graphics(scaled)
+	elif _graphics_loader.has_failed(style):
+		_show_message(MISSING_HD_MESSAGE)
+		_settings.graphics = DisplaySettings.Graphics.ORIGINAL
+		_use_graphics(null)
+	elif _graphics_loader.is_busy():
+		_show_message("Preparing %s..." % GRAPHICS_TITLES[style])
+
+
+func _use_graphics(scaled: ScaledGraphics) -> void:
+	if _textures.scaled == scaled:
+		return
+	_textures.use_scaled(scaled)
+	_level_map.use_tile_set(LevelTileSet.build(_graphics, _textures))
+	_keen.refresh()
+	_mark.refresh()
+	_actor_layer.refresh()
+	_window.queue_redraw()
+	_hud.queue_redraw()
+	_pictures.queue_redraw()
+	if _picture.visible:
+		_show_picture(true)
+	_fit_screen()
 
 
 ## Full screen or a window, as the settings say.
@@ -685,15 +769,12 @@ func _show_picture(shown: bool) -> void:
 	_picture.visible = shown
 	if not shown:
 		return
-	if _picture.texture == null:
-		var image := FinaleImage.load_from(_files)
-		if image != null:
-			_picture.texture = ImageTexture.create_from_image(image)
+	_picture.texture = _textures.finale(_finale_image)
 	_picture.position.x = floorf((_settings.game_size().x - FinaleImage.SIZE.x) / 2.0)
 	var bitmap := _ending.window_bitmap()
 	_window_light.visible = not bitmap.is_empty()
 	if not bitmap.is_empty():
-		_window_light.texture = ImageTexture.create_from_image(_graphics.find_bitmap(bitmap))
+		_window_light.texture = _textures.bitmap(bitmap)
 		_window_light.position = EndingSequence.WINDOW_POSITION
 
 
@@ -741,6 +822,8 @@ func _follow(target: Node2D) -> void:
 	_mark.visible = following_keen
 	_free_look.set_process(target == _free_look)
 	_camera.use_dead_zone(following_keen)
+	_keen.snap()
+	_mark.snap()
 	_move_camera_anchor()
 	_camera.reset_smoothing()
 
@@ -755,19 +838,24 @@ func _move_camera_anchor() -> void:
 		Mode.LEVEL:
 			# When Keen dies the camera stays put, so that he flies off the screen.
 			if not _session.keen.is_dead:
-				_camera_anchor.position = _session.keen.position + KeenPhysics.SPRITE_SIZE / 2.0
+				_camera_anchor.position = _keen.smooth_position() + KeenPhysics.SPRITE_SIZE / 2.0
 		Mode.MAP:
-			_camera_anchor.position = _map_session.keen.center()
+			_camera_anchor.position = _map_keen_center()
 		Mode.ENDING:
 			var flight := _ending.flight
 			if _ending.map_number() == GameFiles.ENDING_LEVEL and flight.scrolling:
-				_camera_anchor.position = flight.position
+				_camera_anchor.position = _keen.smooth_position()
 			elif _ending.map_number() == GameFiles.WORLD_MAP_LEVEL and _map_session != null:
-				_camera_anchor.position = _map_session.keen.center()
+				_camera_anchor.position = _map_keen_center()
+
+
+## The middle of Keen on the world map, where he is drawn now.
+func _map_keen_center() -> Vector2:
+	var map_keen := _map_session.keen
+	return _keen.smooth_position() + map_keen.center() - map_keen.position
 
 
 func _apply_display_settings() -> void:
-	_world.size = _settings.game_size()
 	_window.view_size = _settings.game_size()
 	_hud.view_size = _settings.game_size()
 	_hud.queue_redraw()
@@ -791,6 +879,25 @@ func _fit_screen() -> void:
 	var rect := _settings.fit_rect(size)
 	_screen.position = rect.position
 	_screen.size = rect.size
+	var game_size := _settings.game_size()
+	var render_scale := 1
+	if not _settings.is_original_picture():
+		render_scale = clampi(ceili(rect.size.y / game_size.y), 2, MAX_RENDER_SCALE)
+	_world.size_2d_override = game_size
+	_world.size_2d_override_stretch = true
+	if _world.size != game_size * render_scale:
+		_world.size = game_size * render_scale
+	# Snapping works in game pixels: right for the original picture, but it
+	# would undo smooth motion on a larger viewport.
+	_world.snap_2d_transforms_to_pixel = render_scale == 1
+	_world.snap_2d_vertices_to_pixel = render_scale == 1
+	# Scaled graphics are drawn smoothly; the original pixels stay sharp.
+	var smooth_textures := _textures != null and _textures.scaled != null
+	_world.canvas_item_default_texture_filter = (
+		Viewport.DEFAULT_CANVAS_ITEM_TEXTURE_FILTER_LINEAR
+		if smooth_textures
+		else Viewport.DEFAULT_CANVAS_ITEM_TEXTURE_FILTER_NEAREST
+	)
 
 
 func _update_status() -> void:
@@ -821,13 +928,14 @@ func _update_status() -> void:
 		lines
 		. append(
 			(
-				"%s   %s %d x %d, %s pixels"
+				"%s   %s %d x %d, %s pixels, %s"
 				% [
 					"Ending" if _mode == Mode.ENDING else GameFiles.level_title(_level_number),
 					_settings.aspect_name(),
 					game_size.x,
 					game_size.y,
 					"4:3 monitor" if _settings.correct_pixel_aspect else "square",
+					GRAPHICS_TITLES[_settings.graphics].to_lower(),
 				]
 			)
 		)

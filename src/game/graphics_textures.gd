@@ -1,16 +1,26 @@
 class_name GraphicsTextures
 extends RefCounted
 ## Textures of the game graphics, made the first time they are needed: font
-## characters, tiles, sprites and bitmaps. Shared by the nodes that draw
-## windows and screens, so that each picture becomes a texture only once.
+## characters, tiles, sprites, bitmaps and the picture of Keen's house.
+## Shared by everything that draws them, so that each picture becomes a
+## texture only once.
+##
+## With [member scaled] graphics (xBRZ or HD) the textures hold the larger
+## images but keep the size of the original ones, so they are drawn in the
+## same place at the same size; only the picture is sharper. Set it with
+## [method use_scaled] and draw everything again.
 
 var graphics: EgaGraphics
+## The larger versions of the graphics, or null for the original pixels.
+var scaled: ScaledGraphics
 var _font: Dictionary[int, ImageTexture] = {}
 var _clear_font: Dictionary[int, ImageTexture] = {}
 var _tiles: Dictionary[int, ImageTexture] = {}
 var _clear_tiles: Dictionary[int, ImageTexture] = {}
 var _sprites: Dictionary[int, ImageTexture] = {}
 var _bitmaps: Dictionary[String, ImageTexture] = {}
+var _doors: Dictionary[PackedInt32Array, ImageTexture] = {}
+var _finale: ImageTexture
 
 
 static func create(ega_graphics: EgaGraphics) -> GraphicsTextures:
@@ -19,12 +29,31 @@ static func create(ega_graphics: EgaGraphics) -> GraphicsTextures:
 	return textures
 
 
+## Switches to [param scaled_graphics] (null for the original pixels) and
+## forgets every texture made so far.
+func use_scaled(scaled_graphics: ScaledGraphics) -> void:
+	scaled = scaled_graphics
+	_font.clear()
+	_clear_font.clear()
+	_tiles.clear()
+	_clear_tiles.clear()
+	_sprites.clear()
+	_bitmaps.clear()
+	_doors.clear()
+	_finale = null
+
+
+## How many times larger the images in the textures are than the original.
+func factor() -> int:
+	return scaled.factor if scaled != null else 1
+
+
 ## Font character [param code], or null when the font has no such character.
 func font_char(code: int) -> ImageTexture:
 	if graphics == null or code < 0 or code >= graphics.font_chars.size():
 		return null
 	if not _font.has(code):
-		_font[code] = ImageTexture.create_from_image(graphics.font_chars[code])
+		_font[code] = _texture(graphics.font_chars[code], _scaled_font_char(code))
 	return _font[code]
 
 
@@ -41,7 +70,7 @@ func clear_font_char(code: int) -> ImageTexture:
 			for x in image.get_width():
 				if image.get_pixel(x, y).is_equal_approx(white):
 					image.set_pixel(x, y, Color.TRANSPARENT)
-		_clear_font[code] = ImageTexture.create_from_image(image)
+		_clear_font[code] = _derived_texture(image, _scaled_font_char(code))
 	return _clear_font[code]
 
 
@@ -49,7 +78,7 @@ func tile(index: int) -> ImageTexture:
 	if graphics == null or index < 0 or index >= graphics.tiles.size():
 		return null
 	if not _tiles.has(index):
-		_tiles[index] = ImageTexture.create_from_image(graphics.tiles[index])
+		_tiles[index] = _texture(graphics.tiles[index], _scaled_tile(index))
 	return _tiles[index]
 
 
@@ -64,7 +93,7 @@ func clear_tile(index: int) -> ImageTexture:
 		var image := graphics.tiles[index].duplicate() as Image
 		image.convert(Image.FORMAT_RGBA8)
 		_clear_background(image, EgaPalette.color(EgaPalette.LIGHT_GRAY))
-		_clear_tiles[index] = ImageTexture.create_from_image(image)
+		_clear_tiles[index] = _derived_texture(image, _scaled_tile(index))
 	return _clear_tiles[index]
 
 
@@ -72,7 +101,8 @@ func sprite(index: int) -> ImageTexture:
 	if graphics == null or index < 0 or index >= graphics.sprites.size():
 		return null
 	if not _sprites.has(index):
-		_sprites[index] = ImageTexture.create_from_image(graphics.sprites[index])
+		var big := scaled.sprites[index] if scaled != null else null
+		_sprites[index] = _texture(graphics.sprites[index], big)
 	return _sprites[index]
 
 
@@ -81,11 +111,126 @@ func bitmap(bitmap_name: String) -> ImageTexture:
 	if graphics == null:
 		return null
 	if not _bitmaps.has(bitmap_name):
-		var image := graphics.find_bitmap(bitmap_name)
-		if image == null:
+		var index := graphics.bitmap_index(bitmap_name)
+		if index < 0:
 			return null
-		_bitmaps[bitmap_name] = ImageTexture.create_from_image(image)
+		var big := scaled.bitmaps[index] if scaled != null else null
+		_bitmaps[bitmap_name] = _texture(graphics.bitmaps[index], big)
 	return _bitmaps[bitmap_name]
+
+
+## The picture of Keen's house in [param original] (from FINALE.CK1).
+func finale(original: Image) -> ImageTexture:
+	if _finale == null and original != null:
+		var big := scaled.finale if scaled != null else null
+		_finale = _texture(original, big if big != null else null)
+	return _finale
+
+
+## The tiles [param tiles] stacked on top of each other in one picture,
+## for a door that sinks into the floor.
+func door(tiles: PackedInt32Array) -> ImageTexture:
+	if not _doors.has(tiles):
+		_doors[tiles] = _texture(_stack(graphics.tiles, tiles), _stack(_scaled_tiles(), tiles))
+	return _doors[tiles]
+
+
+## Every tile in one picture, [param columns] tiles wide, each with a border
+## of [param padding] pixels that repeats its edge (so that smooth scaling
+## never picks up a neighbour). Scaled graphics give a larger picture with
+## the size of the original one.
+func tile_atlas(columns: int, padding: int) -> ImageTexture:
+	var original := _atlas(graphics.tiles, 1, columns, padding)
+	var big := _atlas(scaled.tiles, scaled.factor, columns, padding) if scaled != null else null
+	return _texture(original, big)
+
+
+func _scaled_font_char(code: int) -> Image:
+	return scaled.font_chars[code] if scaled != null else null
+
+
+func _scaled_tile(index: int) -> Image:
+	return scaled.tiles[index] if scaled != null else null
+
+
+func _scaled_tiles() -> Array[Image]:
+	return scaled.tiles if scaled != null else ([] as Array[Image])
+
+
+## A texture of [param original], showing [param big] (a scaled version of
+## it, or null) at the size of the original.
+static func _texture(original: Image, big: Image) -> ImageTexture:
+	if big == null:
+		return ImageTexture.create_from_image(original)
+	var texture := ImageTexture.create_from_image(big)
+	texture.set_size_override(original.get_size())
+	return texture
+
+
+## A texture of [param processed], an image made from an original one whose
+## scaled version is [param big].
+func _derived_texture(processed: Image, big: Image) -> ImageTexture:
+	if scaled == null:
+		return ImageTexture.create_from_image(processed)
+	return _texture(processed, scaled.derive(processed, big))
+
+
+## [param indices] of [param images] stacked on top of each other, or null
+## when there are no such images.
+static func _stack(images: Array[Image], indices: PackedInt32Array) -> Image:
+	if images.is_empty():
+		return null
+	var size := images[indices[0]].get_size()
+	var image := Image.create_empty(size.x, size.y * indices.size(), false, Image.FORMAT_RGBA8)
+	for i in indices.size():
+		var part := images[indices[i]].duplicate() as Image
+		part.convert(Image.FORMAT_RGBA8)
+		image.blit_rect(part, Rect2i(Vector2i.ZERO, size), Vector2i(0, i * size.y))
+	return image
+
+
+## [param images] (square, [param factor] times the tile size) in a grid of
+## [param columns], each with a border of [param padding] original pixels.
+static func _atlas(images: Array[Image], factor: int, columns: int, padding: int) -> Image:
+	var tile := EgaGraphics.TILE_SIZE * factor
+	var border := padding * factor
+	var cell := tile + 2 * border
+	var rows := ceili(images.size() / float(columns))
+	var atlas := Image.create_empty(columns * cell, rows * cell, false, Image.FORMAT_RGBA8)
+	for i in images.size():
+		var source := images[i].duplicate() as Image
+		source.convert(Image.FORMAT_RGBA8)
+		var corner := Vector2i(i % columns, i / columns) * cell
+		atlas.blit_rect(source, Rect2i(0, 0, tile, tile), corner + Vector2i(border, border))
+		_repeat_edges(
+			atlas, Rect2i(corner + Vector2i(border, border), Vector2i(tile, tile)), border
+		)
+	return atlas
+
+
+## Copies the edge pixels of [param rect] in [param image] outward over
+## [param border] pixels.
+static func _repeat_edges(image: Image, rect: Rect2i, border: int) -> void:
+	for step in border:
+		var top := rect.position.y - 1 - step
+		var bottom := rect.end.y + step
+		var left := rect.position.x - 1 - step
+		var right := rect.end.x + step
+		image.blit_rect(
+			image,
+			Rect2i(rect.position.x, rect.position.y, rect.size.x, 1),
+			Vector2i(rect.position.x, top)
+		)
+		image.blit_rect(
+			image,
+			Rect2i(rect.position.x, rect.end.y - 1, rect.size.x, 1),
+			Vector2i(rect.position.x, bottom)
+		)
+		var tall := Rect2i(rect.position.x, top, 1, bottom - top + 1)
+		image.blit_rect(image, tall, Vector2i(left, top))
+		image.blit_rect(
+			image, Rect2i(rect.end.x - 1, top, 1, bottom - top + 1), Vector2i(right, top)
+		)
 
 
 ## Makes every pixel of [param color] that is connected to the edge of
