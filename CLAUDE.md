@@ -10,6 +10,9 @@ Real-ESRGAN graphics. Singleplayer comes first; local co-op may follow later.
 - **Start:** read `PROGRESS.md` to see what is done and what comes next.
 - **End:** update `PROGRESS.md`: tick off finished work, note open bugs and
   decisions, and write down the next concrete step.
+- **Always rebuild the app** after changing the game: run
+  `tools/build_macos.sh` (on the Mac). The user plays from
+  `build/CommanderPerfect.app`, which is not updated by itself.
 - Work per milestone on a branch named `milestone-<n>-<topic>`.
 - Talk to the user in Dutch. Code, comments and commit messages are in English.
 
