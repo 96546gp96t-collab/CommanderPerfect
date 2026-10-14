@@ -16,6 +16,8 @@ extends RefCounted
 signal tile_changed(cell: Vector2i, tile: int)
 ## Emitted when Keen uses his ship.
 signal ship_used
+## Emitted for every sound on the map: steps, entering a level, teleporting.
+signal sound_played(sound: Sound.Id)
 
 enum Outcome { PLAYING, ENTER_LEVEL }
 
@@ -57,6 +59,7 @@ static func create(
 	if not start.is_finite():
 		start = Vector2(map.find_info(LevelData.PLAYER_START_INFO) * EgaGraphics.TILE_SIZE)
 	session.keen = MapKeen.create(session.collision, start)
+	session.keen.sound_played.connect(session.sound_played.emit)
 	for number in game.completed_levels():
 		session._mark_done(number)
 	return session
@@ -92,7 +95,7 @@ func is_teleporting() -> bool:
 func teleport_to_secret_place() -> void:
 	var destination := level.find_info(SECRET_DESTINATION)
 	if destination.x >= 0:
-		_teleport = MapTeleport.create(self, cell_under_keen(), destination)
+		_start_teleport(destination)
 
 
 ## Where Keen stands next to his ship at the start of the ending: right of
@@ -118,12 +121,18 @@ func _use(info: int) -> void:
 			progress.map_position = keen.position
 			chosen_level = number
 			outcome = Outcome.ENTER_LEVEL
+			sound_played.emit(Sound.Id.MAP_ENTER_LEVEL)
 	elif MapInfo.is_ship(info):
 		ship_used.emit()
 	elif TELEPORTER_DESTINATIONS.has(info):
 		var destination := level.find_info(TELEPORTER_DESTINATIONS[info])
 		if destination.x >= 0:
-			_teleport = MapTeleport.create(self, cell_under_keen(), destination)
+			_start_teleport(destination)
+
+
+func _start_teleport(destination: Vector2i) -> void:
+	_teleport = MapTeleport.create(self, cell_under_keen(), destination)
+	sound_played.emit(Sound.Id.TELEPORT)
 
 
 ## Puts the "done" sign on the entrance of level [param number].

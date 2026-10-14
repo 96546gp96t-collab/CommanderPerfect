@@ -23,6 +23,44 @@ func test_playable_rect_leaves_out_the_border() -> void:
 	assert_equal(LevelMap.playable_pixels(level), Rect2i(32, 32, 96, 64), "playable pixels")
 
 
+func test_crop_keeps_only_the_chosen_cells() -> void:
+	var level := _create_level(Vector2i(10, 8))
+	for index in level.tiles.size():
+		level.tiles[index] = index
+	level.infos[2 * 10 + 5] = 7
+	var screen := level.crop(Rect2i(4, 1, 3, 2))
+	assert_equal(screen.playable_rect(), Rect2i(2, 2, 3, 2), "the cells, inside a new border")
+	assert_equal(screen.tile_at(Vector2i(2, 2)), 1 * 10 + 4, "top left cell")
+	assert_equal(screen.info_at(Vector2i(3, 3)), 7, "info layer too")
+	assert_equal(screen.tile_at(Vector2i(0, 0)), 0, "outside the old map: tile 0")
+
+
+func test_hud_shows_only_the_keycards_keen_has() -> void:
+	var keycards: Array[bool] = [false, true, false, true]
+	assert_equal(
+		Hud.keycard_tiles(keycards),
+		PackedInt32Array([StatusScreen.KEYCARD_TILES[1], StatusScreen.KEYCARD_TILES[3]]),
+		"red and blue"
+	)
+	assert_true(Hud.keycard_tiles([false, false, false, false]).is_empty(), "none")
+
+
+func test_clear_tile_keeps_gray_inside_the_item() -> void:
+	var gray := EgaPalette.color(EgaPalette.LIGHT_GRAY)
+	var tile := Image.create_empty(5, 5, false, Image.FORMAT_RGBA8)
+	tile.fill(gray)
+	for x in range(1, 4):
+		for y in range(1, 4):
+			tile.set_pixel(x, y, Color.BLACK)
+	tile.set_pixel(2, 2, gray)
+	var graphics := EgaGraphics.new()
+	graphics.tiles.append(tile)
+	var image := GraphicsTextures.create(graphics).clear_tile(0).get_image()
+	assert_equal(image.get_pixel(0, 0).a, 0.0, "background around the item is gone")
+	assert_equal(image.get_pixel(1, 1), Color.BLACK, "the item stays")
+	assert_equal(image.get_pixel(2, 2), gray, "gray inside the item stays")
+
+
 func test_find_info_returns_first_match() -> void:
 	var level := _create_level(Vector2i(10, 8))
 	level.infos[3 * 10 + 4] = LevelData.PLAYER_START_INFO

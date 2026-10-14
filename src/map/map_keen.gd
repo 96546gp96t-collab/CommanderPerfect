@@ -4,6 +4,9 @@ extends RefCounted
 ## directions at a steady speed and bumps into everything solid. Only the
 ## logic; [MapSession] steps him and the [Keen] node draws him.
 
+## Emitted for his footsteps, and when he walks into something.
+signal sound_played(sound: Sound.Id)
+
 ## Collision box inside the 16x16 sprite, from the sprite table of
 ## EGAHEAD.CK1 (MAPKEEN*: left 2, top 1, right 9, bottom 15).
 const HITBOX := Rect2(2, 1, 8, 15)
@@ -46,12 +49,20 @@ func step(input: KeenInput) -> void:
 		return
 	# Up and down win over left and right, like the sprite of the original.
 	facing = Vector2i(0, direction.y) if direction.y != 0 else Vector2i(direction.x, 0)
-	position.x += collision.sweep_x(hitbox(), direction.x * WALK_SPEED)
-	position.y += collision.sweep_y(hitbox(), direction.y * WALK_SPEED)
+	var wanted := Vector2(direction) * WALK_SPEED
+	var moved := Vector2(collision.sweep_x(hitbox(), wanted.x), 0.0)
+	position.x += moved.x
+	moved.y = collision.sweep_y(hitbox(), wanted.y)
+	position.y += moved.y
 	_walk_timer += 1
 	if _walk_timer >= WALK_FRAME_TICKS:
 		_walk_timer = 0
 		_walk_frame = (_walk_frame + 1) % WALK_FRAMES
+		# A step on every other frame; a bump when he gets nowhere.
+		if moved == Vector2.ZERO:
+			sound_played.emit(Sound.Id.MAP_BLOCKED)
+		elif _walk_frame % 2 == 1:
+			sound_played.emit(Sound.Id.MAP_WALK)
 
 
 func hitbox() -> Rect2:

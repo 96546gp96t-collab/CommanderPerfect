@@ -52,6 +52,21 @@ func test_entering_a_level() -> void:
 	assert_equal(session.progress.map_position, session.keen.position, "remembers where")
 
 
+func test_walking_and_entering_make_sounds() -> void:
+	var session := _session(FIELD, {Vector2i(5, 3): 4})
+	var sounds: Array[Sound.Id] = []
+	session.sound_played.connect(func(sound: Sound.Id) -> void: sounds.append(sound))
+	_run(session, KeenInput.toward(Vector2i.RIGHT), 20)
+	assert_true(sounds.has(Sound.Id.MAP_WALK), "footsteps")
+	session.step(KeenInput.toward(Vector2i.ZERO, true))
+	assert_equal(sounds[-1], Sound.Id.MAP_ENTER_LEVEL, "entering")
+	var blocked := _session(FIELD)
+	sounds.clear()
+	blocked.sound_played.connect(func(sound: Sound.Id) -> void: sounds.append(sound))
+	_run(blocked, KeenInput.toward(Vector2i.LEFT), WALK_TICKS)
+	assert_true(sounds.has(Sound.Id.MAP_BLOCKED), "bumping into the wall")
+
+
 func test_button_must_be_pressed_again() -> void:
 	var session := _session(FIELD, {Vector2i(5, 3): 4})
 	_run(session, KeenInput.toward(Vector2i.RIGHT, true), 20)

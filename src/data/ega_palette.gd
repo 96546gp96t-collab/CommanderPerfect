@@ -21,6 +21,11 @@ const _RGB_HEX: PackedStringArray = [
 	"FFFFFF",  # 15 white
 ]
 
+## The color the font draws its background in.
+const WHITE := 15
+## The background of the levels, also around the items on their tiles.
+const LIGHT_GRAY := 7
+
 ## RGBA bytes for every palette entry, four bytes per color.
 static var _rgba_bytes := _build_rgba_bytes()
 

@@ -69,6 +69,39 @@ func enter_level() -> void:
 	_parts_this_level.fill(false)
 
 
+## What is kept in a saved game. Keycards are left out: the game can only
+## be saved on the world map, where Keen has none.
+func to_dict() -> Dictionary:
+	return {
+		"score": score,
+		"lives": lives,
+		"charges": charges,
+		"has_pogo": has_pogo,
+		"ship_parts": ship_parts.duplicate(),
+		"next_extra_life": _next_extra_life,
+	}
+
+
+## The inventory saved with [method to_dict], or null when [param data] is
+## not one.
+static func from_dict(data: Dictionary) -> Inventory:
+	var parts: Variant = data.get("ship_parts")
+	if not (parts is Array and parts.size() == ShipPart.size()):
+		return null
+	for key in ["score", "lives", "charges", "next_extra_life"]:
+		if not (data.get(key) is float or data.get(key) is int):
+			return null
+	var inventory := Inventory.new()
+	inventory.score = int(data.score)
+	inventory.lives = int(data.lives)
+	inventory.charges = int(data.charges)
+	inventory.has_pogo = bool(data.get("has_pogo", false))
+	for part in ShipPart.size():
+		inventory.ship_parts[part] = bool(parts[part])
+	inventory._next_extra_life = int(data.next_extra_life)
+	return inventory
+
+
 ## Keen died: one life less, and the ship parts found in this level are lost.
 func lose_life() -> void:
 	lives -= 1

@@ -16,6 +16,10 @@ const MACOS_EXECUTABLE_DIR := ".app/Contents/MacOS"
 const EXECUTABLE := "KEEN1.EXE"
 ## The text shown after the ending.
 const END_TEXT := "ENDTEXT.CK1"
+## The story, shown from the main menu.
+const STORY_TEXT := "STORYTXT.CK1"
+## The PC speaker sounds; the game stays silent without them.
+const SOUNDS := "SOUNDS.CK1"
 const REQUIRED_FILES: PackedStringArray = [
 	"EGAHEAD.CK1", "EGALATCH.CK1", "EGASPRIT.CK1", EXECUTABLE
 ]

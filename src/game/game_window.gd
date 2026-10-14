@@ -2,9 +2,9 @@ class_name GameWindow
 extends Node2D
 ## A window like the ones in the original game: white, framed with the pipe
 ## border from the font (characters 1-8), with text in the 8x8 font and,
-## where needed, 16x16 tiles and sprites. The window sits in the middle of
-## the view, or at the bottom (for the messages over the pictures of the
-## ending).
+## where needed, 16x16 tiles, sprites and bitmaps. The window sits in the
+## middle of the view, or at the bottom (for the messages over the pictures
+## of the ending).
 ##
 ## The content is laid out on a grid of 8x8 cells inside the border. Put the
 ## node in a CanvasLayer, so that the camera does not move it.
@@ -26,26 +26,22 @@ const DIMMED := Color(1, 1, 1, 0.2)
 var view_size := Vector2i(320, 200)
 ## Puts the window at the bottom of the view instead of in the middle.
 var at_bottom := false
-var _graphics: EgaGraphics
-var _font: Dictionary[int, ImageTexture] = {}
-var _tiles: Dictionary[int, ImageTexture] = {}
+var _textures: GraphicsTextures
 ## Inside of the window in cells, without the border.
 var _size := Vector2i.ONE
 var _texts: Array[Dictionary] = []
 var _tile_items: Array[Dictionary] = []
 var _sprite_items: Array[Dictionary] = []
-var _sprite_textures: Dictionary[int, ImageTexture] = {}
+var _bitmap_items: Array[Dictionary] = []
 
 
 func _init() -> void:
 	visible = false
 
 
-func set_graphics(graphics: EgaGraphics) -> void:
-	_graphics = graphics
-	_font.clear()
-	_tiles.clear()
-	_sprite_textures.clear()
+func set_textures(textures: GraphicsTextures) -> void:
+	_textures = textures
+	queue_redraw()
 
 
 ## Shows an empty window of [param size] cells (without the border).
@@ -54,6 +50,7 @@ func open(size: Vector2i) -> void:
 	_texts.clear()
 	_tile_items.clear()
 	_sprite_items.clear()
+	_bitmap_items.clear()
 	visible = true
 	queue_redraw()
 
@@ -88,6 +85,13 @@ func put_sprite(cell: Vector2i, sprite: int, offset := Vector2.ZERO) -> void:
 	queue_redraw()
 
 
+## Draws bitmap [param bitmap_name] (such as "GAMEOVER") with its top left
+## at [param cell].
+func put_bitmap(cell: Vector2i, bitmap_name: String) -> void:
+	_bitmap_items.append({"cell": cell, "name": bitmap_name})
+	queue_redraw()
+
+
 ## Shows [param lines] in a window just big enough for them, at least
 ## [param min_width] cells wide.
 func show_lines(lines: PackedStringArray, min_width := 0) -> void:
@@ -100,7 +104,7 @@ func show_lines(lines: PackedStringArray, min_width := 0) -> void:
 
 
 func _draw() -> void:
-	if _graphics == null:
+	if _textures == null:
 		return
 	var outer := (_size + Vector2i(2, 2)) * CELL
 	var origin := Vector2(((view_size - outer) / 2 / CELL) * CELL)
@@ -109,20 +113,22 @@ func _draw() -> void:
 	draw_rect(Rect2(origin, outer), Color.WHITE)
 	_draw_border(origin)
 	var inside := origin + Vector2(CELL, CELL)
+	for item in _bitmap_items:
+		var bitmap := _textures.bitmap(item.name)
+		if bitmap != null:
+			draw_texture(bitmap, inside + Vector2(item.cell * CELL))
 	for item in _tile_items:
-		var texture := _tile_texture(item.tile)
+		var texture := _textures.tile(item.tile)
 		if texture != null:
 			draw_texture(
 				texture, inside + Vector2(item.cell * CELL), DIMMED if item.dimmed else Color.WHITE
 			)
 	for item in _sprite_items:
-		var sprite := _sprite_texture(item.sprite)
+		var sprite := _textures.sprite(item.sprite)
 		if sprite != null:
 			draw_texture(sprite, inside + Vector2(item.cell * CELL) + item.offset)
 	for item in _texts:
-		var text: String = item.text
-		for i in text.length():
-			_draw_char(inside + Vector2((item.cell + Vector2i(i, 0)) * CELL), text.unicode_at(i))
+		_textures.draw_text(self, inside + Vector2(item.cell * CELL), item.text)
 
 
 func _draw_border(origin: Vector2) -> void:
@@ -140,24 +146,6 @@ func _draw_border(origin: Vector2) -> void:
 
 
 func _draw_char(at: Vector2, code: int) -> void:
-	if code < 0 or code >= _graphics.font_chars.size():
-		return
-	if not _font.has(code):
-		_font[code] = ImageTexture.create_from_image(_graphics.font_chars[code])
-	draw_texture(_font[code], at)
-
-
-func _tile_texture(tile: int) -> ImageTexture:
-	if tile < 0 or tile >= _graphics.tiles.size():
-		return null
-	if not _tiles.has(tile):
-		_tiles[tile] = ImageTexture.create_from_image(_graphics.tiles[tile])
-	return _tiles[tile]
-
-
-func _sprite_texture(sprite: int) -> ImageTexture:
-	if sprite < 0 or sprite >= _graphics.sprites.size():
-		return null
-	if not _sprite_textures.has(sprite):
-		_sprite_textures[sprite] = ImageTexture.create_from_image(_graphics.sprites[sprite])
-	return _sprite_textures[sprite]
+	var texture := _textures.font_char(code)
+	if texture != null:
+		draw_texture(texture, at)

@@ -1,31 +1,47 @@
 extends Control
-## The game screen: a whole game of Keen 1 from the world map to the end.
+## The game screen: the whole of Keen 1, from the title to the end.
 ##
-##   map     Keen walks over the world map ([MapSession]) and enters levels
-##   level   Keen plays a level ([LevelSession]); afterwards he is back on
-##           the map where he entered it, whether he completed it or died
-##   ending  once Keen has all four ship parts, he flies home
-##           ([EndingSequence]); then a new game starts
-## The special maps (81, 90) can be looked at freely, for testing.
+##   title        the title over Keen's ship; any key opens the main menu.
+##                Left alone, it takes turns with the high scores.
+##   high scores  the table in its red frame ([Backdrops])
+##   map          Keen walks over the world map ([MapSession]) and enters
+##                levels
+##   level        Keen plays a level ([LevelSession]); afterwards he is back
+##                on the map where he entered it, whether he completed it or
+##                died
+##   game over    the GAMEOVER bitmap, after the last life
+##   ending       once Keen has all four ship parts, he flies home
+##                ([EndingSequence])
+## After game over and after the ending, a good score goes into the high
+## score table; then the title returns. The special maps (81, 90) can be
+## looked at freely, for testing.
 ##
-## Enter shows the status screen; the statues and the ship show messages.
-## While such a [GameWindow] is open the game is paused. For testing there
-## are cheats: Shift+N / Shift+P go to the next or previous map, Shift+I
-## gives every item, Shift+G toggles god mode.
+## Escape opens the menu ([MenuController]); Enter shows the status screen;
+## the statues and the ship show messages. While a menu or such a
+## [GameWindow] is open the game is paused. For testing there are cheats:
+## Shift+N / Shift+P go to the next or previous map, Shift+I gives every
+## item, Shift+G toggles god mode.
 ##
 ## Everything is rendered at its original resolution into the World viewport.
 ## That picture is then stretched to fit the window, see [DisplaySettings].
 ##
 ## Command-line options: [code]-- --level=N[/code] starts in level N
-## (80 is the world map, the default); [code]-- --ending[/code] shows the
-## ending straight away.
+## (80 is the world map) instead of at the title; [code]-- --ending[/code]
+## shows the ending straight away.
 
-enum Mode { NONE, MAP, LEVEL, ENDING, LOOK }
+enum Mode { NONE, TITLE, HIGH_SCORES, MAP, LEVEL, GAME_OVER, ENDING, LOOK }
 
 const LEVEL_OPTION := "--level="
 const ENDING_OPTION := "--ending"
-const DEFAULT_LEVEL := GameFiles.WORLD_MAP_LEVEL
-## Seconds a message such as "Game over" stays on the screen.
+## Seconds the title and the high scores each stay before the other one
+## comes, while nobody presses a key.
+const ATTRACT_SECONDS := 8.0
+## Seconds the GAMEOVER bitmap stays, unless a key closes it.
+const GAME_OVER_SECONDS := 4.0
+const GAME_OVER_BITMAP := "GAMEOVER"
+## The GAMEOVER bitmap is 112x24 pixels: 14x3 cells of the window.
+const GAME_OVER_CELLS := Vector2i(14, 3)
+## Seconds a message such as "Level 3 completed!" stays on the screen.
 const MESSAGE_SECONDS := 3.0
 ## Seconds the "Keens Left" window stays open, unless a button closes it.
 const LIVES_SECONDS := 3.0
@@ -42,7 +58,8 @@ var _level_numbers := PackedInt32Array()
 ## The map or level on the screen, and its data.
 var _level_number := 0
 var _level: LevelData
-var _settings := DisplaySettings.new()
+var _user_settings := UserSettings.new()
+var _settings := _user_settings.display
 var _progress := GameProgress.new()
 var _session: LevelSession
 var _map_session: MapSession
@@ -61,6 +78,20 @@ var _buttons_close_window := false
 var _hints: HintTexts
 var _ending_texts: EndingTexts
 var _god_mode := false
+var _sounds := SoundPlayer.new()
+var _menus := MenuController.new()
+var _textures: GraphicsTextures
+var _saves := SaveGames.new()
+var _high_scores := HighScores.new()
+## The words for the places in the high score table; null when not found.
+var _score_texts: ScoreTexts
+## The place in the high score table that is waiting for a name, or -1.
+var _pending_place := -1
+## Counts down on the title and high score screens, and after game over.
+var _screen_time_left := 0.0
+## Whether the line with the keys is shown while playing; hidden until F1
+## asks for it.
+var _show_help := false
 
 @onready var _screen: TextureRect = %Screen
 @onready var _world: SubViewport = %World
@@ -71,6 +102,8 @@ var _god_mode := false
 @onready var _actor_layer: ActorLayer = %ActorLayer
 @onready var _camera: LevelCamera = %Camera
 @onready var _camera_anchor: Node2D = %CameraAnchor
+@onready var _pictures: PictureLayer = %Pictures
+@onready var _hud: Hud = %Hud
 @onready var _picture: Sprite2D = %Picture
 @onready var _window_light: Sprite2D = %WindowLight
 @onready var _window: GameWindow = %Window
@@ -79,6 +112,18 @@ var _god_mode := false
 
 
 func _ready() -> void:
+	_user_settings = UserSettings.load_from()
+	_settings = _user_settings.display
+	add_child(_sounds)
+	_sounds.enabled = _user_settings.sound_enabled
+	_menus.window = _window
+	_menus.settings = _user_settings
+	_menus.saves = _saves
+	_menus.chosen.connect(_on_menu_chosen)
+	_menus.settings_changed.connect(_on_settings_changed)
+	_menus.name_entered.connect(_on_name_entered)
+	add_child(_menus)
+	_apply_window_mode()
 	resized.connect(_fit_screen)
 	_screen.texture = _world.get_texture()
 	_apply_display_settings()
@@ -104,17 +149,45 @@ func _ready() -> void:
 	_keen.set_graphics(_graphics)
 	_mark.set_graphics(_graphics)
 	_actor_layer.set_graphics(_graphics)
-	_window.set_graphics(_graphics)
-	_hints = HintTexts.load_from(_files)
-	_ending_texts = EndingTexts.load_from(_files)
+	_textures = GraphicsTextures.create(_graphics)
+	_window.set_textures(_textures)
+	_pictures.set_textures(_textures)
+	_hud.set_textures(_textures)
+	_load_texts()
+	if _files.has_file(GameFiles.SOUNDS):
+		_sounds.load_sounds(SoundFile.load_from(_files))
 	if OS.get_cmdline_user_args().has(ENDING_OPTION):
 		_progress.inventory.ship_parts.fill(true)
-	_go_to(_requested_level())
+		_enter_map(false)
+		return
+	var level := _requested_level()
+	if level > 0:
+		_go_to(level)
+	else:
+		_show_title()
+
+
+## The texts of the game from KEEN1.EXE and the text files. Each one that
+## is missing only switches off its own part of the game.
+func _load_texts() -> void:
+	_hints = HintTexts.load_from(_files)
+	_ending_texts = EndingTexts.load_from(_files)
+	_score_texts = ScoreTexts.load_from(_files)
+	var names := _score_texts.default_names if _score_texts != null else PackedStringArray()
+	_high_scores = HighScores.load_from(HighScores.DEFAULT_PATH, names)
+	if _files.has_file(GameFiles.STORY_TEXT):
+		_menus.story = TextDocument.layout(
+			_files.read(GameFiles.STORY_TEXT), MenuController.TEXT_WIDTH
+		)
 
 
 func _process(delta: float) -> void:
 	_message_time_left -= delta
+	if _menus.is_open():
+		_update_status()
+		return
 	_count_down_lives_window(delta)
+	_count_down_screen(delta)
 	if _mode == Mode.ENDING or (_mode in [Mode.MAP, Mode.LEVEL] and not _window.visible):
 		_play(delta)
 	_move_camera_anchor()
@@ -150,7 +223,7 @@ func _tick(input: KeenInput) -> void:
 		Mode.ENDING:
 			_ending.step(input.jump or input.pogo or input.fire, input.vertical)
 			if _ending.is_finished():
-				_start_new_game("The end. Thanks for playing!")
+				_finish_game()
 
 
 func _show_sprites() -> void:
@@ -175,6 +248,48 @@ func _show_sprites() -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	if _level_numbers.is_empty() or _properties == null:
 		return
+	if _menus.is_open():
+		_menus.handle_input(event)
+	elif _handle_display_keys(event):
+		pass
+	elif _mode in [Mode.TITLE, Mode.HIGH_SCORES, Mode.GAME_OVER]:
+		if not _is_any_press(event):
+			return
+		_on_screen_key()
+	elif event.is_action_pressed("menu"):
+		_open_menu()
+	else:
+		_handle_game_input(event)
+		return
+	get_viewport().set_input_as_handled()
+
+
+## F1-F4: the help line, widescreen, the shape of the pixels and full
+## screen. Returns whether [param event] was one of them.
+func _handle_display_keys(event: InputEvent) -> bool:
+	if event.is_action_pressed("toggle_fullscreen"):
+		_user_settings.fullscreen = not _is_fullscreen()
+		_apply_window_mode()
+	elif event.is_action_pressed("toggle_widescreen"):
+		_settings.aspect = (
+			DisplaySettings.Aspect.WIDESCREEN
+			if _settings.aspect == DisplaySettings.Aspect.ORIGINAL
+			else DisplaySettings.Aspect.ORIGINAL
+		)
+	elif event.is_action_pressed("toggle_pixel_aspect"):
+		_settings.correct_pixel_aspect = not _settings.correct_pixel_aspect
+	elif event.is_action_pressed("toggle_help"):
+		_show_help = not _show_help
+		return true
+	else:
+		return false
+	_apply_display_settings()
+	_user_settings.save()
+	return true
+
+
+## Keys while the game is being played.
+func _handle_game_input(event: InputEvent) -> void:
 	if event.is_action_pressed("status"):
 		_on_enter_pressed()
 	elif _window.visible and _buttons_close_window and _is_button(event):
@@ -191,21 +306,18 @@ func _unhandled_input(event: InputEvent) -> void:
 		_go_to(_neighbor_level(1))
 	elif event.is_action_pressed("previous_level"):
 		_go_to(_neighbor_level(-1))
-	elif event.is_action_pressed("toggle_widescreen"):
-		_settings.aspect = (
-			DisplaySettings.Aspect.WIDESCREEN
-			if _settings.aspect == DisplaySettings.Aspect.ORIGINAL
-			else DisplaySettings.Aspect.ORIGINAL
-		)
-		_apply_display_settings()
-	elif event.is_action_pressed("toggle_pixel_aspect"):
-		_settings.correct_pixel_aspect = not _settings.correct_pixel_aspect
-		_apply_display_settings()
-	elif event.is_action_pressed("toggle_help"):
-		_help_label.visible = not _help_label.visible
 	else:
 		return
 	get_viewport().set_input_as_handled()
+
+
+## A key or button that was just pressed (not held, not the mouse).
+static func _is_any_press(event: InputEvent) -> bool:
+	return (
+		event.is_pressed()
+		and not event.is_echo()
+		and (event is InputEventKey or event is InputEventJoypadButton)
+	)
 
 
 static func _is_button(event: InputEvent) -> bool:
@@ -258,11 +370,174 @@ func _on_ship_used() -> void:
 		_buttons_close_window = true
 
 
+## The level asked for on the command line, or 0 to start at the title.
 func _requested_level() -> int:
 	for argument in OS.get_cmdline_user_args():
 		if argument.begins_with(LEVEL_OPTION) and argument.trim_prefix(LEVEL_OPTION).is_valid_int():
 			return argument.trim_prefix(LEVEL_OPTION).to_int()
-	return DEFAULT_LEVEL
+	return 0
+
+
+func _open_menu() -> void:
+	_close_window()
+	var in_game := _mode in [Mode.MAP, Mode.LEVEL, Mode.LOOK, Mode.ENDING]
+	_user_settings.fullscreen = _is_fullscreen()
+	_menus.open_main(in_game, _can_save())
+
+
+## Saving is only possible while Keen stands still on the world map.
+func _can_save() -> bool:
+	return (
+		_mode == Mode.MAP
+		and not _map_session.is_teleporting()
+		and _map_session.outcome == MapSession.Outcome.PLAYING
+	)
+
+
+func _on_menu_chosen(id: StringName, slot: int) -> void:
+	match id:
+		MenuController.CHOICE_NEW_GAME:
+			_start_new_game("")
+		MenuController.CHOICE_LOAD:
+			_load_game(slot)
+		MenuController.CHOICE_SAVE:
+			_progress.map_position = _map_session.keen.position
+			if not _saves.write(slot, _progress):
+				_show_message("The game could not be saved.")
+		MenuController.CHOICE_HIGH_SCORES:
+			_show_high_scores()
+		MenuController.CHOICE_TITLE:
+			_show_title()
+		MenuController.CHOICE_QUIT:
+			get_tree().quit()
+
+
+func _load_game(slot: int) -> void:
+	var game := _saves.read(slot)
+	if game == null:
+		_menus.show_message(["That game could not be", "read.  Press a key"])
+		return
+	_progress = game
+	_god_mode = false
+	_enter_map(true)
+
+
+func _on_settings_changed() -> void:
+	_sounds.set_enabled(_user_settings.sound_enabled)
+	_apply_window_mode()
+	_apply_display_settings()
+
+
+## Full screen or a window, as the settings say.
+func _apply_window_mode() -> void:
+	if _user_settings.fullscreen == _is_fullscreen():
+		return
+	DisplayServer.window_set_mode(
+		(
+			DisplayServer.WINDOW_MODE_FULLSCREEN
+			if _user_settings.fullscreen
+			else DisplayServer.WINDOW_MODE_WINDOWED
+		)
+	)
+
+
+## Whether the window fills the screen now. The player can also change that
+## with the green button of the Mac window.
+static func _is_fullscreen() -> bool:
+	return (
+		DisplayServer.window_get_mode()
+		in [DisplayServer.WINDOW_MODE_FULLSCREEN, DisplayServer.WINDOW_MODE_EXCLUSIVE_FULLSCREEN]
+	)
+
+
+## Shows the title over Keen's ship.
+func _show_title() -> void:
+	if _show_backdrop(Mode.TITLE, Backdrops.TITLE_SCREEN):
+		Backdrops.show_title(_pictures)
+
+
+## Shows the high score table.
+func _show_high_scores() -> void:
+	if _show_backdrop(Mode.HIGH_SCORES, Backdrops.HIGH_SCORE_SCREEN):
+		Backdrops.show_high_scores(_pictures, _high_scores)
+
+
+## Shows the screen [param area] of map 90 and switches to [param mode].
+## Returns false when the map cannot be read.
+func _show_backdrop(mode: Mode, area: Rect2i) -> bool:
+	if not _load_map(GameFiles.BACKDROPS_LEVEL, area):
+		return false
+	_level_map.show_level(_level, _properties)
+	_mode = mode
+	_screen_time_left = ATTRACT_SECONDS
+	_follow(_camera_anchor)
+	# The screens are a little taller than the view: show their top.
+	var area_pixels := LevelMap.playable_pixels(_level)
+	_camera_anchor.position = Vector2(
+		area_pixels.get_center().x, area_pixels.position.y + _settings.game_size().y / 2.0
+	)
+	_camera.reset_smoothing()
+	return true
+
+
+## Counts down the time on the title, the high scores and game over.
+func _count_down_screen(delta: float) -> void:
+	if not _mode in [Mode.TITLE, Mode.HIGH_SCORES, Mode.GAME_OVER]:
+		return
+	_screen_time_left -= delta
+	if _screen_time_left > 0.0:
+		return
+	match _mode:
+		Mode.TITLE:
+			_show_high_scores()
+		Mode.HIGH_SCORES:
+			_show_title()
+		Mode.GAME_OVER:
+			_finish_game()
+
+
+## A key on the title or the high scores opens the main menu; after game
+## over it moves on.
+func _on_screen_key() -> void:
+	if _mode == Mode.GAME_OVER:
+		_finish_game()
+	else:
+		_user_settings.fullscreen = _is_fullscreen()
+		_menus.open_main(false, false)
+
+
+## The last life is gone: GAMEOVER, then the high scores.
+func _game_over() -> void:
+	_sounds.play(Sound.Id.GAME_OVER)
+	_mode = Mode.GAME_OVER
+	_screen_time_left = GAME_OVER_SECONDS
+	_window.open(GAME_OVER_CELLS)
+	_window.put_bitmap(Vector2i.ZERO, GAME_OVER_BITMAP)
+
+
+## The game is over (game over or the ending): a good score asks for a name
+## and goes into the table, which is shown.
+func _finish_game() -> void:
+	_close_window()
+	_show_high_scores()
+	_pending_place = _high_scores.place_for(_progress.inventory.score)
+	if _pending_place < 0:
+		_progress = GameProgress.new()
+		return
+	_sounds.play(Sound.Id.HIGH_SCORE)
+	var words := _score_texts.place_names if _score_texts != null else PackedStringArray()
+	_menus.ask_name(words[_pending_place] if _pending_place < words.size() else "a")
+
+
+func _on_name_entered(player_name: String) -> void:
+	if _pending_place < 0:
+		return
+	var inventory := _progress.inventory
+	_high_scores.insert(_pending_place, player_name, inventory.score, inventory.ship_parts)
+	_high_scores.save()
+	_pending_place = -1
+	_progress = GameProgress.new()
+	_show_high_scores()
 
 
 func _show_error(message: String) -> void:
@@ -290,7 +565,9 @@ func _go_to(number: int) -> void:
 
 func _start_new_game(message: String) -> void:
 	_progress = GameProgress.new()
-	_show_message(message)
+	_god_mode = false
+	if not message.is_empty():
+		_show_message(message)
 	_enter_map(true)
 
 
@@ -304,6 +581,7 @@ func _enter_map(show_lives: bool) -> void:
 	_level_map.show_level(_level, _properties)
 	_map_session.tile_changed.connect(_level_map.set_tile)
 	_map_session.ship_used.connect(_on_ship_used)
+	_map_session.sound_played.connect(_sounds.play)
 	_mode = Mode.MAP
 	_keen.show_on_map(_map_session.keen)
 	_follow(_keen)
@@ -311,6 +589,7 @@ func _enter_map(show_lives: bool) -> void:
 		_start_ending()
 	elif show_lives:
 		MapMessages.show_lives(_window, _progress.inventory.lives)
+		_sounds.play(Sound.Id.KEENS_LEFT)
 		_lives_time_left = LIVES_SECONDS
 		_buttons_close_window = true
 
@@ -326,6 +605,7 @@ func _enter_level(number: int) -> void:
 	)
 	_session.tile_changed.connect(_level_map.set_tile)
 	_session.hint_touched.connect(_on_hint_touched)
+	_session.sound_played.connect(_sounds.play)
 	_session.keen.invincible = _god_mode
 	_mode = Mode.LEVEL
 	_keen.show_body(_session.keen)
@@ -355,7 +635,7 @@ func _on_level_over(outcome: LevelSession.Outcome) -> void:
 				_map_session.teleport_to_secret_place()
 		LevelSession.Outcome.DIED:
 			if _progress.inventory.is_game_over():
-				_start_new_game("Game over. Starting again.")
+				_game_over()
 			else:
 				_enter_map(true)
 
@@ -418,11 +698,13 @@ func _show_picture(shown: bool) -> void:
 
 
 ## Loads map [param number] fresh from its file, so that every item is back.
+## With [param area], only those cells of it are kept (see [Backdrops]).
 ## Returns false (and says why) when it cannot be read.
-func _load_map(number: int) -> bool:
+func _load_map(number: int, area := Rect2i()) -> bool:
 	_session = null
 	_map_session = null
 	_actor_layer.clear()
+	_pictures.clear()
 	_close_window()
 	_picture.visible = false
 	_screen.modulate = Color.WHITE
@@ -435,6 +717,8 @@ func _load_map(number: int) -> bool:
 		_follow(_free_look)
 		_show_message("%s could not be read." % file_name)
 		return false
+	if area.has_area():
+		_level = _level.crop(area)
 	_time_left = 0.0
 	_frame_camera()
 	return true
@@ -448,13 +732,14 @@ func _start_cell() -> Vector2i:
 	return cell
 
 
-## Makes the camera follow [param target]: Keen (or his ship) or the
-## free-look point. The other one is switched off.
+## Makes the camera follow [param target]: Keen (or his ship), the
+## free-look point, or (for a screen that stands still) its own anchor. The
+## others are switched off.
 func _follow(target: Node2D) -> void:
 	var following_keen := target == _keen
 	_keen.visible = following_keen
 	_mark.visible = following_keen
-	_free_look.set_process(not following_keen)
+	_free_look.set_process(target == _free_look)
 	_camera.use_dead_zone(following_keen)
 	_move_camera_anchor()
 	_camera.reset_smoothing()
@@ -484,6 +769,8 @@ func _move_camera_anchor() -> void:
 func _apply_display_settings() -> void:
 	_world.size = _settings.game_size()
 	_window.view_size = _settings.game_size()
+	_hud.view_size = _settings.game_size()
+	_hud.queue_redraw()
 	_window.queue_redraw()
 	_fit_screen()
 	if _level != null:
@@ -507,7 +794,26 @@ func _fit_screen() -> void:
 
 
 func _update_status() -> void:
+	var playing := _mode in [Mode.MAP, Mode.LEVEL, Mode.LOOK]
+	_help_label.visible = _show_help and playing and not _menus.is_open()
+	_update_hud()
 	if _level == null:
+		return
+	# A menu has the screen to itself.
+	if _menus.is_open():
+		_status_label.text = ""
+		return
+	# With the HUD in the corners, only messages are shown, in the middle.
+	_status_label.horizontal_alignment = (
+		HORIZONTAL_ALIGNMENT_CENTER if _hud.visible else HORIZONTAL_ALIGNMENT_LEFT
+	)
+	if _hud.visible or (not playing and _mode != Mode.ENDING):
+		var notes := PackedStringArray()
+		if _hud.visible and _god_mode:
+			notes.append("GOD MODE")
+		if _message_time_left > 0.0:
+			notes.append(_message)
+		_status_label.text = "\n".join(notes)
 		return
 	var game_size := _settings.game_size()
 	var lines := PackedStringArray()
@@ -531,6 +837,17 @@ func _update_status() -> void:
 	if _message_time_left > 0.0:
 		lines.append(_message)
 	_status_label.text = "\n".join(lines)
+
+
+## The HUD is for widescreen, while Keen is on the map or in a level.
+func _update_hud() -> void:
+	_hud.visible = (
+		_settings.aspect == DisplaySettings.Aspect.WIDESCREEN
+		and _mode in [Mode.MAP, Mode.LEVEL]
+		and not _menus.is_open()
+	)
+	if _hud.visible:
+		_hud.show_inventory(_progress.inventory)
 
 
 func _show_message(text: String) -> void:

@@ -71,6 +71,10 @@ func die() -> void:
 	velocity.y = -DIE_POP_SPEED
 
 
+func death_sound() -> Sound.Id:
+	return Sound.Id.YORP_SCREAM
+
+
 func touch_keen(session: LevelSession) -> void:
 	if mode == Mode.STUNNED:
 		return
@@ -78,9 +82,12 @@ func touch_keen(session: LevelSession) -> void:
 	if keen.hitbox().end.y < hitbox().end.y - EgaGraphics.TILE_SIZE:
 		# Landed on its head.
 		_set_mode(Mode.STUNNED)
+		session.play_sound(Sound.Id.YORP_BOP)
 		keen.on_pogo = false
 		keen.bounce(KeenPhysics.STOMP_BOUNCE_SPEED)
 	else:
+		if not keen.is_pushed():
+			session.play_sound(Sound.Id.YORP_BUMP)
 		_push_keen(session, _direction_to_keen(session), PUSH_SPEED)
 
 

@@ -19,8 +19,9 @@ these descriptions and checked against the shareware files (version 1.1).
 | `KEEN1.EXE` | Game code; also the tile properties (only these are read) | `DosExecutable`, `LzexeDecompressor`, `TileProperties` |
 | `FINALE.CK1` | Picture of Keen's house at the end of the game | `FinaleImage` |
 | `ENDTEXT.CK1` | Text shown after the ending | `TextDocument` |
-| `STORYTXT.CK1`, `HELPTEXT.CK1` | The story and the help texts (milestone 6), same format | `TextDocument` |
-| `SOUNDS.CK1` | PC speaker sounds (milestone 6) | — |
+| `STORYTXT.CK1` | The story, shown from the main menu; same format | `TextDocument` |
+| `HELPTEXT.CK1` | The help (F1 in the original); not shown, because it describes the keys of the original | — |
+| `SOUNDS.CK1` | PC speaker sounds | `SoundFile` |
 
 ## EGA planar graphics
 
@@ -161,6 +162,22 @@ Special maps:
 | 81 | The ending: the flight from Mars to Earth |
 | 90 | Backdrops for the title screen, intro and other non-game screens |
 
+Map 90 is one row of six screens, each 20 tiles wide, side by side (tile
+columns, counting the border of 2):
+
+| Columns | Rows | Screen |
+|---|---|---|
+| 2-21 | 2-14 | A small scene with items (not used yet) |
+| 22-41 | 2-14 | Black triangles with lamps (not used yet) |
+| 42-61 | 2-14 | Keen next to his ship on Mars: the title screen, with the `TITLE` bitmap above them |
+| 62-83 | 1-14 | A red frame with an ornamental border (columns 63-82, rows 2-13): the high score table, with the bitmaps `HIGHSCOR`, `NAME`, `SCORE` and `PARTS` |
+| 84-103 | 2-14 | A gray field with an "id" border |
+| 104-123 | 2-14 | Stars on black |
+
+`Backdrops` cuts a screen out of the map (`LevelData.crop`), so that in
+widescreen the screens next to it stay hidden. Screens are 13 rows (208
+pixels) tall and are shown from the top.
+
 ## KEEN1.EXE
 
 Only data tables are read from the executable; its code is never looked at.
@@ -254,6 +271,13 @@ ending in a newline, and its last line has no newline (`ExeStrings`,
   house, then `TO BE CONTINUED....`. The parents' question and Keen's answer
   ("Aw, Mom, can't I keep him?") are stored as one message.
 
+**High score texts.** The file name `SCORES.` occurs twice. After the first
+come the three names of a new high score table (`Yorpy`, `Gargile`,
+`Zzapp!`), each padded with zeros; after the second the words for the seven
+places, `first` to `last`, used in "You got first place!" (`ScoreTexts`).
+The default scores were not found; CommanderPerfect uses 100 for every
+place, still to compare with the original.
+
 **Teleporter destinations.** The game keeps them as pixel coordinates inside
 its code, not in a data table, so CommanderPerfect does not read them. The
 Commander Genius documentation of these coordinates shows that every one
@@ -298,3 +322,39 @@ empty line ends a paragraph. Lines that fit are kept as they are, spaces
 included, because some are laid out by hand. Bytes from 0x80 on are
 characters of the game font: `0x97 0x98` over `0x99 0x9A` draw a little
 Keen face next to "Commander Keen says:".
+
+## SOUNDS.CK1
+
+All sounds of the game for the PC speaker. Little-endian, in three parts.
+
+Header (16 bytes):
+
+| Offset | Size | Meaning |
+|---|---|---|
+| 0 | 4 | `SND\0` |
+| 4 | u16 | Size of the file (8898 in version 1.1) |
+| 6 | u16 | Number of entries in the table (63) |
+| 8 | u16 | Unknown (60) |
+| 10 | 6 | Zero |
+
+Table, one entry of 16 bytes per sound:
+
+| Offset | Size | Meaning |
+|---|---|---|
+| 0 | u16 | Offset of the sound data in the file |
+| 2 | u8 | Priority: a new sound only cuts off the one that is playing if its priority is at least as high |
+| 3 | u8 | Unknown: 8 for the real sounds, 1 for the empty slots |
+| 4 | 12 | Name, zero-padded, for example `KEENJUMPSND` (three are lower case: `vortscream`, `keencicle`, `keensleft`) |
+
+Version 1.1 has 41 real sounds, followed by 22 slots called `__UnNamed__`
+that hold a single tone. The data of a sound is a list of u16 values ending
+with `0xFFFF`. Each value lasts one tick of the game's 140 Hz sound timer.
+0 is silence; any other value is the divisor for the PC's timer chip
+(1193182 Hz), so the speaker plays a square wave of 1193182 / value Hz.
+Values go from 60 (about 20 kHz, inaudible) to about 10000 (120 Hz).
+
+The 140 Hz rate comes from the public documentation of the format (the
+"inverse frequency" sound format); it still has to be checked by ear
+against the original. Which sound belongs to which event is in
+[sounds.md](sounds.md).
+

@@ -54,6 +54,10 @@ func sprite_index() -> int:
 	return walk_sprite + (_timer / frame_ticks) % 2
 
 
+func death_sound() -> Sound.Id:
+	return Sound.Id.GARG_SCREAM
+
+
 func die() -> void:
 	if is_dead:
 		return
