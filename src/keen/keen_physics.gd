@@ -23,6 +23,10 @@ const SPRITE_SIZE := Vector2(16, 24)
 ## Keen's collision box inside the 16x24 sprite, from the sprite table of
 ## EGAHEAD.CK1 (left 4, top 1, 8 wide) down to his feet in the bottom row.
 const HITBOX := Rect2(4, 1, 8, 23)
+## The start cell of a level puts the top of the sprite at the top of the
+## cell, so his feet hang 8 pixels above the floor. A floor at most this far
+## below him is where he starts standing, like in the original.
+const START_DROP := 16.0
 
 # --- Walking ------------------------------------------------------------------
 const WALK_MAX_SPEED := 68 * SUBPIXEL

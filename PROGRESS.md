@@ -106,6 +106,8 @@ screenshots gecontroleerd. Een level helemaal uitspelen met de hand moet nog.
 - `tools/export_graphics.gd` exporteert ook het FINALE-plaatje.
 - Tests: `test_world_map.gd` (lopen, ingangen, blokkades, DONE-borden, teleporters, schip), `test_ending.gd` (vluchten, de stappen van het einde, tekstopmaak, FINALE-decoder, teksten uit de EXE), een teleporter-test in `test_level_session.gd`, en op de echte data: alle ingangen bestaan, elk level is bereikbaar, Keen loopt level 1 in, alleen level 13 heeft een teleporter, en de eindbestanden zijn leesbaar.
 
+- Bug opgelost (speeltest 14-10-2026): bij de start van een level viel Keen 8 pixels naar beneden. De startcel zet de bovenkant van zijn 24 pixels hoge sprite bovenaan de cel; nu staat hij meteen op de vloer eronder.
+
 Getest met Godot 4.7.2 en de shareware-versie 1.1: alle tests slagen, gdlint
 is schoon, en met gescripte invoer zijn de kaart (Keens Left, statusscherm,
 het schipbericht, level 1 in) en het hele einde opgenomen en via screenshots

@@ -95,10 +95,13 @@ func test_keen_lands_safely_in_every_level() -> void:
 		var level := LevelData.parse(_level_file(number))
 		var start := level.find_info(LevelData.PLAYER_START_INFO) * EgaGraphics.TILE_SIZE
 		var keen := KeenBody.create(LevelCollision.create(level, properties), Vector2(start))
+		assert_equal(keen.state, KeenBody.State.STANDING, "Keen starts on the floor in %d" % number)
+		var start_y := keen.position.y
 		for tick in KeenPhysics.TICKS_PER_SECOND * 2:
 			keen.step(KeenInput.create(0))
 		assert_true(not keen.is_dead, "Keen died at the start of level %d" % number)
 		assert_equal(keen.state, KeenBody.State.STANDING, "Keen stands in level %d" % number)
+		assert_equal(keen.position.y, start_y, "Keen did not fall in level %d" % number)
 
 
 ## Confirms the meaning of behaviors 2-5 and 18-21: every level with a door
