@@ -30,6 +30,7 @@ static func create(start: Vector2) -> StoneChain:
 	chain.position = start
 	chain.body_box = BODY_BOX
 	chain.is_active = true
+	chain.falls = false
 	return chain
 
 

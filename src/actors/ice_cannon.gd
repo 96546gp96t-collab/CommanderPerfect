@@ -16,6 +16,7 @@ static func create(start: Vector2, fire_direction: Vector2i) -> IceCannon:
 	cannon.position = start
 	cannon.direction = fire_direction
 	cannon.body_box = Rect2()
+	cannon.falls = false
 	return cannon
 
 

@@ -3,16 +3,18 @@ extends Actor
 ## Base class for the enemies of Keen 1: walking, falling, getting shot and
 ## what happens when Keen touches them. Each kind fills in [method _think].
 ##
-## An enemy waits until Keen comes near (roughly when it would scroll into
-## view) and from then on stays active. Speeds are in pixels per tick, like
-## in [KeenPhysics]. Values marked "estimate" have not been compared with the
-## original yet; see docs/enemies.md.
+## When the level starts, every enemy drops onto the floor below it (the
+## level places it at the top of its cell, which can be a few pixels up). It
+## then waits until it comes into view and from then on stays active.
+## Speeds are in pixels per tick, like in [KeenPhysics]. Values marked
+## "estimate" have not been compared with the original yet; see
+## docs/enemies.md.
 
 ## The same falling as Keen when he walks off a ledge.
 const GRAVITY := 4 * KeenPhysics.SUBPIXEL
 const MAX_FALL_SPEED := KeenPhysics.MAX_FALL_SPEED
-## An enemy wakes up when Keen is this close: a bit more than half a screen.
-const ACTIVATION_DISTANCE := Vector2(14, 9) * EgaGraphics.TILE_SIZE
+## At the start of a level, an enemy drops at most this far onto a floor.
+const MAX_SETTLE_DISTANCE := 4.0 * EgaGraphics.TILE_SIZE
 
 ## 1 when looking right, -1 when looking left.
 var facing := -1
@@ -24,6 +26,8 @@ var on_ground := false
 var is_dead := false
 ## The collision box inside the sprite, set by each kind.
 var body_box := Rect2(0, 0, 16, 16)
+## Whether gravity pulls this enemy; not for cannons and the chain.
+var falls := true
 
 
 func hitbox() -> Rect2:
@@ -32,11 +36,22 @@ func hitbox() -> Rect2:
 
 func step(session: LevelSession) -> void:
 	if not is_active:
-		var distance := (session.keen.position - position).abs()
-		if distance.x > ACTIVATION_DISTANCE.x or distance.y > ACTIVATION_DISTANCE.y:
+		var area := session.active_area()
+		# Cannons have no size, so their position counts too.
+		if not area.intersects(hitbox()) and not area.has_point(position):
 			return
 		is_active = true
 	_think(session)
+
+
+## Drops the enemy onto the floor below it, if there is one close by.
+func settle(session: LevelSession) -> void:
+	if not falls:
+		return
+	var drop := session.collision.sweep_y(hitbox(), MAX_SETTLE_DISTANCE)
+	if drop < MAX_SETTLE_DISTANCE:
+		position.y += drop
+		on_ground = true
 
 
 ## Whether Keen's shots stop at this enemy. Corpses let them through.

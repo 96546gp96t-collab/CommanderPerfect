@@ -59,6 +59,8 @@ const ICE_CANNON_INFOS: Dictionary[int, Vector2i] = {
 }
 ## The Vorticon in this level is their commander.
 const COMMANDER_LEVEL := 16
+## The original screen, used as the view when there is none.
+const DEFAULT_VIEW_SIZE := Vector2(320, 200)
 ## Seed for the enemies' random choices, so that every attempt at a level
 ## starts out the same (and the tests are repeatable).
 const RANDOM_SEED := 1990
@@ -71,6 +73,10 @@ var keen: KeenBody
 var actors: Array[Actor] = []
 var outcome := Outcome.PLAYING
 var rng := RandomNumberGenerator.new()
+## What the player sees, in level pixels; set by the view every frame.
+## Enemies wake up when they come into it. Without a view (in the tests) it
+## is the area of an original 320x200 screen around Keen.
+var view_rect := Rect2()
 
 
 ## Starts an attempt at [param level_data] with Keen's sprite at [param start].
@@ -120,6 +126,15 @@ func add_actor(actor: Actor) -> void:
 	actors.append(actor)
 
 
+## The area in which enemies wake up: the view, and one tile around it so
+## that they are already moving when they scroll into sight.
+func active_area() -> Rect2:
+	var area := view_rect
+	if not area.has_area():
+		area = Rect2(keen.hitbox().get_center() - DEFAULT_VIEW_SIZE / 2.0, DEFAULT_VIEW_SIZE)
+	return area.grow(EgaGraphics.TILE_SIZE)
+
+
 ## The enemies of the level that are still around, dead or alive.
 func enemies() -> Array[Enemy]:
 	var result: Array[Enemy] = []
@@ -151,6 +166,7 @@ func _spawn_enemies(has_commander: bool) -> void:
 			var enemy := _create_enemy(level.info_at(Vector2i(x, y)), start, has_commander)
 			if enemy != null:
 				add_actor(enemy)
+				enemy.settle(self)
 
 
 static func _create_enemy(info: int, start: Vector2, has_commander: bool) -> Enemy:

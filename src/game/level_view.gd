@@ -100,6 +100,8 @@ func _process(delta: float) -> void:
 ## Runs the level's ticks for [param delta] seconds and shows the result.
 func _play(delta: float) -> void:
 	_time_left = minf(_time_left + delta, KeenPhysics.MAX_TICKS_PER_FRAME * KeenPhysics.TICK)
+	var view_size := Vector2(_world.size)
+	_session.view_rect = Rect2(_camera.get_screen_center_position() - view_size / 2.0, view_size)
 	while _time_left >= KeenPhysics.TICK and _session.outcome == LevelSession.Outcome.PLAYING:
 		_time_left -= KeenPhysics.TICK
 		_session.step(KeenInput.from_actions())

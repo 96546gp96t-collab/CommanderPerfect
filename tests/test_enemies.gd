@@ -60,8 +60,31 @@ func test_enemies_wait_until_keen_is_near() -> void:
 	var start := garg.position
 	_run(session, KeenInput.create(0), 30)
 	assert_equal(garg.position, start, "still asleep")
-	_run(session, KeenInput.create(1), 120)
+	_run(session, KeenInput.create(1), 180)
 	assert_true(garg.is_active, "woke up when Keen came near")
+
+
+func test_enemies_wake_up_when_they_come_into_view() -> void:
+	var session := _session(FIELD)
+	var garg := _add(session, Garg.create(_on_floor(Garg.BODY_BOX, 25)))
+	session.view_rect = Rect2(_column_left(0), _row_top(0), 320, 200)
+	_run(session, KeenInput.create(0), 5)
+	assert_true(not garg.is_active, "out of view")
+	session.view_rect.size.x = 426
+	_run(session, KeenInput.create(0), 1)
+	assert_true(garg.is_active, "in view on a wider screen")
+
+
+func test_enemies_start_on_the_floor() -> void:
+	var level := Fixtures.create_level(FIELD)
+	var cell := Vector2i(10, FLOOR_ROW - 2) + _border()
+	level.infos[cell.y * level.width + cell.x] = LevelSession.INFO_YORP
+	var session := LevelSession.create(
+		level, Fixtures.create_properties(), Inventory.new(), _keen_start()
+	)
+	var yorp := session.enemies()[0]
+	assert_equal(yorp.hitbox().end.y, _row_top(FLOOR_ROW), "on the floor, not above it")
+	assert_true(not yorp.is_active, "still asleep")
 
 
 func test_one_shot_kills_a_yorp() -> void:

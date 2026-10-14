@@ -52,8 +52,11 @@ After the last life the game starts over.
 ## Enemies
 
 The info layer of a level says where every enemy starts (top left of its
-sprite at the top left of the cell). An enemy waits until Keen is within about
-half a screen and stays active from then on. Their random choices use a fixed
+sprite at the top left of the cell). Because a Yorp is 24 pixels high, that
+can leave it a few pixels above the floor, so every enemy drops onto the
+floor below it when the level starts. An enemy waits until it comes into
+view (plus one tile around it, in the original 4:3 view as well as in
+widescreen) and stays active from then on. Their random choices use a fixed
 seed, so every attempt at a level starts out the same.
 
 | Info | Enemy | Touching it | Shots | Behavior |
