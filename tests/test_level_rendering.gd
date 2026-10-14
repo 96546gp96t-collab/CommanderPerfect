@@ -106,8 +106,19 @@ func test_camera_centers_a_narrow_level() -> void:
 	assert_equal(center_range, Rect2(192, 132, 0, 300), "camera center range")
 
 
+func test_defaults_are_widescreen_with_the_original_picture() -> void:
+	var settings := DisplaySettings.new()
+	assert_equal(settings.aspect, DisplaySettings.Aspect.WIDESCREEN, "widescreen")
+	assert_equal(settings.graphics, DisplaySettings.Graphics.ORIGINAL, "original graphics")
+	assert_true(not settings.smooth_motion, "no smooth motion")
+	assert_true(settings.is_original_picture(), "the original picture")
+	settings.smooth_motion = true
+	assert_true(not settings.is_original_picture(), "smooth motion is not original")
+
+
 func test_original_view_matches_the_original_game() -> void:
 	var settings := DisplaySettings.new()
+	settings.aspect = DisplaySettings.Aspect.ORIGINAL
 	assert_equal(settings.game_size(), Vector2i(320, 200), "game pixels")
 	assert_equal(settings.display_size(), Vector2(320, 240), "shape on a 4:3 monitor")
 	settings.correct_pixel_aspect = false
@@ -125,6 +136,7 @@ func test_widescreen_view_fills_16_by_9() -> void:
 
 func test_picture_is_centered_in_the_window() -> void:
 	var settings := DisplaySettings.new()
+	settings.aspect = DisplaySettings.Aspect.ORIGINAL
 	var rect := settings.fit_rect(Vector2(1280, 720))
 	assert_equal(rect, Rect2(160, 0, 960, 720), "4:3 picture in a 16:9 window")
 

@@ -127,10 +127,15 @@ func test_settings_survive_a_round_trip() -> void:
 	var path := _path("settings.cfg")
 	var settings := UserSettings.load_from(path)
 	assert_true(settings.sound_enabled, "sound on by default")
+	assert_equal(
+		settings.display.aspect, DisplaySettings.Aspect.WIDESCREEN, "widescreen by default"
+	)
 	settings.sound_enabled = false
 	settings.display.aspect = DisplaySettings.Aspect.WIDESCREEN
 	settings.display.correct_pixel_aspect = false
 	settings.fullscreen = false
+	settings.display.graphics = DisplaySettings.Graphics.XBRZ
+	settings.display.smooth_motion = true
 	KeyBindings.bind("pogo", KEY_P)
 	assert_true(settings.save(), "saved")
 	KeyBindings.reset()
@@ -139,6 +144,8 @@ func test_settings_survive_a_round_trip() -> void:
 	assert_equal(loaded.display.aspect, DisplaySettings.Aspect.WIDESCREEN, "widescreen")
 	assert_true(not loaded.display.correct_pixel_aspect, "square pixels")
 	assert_true(not loaded.fullscreen, "in a window")
+	assert_equal(loaded.display.graphics, DisplaySettings.Graphics.XBRZ, "graphics")
+	assert_true(loaded.display.smooth_motion, "smooth motion")
 	assert_equal(KeyBindings.keys_of("pogo")[0], KEY_P, "keys")
 	KeyBindings.reset()
 

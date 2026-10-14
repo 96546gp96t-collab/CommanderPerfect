@@ -10,15 +10,25 @@ extends RefCounted
 ## [constant Aspect.ORIGINAL] shows exactly what the original showed.
 ## [constant Aspect.WIDESCREEN] keeps the same height and shows more of the
 ## level on the sides, enough to fill a 16:9 screen.
+##
+## The extras are off by default, so that the game looks like the original:
+## [member graphics] picks the original pixels, xBRZ or the player's own HD
+## graphics, and [member smooth_motion] draws everything in between the
+## ticks (see docs/graphics.md).
 
 enum Aspect { ORIGINAL, WIDESCREEN }
+enum Graphics { ORIGINAL, XBRZ, HD }
 
 const ORIGINAL_SIZE := Vector2i(320, 200)
 const ORIGINAL_PIXEL_ASPECT := 1.2  # (4 / 3) / (320 / 200)
 const WIDESCREEN_RATIO := 16.0 / 9.0
 
-var aspect := Aspect.ORIGINAL
+const GRAPHICS_NAMES: Array[String] = ["original", "xbrz", "hd"]
+
+var aspect := Aspect.WIDESCREEN
 var correct_pixel_aspect := true
+var graphics := Graphics.ORIGINAL
+var smooth_motion := false
 
 
 ## Size of the visible part of the level, in game pixels.
@@ -52,3 +62,20 @@ func fit_rect(window_size: Vector2) -> Rect2:
 
 func aspect_name() -> String:
 	return "original" if aspect == Aspect.ORIGINAL else "widescreen"
+
+
+## Whether the picture is drawn exactly like the original: game pixels on
+## whole positions, nothing in between.
+func is_original_picture() -> bool:
+	return graphics == Graphics.ORIGINAL and not smooth_motion
+
+
+static func graphics_name(style: Graphics) -> String:
+	return GRAPHICS_NAMES[style]
+
+
+## The graphics called [param style_name] (as [method graphics_name] gives
+## it), or the original ones for an unknown name.
+static func graphics_named(style_name: String) -> Graphics:
+	var index := GRAPHICS_NAMES.find(style_name)
+	return Graphics.ORIGINAL if index < 0 else index as Graphics

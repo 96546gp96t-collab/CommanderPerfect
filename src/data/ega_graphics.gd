@@ -46,10 +46,18 @@ static func load_from(files: GameFiles) -> EgaGraphics:
 
 ## Returns the bitmap with the given name, or null if there is none.
 func find_bitmap(bitmap_name: String) -> Image:
-	for i in header.bitmaps.size():
+	var index := bitmap_index(bitmap_name)
+	return bitmaps[index] if index >= 0 else null
+
+
+## The number of the bitmap with the given name, or -1 if there is none.
+func bitmap_index(bitmap_name: String) -> int:
+	if header == null:
+		return -1
+	for i in mini(header.bitmaps.size(), bitmaps.size()):
 		if header.bitmaps[i].name == bitmap_name:
-			return bitmaps[i]
-	return null
+			return i
+	return -1
 
 
 ## Combines all tiles into one image, [param columns] tiles wide.

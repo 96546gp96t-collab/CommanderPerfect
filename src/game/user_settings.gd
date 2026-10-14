@@ -1,8 +1,8 @@
 class_name UserSettings
 extends RefCounted
 ## The settings the game remembers between sessions: full screen or a
-## window, the shape of the picture ([DisplaySettings]), whether sound is
-## on, and the keys ([KeyBindings]). Stored in a ConfigFile in the user
+## window, the shape and style of the picture ([DisplaySettings]), whether
+## sound is on, and the keys ([KeyBindings]). Stored in a ConfigFile in the user
 ## folder of Godot.
 
 const DEFAULT_PATH := "user://settings.cfg"
@@ -28,7 +28,7 @@ static func load_from(file_path := DEFAULT_PATH) -> UserSettings:
 	if config.load(file_path) != OK:
 		push_error("%s could not be read; using the default settings." % file_path)
 		return settings
-	var widescreen := bool(config.get_value(DISPLAY, "widescreen", false))
+	var widescreen := bool(config.get_value(DISPLAY, "widescreen", true))
 	settings.display.aspect = (
 		DisplaySettings.Aspect.WIDESCREEN if widescreen else DisplaySettings.Aspect.ORIGINAL
 	)
@@ -36,6 +36,10 @@ static func load_from(file_path := DEFAULT_PATH) -> UserSettings:
 		config.get_value(DISPLAY, "correct_pixel_aspect", true)
 	)
 	settings.fullscreen = bool(config.get_value(DISPLAY, "fullscreen", true))
+	settings.display.graphics = DisplaySettings.graphics_named(
+		str(config.get_value(DISPLAY, "graphics", ""))
+	)
+	settings.display.smooth_motion = bool(config.get_value(DISPLAY, "smooth_motion", false))
 	settings.sound_enabled = bool(config.get_value(SOUND, "enabled", true))
 	var keys: Variant = config.get_value(CONTROLS, "keys", {})
 	if keys is Dictionary:
@@ -50,6 +54,8 @@ func save() -> bool:
 	config.set_value(DISPLAY, "widescreen", display.aspect == DisplaySettings.Aspect.WIDESCREEN)
 	config.set_value(DISPLAY, "correct_pixel_aspect", display.correct_pixel_aspect)
 	config.set_value(DISPLAY, "fullscreen", fullscreen)
+	config.set_value(DISPLAY, "graphics", DisplaySettings.graphics_name(display.graphics))
+	config.set_value(DISPLAY, "smooth_motion", display.smooth_motion)
 	config.set_value(SOUND, "enabled", sound_enabled)
 	config.set_value(CONTROLS, "keys", KeyBindings.to_dict())
 	var error := config.save(path)

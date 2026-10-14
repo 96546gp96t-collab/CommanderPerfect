@@ -4,17 +4,28 @@ extends RefCounted
 ##
 ## All tiles go into one atlas texture, so a level is drawn from a single
 ## texture. Tile number n sits at atlas cell [method atlas_coords_of] n, which
-## lets a tile number from a level file be used directly.
+## lets a tile number from a level file be used directly. Every tile has a
+## border that repeats its edge pixels, so that smoothly scaled graphics
+## never show a line of the neighbouring tile in the atlas.
 
 const SOURCE_ID := 0
 const ATLAS_COLUMNS := 16
+const PADDING := 1
 
 
-## Returns a TileSet that holds every tile of [param graphics].
-static func build(graphics: EgaGraphics) -> TileSet:
+## Returns a TileSet that holds every tile of [param graphics]. With
+## [param textures] the tiles come from there (and can be xBRZ or HD).
+static func build(graphics: EgaGraphics, textures: GraphicsTextures = null) -> TileSet:
+	if textures == null:
+		textures = GraphicsTextures.create(graphics)
 	var tile_size := Vector2i(EgaGraphics.TILE_SIZE, EgaGraphics.TILE_SIZE)
 	var source := TileSetAtlasSource.new()
-	source.texture = ImageTexture.create_from_image(graphics.create_tile_atlas(ATLAS_COLUMNS))
+	# Our own border instead of the one Godot can add, which would be made
+	# from the larger images inside scaled textures.
+	source.use_texture_padding = false
+	source.texture = textures.tile_atlas(ATLAS_COLUMNS, PADDING)
+	source.margins = Vector2i(PADDING, PADDING)
+	source.separation = Vector2i(2 * PADDING, 2 * PADDING)
 	source.texture_region_size = tile_size
 	for tile_number in graphics.tiles.size():
 		source.create_tile(atlas_coords_of(tile_number))
