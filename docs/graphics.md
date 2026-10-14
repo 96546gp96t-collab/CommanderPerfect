@@ -143,5 +143,45 @@ is a jump (a new level, a teleporter) and is not drawn in between.
   the original one, also with smooth motion off.
 - Whether xBRZ at 6 times needs to be larger for screens taller than 1200
   pixels (the viewport is then scaled up a little more, smoothly).
-- Real-ESRGAN results have not been looked at yet; another model may suit
-  the pixel art better.
+- Real-ESRGAN (`realesrgan-x4plus-anime`, v0.2.5.0 in `tools/realesrgan/`)
+  has been tried on 14-10-2026: it works in the game, but looks "painted",
+  and flat colors differ slightly per tile, so faint squares show on the
+  world map and around items. The user finds it ugly and prefers xBRZ, but
+  misses new details. See the plan below.
+
+## Plan: HD with new details (parked)
+
+Real-ESRGAN only sharpens what is there; it cannot add details. For new
+details (texture in stone, shine on pipes, folds in Keen's clothes) a
+generative model is needed. The user parked this on 14-10-2026; the plan
+for when we pick it up again:
+
+1. **Base:** the xBRZ images (the user likes those; the shapes are clean).
+2. **Add detail:** Stable Diffusion img2img on top of the base, with a
+   ControlNet "tile" model so that shapes, colors and positions stay put,
+   a low denoise strength (about 0.3-0.45) and a prompt per kind of image
+   (for example "cartoon sci-fi metal pipes, clean outlines"). Run locally
+   with PyTorch on Apple's MPS (torch 2.8 is installed; 16 GB RAM, so SD 1.5
+   rather than SDXL; SDXL only if 1.5 falls short).
+3. **Into the game:** write the results as the sheets of the HD folder
+   (`HdPack`), so the game needs no change. The sprite transparency comes
+   from the xBRZ mask, not from the model.
+
+Known problems to solve:
+
+- **Animation:** each walking frame of Keen or a Yorp would get different
+  details and flicker. Use a fixed seed, low denoise, and perhaps all frames
+  of one animation side by side in one image.
+- **Tiles that meet:** details must run on across the edges. Generate each
+  tile with copies of itself around it (3x3) and keep the middle, so walls
+  and floors stay seamless; tiles that belong together (big objects of
+  several tiles) as one piece.
+- **Colors:** keep them close to the EGA palette, so flat areas do not get
+  the faint squares Real-ESRGAN gave.
+- **Cost:** about 6 GB of models (SD 1.5 + ControlNet Tile, from Hugging
+  Face, into a folder git ignores, like `tools/realesrgan/`), and probably a
+  few hours for the 611 tiles and 119 sprites.
+
+First step: ask the user to approve the download, then a trial of about ten
+images (Keen standing and walking, a Yorp, a few tiles of level 1 and the
+world map) shown side by side with xBRZ, before doing everything.

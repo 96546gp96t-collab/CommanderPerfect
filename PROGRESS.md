@@ -182,11 +182,12 @@ Windows-pc gestart. Vloeiende beweging moet met het oog beoordeeld worden.
 ## Open beslissingen
 
 - **Licentie** voor de code (bijv. MIT of GPL-3.0): nog kiezen voordat de repo publiek wordt.
+- **HD met nieuwe details (generatieve AI)**, besproken op 14-10-2026, voor nu geparkeerd door de gebruiker. Oordeel van de gebruiker: de Real-ESRGAN-HD is "best lelijk", xBRZ ziet er mooier uit, maar hij mist nieuwe details. Real-ESRGAN kan geen details verzinnen; daarvoor is een generatief model nodig. Het plan staat in `docs/graphics.md` onder "Plan: HD with new details". Eerste stap als de gebruiker verder wil: toestemming vragen om Stable Diffusion 1.5 + ControlNet Tile te downloaden (~6 GB, Hugging Face, naar een map die git negeert) en een proef doen met ~10 plaatjes naast xBRZ.
 
 ## Volgende stap
 
 1. **Voor de gebruiker:** speel de nieuwe build (`build/CommanderPerfect.app`). Zet in Options (of met F5/F6) xBRZ en vloeiende beweging aan en uit en kijk of het beeld klopt: geen naden tussen tiles, geen rare randen aan sprites, menu's en HUD goed leesbaar, en of bewegen echt vloeiender voelt (vooral op een 120 Hz-scherm). Controleer ook dat alles uit precies het oude beeld geeft.
-2. **HD bekijken:** de HD-graphics zijn gemaakt (`tools/make_hd_graphics.sh`, opnieuw maken kan altijd). Kies Graphics > HD en zeg wat je ervan vindt. Mogelijke verbetering: de zwakke vierkantjes tussen tiles weghalen (bijv. vlakke kleuren terugzetten naar de EGA-kleur), of een ander model proberen (`MODEL=realesrgan-x4plus`).
+2. **HD:** de Real-ESRGAN-versie is gemaakt en bekeken; de gebruiker vindt hem lelijk en xBRZ mooier. HD met nieuwe details via generatieve AI staat geparkeerd (zie "Open beslissingen" en `docs/graphics.md`).
 3. **Windows:** kopieer de hele map `build/windows` naar de Windows-pc en start `CommanderPerfect.exe`. Kijk of het start, of het geluid werkt en of de instellingen en saves bewaard blijven (in `%APPDATA%\Godot\app_userdata\CommanderPerfect`).
 4. Mijlpaal 7 afronden met wat uit die tests komt, en mergen naar `main`.
 5. Daarna mijlpaal 8 (lokale co-op), of eerst de openstaande punten: natuurkunde en vijanden naast DOSBox leggen, de intro, en de vraag of de hulpregel in 4:3 standaard weg moet.
