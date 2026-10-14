@@ -11,8 +11,8 @@ Wat elke mijlpaal precies inhoudt, staat in [docs/roadmap.md](docs/roadmap.md).
 |---|---|---|
 | 1 | Originele bestanden inlezen in Godot (graphics, levels) + data viewer | ✅ Klaar (branch `milestone-1-data-loading`) |
 | 2 | Levels tekenen met TileMapLayer, scrollen, widescreen-camera | ✅ Klaar (branch `milestone-2-level-view`) |
-| 3 | Keen: lopen, springen, pogo, botsingen (tile-eigenschappen uit KEEN1.EXE) | ⏳ Volgende |
-| 4 | Vijanden, items, deuren, sleutelkaarten, straalgeweer | |
+| 3 | Keen: lopen, springen, pogo, botsingen (tile-eigenschappen uit KEEN1.EXE) | ✅ Klaar, vergelijken met het origineel staat nog open (branch `claude/commanderperfect-milestone-3-vm67b1`) |
+| 4 | Vijanden, items, deuren, sleutelkaarten, straalgeweer | ⏳ Volgende |
 | 5 | Wereldkaart, levelovergangen, scheepsonderdelen, einde | |
 | 6 | Geluid, menu's, opslaan | |
 | 7 | Hogere framerate (interpolatie), xBRZ met wisselknop, Real-ESRGAN-pipeline | |
@@ -49,9 +49,31 @@ Getest met Godot 4.7.2 en de shareware-versie 1.1. Alle tests slagen, en de
 screenshots van level 1, 2, 90 en de wereldkaart in alle vier de
 beeldinstellingen zijn visueel gecontroleerd.
 
+## Mijlpaal 3: wat er nu is
+
+- `DosExecutable` en `LzexeDecompressor` (`src/data/`): pakken `KEEN1.EXE` uit (LZEXE 0.91, eigen implementatie). Alleen datatabellen worden gelezen, geen code.
+- `TileProperties`: per tile welke kanten massief zijn, vloertype (gewoon, glad, ijs), gedrag (dodelijk, deur, voorgrond, …) en animatie. De tabel staat in versie 1.1 op 0x131F8 in de uitgepakte EXE; voor onbekende versies (zoals 1.34) wordt hij gezocht aan zijn vorm. `KEEN1.EXE` is nu een verplicht bestand.
+- `LevelMap` tekent voorgrond-tiles op een eigen laag vóór Keen en laat geanimeerde tiles (vuur, water, sterren, …) bewegen.
+- `LevelCollision` (`src/level/`): botsingen per tilekant, dus ook platforms waar je van onderaf doorheen springt. Buiten het speelveld is muur, behalve onderin: daar val je uit het level.
+- `src/keen/`: `KeenBody` (de logica, los testbaar), `KeenPhysics` (alle getallen op één plek), `KeenInput` en de `Keen`-node die tekent. Lopen, springen met aanloop (langer indrukken = hoger), pogo (Alt of X; springknop vasthouden = hoge sprong). Springen kan ook met Z, omdat Ctrl+pijltje op de Mac van bureaublad wisselt, ijs en gladde vloeren, hoofd stoten. Vaste ticks van 1/60 s, los van de framerate.
+- Keen loopt in levels 1-16; op de wereldkaart en de speciale kaarten kijk je nog vrij rond (`FreeLook`), want lopen op de kaart is mijlpaal 5. De camera volgt Keen met een kleine dode zone.
+- Raakt Keen iets dodelijks of valt hij uit het level, dan begint hij opnieuw bij de start (doodgaan en levens: mijlpaal 4).
+- Uitleg en herkomst van alle getallen: `docs/keen-physics.md`. Het EXE-formaat en de gevonden gedragswaarden: `docs/file-formats.md`.
+- Tests: `test_tile_properties.gd` en `test_keen_movement.gd` (zonder speldata, met kleine zelfgemaakte levels), plus op de echte data: de tabel wordt gevonden en Keen landt veilig aan het begin van elk level.
+
+Getest met Godot 4.7.2 en de shareware-versie 1.1: alle tests slagen, gdlint
+is schoon, en level 1 is met gescripte invoer gespeeld (lopen, springen, pogo)
+en via screenshots gecontroleerd. Het gevoel van de besturing is nog niet
+naast het origineel gelegd.
+
 ## Bekende beperkingen
 
-- Gemaskeerde tiles (voorgrond), geanimeerde tiles en tile-gedrag staan in `KEEN1.EXE`. Die worden pas in mijlpaal 3 ingelezen. In de viewer zie je de tiles daarom nog zonder transparantie en animatie.
+- De natuurkunde-getallen zijn startwaarden (overgenomen van Commander Genius als documentatie, zie `docs/keen-physics.md`). Ze moeten nog naast het origineel (DOSBox) worden gelegd; de lijst met punten staat onderaan dat document.
+- Keen heeft voorlopig altijd de pogo-stick; in het origineel moet je hem eerst vinden (mijlpaal 4).
+- Deuren zijn altijd dicht, ook met sleutelkaart (mijlpaal 4). Items, schakelaars en teleporters doen nog niets.
+- De betekenis van gedragswaarden 6-24 is afgeleid uit hoe de tiles eruitzien en nog niet bevestigd.
+- De data viewer toont tiles nog zonder animatie en zonder voorgrond-markering.
+- Gemaskeerde tiles (gedrag -2) worden als gewone voorgrond-tiles getekend; Keen 1 gebruikt ze niet.
 - De info-laag wordt nu alleen gemarkeerd; wat elk getal betekent, volgt in mijlpaal 4 en 5.
 - Bij een venstergrootte die geen heel veelvoud van het beeld is, worden niet alle pixels even breed of hoog getekend (vooral zichtbaar met de 4:3-correctie). Dit lossen we op in mijlpaal 7, samen met xBRZ (bijv. eerst op een heel veelvoud renderen en dan glad verkleinen).
 - Instellingen (beeldverhouding, pixelverhouding) worden nog niet onthouden; opslaan volgt in mijlpaal 6.
@@ -63,4 +85,5 @@ beeldinstellingen zijn visueel gecontroleerd.
 
 ## Volgende stap
 
-Mijlpaal 3: tile-eigenschappen (massief, gemaskeerd/voorgrond, animatie) uit `KEEN1.EXE` lezen. Daarna een `Keen`-node die `FreeLook` vervangt als volgpunt van de camera, en lopen en springen met botsingen tegen de tiles. Zoek eerst uit (ModdingWiki) waar in de EXE de tile-tabel staat voor versie 1.1 en 1.34.
+1. **Voor de gebruiker:** speel level 1-3 in CommanderPerfect en in het origineel (DOSBox) naast elkaar en noteer wat anders voelt (zie de lijst in `docs/keen-physics.md`). Test ook de Steam-versie (1.34): wordt de tile-tabel gevonden?
+2. **Mijlpaal 4**, beginnen met items: de info-laag van de levels ontcijferen (welke getallen zijn Yorps, Garg's, enz.), dan punten-items en de pogo-stick oppakken (gedrag 6-10 en 16), sleutelkaarten en deuren (18-21 en 2-5), en doodgaan met de `KEENISDEAD`-sprites in plaats van direct opnieuw beginnen.

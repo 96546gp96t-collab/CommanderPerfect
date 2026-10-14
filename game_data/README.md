@@ -9,6 +9,7 @@ game_data/
     ├── EGAHEAD.CK1
     ├── EGALATCH.CK1
     ├── EGASPRIT.CK1
+    ├── KEEN1.EXE
     ├── LEVEL01.CK1 … LEVEL16.CK1
     ├── LEVEL80.CK1
     └── … (the other files of the episode)

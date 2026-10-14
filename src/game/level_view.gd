@@ -1,7 +1,8 @@
 extends Control
-## The game screen as of milestone 2: draws a level and lets the player look
-## around it with a smoothly scrolling camera. Keen himself follows in
-## milestone 3.
+## The game screen as of milestone 3: Keen walks, jumps and pogo-jumps
+## through a level, followed by a smoothly scrolling camera. On the world map
+## and the special maps, where Keen cannot play yet, the player looks around
+## freely instead.
 ##
 ## The level is rendered at its original resolution into the World viewport.
 ## That picture is then stretched to fit the window, see [DisplaySettings].
@@ -20,12 +21,14 @@ var _files: GameFiles
 var _level_numbers := PackedInt32Array()
 var _level_index := 0
 var _level: LevelData
+var _properties: TileProperties
 var _settings := DisplaySettings.new()
 
 @onready var _screen: TextureRect = %Screen
 @onready var _world: SubViewport = %World
 @onready var _level_map: LevelMap = %LevelMap
 @onready var _free_look: FreeLook = %FreeLook
+@onready var _keen: Keen = %Keen
 @onready var _camera: LevelCamera = %Camera
 @onready var _status_label: Label = %StatusLabel
 @onready var _help_label: Label = %HelpLabel
@@ -49,7 +52,14 @@ func _ready() -> void:
 		_show_error("There are no levels in %s." % _files.directory)
 		return
 
+	_properties = TileProperties.load_from(_files, graphics.tiles.size())
+	if _properties == null:
+		_show_error("The tile properties in %s could not be read." % GameFiles.EXECUTABLE)
+		return
+
 	_level_map.tile_set = LevelTileSet.build(graphics)
+	_keen.set_graphics(graphics)
+	_keen.died.connect(_on_keen_died)
 	_level_index = maxi(0, _level_numbers.find(_requested_level()))
 	_load_level()
 
@@ -102,22 +112,47 @@ func _load_level() -> void:
 	_level = LevelData.parse(_files.read(file_name))
 	if _level == null:
 		_level_map.clear()
+		_follow(_free_look)
 		_status_label.text = "%s could not be read." % file_name
 		return
 
-	_level_map.show_level(_level)
+	_level_map.show_level(_level, _properties)
 	_frame_camera()
-	_free_look.move_to(_start_position())
-	_camera.reset_smoothing()
+	var start := _start_cell()
+	if GameFiles.is_playable_level(_level_numbers[_level_index]):
+		_keen.enter_level(
+			LevelCollision.create(_level, _properties), Vector2(start * EgaGraphics.TILE_SIZE)
+		)
+		_follow(_keen)
+	else:
+		_free_look.move_to((Vector2(start) + Vector2(0.5, 0.5)) * EgaGraphics.TILE_SIZE)
+		_follow(_free_look)
 	_update_status()
 
 
-## Where Keen starts, or the top left of the level if it has no start.
-func _start_position() -> Vector2:
+## The cell where Keen starts, or the top left of the level if it has none.
+func _start_cell() -> Vector2i:
 	var cell := _level.find_info(LevelData.PLAYER_START_INFO)
 	if cell.x < 0:
 		cell = _level.playable_rect().position
-	return (Vector2(cell) + Vector2(0.5, 0.5)) * EgaGraphics.TILE_SIZE
+	return cell
+
+
+## Makes the camera follow [param target]: Keen or the free-look point. The
+## other one is switched off.
+func _follow(target: Node2D) -> void:
+	var playing := target == _keen
+	_keen.visible = playing
+	_keen.set_process(playing)
+	_free_look.set_process(not playing)
+	_camera.reparent(target, false)
+	_camera.position = KeenPhysics.SPRITE_SIZE / 2.0 if playing else Vector2.ZERO
+	_camera.use_dead_zone(playing)
+	_camera.reset_smoothing()
+
+
+func _on_keen_died() -> void:
+	_camera.reset_smoothing()
 
 
 func _apply_display_settings() -> void:

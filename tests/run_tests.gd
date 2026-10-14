@@ -7,6 +7,8 @@ const SUITES: Array[Script] = [
 	preload("res://tests/test_decompressors.gd"),
 	preload("res://tests/test_ega_decoding.gd"),
 	preload("res://tests/test_level_rendering.gd"),
+	preload("res://tests/test_tile_properties.gd"),
+	preload("res://tests/test_keen_movement.gd"),
 	preload("res://tests/test_keen1_data.gd"),
 ]
 

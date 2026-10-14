@@ -62,3 +62,44 @@ func test_first_level_starts_at_known_cell() -> void:
 	var files := GameFiles.locate()
 	var level := LevelData.parse(files.read(GameFiles.level_file_name(1)))
 	assert_equal(level.find_info(LevelData.PLAYER_START_INFO), Vector2i(3, 15), "level 1 start")
+
+
+func test_tile_properties_are_found_in_the_executable() -> void:
+	var properties := TileProperties.load_from(GameFiles.locate(), 611)
+	assert_true(properties != null, "tile properties should load")
+	if properties == null:
+		return
+	var foreground := 0
+	for tile in properties.tile_count:
+		if properties.is_foreground(tile):
+			foreground += 1
+	assert_equal(foreground, 32, "foreground tiles")
+	assert_equal(
+		properties.floor_type(LevelData.parse(_level_file(1)).tile_at(Vector2i(3, 17))),
+		1,
+		"floor under the start of level 1"
+	)
+	assert_true(properties.blocks_left(182), "red wall block is solid")
+	assert_true(properties.is_deadly(266), "fire is deadly")
+	assert_equal(properties.animation_frames(83), 4, "frames of tile 83")
+	assert_equal(properties.animated_tile(86, 1), 83, "tile 86 wraps to 83")
+	assert_equal(properties.floor_type(405), TileProperties.Floor.ICE, "ice block")
+
+
+## Keen must land on solid ground at the start of every level, not fall out or
+## into something deadly.
+func test_keen_lands_safely_in_every_level() -> void:
+	var files := GameFiles.locate()
+	var properties := TileProperties.load_from(files, 611)
+	for number in range(GameFiles.FIRST_LEVEL, GameFiles.LAST_LEVEL + 1):
+		var level := LevelData.parse(_level_file(number))
+		var start := level.find_info(LevelData.PLAYER_START_INFO) * EgaGraphics.TILE_SIZE
+		var keen := KeenBody.create(LevelCollision.create(level, properties), Vector2(start))
+		for tick in KeenPhysics.TICKS_PER_SECOND * 2:
+			keen.step(KeenInput.create(0))
+		assert_true(not keen.is_dead, "Keen died at the start of level %d" % number)
+		assert_equal(keen.state, KeenBody.State.STANDING, "Keen stands in level %d" % number)
+
+
+func _level_file(number: int) -> PackedByteArray:
+	return GameFiles.locate().read(GameFiles.level_file_name(number))
