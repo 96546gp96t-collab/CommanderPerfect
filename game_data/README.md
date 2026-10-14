@@ -27,3 +27,7 @@ Godot editor from trying to import them.
 
 You can also keep the files elsewhere and start the game with
 `-- --data-dir=/path/to/keen1`.
+
+`tools/make_hd_graphics.sh` writes the HD graphics you make with Real-ESRGAN
+into `keen1/hd/` (see `docs/graphics.md`). They are made from your own files,
+so like them they stay here and are never shared.

@@ -13,6 +13,10 @@ Real-ESRGAN graphics. Singleplayer comes first; local co-op may follow later.
 - **Always rebuild the app** after changing the game: run
   `tools/build_macos.sh` (on the Mac). The user plays from
   `build/CommanderPerfect.app`, which is not updated by itself.
+  `tools/build_windows.sh` makes `build/windows/` for a Windows PC.
+- **Keep the original as it is:** extras (graphics, smooth motion, …) are
+  options that are off by default, so the game looks like the original
+  unless the player switches them on.
 - Work per milestone on a branch named `milestone-<n>-<topic>`.
 - Talk to the user in Dutch. Code, comments and commit messages are in English.
 
@@ -35,6 +39,7 @@ Real-ESRGAN graphics. Singleplayer comes first; local co-op may follow later.
 ```
 src/data/      Reading the original files (decompression, EGA graphics, levels)
 src/level/     Drawing a level (TileSet, TileMapLayer, camera) and tile collisions
+src/graphics/  xBRZ, HD graphics (Real-ESRGAN sheets), loading them, the scaling shader
 src/keen/      Keen: movement physics, input, sprite
 src/actors/    Everything else that moves: enemies, shots, opening doors
 src/map/       The world map: Keen walking, level entrances, teleporters
@@ -45,9 +50,9 @@ src/game/      Game screen (main scene), LevelSession, Inventory, the ending, ti
 src/viewer/    Data viewer scene
 tests/         Headless test runner and test suites
 tools/         Command-line tools (graphics export, shareware diskette extraction,
-               scripted play with screenshots)
+               scripted play with screenshots, HD sheets, builds)
 docs/          File formats, Keen's physics, enemies and items, the world map, sounds,
-               menus
+               menus, graphics (xBRZ, HD, smooth motion)
 game_data/     The player's own game files (ignored by git)
 ```
 
@@ -64,6 +69,8 @@ godot --path . -- --level=80                                      # start on the
 godot --path . res://src/viewer/data_viewer.tscn                  # open the data viewer
 gdformat src tests tools && gdlint src tests tools                # format + lint (pip install gdtoolkit)
 STEPS="20:Space,30:shot_menu" OUT=/tmp/shots godot --path . --script res://tools/scripted_play.gd  # scripted keys + screenshots
+tools/build_macos.sh && tools/build_windows.sh                    # builds in build/
+REALESRGAN=path/to/realesrgan-ncnn-vulkan tools/make_hd_graphics.sh  # the player's own HD graphics
 ```
 
 All tests must pass and `gdlint` must be clean before committing.

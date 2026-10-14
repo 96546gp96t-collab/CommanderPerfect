@@ -14,8 +14,8 @@ Wat elke mijlpaal precies inhoudt, staat in [docs/roadmap.md](docs/roadmap.md).
 | 3 | Keen: lopen, springen, pogo, botsingen (tile-eigenschappen uit KEEN1.EXE) | ✅ Klaar en gemerged; de besturing voelt goed volgens de gebruiker (14-10-2026), naast DOSBox leggen staat nog open |
 | 4 | Vijanden, items, deuren, sleutelkaarten, straalgeweer | ✅ Gemerged naar `main` (PR #4); speeltesten loopt nog |
 | 5 | Wereldkaart, levelovergangen, scheepsonderdelen, einde | ✅ Getest door de gebruiker en gemerged naar `main` (PR #5) |
-| 6 | Geluid, menu's, opslaan | 🔶 Gebouwd, nog speeltesten (branch `milestone-6-sound-menus`) |
-| 7 | Hogere framerate (interpolatie), xBRZ met wisselknop, Real-ESRGAN-pipeline | |
+| 6 | Geluid, menu's, opslaan | ✅ Getest door de gebruiker en gemerged naar `main` (PR #6) |
+| 7 | Hogere framerate (interpolatie), xBRZ met wisselknop, Real-ESRGAN-pipeline, Windows-build | 🔶 Gebouwd, nog speeltesten (branch `milestone-7-polish`) |
 | 8 | Lokale co-op, later eventueel online | |
 
 ## Mijlpaal 1: wat er nu is
@@ -136,6 +136,27 @@ Controls, Continue, Story, game over, een naam invullen, de highscores (ook
 in breedbeeld) en opslaan + laden op de wereldkaart via screenshots
 gecontroleerd. Het geluid is nog niet met het oor naast het origineel gelegd.
 
+## Mijlpaal 7: wat er nu is
+
+Afspraak met de gebruiker (14-10-2026): het origineel blijft zoals het is.
+Alle extra's zijn opties die standaard **uit** staan; alleen breedbeeld (met
+de HUD-balkjes) staat standaard aan. Uitleg van alles: `docs/graphics.md`.
+
+- **Instellingen.** Options heeft twee nieuwe regels: *Smooth motion* (aan/uit, of F6) en *Graphics* (ORIGINAL / XBRZ / HD, of F5). HD is pas kiesbaar als de speler HD-graphics heeft gemaakt. Beide worden onthouden in `settings.cfg`. F5 en F6 kunnen niet aan een spelactie worden gegeven.
+- **Tekenen.** Bij het originele beeld is alles zoals het was (320x200 of 356x200, hele pixels). Anders tekent de `World`-viewport op een heel veelvoud (2-8x) van de spelresolutie, ongeveer zo groot als het scherm, zodat fijnere graphics en tussenposities te zien zijn. Daarna rekt `even_pixels.gdshader` het beeld uit met alle spelpixels even groot, ook bij vensters die geen heel veelvoud zijn (dat was een bekende beperking).
+- **xBRZ** (`src/graphics/xbrz_scaler.gd`): een eigen implementatie van het idee van xBRZ, 6x, per plaatje. Alle graphics worden op de achtergrond over alle kernen gemaakt (`GraphicsLoader`, onder een seconde); het spel loopt intussen door.
+- **HD-graphics met Real-ESRGAN.** `tools/make_hd_graphics.sh` zet alle graphics op een paar grote vellen (`HdPack`, `GraphicsSheet`), laat `realesrgan-ncnn-vulkan` ze 4x vergroten (model `realesrgan-x4plus-anime`) en zet het resultaat in `game_data/keen1/hd/` (en naast de Mac-app). De doorzichtigheid van de sprites gaat op een apart masker-vel mee. Getest met een nep-upscaler (gewoon vergroten); met de echte Real-ESRGAN nog niet.
+- **Alle textures via één plek.** `GraphicsTextures` levert nu ook de tile-atlas (met een rand per tile tegen naden), de deuren, het plaatje van het huis en de sprites voor Keen en de vijanden. Grotere plaatjes krijgen de maat van het origineel (`set_size_override`), zodat de rest van het spel niets hoeft te weten.
+- **Vloeiende beweging** (`Interpolation`): Keen, vijanden, schoten, het schip en de tekens worden elk frame tussen de laatste twee ticks getekend; de camera volgt de getekende positie. Een sprong van meer dan 24 pixels (nieuw level, teleporter) wordt niet tussendoor getekend. De snap van Godot werkt in spelpixels en staat daarom alleen aan bij het originele beeld.
+- **Windows.** `tools/build_windows.sh` maakt op de Mac `build/windows/CommanderPerfect.exe` (64-bit, alles in één .exe) met de speldata ernaast in `game_data/keen1`. De Windows-templates van Godot 4.7.2 zijn geïnstalleerd (alleen de twee .exe-bestanden uit het officiële pakket).
+- Tests: `test_graphics.gd` (xBRZ: vlakken en rechte randen blijven, diagonalen worden glad, doorzichtigheid; kleurafstand; vellen heen en terug; HD-pakket heen en terug met een nep-upscaler; textures houden hun maat; randen van de atlas; interpolatie; wisselen van graphics), plus de nieuwe standaardinstellingen en opties in `test_level_rendering.gd`, `test_menus.gd` en `test_saving.gd`.
+
+Getest met Godot 4.7.2 en de shareware-versie 1.1: alle tests slagen, gdlint
+is schoon, en met gescripte invoer zijn level 1, het titelscherm en het
+optiemenu in origineel, xBRZ, (nep-)HD en met vloeiende beweging via
+screenshots gecontroleerd. De Windows-build is gemaakt maar nog niet op een
+Windows-pc gestart. Vloeiende beweging moet met het oog beoordeeld worden.
+
 ## Bekende beperkingen
 
 - De natuurkunde-getallen zijn startwaarden (overgenomen van Commander Genius als documentatie, zie `docs/keen-physics.md`). Ze moeten nog naast het origineel (DOSBox) worden gelegd; de lijst met punten staat onderaan dat document.
@@ -152,7 +173,10 @@ gecontroleerd. Het geluid is nog niet met het oor naast het origineel gelegd.
 - De data viewer toont tiles nog zonder animatie en zonder voorgrond-markering.
 - Gemaskeerde tiles (gedrag -2) worden als gewone voorgrond-tiles getekend; Keen 1 gebruikt ze niet.
 - In de data viewer wordt de info-laag nog alleen gemarkeerd, zonder namen van de vijanden.
-- Bij een venstergrootte die geen heel veelvoud van het beeld is, worden niet alle pixels even breed of hoog getekend (vooral zichtbaar met de 4:3-correctie). Dit lossen we op in mijlpaal 7, samen met xBRZ (bijv. eerst op een heel veelvoud renderen en dan glad verkleinen).
+- Zodra het beeld niet het originele is (xBRZ, HD of vloeiende beweging), scrolt de camera ook in delen van een spelpixel, ook als vloeiende beweging uit staat. Sprites staan dan wel op hele spelpixels.
+- Real-ESRGAN is gemaakt voor foto's en tekeningen, niet voor pixelart; of `realesrgan-x4plus-anime` mooi is, moet blijken. Een ander model kiezen kan met `MODEL=`.
+- Op schermen hoger dan 1200 pixels (Retina) wordt xBRZ (6x) nog een beetje glad vergroot.
+- Vloeiende beweging toont alles één tick (17 ms) later.
 - Of de wereldkaart ook precies een rand van 2 tiles verbergt, is aangenomen maar niet vergeleken met het origineel.
 
 ## Open beslissingen
@@ -161,6 +185,8 @@ gecontroleerd. Het geluid is nog niet met het oor naast het origineel gelegd.
 
 ## Volgende stap
 
-1. **Voor de gebruiker:** speel de nieuwe build (`build/CommanderPerfect.app`): luister of de geluiden kloppen (toonhoogte, lengte, welke wanneer), probeer het menu (Escape), toetsen wijzigen, opslaan op de kaart en weer laden, en een game over met de highscores. Vergelijk als het kan met het origineel (DOSBox), vooral de punten onderaan `docs/sounds.md` en `docs/menus.md`.
-2. Mijlpaal 6 afronden met wat uit die test komt, en mergen naar `main`.
-3. **Mijlpaal 7**: hogere framerate via interpolatie, xBRZ met wisselknop, de Real-ESRGAN-pipeline, en een Windows-build. Daar hoort ook bij: pixels netjes schalen bij vensters die geen heel veelvoud zijn.
+1. **Voor de gebruiker:** speel de nieuwe build (`build/CommanderPerfect.app`). Zet in Options (of met F5/F6) xBRZ en vloeiende beweging aan en uit en kijk of het beeld klopt: geen naden tussen tiles, geen rare randen aan sprites, menu's en HUD goed leesbaar, en of bewegen echt vloeiender voelt (vooral op een 120 Hz-scherm). Controleer ook dat alles uit precies het oude beeld geeft.
+2. **HD maken:** download `realesrgan-ncnn-vulkan` voor macOS van https://github.com/xinntao/Real-ESRGAN/releases, pak het uit en draai `REALESRGAN=pad/naar/realesrgan-ncnn-vulkan tools/make_hd_graphics.sh`. Kies daarna Graphics > HD. Zeg wat je van het resultaat vindt (eventueel een ander model).
+3. **Windows:** kopieer de hele map `build/windows` naar de Windows-pc en start `CommanderPerfect.exe`. Kijk of het start, of het geluid werkt en of de instellingen en saves bewaard blijven (in `%APPDATA%\Godot\app_userdata\CommanderPerfect`).
+4. Mijlpaal 7 afronden met wat uit die tests komt, en mergen naar `main`.
+5. Daarna mijlpaal 8 (lokale co-op), of eerst de openstaande punten: natuurkunde en vijanden naast DOSBox leggen, de intro, en de vraag of de hulpregel in 4:3 standaard weg moet.

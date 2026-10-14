@@ -226,7 +226,7 @@ func _process(delta: float) -> void:
 func _play(delta: float) -> void:
 	_time_left = minf(_time_left + delta, KeenPhysics.MAX_TICKS_PER_FRAME * KeenPhysics.TICK)
 	if _session != null:
-		var view_size := Vector2(_world.size)
+		var view_size := Vector2(_settings.game_size())
 		_session.view_rect = Rect2(
 			_camera.get_screen_center_position() - view_size / 2.0, view_size
 		)
@@ -887,6 +887,10 @@ func _fit_screen() -> void:
 	_world.size_2d_override_stretch = true
 	if _world.size != game_size * render_scale:
 		_world.size = game_size * render_scale
+	# Snapping works in game pixels: right for the original picture, but it
+	# would undo smooth motion on a larger viewport.
+	_world.snap_2d_transforms_to_pixel = render_scale == 1
+	_world.snap_2d_vertices_to_pixel = render_scale == 1
 	# Scaled graphics are drawn smoothly; the original pixels stay sharp.
 	var smooth_textures := _textures != null and _textures.scaled != null
 	_world.canvas_item_default_texture_filter = (
