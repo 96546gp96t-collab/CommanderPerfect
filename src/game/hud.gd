@@ -5,7 +5,8 @@ extends Node2D
 ## it; it only has the status screen.
 ##
 ##   top left    Keen (as in the "Keens Left" window) with the number of
-##               lives, and the score
+##               lives, and "Score" with the score: the game has no picture
+##               that clearly means score
 ##   top right   the raygun with its charges, and the keycards Keen has
 ## Each corner is one row on a small gray panel, drawn with the game font
 ## and the item tiles. The gray is the background of the item tiles, so
@@ -22,6 +23,9 @@ const MARGIN := 3
 const PADDING := 2
 ## Space between a number and the next icon.
 const GAP := 6
+## Space between the lives and the score, so that they look apart.
+const SCORE_GAP := 12
+const SCORE_LABEL := "Score "
 ## Text is 8 pixels high, icons 16: this puts the text in the middle.
 const TEXT_OFFSET := (ICON - CHAR) / 2
 const PANEL_COLOR_INDEX := 7
@@ -77,15 +81,15 @@ func _draw() -> void:
 
 func _draw_left_panel() -> void:
 	var lives := str(_lives)
-	var score := str(_score)
-	var width := ICON + lives.length() * CHAR + GAP + score.length() * CHAR
+	var score := SCORE_LABEL + str(_score)
+	var width := ICON + lives.length() * CHAR + SCORE_GAP + score.length() * CHAR
 	var inside := _panel(Vector2(MARGIN, MARGIN), width)
 	var keen := _textures.sprite(LIFE_SPRITE)
 	if keen != null:
 		draw_texture(keen, inside)
 	var x := inside.x + ICON
 	_textures.draw_text(self, Vector2(x, inside.y + TEXT_OFFSET), lives, true)
-	x += lives.length() * CHAR + GAP
+	x += lives.length() * CHAR + SCORE_GAP
 	_textures.draw_text(self, Vector2(x, inside.y + TEXT_OFFSET), score, true)
 
 
