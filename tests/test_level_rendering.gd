@@ -35,6 +35,16 @@ func test_crop_keeps_only_the_chosen_cells() -> void:
 	assert_equal(screen.tile_at(Vector2i(0, 0)), 0, "outside the old map: tile 0")
 
 
+func test_hud_shows_only_the_keycards_keen_has() -> void:
+	var keycards: Array[bool] = [false, true, false, true]
+	assert_equal(
+		Hud.keycard_tiles(keycards),
+		PackedInt32Array([StatusScreen.KEYCARD_TILES[1], StatusScreen.KEYCARD_TILES[3]]),
+		"red and blue"
+	)
+	assert_true(Hud.keycard_tiles([false, false, false, false]).is_empty(), "none")
+
+
 func test_find_info_returns_first_match() -> void:
 	var level := _create_level(Vector2i(10, 8))
 	level.infos[3 * 10 + 4] = LevelData.PLAYER_START_INFO

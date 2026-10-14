@@ -7,7 +7,8 @@ extends SceneTree
 ##     godot --path . --script res://tools/scripted_play.gd
 ##
 ## STEPS is a list of FRAME:ACTION, where ACTION is one of
-##   KEY        press and release a key (a Godot key name: Space, Down, A)
+##   KEY        press and release a key (a Godot key name: Space, Down, A,
+##              also with modifiers: Shift+I)
 ##   hold_KEY   press a key and keep it down
 ##   up_KEY     release a key
 ##   shot_NAME  save the window as OUT/NAME.png
@@ -55,8 +56,12 @@ func _do(action: String) -> void:
 		return
 	var key_name := action.trim_prefix(HOLD_PREFIX).trim_prefix(RELEASE_PREFIX)
 	var event := InputEventKey.new()
-	event.physical_keycode = OS.find_keycode_from_string(key_name)
+	var code := OS.find_keycode_from_string(key_name)
+	event.physical_keycode = code & KEY_CODE_MASK
 	event.keycode = event.physical_keycode
+	event.shift_pressed = code & KEY_MASK_SHIFT != 0
+	event.ctrl_pressed = code & KEY_MASK_CTRL != 0
+	event.alt_pressed = code & KEY_MASK_ALT != 0
 	if key_name.length() == 1:
 		event.unicode = key_name.unicode_at(0)
 	event.pressed = not action.begins_with(RELEASE_PREFIX)

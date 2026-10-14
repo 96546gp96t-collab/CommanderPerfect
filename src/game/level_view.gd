@@ -102,6 +102,7 @@ var _show_help := true
 @onready var _camera: LevelCamera = %Camera
 @onready var _camera_anchor: Node2D = %CameraAnchor
 @onready var _pictures: PictureLayer = %Pictures
+@onready var _hud: Hud = %Hud
 @onready var _picture: Sprite2D = %Picture
 @onready var _window_light: Sprite2D = %WindowLight
 @onready var _window: GameWindow = %Window
@@ -150,6 +151,7 @@ func _ready() -> void:
 	_textures = GraphicsTextures.create(_graphics)
 	_window.set_textures(_textures)
 	_pictures.set_textures(_textures)
+	_hud.set_textures(_textures)
 	_load_texts()
 	if _files.has_file(GameFiles.SOUNDS):
 		_sounds.load_sounds(SoundFile.load_from(_files))
@@ -766,6 +768,8 @@ func _move_camera_anchor() -> void:
 func _apply_display_settings() -> void:
 	_world.size = _settings.game_size()
 	_window.view_size = _settings.game_size()
+	_hud.view_size = _settings.game_size()
+	_hud.queue_redraw()
 	_window.queue_redraw()
 	_fit_screen()
 	if _level != null:
@@ -791,10 +795,20 @@ func _fit_screen() -> void:
 func _update_status() -> void:
 	var playing := _mode in [Mode.MAP, Mode.LEVEL, Mode.LOOK]
 	_help_label.visible = _show_help and playing and not _menus.is_open()
+	_update_hud()
 	if _level == null:
 		return
-	if not playing and _mode != Mode.ENDING:
-		_status_label.text = _message if _message_time_left > 0.0 else ""
+	# With the HUD in the corners, only messages are shown, in the middle.
+	_status_label.horizontal_alignment = (
+		HORIZONTAL_ALIGNMENT_CENTER if _hud.visible else HORIZONTAL_ALIGNMENT_LEFT
+	)
+	if _hud.visible or (not playing and _mode != Mode.ENDING):
+		var notes := PackedStringArray()
+		if _hud.visible and _god_mode:
+			notes.append("GOD MODE")
+		if _message_time_left > 0.0:
+			notes.append(_message)
+		_status_label.text = "\n".join(notes)
 		return
 	var game_size := _settings.game_size()
 	var lines := PackedStringArray()
@@ -818,6 +832,17 @@ func _update_status() -> void:
 	if _message_time_left > 0.0:
 		lines.append(_message)
 	_status_label.text = "\n".join(lines)
+
+
+## The HUD is for widescreen, while Keen is on the map or in a level.
+func _update_hud() -> void:
+	_hud.visible = (
+		_settings.aspect == DisplaySettings.Aspect.WIDESCREEN
+		and _mode in [Mode.MAP, Mode.LEVEL]
+		and not _menus.is_open()
+	)
+	if _hud.visible:
+		_hud.show_inventory(_progress.inventory)
 
 
 func _show_message(text: String) -> void:
