@@ -27,10 +27,9 @@ const SCORE_GAP := 12
 const SCORE_LABEL := "Score "
 ## Text is 8 pixels high, icons 16: this puts the text in the middle.
 const TEXT_OFFSET := (ICON - CHAR) / 2
-## A soft light blue: lighter than the blues of the EGA palette, so that the
-## black text stays easy to read.
-const PANEL_COLOR := Color("aaccff")
-const OUTLINE_COLOR_INDEX := 1
+## Baby blue, close to white, with a soft blue edge.
+const PANEL_COLOR := Color("e4f1ff")
+const OUTLINE_COLOR := Color("8fb6e6")
 
 ## Size of the view in game pixels; the right panel sits against its edge.
 var view_size := Vector2i(426, 200)
@@ -115,7 +114,7 @@ func _draw_right_panel() -> void:
 func _panel(at: Vector2, width: int) -> Vector2:
 	var rect := Rect2(at, Vector2(width + 2 * PADDING, ICON + 2 * PADDING))
 	draw_rect(rect, PANEL_COLOR)
-	draw_rect(rect.grow(1), EgaPalette.color(OUTLINE_COLOR_INDEX), false, 1.0)
+	draw_rect(rect.grow(1), OUTLINE_COLOR, false, 1.0)
 	return at + Vector2(PADDING, PADDING)
 
 
