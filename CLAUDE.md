@@ -34,11 +34,12 @@ src/data/      Reading the original files (decompression, EGA graphics, levels)
 src/level/     Drawing a level (TileSet, TileMapLayer, camera) and tile collisions
 src/keen/      Keen: movement physics, input, sprite
 src/actors/    Everything else that moves: enemies, shots, opening doors
-src/game/      Game screen (main scene), LevelSession, Inventory, display settings
+src/map/       The world map: Keen walking, level entrances, teleporters
+src/game/      Game screen (main scene), LevelSession, Inventory, the ending, display settings
 src/viewer/    Data viewer scene
 tests/         Headless test runner and test suites
 tools/         Command-line tools (graphics export, shareware diskette extraction)
-docs/          File formats, Keen's physics, enemies and items
+docs/          File formats, Keen's physics, enemies and items, the world map
 game_data/     The player's own game files (ignored by git)
 ```
 
@@ -50,7 +51,7 @@ Godot 4.7 is required (`godot` must be on the PATH).
 godot --headless --path . --import                                # first run: build the class cache
 godot --headless --path . --script res://tests/run_tests.gd       # run all tests
 godot --headless --path . --script res://tools/export_graphics.gd # dump graphics to exported/
-godot --path .                                                    # start the game (play level 1)
+godot --path .                                                    # start the game (world map)
 godot --path . res://src/viewer/data_viewer.tscn                  # open the data viewer
 gdformat src tests tools && gdlint src tests tools                # format + lint (pip install gdtoolkit)
 ```

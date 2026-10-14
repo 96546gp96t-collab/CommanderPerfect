@@ -14,6 +14,8 @@ const DATA_DIR_OPTION := "--data-dir="
 const DEFAULT_SUBFOLDER := "game_data/keen1"
 const MACOS_EXECUTABLE_DIR := ".app/Contents/MacOS"
 const EXECUTABLE := "KEEN1.EXE"
+## The text shown after the ending.
+const END_TEXT := "ENDTEXT.CK1"
 const REQUIRED_FILES: PackedStringArray = [
 	"EGAHEAD.CK1", "EGALATCH.CK1", "EGASPRIT.CK1", EXECUTABLE
 ]

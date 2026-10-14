@@ -1,38 +1,19 @@
 class_name Keen
-extends Node2D
-## Draws Keen: the sprite that [KeenBody] asks for, at its position. The
-## logic itself runs in [LevelSession].
-##
-## The [LevelCamera] can be a child, so that the view follows Keen.
-
-var _sprites: Array[Image] = []
-var _textures: Dictionary[int, ImageTexture] = {}
-var _sprite := Sprite2D.new()
-
-
-func _init() -> void:
-	_sprite.centered = false
-	add_child(_sprite)
-
-
-## Uses the sprites in [param graphics] for drawing.
-func set_graphics(graphics: EgaGraphics) -> void:
-	_sprites = graphics.sprites
-	_textures.clear()
+extends SpriteView
+## Draws Keen: the sprite that [KeenBody] (in a level) or [MapKeen] (on the
+## world map) asks for, at its position. The logic itself runs in
+## [LevelSession] and [MapSession].
 
 
 ## Shows [param body] as it is now.
 func show_body(body: KeenBody) -> void:
-	position = body.position.floor()
-	_sprite.texture = _texture(body.sprite_index())
+	show_sprite(body.position, body.sprite_index())
 	# Walking through the exit door, Keen disappears behind it bit by bit.
 	var width := body.visible_width()
-	_sprite.visible = width >= 1.0
-	_sprite.region_enabled = width < KeenPhysics.SPRITE_SIZE.x
-	_sprite.region_rect = Rect2(Vector2.ZERO, Vector2(floorf(width), KeenPhysics.SPRITE_SIZE.y))
+	if width < KeenPhysics.SPRITE_SIZE.x:
+		clip_width(width, KeenPhysics.SPRITE_SIZE.y)
 
 
-func _texture(sprite_index: int) -> ImageTexture:
-	if not _textures.has(sprite_index) and sprite_index < _sprites.size():
-		_textures[sprite_index] = ImageTexture.create_from_image(_sprites[sprite_index])
-	return _textures.get(sprite_index)
+## Shows Keen on the world map.
+func show_on_map(map_keen: MapKeen) -> void:
+	show_sprite(map_keen.position, -1 if map_keen.hidden else map_keen.sprite_index())

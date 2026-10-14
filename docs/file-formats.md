@@ -17,6 +17,9 @@ these descriptions and checked against the shareware files (version 1.1).
 | `EGASPRIT.CK1` | Sprites (4 color planes + 1 mask plane) | `EgaGraphics` |
 | `LEVELxx.CK1` | Levels 1-16 and special maps (see below) | `LevelData` |
 | `KEEN1.EXE` | Game code; also the tile properties (only these are read) | `DosExecutable`, `LzexeDecompressor`, `TileProperties` |
+| `FINALE.CK1` | Picture of Keen's house at the end of the game | `FinaleImage` |
+| `ENDTEXT.CK1` | Text shown after the ending | `TextDocument` |
+| `STORYTXT.CK1`, `HELPTEXT.CK1` | The story and the help texts (milestone 6), same format | `TextDocument` |
 | `SOUNDS.CK1` | PC speaker sounds (milestone 6) | — |
 
 ## EGA planar graphics
@@ -130,8 +133,25 @@ each starting with the top left of its sprite at the top left of the cell:
 
 Level 2 has two cells with 23 and level 12 a stretch of large values that
 look like leftover data; the game ignores them, and so does CommanderPerfect.
-What the values on the world map mean follows in milestone 5. See
-`docs/enemies.md` for how the enemies behave.
+See `docs/enemies.md` for how the enemies behave.
+
+**Info layer of the world map** (level 80), see `MapInfo` and
+`docs/world-map.md`:
+
+| Value | Meaning |
+|---|---|
+| 1-16 | Entrance of that level. Large entrances cover 2x2 cells, all with the same value |
+| `0x8000` + 1-16 | The same, and the cell blocks the way until the level is done (the right half of level 1, the top half of level 7) |
+| 20 | Keen's ship (two cells) |
+| 38, 41, 46 | Teleporters (34-46 are all treated as teleporters; only these three are on the map) |
+| 255 | Where Keen starts |
+
+Tiles of the world map that the game uses: 77 is the "done" sign for an
+entrance of one cell, 78-81 the four quarters (top left, top right, bottom
+left, bottom right) of the big one. The teleporters are tile 99 (on the ice)
+and 325 (on red ground); while one is used it flickers through tiles 342-345
+or 338-341. The pictures of the ship parts in the "missing parts" message
+are tiles 321-324.
 
 Special maps:
 
@@ -185,9 +205,7 @@ n tiles, counted from the start of the run (Keen 1's runs are not aligned to
 multiples of n: 83-86 is one group, 208-219 are three). A level can place any
 frame of a group; the animation then starts from there.
 
-Behaviors seen in Keen 1 (version 1.1). Values 1-21 are used by the engine;
-22-24 are what the tiles look like and still need to be confirmed in
-milestone 5.
+Behaviors seen in Keen 1 (version 1.1).
 
 | Value | Tiles | Meaning |
 |---|---|---|
@@ -202,9 +220,9 @@ milestone 5.
 | 16 | 176 | Pogo stick |
 | 17 | 159 | Exit |
 | 18-21 | 190-193 | Keycards: yellow, red, green, blue (every level with a door has the keycard of its color) |
-| 22 | 435-438, 485-488 | Animated (light) switch? |
-| 23 | 271 | Light switch? |
-| 24 | 481-484, 494-497 | Teleporter? |
+| 22 | 435-438, 485-488 | Yorp and Garg statues that show a message (below) |
+| 23 | 271 | Looks like a light switch; no level of Keen 1 uses it |
+| 24 | 481-484, 494-497 | Teleporter: only in level 13; it takes Keen out of the level to a secret place on the map |
 
 **Points table.** Right before the statue messages (below) are five 16-bit
 words: 500, 100, 200, 1000, 5000. These are the points of behaviors 6-10,
@@ -221,3 +239,62 @@ levels with a statue: 2, 6, 9, 10, 11 (the Garg statue), 12 and 15.
 `HintTexts` reads them from the player's own executable at runtime. After
 its message a statue stops glowing: Yorp statues (485-488) become tile 315,
 the Garg statue (435-438) tile 434.
+
+**Texts of the ship and the ending.** Like the statue messages, these are
+zero-terminated records; a message of several lines is one record per line
+ending in a newline, and its last line has no newline (`ExeStrings`,
+`EndingTexts`):
+
+- `Your ship is missing\nthese parts:\n\n\n\n\n` is one record, followed
+  by `    GO GET THEM!\n`. The empty lines leave room for the pictures of the
+  missing parts.
+- Keen returning to his ship is four `line\n` records that end right before
+  the file name `FINALE.CK1` (which the game opens at that point).
+- After that name come the seven messages of the conversation at Keen's
+  house, then `TO BE CONTINUED....`. The parents' question and Keen's answer
+  ("Aw, Mom, can't I keep him?") are stored as one message.
+
+**Teleporter destinations.** The game keeps them as pixel coordinates inside
+its code, not in a data table, so CommanderPerfect does not read them. The
+Commander Genius documentation of these coordinates shows that every one
+points exactly at another teleporter on the map; `MapSession` therefore
+names the destination by the info value of that teleporter (see
+`docs/world-map.md`).
+
+## FINALE.CK1
+
+A full-screen EGA picture (320x200), run-length coded:
+
+| Offset | Type | Meaning |
+|---|---|---|
+| 0 | u32 | Size of the four planes together after decompression (4 x 8192) |
+| 4 | … | Run-length code |
+
+The code is a command byte n, then:
+
+| n | Meaning |
+|---|---|
+| high bit set | `(n & 0x7F) + 1` bytes follow and are copied as they are |
+| high bit clear | The next byte is repeated `n + 3` times |
+
+The result is the four colour planes one after another, 8192 bytes each. Each
+holds the picture row by row (40 bytes per row, 200 rows); the remaining 192
+bytes of a plane are padding. The bitmaps `WINDON` and `WINDOFF` (56x32) are
+drawn on top at (80, 0) to switch the light in the bedroom window on and off.
+
+## ENDTEXT.CK1 (and STORYTXT.CK1, HELPTEXT.CK1)
+
+Plain text written for an 80-column screen, lines ending in CR LF:
+
+| Mark | Meaning |
+|---|---|
+| `~` at the start of a line | Center the line |
+| `0x1F` at the end of a line | Break the line here |
+| `0x1A` | End of the text |
+
+Other lines run on into the next one: CommanderPerfect joins them into
+paragraphs and wraps them again for the 38 columns that fit in a window. An
+empty line ends a paragraph. Lines that fit are kept as they are, spaces
+included, because some are laid out by hand. Bytes from 0x80 on are
+characters of the game font: `0x97 0x98` over `0x99 0x9A` draw a little
+Keen face next to "Commander Keen says:".

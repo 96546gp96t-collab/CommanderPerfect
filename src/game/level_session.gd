@@ -9,10 +9,12 @@ extends RefCounted
 ##   doors    open when Keen has the keycard of their color, which is used up
 ##   exit     Keen walks through the door; then the level is complete
 ##   statues  show a message once, then stop glowing
+##   teleporter  takes Keen out of the level to a secret place on the map
 ## Enemies start where the info layer of the level says (see
 ## [constant ENEMY_INFOS]); their shots, and Keen's, are actors too.
-## The attempt ends when Keen reaches the exit or when he has died (after
-## the dying animation, or at once when he falls out of the level).
+## The attempt ends when Keen reaches the exit, uses the teleporter, or has
+## died (after the dying animation, or at once when he falls out of the
+## level).
 
 ## Emitted when a tile of the level changes, so that it can be redrawn.
 signal tile_changed(cell: Vector2i, tile: int)
@@ -20,7 +22,8 @@ signal tile_changed(cell: Vector2i, tile: int)
 ## message. Each statue speaks only once.
 signal hint_touched
 
-enum Outcome { PLAYING, COMPLETED, DIED }
+## TELEPORTED: Keen left through the teleporter; the level is not done.
+enum Outcome { PLAYING, COMPLETED, DIED, TELEPORTED }
 
 ## Picked-up items and opened doors leave the gray background behind. Tiles
 ## from [constant HIGH_TILES_START] on leave a different background (no level
@@ -226,6 +229,8 @@ func _touch_tiles(box: Rect2) -> void:
 			_pick_up(cell, tile)
 		elif properties.is_exit(tile) and keen.can_exit():
 			keen.start_exit(cell.x)
+		elif properties.is_teleporter(tile) and outcome == Outcome.PLAYING:
+			outcome = Outcome.TELEPORTED
 		elif properties.is_hint(tile):
 			var garg := tile >= FIRST_GARG_STATUE and tile <= LAST_GARG_STATUE
 			set_tile(cell, SILENT_GARG_STATUE if garg else SILENT_YORP_STATUE)

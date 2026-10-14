@@ -5,9 +5,10 @@ Keen 1 ("Marooned on Mars", 1990) on modern computers, with optional modern
 extras: widescreen, a higher frame rate, xBRZ pixel-art scaling and
 AI-upscaled graphics.
 
-> **Status:** early development. Every level can be played to the end:
-> items, keycards and doors, the raygun, and all enemies. The world map and
-> the end of the game follow next. See [PROGRESS.md](PROGRESS.md).
+> **Status:** early development. The whole game can be played from start to
+> finish: the world map with its teleporters, every level with its items,
+> doors, raygun and enemies, the ship parts and the ending. Sound, menus and
+> saving follow next. See [PROGRESS.md](PROGRESS.md).
 
 ## You need your own game files
 
@@ -21,9 +22,9 @@ Pack* on Steam or GOG, or the shareware release) into `game_data/keen1/`. See
 Requires [Godot 4.7](https://godotengine.org/download).
 
 ```sh
-godot --path .                                    # play level 1
+godot --path .                                    # play, starting on the world map
 godot --path . -- --level=5                       # start in level 5
-godot --path . -- --level=80                      # look around on the world map
+godot --path . -- --ending                        # watch the ending
 godot --path . -- --data-dir=PATH                 # use game files from another folder
 godot --path . res://src/viewer/data_viewer.tscn  # browse all graphics and levels
 ```
@@ -32,12 +33,12 @@ Or open the project in the Godot editor and press F5.
 
 | Key | Action |
 |---|---|
-| Arrows / WASD / D-pad / left stick | Walk (look around on the world map) |
-| Ctrl / Z / A button | Jump; hold longer to jump higher |
+| Arrows / WASD / D-pad / left stick | Walk (on the world map also up and down) |
+| Ctrl / Z / A button | Jump; hold longer to jump higher. On the world map: enter a level, use a teleporter or the ship |
 | Alt / X / B button | Take out or put away the pogo stick; hold jump to bounce higher |
 | Space / C / gamepad X button | Fire the raygun (once you have charges) |
 | Enter / Start button | Status screen (score, lives, raygun, keycards, ship parts); also closes messages |
-| Page Up / Page Down / shoulder buttons | Previous / next level |
+| Page Up / Page Down / shoulder buttons | Previous / next map (levels, world map, special maps) |
 | F2 | Original view (320x200) or widescreen (16:9) |
 | F3 | Pixels as on a 4:3 monitor, or square pixels |
 | F1 | Show or hide the help line |
@@ -46,7 +47,7 @@ Cheats, for testing:
 
 | Keys | Cheat |
 |---|---|
-| Shift+N / Shift+P (or Page Down / Page Up) | Next / previous level |
+| Shift+N / Shift+P (or Page Down / Page Up) | Next / previous map |
 | Shift+I | All keycards, the pogo stick and 99 raygun charges |
 | Shift+G | God mode: nothing kills Keen, except falling out of the level |
 

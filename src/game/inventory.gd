@@ -54,6 +54,11 @@ func add_ship_part(part: ShipPart) -> void:
 	add_points(SHIP_PART_POINTS)
 
 
+## Whether Keen has found every part of his ship: then he can fly home.
+func has_all_ship_parts() -> bool:
+	return not ship_parts.has(false)
+
+
 func has_keycard(color: TileProperties.KeyColor) -> bool:
 	return keycards[color]
 

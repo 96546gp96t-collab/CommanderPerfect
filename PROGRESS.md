@@ -12,8 +12,8 @@ Wat elke mijlpaal precies inhoudt, staat in [docs/roadmap.md](docs/roadmap.md).
 | 1 | Originele bestanden inlezen in Godot (graphics, levels) + data viewer | ✅ Klaar (branch `milestone-1-data-loading`) |
 | 2 | Levels tekenen met TileMapLayer, scrollen, widescreen-camera | ✅ Klaar (branch `milestone-2-level-view`) |
 | 3 | Keen: lopen, springen, pogo, botsingen (tile-eigenschappen uit KEEN1.EXE) | ✅ Klaar en gemerged; de besturing voelt goed volgens de gebruiker (14-10-2026), naast DOSBox leggen staat nog open |
-| 4 | Vijanden, items, deuren, sleutelkaarten, straalgeweer | 🔶 Gebouwd, nog speeltesten (branch `milestone-4-items-enemies`) |
-| 5 | Wereldkaart, levelovergangen, scheepsonderdelen, einde | |
+| 4 | Vijanden, items, deuren, sleutelkaarten, straalgeweer | ✅ Gemerged naar `main` (PR #4); speeltesten loopt nog |
+| 5 | Wereldkaart, levelovergangen, scheepsonderdelen, einde | 🔶 Gebouwd, nog speeltesten (branch `milestone-5-world-map`) |
 | 6 | Geluid, menu's, opslaan | |
 | 7 | Hogere framerate (interpolatie), xBRZ met wisselknop, Real-ESRGAN-pipeline | |
 | 8 | Lokale co-op, later eventueel online | |
@@ -92,13 +92,36 @@ is schoon, en met gescripte invoer zijn level 1 (Yorps, items), level 4
 (deur, schieten) en level 8 (robots, ijskanonnen) gespeeld en via
 screenshots gecontroleerd. Een level helemaal uitspelen met de hand moet nog.
 
+## Mijlpaal 5: wat er nu is
+
+- De info-laag van de wereldkaart is ontcijferd (`MapInfo`): 1-16 zijn levelingangen, met `0x8000` erbij blokkeert de cel de weg tot het level klaar is (rechterhelft van level 1, bovenhelft van level 7), 20 is het schip, 38/41/46 zijn teleporters, 255 de start. Zie `docs/file-formats.md` en het nieuwe `docs/world-map.md`.
+- `src/map/`: `MapSession` (de kaart in vaste ticks, zonder nodes, testbaar), `MapKeen` (lopen in acht richtingen met de MAPKEEN-sprites), `MapCollision` (tiles plus blokkerende ingangen) en `MapTeleport` (flikkeren, reizen, flikkeren).
+- Springen of pogo op een ingang start het level; Keen komt daarna terug waar hij het level in ging, of hij het nu uitspeelde of doodging. Voltooide levels krijgen een DONE-bord (tile 77, of 78-81 voor grote ingangen) en kunnen niet meer in.
+- Teleporters: 38 (achter level 7) ↔ 41 (ijs bij level 8, de oostkant van Mars); 46 (bij level 14) → 41. De teleporter in level 13 (gedrag 24) brengt Keen naar 46: zo bereik je level 14. Een test bewijst dat alle 16 levels vanaf de start bereikbaar zijn.
+- `GameProgress`: inventaris, voltooide levels en de plek op de kaart. Doodgaan in een level kost een leven en brengt Keen terug naar de kaart; bij de start en na doodgaan verschijnt het "Keens Left"-venster.
+- Het schip: zonder alle onderdelen het bericht "Your ship is missing these parts" met plaatjes van wat ontbreekt. Met alle vier de onderdelen begint het einde zodra Keen terug is op de kaart.
+- Het einde (`EndingSequence`, `ShipFlight`): Keen repareert zijn schip, vlucht van Mars naar de aarde op kaart 81 (met "?" en "!"), het plaatje van zijn huis uit `FINALE.CK1` (`FinaleImage`) met het gesprek en het licht in de slaapkamer (`WINDON`/`WINDOFF`), de vlucht naar het moederschip en tot slot `ENDTEXT.CK1` (`TextDocument`, scrollen met omhoog/omlaag). Daarna begint een nieuw spel.
+- Alle teksten komen uit de eigen `KEEN1.EXE` van de speler (`EndingTexts`, met de gedeelde helper `ExeStrings`, die ook `HintTexts` nu gebruikt).
+- `LevelView` speelt nu het hele spel: kaart → level → kaart → einde. Het spel start standaard op de wereldkaart. Nieuwe optie `-- --ending` om meteen het einde te zien. Shift+N/P bladeren nu door alle kaarten.
+- `tools/export_graphics.gd` exporteert ook het FINALE-plaatje.
+- Tests: `test_world_map.gd` (lopen, ingangen, blokkades, DONE-borden, teleporters, schip), `test_ending.gd` (vluchten, de stappen van het einde, tekstopmaak, FINALE-decoder, teksten uit de EXE), een teleporter-test in `test_level_session.gd`, en op de echte data: alle ingangen bestaan, elk level is bereikbaar, Keen loopt level 1 in, alleen level 13 heeft een teleporter, en de eindbestanden zijn leesbaar.
+
+Getest met Godot 4.7.2 en de shareware-versie 1.1: alle tests slagen, gdlint
+is schoon, en met gescripte invoer zijn de kaart (Keens Left, statusscherm,
+het schipbericht, level 1 in) en het hele einde opgenomen en via screenshots
+gecontroleerd. Het spel helemaal met de hand uitspelen moet nog.
+
 ## Bekende beperkingen
 
 - De natuurkunde-getallen zijn startwaarden (overgenomen van Commander Genius als documentatie, zie `docs/keen-physics.md`). Ze moeten nog naast het origineel (DOSBox) worden gelegd; de lijst met punten staat onderaan dat document.
 - Veel getallen voor vijanden zijn schattingen (gemarkeerd met *estimate* in de code); de lijst met wat nog naast het origineel moet staat onderaan `docs/enemies.md`. Vooral: levenspunten van Vorticons (4) en de commandant (105).
-- Schakelaars (gedrag 23) en teleporters (24) doen nog niets (mijlpaal 5).
+- Gedrag 23 (lichtschakelaar) wordt door geen enkel level van Keen 1 gebruikt en doet niets.
+- Veel getallen op de kaart en in het einde zijn overgenomen van Commander Genius of geschat: loopsnelheid op de kaart, de teleporter, de vluchten van het schip (de vlucht naar de aarde duurt nu ~28 s). De lijst staat onderaan `docs/world-map.md`.
+- De doelen van de teleporters staan in de code van `KEEN1.EXE`, niet in een tabel; ze zijn als vaste waarden in `MapSession` gezet (volgens de documentatie van Commander Genius wijst elk doel precies naar een andere teleporter). Mods met andere doelen werken dus niet.
+- In de EXE zijn de vraag van de ouders en Keens antwoord ("Aw, Mom...") één bericht; het origineel toont ze misschien als twee vensters.
+- Na het einde begint direct een nieuw spel; titelscherm en highscores komen in mijlpaal 6.
 - Er is nog geen geluid. De regel bovenin (score, levens, munitie) is een hulpmiddel; het origineel heeft alleen het statusscherm.
-- Na de uitgang ga je direct naar het volgende level; de wereldkaart komt in mijlpaal 5. Level overslaan (cheat of Page Up/Down) houdt de inventaris.
+- Level overslaan (cheat of Page Up/Down) houdt de inventaris, en een level dat zo gekozen is telt wel mee als het wordt uitgespeeld.
 - De data viewer toont tiles nog zonder animatie en zonder voorgrond-markering.
 - Gemaskeerde tiles (gedrag -2) worden als gewone voorgrond-tiles getekend; Keen 1 gebruikt ze niet.
 - In de data viewer wordt de info-laag nog alleen gemarkeerd, zonder namen van de vijanden.
@@ -112,6 +135,6 @@ screenshots gecontroleerd. Een level helemaal uitspelen met de hand moet nog.
 
 ## Volgende stap
 
-1. **Voor de gebruiker:** speel een paar levels met vijanden (bijv. 1, 3, 4 en 8) en kijk of iets vreemd voelt: Yorps die duwen, Garg's die aanvallen, robots, ijs. Vergelijk als het kan met het origineel (DOSBox), vooral de punten onderaan `docs/enemies.md`.
-2. Daarna mijlpaal 4 afronden met wat uit die test komt, en mergen.
-3. **Mijlpaal 5**: de wereldkaart. Eerst de info-waarden op kaart 80 ontcijferen (welke getallen zijn levelingangen, wat betekenen de waarden met 0x8000), dan Keen over de kaart laten lopen en levels in- en uitgaan.
+1. **Voor de gebruiker:** speel het spel vanaf de wereldkaart: level 1, de blokkade, de teleporter achter level 7, en kijk of lopen op de kaart goed voelt. Bekijk het einde met `godot --path . -- --ending`. Vergelijk als het kan met het origineel (DOSBox), vooral de punten onderaan `docs/world-map.md` en `docs/enemies.md`.
+2. Mijlpaal 5 afronden met wat uit die test komt, en mergen naar `main`.
+3. **Mijlpaal 6**: geluid (`SOUNDS.CK1`), titelscherm en menu's (de tekstbestanden `STORYTXT.CK1` en `HELPTEXT.CK1` kunnen met `TextDocument` en een venster zoals bij de eindtekst), toetsen instellen, opslaan en laden (`GameProgress` is wat er bewaard moet worden).

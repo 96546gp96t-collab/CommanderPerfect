@@ -155,5 +155,106 @@ func test_statue_messages_match_the_statues() -> void:
 		assert_equal(has_statue, HintTexts.HINT_LEVELS.has(number), "statue in level %d" % number)
 
 
+## The world map has an entrance for every level, the ship, and the three
+## teleporters whose destinations [MapSession] knows.
+func test_world_map_has_all_entrances() -> void:
+	var map := LevelData.parse(_level_file(GameFiles.WORLD_MAP_LEVEL))
+	var levels := {}
+	for info in map.infos:
+		if MapInfo.level_of(info) != 0:
+			levels[MapInfo.level_of(info)] = true
+	assert_equal(levels.size(), GameFiles.LAST_LEVEL, "an entrance for every level")
+	assert_true(map.find_info(MapInfo.SHIP).x >= 0, "the ship")
+	for teleporter: int in MapSession.TELEPORTER_DESTINATIONS:
+		assert_true(map.find_info(teleporter).x >= 0, "teleporter %d" % teleporter)
+	assert_true(map.find_info(MapSession.SECRET_DESTINATION).x >= 0, "secret destination")
+	assert_equal(map.find_info(LevelData.PLAYER_START_INFO), Vector2i(12, 37), "start")
+
+
+## Every level can be reached from the start: on foot, through teleporters,
+## past blocking entrances once their level is done, and through the
+## teleporter in level 13.
+func test_every_level_can_be_reached() -> void:
+	var map := LevelData.parse(_level_file(GameFiles.WORLD_MAP_LEVEL))
+	var properties := TileProperties.load_from(GameFiles.locate(), 611)
+	var game := GameProgress.new()
+	var collision := MapCollision.create_for_map(map, properties, game)
+	var reached := {}
+	var queue: Array[Vector2i] = [map.find_info(LevelData.PLAYER_START_INFO)]
+	while not queue.is_empty():
+		var cell: Vector2i = queue.pop_back()
+		if reached.has(cell):
+			continue
+		reached[cell] = true
+		var info := map.info_at(cell)
+		var next: Array[Vector2i] = [
+			cell + Vector2i.LEFT, cell + Vector2i.RIGHT, cell + Vector2i.UP, cell + Vector2i.DOWN
+		]
+		if MapInfo.level_of(info) != 0 and not game.is_completed(MapInfo.level_of(info)):
+			# Keen plays the level; blocked cells may now let him through.
+			game.complete_level(MapInfo.level_of(info))
+			next.append_array(reached.keys())
+			reached.clear()
+			reached[cell] = true
+		if MapSession.TELEPORTER_DESTINATIONS.has(info):
+			next.append(map.find_info(MapSession.TELEPORTER_DESTINATIONS[info]))
+		if MapInfo.level_of(info) == 13:
+			next.append(map.find_info(MapSession.SECRET_DESTINATION))
+		for neighbor in next:
+			if not reached.has(neighbor) and _walkable(collision, neighbor):
+				queue.append(neighbor)
+	assert_equal(game.completed_levels().size(), GameFiles.LAST_LEVEL, "levels reached")
+
+
+## Keen walks from the start of the map to level 1 and enters it.
+func test_keen_walks_into_level_1() -> void:
+	var map := LevelData.parse(_level_file(GameFiles.WORLD_MAP_LEVEL))
+	var properties := TileProperties.load_from(GameFiles.locate(), 611)
+	var session := MapSession.create(map, properties, GameProgress.new())
+	for tick in 20:
+		session.step(KeenInput.toward(Vector2i.DOWN))
+	for tick in 120:
+		session.step(KeenInput.toward(Vector2i.RIGHT))
+	assert_equal(session.cell_under_keen(), Vector2i(21, 40), "stopped by the right half")
+	session.step(KeenInput.toward(Vector2i.ZERO, true))
+	assert_equal(session.chosen_level, 1, "enters level 1")
+
+
+## The teleporter in level 13 is there, and only there.
+func test_only_level_13_has_a_teleporter() -> void:
+	var properties := TileProperties.load_from(GameFiles.locate(), 611)
+	for number in range(GameFiles.FIRST_LEVEL, GameFiles.LAST_LEVEL + 1):
+		var level := LevelData.parse(_level_file(number))
+		var has_teleporter := Array(level.tiles).any(
+			func(tile: int) -> bool: return properties.is_teleporter(tile)
+		)
+		assert_equal(has_teleporter, number == 13, "teleporter in level %d" % number)
+
+
+func test_ending_files_can_be_read() -> void:
+	var files := GameFiles.locate()
+	var texts := EndingTexts.load_from(files)
+	assert_true(texts != null, "texts of the ending")
+	if texts != null:
+		assert_equal(texts.missing_parts[0], "Your ship is missing", "ship message")
+		assert_equal(texts.home_messages[-1][-1], "destroy Earth!", "last message at home")
+	var picture := FinaleImage.load_from(files)
+	assert_true(picture != null, "FINALE.CK1")
+	if picture != null:
+		assert_true(not picture.is_invisible(), "the picture is not empty")
+	var lines := TextDocument.layout(files.read(GameFiles.END_TEXT), EndingSequence.TEXT_WIDTH)
+	assert_true(lines.size() > EndingSequence.TEXT_LINES, "ENDTEXT.CK1 needs scrolling")
+	for line in lines:
+		assert_true(line.length() <= EndingSequence.TEXT_WIDTH, "fits: " + line)
+
+
+func _walkable(collision: MapCollision, cell: Vector2i) -> bool:
+	return (
+		collision.tile_at(cell) >= 0
+		and not collision.is_solid(cell, LevelCollision.Edge.TOP)
+		and not collision.is_solid(cell, LevelCollision.Edge.LEFT)
+	)
+
+
 func _level_file(number: int) -> PackedByteArray:
 	return GameFiles.locate().read(GameFiles.level_file_name(number))

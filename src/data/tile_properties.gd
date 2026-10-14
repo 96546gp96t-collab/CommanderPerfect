@@ -16,8 +16,8 @@ extends RefCounted
 ## without knowing where its table is. The positions known from the
 ## ModdingWiki are tried first.
 
-## Tile behaviors. 23 (switch) and 24 (teleporter) are not used yet; they
-## follow in milestone 5.
+## Tile behaviors. 23 looks like a light switch, but no level of Keen 1
+## uses it, so it does nothing.
 enum Behavior {
 	MASKED = -2,  ## drawn in front of Keen through a mask (the next tile)
 	FOREGROUND = -1,  ## drawn in front of Keen
@@ -44,6 +44,8 @@ enum Behavior {
 	KEYCARD_GREEN = 20,
 	KEYCARD_BLUE = 21,
 	HINT = 22,  ## a Yorp or Garg statue that shows a message
+	SWITCH = 23,  ## unused in Keen 1
+	TELEPORTER = 24,  ## takes Keen out of the level to a secret place on the map
 }
 
 ## The four colors of keycards and doors, in the order of their behaviors.
@@ -139,6 +141,10 @@ func is_hint(tile: int) -> bool:
 
 func is_exit(tile: int) -> bool:
 	return behavior(tile) == Behavior.EXIT
+
+
+func is_teleporter(tile: int) -> bool:
+	return behavior(tile) == Behavior.TELEPORTER
 
 
 func is_foreground(tile: int) -> bool:

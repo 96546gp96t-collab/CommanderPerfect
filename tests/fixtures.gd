@@ -2,7 +2,7 @@ extends RefCounted
 ## Small hand-made tiles, tile properties and levels for the tests, so that
 ## they run without the original game data.
 
-const TILE_COUNT := 23
+const TILE_COUNT := 24
 
 const AIR := 0
 const WALL := 1
@@ -22,6 +22,7 @@ const RED_KEYCARD := 19
 const EXIT := 20
 const JOYSTICK := 21
 const STATUE := 22
+const TELEPORTER := 23
 
 ## Level characters and the tiles they stand for.
 const LEGEND := {
@@ -41,6 +42,7 @@ const LEGEND := {
 	"E": EXIT,
 	"J": JOYSTICK,
 	"Y": STATUE,
+	"T": TELEPORTER,
 }
 
 
@@ -74,6 +76,7 @@ static func create_table() -> PackedByteArray:
 	behavior[EXIT] = TileProperties.Behavior.EXIT
 	behavior[JOYSTICK] = TileProperties.Behavior.SHIP_JOYSTICK
 	behavior[STATUE] = TileProperties.Behavior.HINT
+	behavior[TELEPORTER] = TileProperties.Behavior.TELEPORTER
 
 	var table := PackedByteArray()
 	for plane in [animation, behavior, top, right, bottom, left]:
