@@ -29,7 +29,7 @@ the spinning ball of the font (characters 9-15) as the cursor.
 | Story | `STORYTXT.CK1`; up/down and Page Up/Page Down scroll |
 | High Scores | The table |
 | Controls | Pick an action, then press its new key. The new key replaces the first key of the action; a key belongs to one action only. Escape and F1-F4 cannot be used. "Reset to defaults" puts all keys back |
-| Options | Sound, widescreen and 4:3 pixels on or off |
+| Options | Sound, widescreen, 4:3 pixels and full screen on or off |
 | Quit to Title | Only during a game |
 | Quit | Closes the program |
 
@@ -43,7 +43,7 @@ Everything is kept in the user folder of Godot; on the Mac that is
 
 | File | Contents |
 |---|---|
-| `settings.cfg` | Widescreen, 4:3 pixels, sound, and the keys |
+| `settings.cfg` | Full screen, widescreen, 4:3 pixels, sound, and the keys |
 | `saves/slotN.json` | Saved game N: score, lives, raygun charges, pogo stick, ship parts, completed levels and Keen's place on the map |
 | `high_scores.json` | The high score table |
 
@@ -54,8 +54,8 @@ original.
 
 - The original has Escape for "Quit (Y/N)?", F1 for help, F2 for sound, F3
   and F4 for the keyboard and the joystick and F5 for saving. Here Escape
-  opens the menu, which has all of that; F1-F3 keep their own jobs (help
-  line, widescreen, pixels).
+  opens the menu, which has all of that; F1-F4 have their own jobs (help
+  line, widescreen, pixels, full screen).
 - The help text (`HELPTEXT.CK1`) is not shown, because it describes the keys
   of the original.
 - Not included: the demo, "About ID...", "Ordering Info" and "Previews!".

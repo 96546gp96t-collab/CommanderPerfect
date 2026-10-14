@@ -130,6 +130,7 @@ func test_settings_survive_a_round_trip() -> void:
 	settings.sound_enabled = false
 	settings.display.aspect = DisplaySettings.Aspect.WIDESCREEN
 	settings.display.correct_pixel_aspect = false
+	settings.fullscreen = false
 	KeyBindings.bind("pogo", KEY_P)
 	assert_true(settings.save(), "saved")
 	KeyBindings.reset()
@@ -137,6 +138,7 @@ func test_settings_survive_a_round_trip() -> void:
 	assert_true(not loaded.sound_enabled, "sound off")
 	assert_equal(loaded.display.aspect, DisplaySettings.Aspect.WIDESCREEN, "widescreen")
 	assert_true(not loaded.display.correct_pixel_aspect, "square pixels")
+	assert_true(not loaded.fullscreen, "in a window")
 	assert_equal(KeyBindings.keys_of("pogo")[0], KEY_P, "keys")
 	KeyBindings.reset()
 

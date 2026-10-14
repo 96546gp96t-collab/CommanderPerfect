@@ -121,6 +121,7 @@ func _ready() -> void:
 	_menus.settings_changed.connect(_on_settings_changed)
 	_menus.name_entered.connect(_on_name_entered)
 	add_child(_menus)
+	_apply_window_mode()
 	resized.connect(_fit_screen)
 	_screen.texture = _world.get_texture()
 	_apply_display_settings()
@@ -260,10 +261,13 @@ func _unhandled_input(event: InputEvent) -> void:
 	get_viewport().set_input_as_handled()
 
 
-## F1-F3: the help line, widescreen and the shape of the pixels. Returns
-## whether [param event] was one of them.
+## F1-F4: the help line, widescreen, the shape of the pixels and full
+## screen. Returns whether [param event] was one of them.
 func _handle_display_keys(event: InputEvent) -> bool:
-	if event.is_action_pressed("toggle_widescreen"):
+	if event.is_action_pressed("toggle_fullscreen"):
+		_user_settings.fullscreen = not _is_fullscreen()
+		_apply_window_mode()
+	elif event.is_action_pressed("toggle_widescreen"):
 		_settings.aspect = (
 			DisplaySettings.Aspect.WIDESCREEN
 			if _settings.aspect == DisplaySettings.Aspect.ORIGINAL
@@ -374,6 +378,7 @@ func _requested_level() -> int:
 func _open_menu() -> void:
 	_close_window()
 	var in_game := _mode in [Mode.MAP, Mode.LEVEL, Mode.LOOK, Mode.ENDING]
+	_user_settings.fullscreen = _is_fullscreen()
 	_menus.open_main(in_game, _can_save())
 
 
@@ -416,7 +421,30 @@ func _load_game(slot: int) -> void:
 
 func _on_settings_changed() -> void:
 	_sounds.set_enabled(_user_settings.sound_enabled)
+	_apply_window_mode()
 	_apply_display_settings()
+
+
+## Full screen or a window, as the settings say.
+func _apply_window_mode() -> void:
+	if _user_settings.fullscreen == _is_fullscreen():
+		return
+	DisplayServer.window_set_mode(
+		(
+			DisplayServer.WINDOW_MODE_FULLSCREEN
+			if _user_settings.fullscreen
+			else DisplayServer.WINDOW_MODE_WINDOWED
+		)
+	)
+
+
+## Whether the window fills the screen now. The player can also change that
+## with the green button of the Mac window.
+static func _is_fullscreen() -> bool:
+	return (
+		DisplayServer.window_get_mode()
+		in [DisplayServer.WINDOW_MODE_FULLSCREEN, DisplayServer.WINDOW_MODE_EXCLUSIVE_FULLSCREEN]
+	)
 
 
 ## Shows the title over Keen's ship.
@@ -471,6 +499,7 @@ func _on_screen_key() -> void:
 	if _mode == Mode.GAME_OVER:
 		_finish_game()
 	else:
+		_user_settings.fullscreen = _is_fullscreen()
 		_menus.open_main(false, false)
 
 

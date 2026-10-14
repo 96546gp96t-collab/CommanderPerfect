@@ -288,6 +288,7 @@ func _options_menu() -> Menu:
 		&"widescreen"
 	)
 	menu.add("4:3 pixels   " + _on_off(display.correct_pixel_aspect), &"pixels")
+	menu.add("Full screen  " + _on_off(settings.fullscreen), &"fullscreen")
 	return menu
 
 
@@ -304,6 +305,8 @@ func _toggle_option(id: StringName) -> void:
 			)
 		&"pixels":
 			display.correct_pixel_aspect = not display.correct_pixel_aspect
+		&"fullscreen":
+			settings.fullscreen = not settings.fullscreen
 	settings.save()
 	settings_changed.emit()
 	var cursor := _top().cursor

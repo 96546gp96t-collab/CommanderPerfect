@@ -127,4 +127,4 @@ layout_mode = 2
 autowrap_mode = 3
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 4
-text = "Esc: menu    Arrows / WASD: walk    Ctrl / Z: jump    Alt / X: pogo    Space / C: fire    Enter: status    Shift+N / P: next / previous map    Shift+I: all items    Shift+G: god mode    F2: widescreen    F3: pixels    F1: hide help"
+text = "Esc: menu    Arrows / WASD: walk    Ctrl / Z: jump    Alt / X: pogo    Space / C: fire    Enter: status    Shift+N / P: next / previous map    Shift+I: all items    Shift+G: god mode    F2: widescreen    F3: pixels    F4: full screen    F1: hide help"
