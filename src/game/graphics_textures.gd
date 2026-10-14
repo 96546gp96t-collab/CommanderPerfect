@@ -8,6 +8,7 @@ var graphics: EgaGraphics
 var _font: Dictionary[int, ImageTexture] = {}
 var _clear_font: Dictionary[int, ImageTexture] = {}
 var _tiles: Dictionary[int, ImageTexture] = {}
+var _clear_tiles: Dictionary[int, ImageTexture] = {}
 var _sprites: Dictionary[int, ImageTexture] = {}
 var _bitmaps: Dictionary[String, ImageTexture] = {}
 
@@ -52,6 +53,21 @@ func tile(index: int) -> ImageTexture:
 	return _tiles[index]
 
 
+## Tile [param index] without the gray level background around the item on
+## it, or null when there is no such tile. Only gray that touches the edge
+## of the tile (directly or through other such gray) is removed, so gray
+## inside the item stays.
+func clear_tile(index: int) -> ImageTexture:
+	if graphics == null or index < 0 or index >= graphics.tiles.size():
+		return null
+	if not _clear_tiles.has(index):
+		var image := graphics.tiles[index].duplicate() as Image
+		image.convert(Image.FORMAT_RGBA8)
+		_clear_background(image, EgaPalette.color(EgaPalette.LIGHT_GRAY))
+		_clear_tiles[index] = ImageTexture.create_from_image(image)
+	return _clear_tiles[index]
+
+
 func sprite(index: int) -> ImageTexture:
 	if graphics == null or index < 0 or index >= graphics.sprites.size():
 		return null
@@ -70,6 +86,26 @@ func bitmap(bitmap_name: String) -> ImageTexture:
 			return null
 		_bitmaps[bitmap_name] = ImageTexture.create_from_image(image)
 	return _bitmaps[bitmap_name]
+
+
+## Makes every pixel of [param color] that is connected to the edge of
+## [param image] transparent (a flood fill from the edges).
+static func _clear_background(image: Image, color: Color) -> void:
+	var size := image.get_size()
+	var pending: Array[Vector2i] = []
+	for x in size.x:
+		pending.append_array([Vector2i(x, 0), Vector2i(x, size.y - 1)])
+	for y in size.y:
+		pending.append_array([Vector2i(0, y), Vector2i(size.x - 1, y)])
+	while not pending.is_empty():
+		var pixel: Vector2i = pending.pop_back()
+		if not Rect2i(Vector2i.ZERO, size).has_point(pixel):
+			continue
+		if not image.get_pixelv(pixel).is_equal_approx(color):
+			continue
+		image.set_pixelv(pixel, Color.TRANSPARENT)
+		for step in [Vector2i.LEFT, Vector2i.RIGHT, Vector2i.UP, Vector2i.DOWN]:
+			pending.append(pixel + step)
 
 
 ## Draws [param text] in the game font on [param canvas], starting at

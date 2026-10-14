@@ -45,6 +45,22 @@ func test_hud_shows_only_the_keycards_keen_has() -> void:
 	assert_true(Hud.keycard_tiles([false, false, false, false]).is_empty(), "none")
 
 
+func test_clear_tile_keeps_gray_inside_the_item() -> void:
+	var gray := EgaPalette.color(EgaPalette.LIGHT_GRAY)
+	var tile := Image.create_empty(5, 5, false, Image.FORMAT_RGBA8)
+	tile.fill(gray)
+	for x in range(1, 4):
+		for y in range(1, 4):
+			tile.set_pixel(x, y, Color.BLACK)
+	tile.set_pixel(2, 2, gray)
+	var graphics := EgaGraphics.new()
+	graphics.tiles.append(tile)
+	var image := GraphicsTextures.create(graphics).clear_tile(0).get_image()
+	assert_equal(image.get_pixel(0, 0).a, 0.0, "background around the item is gone")
+	assert_equal(image.get_pixel(1, 1), Color.BLACK, "the item stays")
+	assert_equal(image.get_pixel(2, 2), gray, "gray inside the item stays")
+
+
 func test_find_info_returns_first_match() -> void:
 	var level := _create_level(Vector2i(10, 8))
 	level.infos[3 * 10 + 4] = LevelData.PLAYER_START_INFO

@@ -39,7 +39,7 @@ A to pick, B to go back).
 ## Extra information in widescreen
 
 In widescreen there is room next to the original picture, so while Keen is
-on the map or in a level two small gray panels show in the top corners
+on the map or in a level two small light blue panels show in the top corners
 (`Hud`): on the left Keen (the figure of the "Keens Left" window) with the
 number of lives, and "Score" with the score; on the right the raygun with its charges and
 the keycards Keen has. The original has nothing like this. With the panels

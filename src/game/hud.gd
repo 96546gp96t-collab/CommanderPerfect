@@ -8,17 +8,16 @@ extends Node2D
 ##               lives, and "Score" with the score: the game has no picture
 ##               that clearly means score
 ##   top right   the raygun with its charges, and the keycards Keen has
-## Each corner is one row on a small gray panel, drawn with the game font
-## and the item tiles. The gray is the background of the item tiles, so
-## that they blend in. Put the node in a CanvasLayer, so that the camera
-## does not move it.
+## Each corner is one row on a small light blue panel, drawn with the game
+## font and the item tiles, whose gray level background is left out. Put
+## the node in a CanvasLayer, so that the camera does not move it.
 
 ## Keen on the map, looking at the player, stands for a life.
 const LIFE_SPRITE := MapMessages.LIFE_SPRITE
 const CHAR := EgaGraphics.FONT_CHAR_SIZE
 const ICON := EgaGraphics.TILE_SIZE
-## Distance of the panels from the edges of the view, and the white space
-## around their contents.
+## Distance of the panels from the edges of the view, and the space around
+## their contents.
 const MARGIN := 3
 const PADDING := 2
 ## Space between a number and the next icon.
@@ -28,8 +27,10 @@ const SCORE_GAP := 12
 const SCORE_LABEL := "Score "
 ## Text is 8 pixels high, icons 16: this puts the text in the middle.
 const TEXT_OFFSET := (ICON - CHAR) / 2
-const PANEL_COLOR_INDEX := 7
-const OUTLINE_COLOR_INDEX := 8
+## A soft light blue: lighter than the blues of the EGA palette, so that the
+## black text stays easy to read.
+const PANEL_COLOR := Color("aaccff")
+const OUTLINE_COLOR_INDEX := 1
 
 ## Size of the view in game pixels; the right panel sits against its edge.
 var view_size := Vector2i(426, 200)
@@ -113,12 +114,12 @@ func _draw_right_panel() -> void:
 ## one icon high. Returns the top left of the contents.
 func _panel(at: Vector2, width: int) -> Vector2:
 	var rect := Rect2(at, Vector2(width + 2 * PADDING, ICON + 2 * PADDING))
-	draw_rect(rect, EgaPalette.color(PANEL_COLOR_INDEX))
+	draw_rect(rect, PANEL_COLOR)
 	draw_rect(rect.grow(1), EgaPalette.color(OUTLINE_COLOR_INDEX), false, 1.0)
 	return at + Vector2(PADDING, PADDING)
 
 
 func _draw_tile(at: Vector2, tile: int) -> void:
-	var texture := _textures.tile(tile)
+	var texture := _textures.clear_tile(tile)
 	if texture != null:
 		draw_texture(texture, at)
