@@ -799,6 +799,10 @@ func _update_status() -> void:
 	_update_hud()
 	if _level == null:
 		return
+	# A menu has the screen to itself.
+	if _menus.is_open():
+		_status_label.text = ""
+		return
 	# With the HUD in the corners, only messages are shown, in the middle.
 	_status_label.horizontal_alignment = (
 		HORIZONTAL_ALIGNMENT_CENTER if _hud.visible else HORIZONTAL_ALIGNMENT_LEFT
