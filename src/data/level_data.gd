@@ -66,6 +66,11 @@ func tile_at(cell: Vector2i) -> int:
 	return tiles[cell.y * width + cell.x]
 
 
+## Changes the tile in [param cell], for example when Keen picks up an item.
+func set_tile(cell: Vector2i, tile: int) -> void:
+	tiles[cell.y * width + cell.x] = tile
+
+
 func info_at(cell: Vector2i) -> int:
 	return infos[cell.y * width + cell.x]
 

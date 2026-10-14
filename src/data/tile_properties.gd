@@ -16,8 +16,8 @@ extends RefCounted
 ## without knowing where its table is. The positions known from the
 ## ModdingWiki are tried first.
 
-## Tile behaviors that the engine uses so far. Values 6-24 are items, ship
-## parts, switches and teleporters; they follow in milestones 4 and 5.
+## Tile behaviors. 22 (hint statues), 23 (switch) and 24 (teleporter) are
+## not used yet; they follow in milestone 5.
 enum Behavior {
 	MASKED = -2,  ## drawn in front of Keen through a mask (the next tile)
 	FOREGROUND = -1,  ## drawn in front of Keen
@@ -27,7 +27,26 @@ enum Behavior {
 	DOOR_RED = 3,
 	DOOR_GREEN = 4,
 	DOOR_BLUE = 5,
+	POINTS_500 = 6,  ## pizza
+	POINTS_100 = 7,  ## lollipop
+	POINTS_200 = 8,  ## soda
+	POINTS_1000 = 9,  ## book
+	POINTS_5000 = 10,  ## teddy bear
+	SHIP_JOYSTICK = 11,
+	SHIP_BATTERY = 12,
+	SHIP_VACUUM = 13,
+	SHIP_WHISKEY = 14,
+	RAYGUN = 15,
+	POGO = 16,
+	EXIT = 17,
+	KEYCARD_YELLOW = 18,
+	KEYCARD_RED = 19,
+	KEYCARD_GREEN = 20,
+	KEYCARD_BLUE = 21,
 }
+
+## The four colors of keycards and doors, in the order of their behaviors.
+enum KeyColor { YELLOW, RED, GREEN, BLUE }
 
 ## What the top side of a tile is like to stand on.
 enum Floor { NONE = 0, SOLID = 1, SLIPPERY = 2, ICE = 3 }
@@ -97,6 +116,24 @@ func is_deadly(tile: int) -> bool:
 
 func is_door(tile: int) -> bool:
 	return behavior(tile) >= Behavior.DOOR_YELLOW and behavior(tile) <= Behavior.DOOR_BLUE
+
+
+## The keycard color that opens door [param tile]. Only for doors.
+func door_color(tile: int) -> KeyColor:
+	return (behavior(tile) - Behavior.DOOR_YELLOW) as KeyColor
+
+
+## Whether Keen picks up [param tile] when he touches it: points, ship parts,
+## the raygun, the pogo stick and keycards. The exit is not an item.
+func is_item(tile: int) -> bool:
+	var value := behavior(tile)
+	return (
+		value >= Behavior.POINTS_500 and value <= Behavior.KEYCARD_BLUE and value != Behavior.EXIT
+	)
+
+
+func is_exit(tile: int) -> bool:
+	return behavior(tile) == Behavior.EXIT
 
 
 func is_foreground(tile: int) -> bool:

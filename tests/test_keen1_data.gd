@@ -101,5 +101,23 @@ func test_keen_lands_safely_in_every_level() -> void:
 		assert_equal(keen.state, KeenBody.State.STANDING, "Keen stands in level %d" % number)
 
 
+## Confirms the meaning of behaviors 2-5 and 18-21: every level with a door
+## of some color also has a keycard of that color.
+func test_every_door_has_a_keycard_of_its_color() -> void:
+	var properties := TileProperties.load_from(GameFiles.locate(), 611)
+	var first_card := TileProperties.Behavior.KEYCARD_YELLOW
+	for number in range(GameFiles.FIRST_LEVEL, GameFiles.LAST_LEVEL + 1):
+		var level := LevelData.parse(_level_file(number))
+		var door_colors := {}
+		var card_colors := {}
+		for tile in level.tiles:
+			if properties.is_door(tile):
+				door_colors[properties.door_color(tile)] = true
+			elif properties.behavior(tile) >= first_card and properties.is_item(tile):
+				card_colors[properties.behavior(tile) - first_card] = true
+		for color: int in door_colors:
+			assert_true(card_colors.has(color), "keycard %d in level %d" % [color, number])
+
+
 func _level_file(number: int) -> PackedByteArray:
 	return GameFiles.locate().read(GameFiles.level_file_name(number))

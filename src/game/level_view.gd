@@ -1,8 +1,11 @@
 extends Control
-## The game screen as of milestone 3: Keen walks, jumps and pogo-jumps
-## through a level, followed by a smoothly scrolling camera. On the world map
-## and the special maps, where Keen cannot play yet, the player looks around
-## freely instead.
+## The game screen as of milestone 4: Keen plays a level ([LevelSession]),
+## followed by a smoothly scrolling camera. On the world map and the special
+## maps, where Keen cannot play yet, the player looks around freely instead.
+##
+## Dying starts the level again with one life less; after the last life the
+## game starts over with a new [Inventory]. The exit leads to the next level
+## (until the world map exists in milestone 5).
 ##
 ## The level is rendered at its original resolution into the World viewport.
 ## That picture is then stretched to fit the window, see [DisplaySettings].
@@ -12,6 +15,8 @@ extends Control
 
 const LEVEL_OPTION := "--level="
 const DEFAULT_LEVEL := 1
+## Seconds a message such as "Game over" stays on the screen.
+const MESSAGE_SECONDS := 3.0
 const MISSING_DATA_MESSAGE := (
 	"Keen 1 data not found. Put the files in game_data/keen1 "
 	+ "(see game_data/README.md) or start with: -- --data-dir=PATH"
@@ -23,12 +28,19 @@ var _level_index := 0
 var _level: LevelData
 var _properties: TileProperties
 var _settings := DisplaySettings.new()
+var _inventory := Inventory.new()
+var _session: LevelSession
+var _time_left := 0.0
+## Shown below the status for [constant MESSAGE_SECONDS].
+var _message := ""
+var _message_time_left := 0.0
 
 @onready var _screen: TextureRect = %Screen
 @onready var _world: SubViewport = %World
 @onready var _level_map: LevelMap = %LevelMap
 @onready var _free_look: FreeLook = %FreeLook
 @onready var _keen: Keen = %Keen
+@onready var _actor_layer: ActorLayer = %ActorLayer
 @onready var _camera: LevelCamera = %Camera
 @onready var _status_label: Label = %StatusLabel
 @onready var _help_label: Label = %HelpLabel
@@ -59,9 +71,31 @@ func _ready() -> void:
 
 	_level_map.tile_set = LevelTileSet.build(graphics)
 	_keen.set_graphics(graphics)
-	_keen.died.connect(_on_keen_died)
+	_actor_layer.set_graphics(graphics)
 	_level_index = maxi(0, _level_numbers.find(_requested_level()))
 	_load_level()
+
+
+func _process(delta: float) -> void:
+	_message_time_left -= delta
+	if _session == null:
+		return
+	_time_left = minf(_time_left + delta, KeenPhysics.MAX_TICKS_PER_FRAME * KeenPhysics.TICK)
+	while _time_left >= KeenPhysics.TICK and _session.outcome == LevelSession.Outcome.PLAYING:
+		_time_left -= KeenPhysics.TICK
+		_session.step(KeenInput.from_actions())
+	if _session.keen.is_dead and _camera.get_parent() == _keen:
+		# The camera stays where Keen died, so that he flies off the screen.
+		_camera.reparent(_world)
+	_keen.show_body(_session.keen)
+	_actor_layer.show_actors(_session.actors)
+	_update_status()
+	match _session.outcome:
+		LevelSession.Outcome.COMPLETED:
+			_show_message("Level completed!")
+			_select_level(_level_index + 1)
+		LevelSession.Outcome.DIED:
+			_on_keen_died()
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -107,7 +141,10 @@ func _select_level(index: int) -> void:
 	_load_level()
 
 
+## Loads the level fresh from its file, so that every item is back.
 func _load_level() -> void:
+	_session = null
+	_actor_layer.clear()
 	var file_name := GameFiles.level_file_name(_level_numbers[_level_index])
 	_level = LevelData.parse(_files.read(file_name))
 	if _level == null:
@@ -120,9 +157,12 @@ func _load_level() -> void:
 	_frame_camera()
 	var start := _start_cell()
 	if GameFiles.is_playable_level(_level_numbers[_level_index]):
-		_keen.enter_level(
-			LevelCollision.create(_level, _properties), Vector2(start * EgaGraphics.TILE_SIZE)
+		_session = LevelSession.create(
+			_level, _properties, _inventory, Vector2(start * EgaGraphics.TILE_SIZE)
 		)
+		_session.tile_changed.connect(_level_map.set_tile)
+		_time_left = 0.0
+		_keen.show_body(_session.keen)
 		_follow(_keen)
 	else:
 		_free_look.move_to((Vector2(start) + Vector2(0.5, 0.5)) * EgaGraphics.TILE_SIZE)
@@ -152,7 +192,12 @@ func _follow(target: Node2D) -> void:
 
 
 func _on_keen_died() -> void:
-	_camera.reset_smoothing()
+	if _inventory.is_game_over():
+		_inventory = Inventory.new()
+		_show_message("Game over. Starting again.")
+	else:
+		_show_message("Keen died. Lives left: %d" % _inventory.lives)
+	_load_level()
 
 
 func _apply_display_settings() -> void:
@@ -180,15 +225,53 @@ func _fit_screen() -> void:
 func _update_status() -> void:
 	var number := _level_numbers[_level_index]
 	var game_size := _settings.game_size()
-	_status_label.text = (
-		"%s (%d x %d cells)   %s %d x %d, %s pixels"
-		% [
-			GameFiles.level_title(number),
-			_level.width,
-			_level.height,
-			_settings.aspect_name(),
-			game_size.x,
-			game_size.y,
-			"4:3 monitor" if _settings.correct_pixel_aspect else "square",
+	var lines := PackedStringArray()
+	(
+		lines
+		. append(
+			(
+				"%s (%d x %d cells)   %s %d x %d, %s pixels"
+				% [
+					GameFiles.level_title(number),
+					_level.width,
+					_level.height,
+					_settings.aspect_name(),
+					game_size.x,
+					game_size.y,
+					"4:3 monitor" if _settings.correct_pixel_aspect else "square",
+				]
+			)
+		)
+	)
+	if _session != null:
+		lines.append(_inventory_text())
+	if _message_time_left > 0.0:
+		lines.append(_message)
+	_status_label.text = "\n".join(lines)
+
+
+func _show_message(text: String) -> void:
+	_message = text
+	_message_time_left = MESSAGE_SECONDS
+
+
+func _inventory_text() -> String:
+	var parts := PackedStringArray(
+		[
+			"Score %d" % _inventory.score,
+			"Lives %d" % _inventory.lives,
+			"Ammo %d" % _inventory.charges,
 		]
 	)
+	if _inventory.has_pogo:
+		parts.append("Pogo")
+	var cards := PackedStringArray()
+	for color: String in TileProperties.KeyColor.keys():
+		if _inventory.keycards[TileProperties.KeyColor[color]]:
+			cards.append(color.capitalize())
+	if not cards.is_empty():
+		parts.append("Keycards: " + ", ".join(cards))
+	var parts_found := _inventory.ship_parts.count(true)
+	if parts_found > 0:
+		parts.append("Ship parts %d/%d" % [parts_found, _inventory.ship_parts.size()])
+	return "   ".join(parts)

@@ -73,6 +73,30 @@ const POGO_HIGH_SPEED := 165 * SUBPIXEL
 const POGO_FIRST_BOUNCE_SPEED := 175 * SUBPIXEL
 const POGO_AIR_CONTROL := 2 * SUBPIXEL
 
+# --- Raygun ------------------------------------------------------------------
+## Ticks Keen holds the raygun out after firing. On the ground he cannot walk
+## or jump during that time.
+const SHOOT_FRAME_TICKS := 25
+## Firing again is possible once fewer than this many of those ticks are left.
+const SHOOT_REPEAT_TICKS := 7
+const SHOT_SPEED := 124 * SUBPIXEL
+## The shot leaves the raygun this many pixels below the top of the sprite.
+const SHOT_HEIGHT := 9
+## Size of the shot sprite (KEENSHOT).
+const SHOT_SIZE := Vector2(16, 8)
+
+# --- Dying --------------------------------------------------------------------
+## Ticks per frame of the two-frame dying animation.
+const DIE_FRAME_TICKS := 6
+## Ticks Keen lies still before he flies off the screen.
+const DIE_WAIT_TICKS := 80
+const DIE_RISE_SPEED := 160 * SUBPIXEL
+## Sideways speed while flying off; he drifts away from where he looked.
+## An estimate, still to be compared with the original.
+const DIE_DRIFT_SPEED := 16 * SUBPIXEL
+## Once Keen has risen this far he is surely off the screen.
+const DIE_RISE_DISTANCE := 240.0
+
 # --- Sprites (numbers in the sprite table) ------------------------------------
 const SPRITE_WALK_RIGHT := 0
 const SPRITE_WALK_LEFT := 4
@@ -81,3 +105,7 @@ const SPRITE_JUMP_RIGHT := 8
 const SPRITE_JUMP_LEFT := 14
 const SPRITE_POGO_RIGHT := 24
 const SPRITE_POGO_LEFT := 26
+const SPRITE_SHOOT_RIGHT := 20
+const SPRITE_SHOOT_LEFT := 21
+const SPRITE_DEAD := 22
+const DEAD_FRAMES := 2

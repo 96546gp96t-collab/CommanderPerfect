@@ -114,6 +114,7 @@ func test_keen_jumps_through_a_platform_from_below() -> void:
 
 func test_pogo_bounces_higher_than_a_jump() -> void:
 	var keen := _settled_keen(OPEN_FIELD)
+	keen.has_pogo = true
 	keen.step(KeenInput.create(0, false, true))
 	assert_true(keen.on_pogo, "pogo stick taken out")
 	var first_bounce := _bounce(keen, KeenInput.create(0, true))
@@ -126,6 +127,7 @@ func test_pogo_bounces_higher_than_a_jump() -> void:
 
 func test_pogo_button_puts_the_stick_away() -> void:
 	var keen := _settled_keen(OPEN_FIELD)
+	keen.has_pogo = true
 	keen.step(KeenInput.create(0, false, true))
 	keen.step(KeenInput.create(0, false, true))
 	assert_true(keen.on_pogo, "holding the button does not toggle again")
@@ -162,6 +164,8 @@ func test_fire_kills_keen() -> void:
 	var keen := _settled_keen(rows)
 	_run(keen, KeenInput.create(1), 100)
 	assert_true(keen.is_dead, "dead")
+	assert_equal(keen.state, KeenBody.State.DYING, "dying animation")
+	assert_true(not keen.death_finished, "lies still at first")
 
 
 func test_falling_out_of_the_level_kills_keen() -> void:
