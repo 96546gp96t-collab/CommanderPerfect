@@ -227,6 +227,15 @@ func test_keycards_do_not_carry_over_to_the_next_level() -> void:
 
 
 ## A session in [constant FIELD] with [param items] in the row of Keen's feet.
+func test_teleporter_ends_the_level_without_completing_it() -> void:
+	var rows := FIELD.duplicate()
+	rows[FEET_ROW - 1] = "......T......................."
+	var session := _session(rows)
+	_run(session, KeenInput.create(1), WALK_TICKS)
+	assert_equal(session.outcome, LevelSession.Outcome.TELEPORTED, "outcome")
+	assert_equal(session.inventory.lives, Inventory.START_LIVES, "no life lost")
+
+
 func _session_with_items(items: String) -> LevelSession:
 	var rows := FIELD.duplicate()
 	rows[FEET_ROW] = items + rows[FEET_ROW].substr(items.length())

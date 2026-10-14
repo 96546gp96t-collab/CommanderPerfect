@@ -12,9 +12,6 @@ extends RefCounted
 ## statue, see [constant HINT_LEVELS] (docs/file-formats.md).
 
 const PROMPT := "Press ENTER:"
-const NEWLINE := 0x0A
-const FIRST_PRINTABLE := 0x20
-const LAST_PRINTABLE := 0x7E
 ## Levels with a statue, in the order of their messages.
 const HINT_LEVELS: PackedInt32Array = [2, 6, 9, 10, 11, 12, 15]
 
@@ -25,11 +22,11 @@ var messages: Array[PackedStringArray] = []
 ## Reads the messages from the program image (see
 ## [method DosExecutable.load_image]). Returns null when they are not found.
 static func find_in_image(image: PackedByteArray) -> HintTexts:
-	var prompt_at := _find(image, PROMPT.to_ascii_buffer())
+	var prompt_at := ExeStrings.find(image, PROMPT.to_ascii_buffer())
 	if prompt_at < 0:
 		push_error("The statue messages were not found in the executable.")
 		return null
-	var lines := _lines_before(image, prompt_at)
+	var lines := ExeStrings.lines_before(image, prompt_at)
 	var hints := HintTexts.new()
 	for index in lines.size():
 		if hints.messages.is_empty() or _starts_message(lines, index):
@@ -59,28 +56,6 @@ func for_level(level_number: int) -> PackedStringArray:
 	return messages[index]
 
 
-## The lines that end right before [param end], oldest first. Each line is
-## "text\\n\\0"; the walk goes back from the zero before [param end].
-static func _lines_before(image: PackedByteArray, end: int) -> PackedStringArray:
-	var lines := PackedStringArray()
-	var zero := end - 1
-	while zero > 0 and image[zero] == 0:
-		var start := zero - 1
-		while start >= 0 and image[start] != 0:
-			start -= 1
-		var record := image.slice(start + 1, zero)
-		if record.size() < 2 or record[-1] != NEWLINE:
-			break
-		var first := record.size() - 1
-		while first > 0 and _is_printable(record[first - 1]):
-			first -= 1
-		lines.insert(0, record.slice(first, record.size() - 1).get_string_from_ascii())
-		if first > 0:
-			break
-		zero = start
-	return lines
-
-
 ## Whether line [param index] is the first of a message header.
 static func _starts_message(lines: PackedStringArray, index: int) -> bool:
 	return (
@@ -88,17 +63,3 @@ static func _starts_message(lines: PackedStringArray, index: int) -> bool:
 		and lines[index + 1].strip_edges().ends_with(":")
 		and lines[index + 2].strip_edges().is_empty()
 	)
-
-
-static func _is_printable(character: int) -> bool:
-	return character >= FIRST_PRINTABLE and character <= LAST_PRINTABLE
-
-
-static func _find(haystack: PackedByteArray, needle: PackedByteArray) -> int:
-	var first := needle[0]
-	var position := haystack.find(first)
-	while position >= 0 and position + needle.size() <= haystack.size():
-		if haystack.slice(position, position + needle.size()) == needle:
-			return position
-		position = haystack.find(first, position + 1)
-	return -1

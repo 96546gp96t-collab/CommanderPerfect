@@ -70,7 +70,8 @@ static func create(level_collision: LevelCollision, start: Vector2) -> KeenBody:
 	return body
 
 
-## Puts Keen at [param start] (top left of the sprite), standing still.
+## Puts Keen at [param start] (top left of the sprite), standing still. When
+## there is a floor just below him, he stands on it straight away.
 func reset(start: Vector2) -> void:
 	position = start
 	velocity = Vector2.ZERO
@@ -85,6 +86,10 @@ func reset(start: Vector2) -> void:
 	_frozen_ticks = 0
 	_push_speed = 0.0
 	_start_falling(0.0, KeenPhysics.LEDGE_FALL_ACCELERATION, false)
+	var drop := collision.sweep_y(hitbox(), KeenPhysics.START_DROP)
+	if drop < KeenPhysics.START_DROP:
+		position.y += drop
+		_enter_ground_state(State.STANDING)
 
 
 ## The box that collides with tiles, in level pixels.

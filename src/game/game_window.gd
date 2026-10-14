@@ -2,7 +2,9 @@ class_name GameWindow
 extends Node2D
 ## A window like the ones in the original game: white, framed with the pipe
 ## border from the font (characters 1-8), with text in the 8x8 font and,
-## where needed, 16x16 tiles. The window sits in the middle of the view.
+## where needed, 16x16 tiles and sprites. The window sits in the middle of
+## the view, or at the bottom (for the messages over the pictures of the
+## ending).
 ##
 ## The content is laid out on a grid of 8x8 cells inside the border. Put the
 ## node in a CanvasLayer, so that the camera does not move it.
@@ -22,6 +24,8 @@ const DIMMED := Color(1, 1, 1, 0.2)
 
 ## Size of the view in game pixels; the window is centered in it.
 var view_size := Vector2i(320, 200)
+## Puts the window at the bottom of the view instead of in the middle.
+var at_bottom := false
 var _graphics: EgaGraphics
 var _font: Dictionary[int, ImageTexture] = {}
 var _tiles: Dictionary[int, ImageTexture] = {}
@@ -29,6 +33,8 @@ var _tiles: Dictionary[int, ImageTexture] = {}
 var _size := Vector2i.ONE
 var _texts: Array[Dictionary] = []
 var _tile_items: Array[Dictionary] = []
+var _sprite_items: Array[Dictionary] = []
+var _sprite_textures: Dictionary[int, ImageTexture] = {}
 
 
 func _init() -> void:
@@ -39,6 +45,7 @@ func set_graphics(graphics: EgaGraphics) -> void:
 	_graphics = graphics
 	_font.clear()
 	_tiles.clear()
+	_sprite_textures.clear()
 
 
 ## Shows an empty window of [param size] cells (without the border).
@@ -46,12 +53,14 @@ func open(size: Vector2i) -> void:
 	_size = size
 	_texts.clear()
 	_tile_items.clear()
+	_sprite_items.clear()
 	visible = true
 	queue_redraw()
 
 
 func close() -> void:
 	visible = false
+	at_bottom = false
 
 
 ## Writes [param text] starting at [param cell].
@@ -72,9 +81,17 @@ func put_tile(cell: Vector2i, tile: int, dimmed := false) -> void:
 	queue_redraw()
 
 
-## Shows [param lines] in a window just big enough for them.
-func show_lines(lines: PackedStringArray) -> void:
-	var width := 0
+## Draws sprite [param sprite] with its top left [param offset] pixels
+## from the top left of [param cell].
+func put_sprite(cell: Vector2i, sprite: int, offset := Vector2.ZERO) -> void:
+	_sprite_items.append({"cell": cell, "sprite": sprite, "offset": offset})
+	queue_redraw()
+
+
+## Shows [param lines] in a window just big enough for them, at least
+## [param min_width] cells wide.
+func show_lines(lines: PackedStringArray, min_width := 0) -> void:
+	var width := min_width
 	for line in lines:
 		width = maxi(width, line.length())
 	open(Vector2i(width, lines.size()))
@@ -87,6 +104,8 @@ func _draw() -> void:
 		return
 	var outer := (_size + Vector2i(2, 2)) * CELL
 	var origin := Vector2(((view_size - outer) / 2 / CELL) * CELL)
+	if at_bottom:
+		origin.y = view_size.y - outer.y
 	draw_rect(Rect2(origin, outer), Color.WHITE)
 	_draw_border(origin)
 	var inside := origin + Vector2(CELL, CELL)
@@ -96,6 +115,10 @@ func _draw() -> void:
 			draw_texture(
 				texture, inside + Vector2(item.cell * CELL), DIMMED if item.dimmed else Color.WHITE
 			)
+	for item in _sprite_items:
+		var sprite := _sprite_texture(item.sprite)
+		if sprite != null:
+			draw_texture(sprite, inside + Vector2(item.cell * CELL) + item.offset)
 	for item in _texts:
 		var text: String = item.text
 		for i in text.length():
@@ -130,3 +153,11 @@ func _tile_texture(tile: int) -> ImageTexture:
 	if not _tiles.has(tile):
 		_tiles[tile] = ImageTexture.create_from_image(_graphics.tiles[tile])
 	return _tiles[tile]
+
+
+func _sprite_texture(sprite: int) -> ImageTexture:
+	if sprite < 0 or sprite >= _graphics.sprites.size():
+		return null
+	if not _sprite_textures.has(sprite):
+		_sprite_textures[sprite] = ImageTexture.create_from_image(_graphics.sprites[sprite])
+	return _sprite_textures[sprite]

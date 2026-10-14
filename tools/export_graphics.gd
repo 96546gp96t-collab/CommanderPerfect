@@ -46,6 +46,9 @@ func _export() -> bool:
 		if level != null:
 			var image := LevelImageBuilder.build(level, graphics)
 			image.save_png(out.path_join("levels").path_join("level%02d.png" % number))
+	var finale := FinaleImage.load_from(files)
+	if finale != null:
+		finale.save_png(out.path_join("bitmaps").path_join("finale.png"))
 
 	print("Exported graphics to %s" % out)
 	return true
