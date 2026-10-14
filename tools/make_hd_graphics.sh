@@ -8,13 +8,14 @@
 # Needs realesrgan-ncnn-vulkan, the portable version of Real-ESRGAN:
 # download the zip for your system from
 #   https://github.com/xinntao/Real-ESRGAN/releases
-# and unpack it. Then either put the folder on your PATH or point to the
-# program:
+# and unpack it into tools/realesrgan/ (ignored by git), put the folder on
+# your PATH, or point to the program:
 #   REALESRGAN=~/Downloads/realesrgan-ncnn-vulkan/realesrgan-ncnn-vulkan \
 #     tools/make_hd_graphics.sh
 #
 # Options (environment variables):
-#   REALESRGAN  the upscaler program (default: realesrgan-ncnn-vulkan)
+#   REALESRGAN  the upscaler program (default: tools/realesrgan/ if it is
+#               there, otherwise realesrgan-ncnn-vulkan on the PATH)
 #   MODEL       the model (default: realesrgan-x4plus-anime, made for
 #               drawings; realesrgan-x4plus is the general one)
 #   DATA_DIR    the folder with the game files (default: game_data/keen1)
@@ -24,6 +25,10 @@
 set -e
 cd "$(dirname "$0")/.."
 
+LOCAL_UPSCALER=tools/realesrgan/realesrgan-ncnn-vulkan
+if [ -z "$REALESRGAN" ] && [ -x "$LOCAL_UPSCALER" ]; then
+	REALESRGAN=$PWD/$LOCAL_UPSCALER
+fi
 UPSCALER=${REALESRGAN:-realesrgan-ncnn-vulkan}
 MODEL=${MODEL:-realesrgan-x4plus-anime}
 DATA_DIR=${DATA_DIR:-game_data/keen1}
