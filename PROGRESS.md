@@ -168,7 +168,7 @@ was, ook de toetsen. Uitleg van alles: `docs/two-players.md`.
 - **Meedoen.** F7 of "Add Player 2" / "Remove Player 2" in het menu tijdens een spel. In een level verschijnt Keen 2 bij Keen 1; op de kaart doet hij mee vanaf het volgende level. Keen 2 heeft andere kleuren (alle tinten een halve kleurcirkel gedraaid, `player_colors.gdshader`): blauwe helm.
 - **Toetsen** (`KeyBindings`): drie sets. Alleen: zoals altijd. Speler 1: WASD, linker Shift springen, Z vuren, ` pogo. Speler 2: pijltjes, . springen, / pogo, rechter Shift vuren. Linker en rechter Shift zijn verschillende toetsen (Godot `location`); een toets wordt bewaard als keycode + kant. Controls heeft nu drie pagina's. Op de kaart sturen alle toetsen samen speler 1 (`KeenInput.combine`). Geen Ctrl voor twee spelers: Ctrl+pijltje wisselt op de Mac van bureaublad.
 - **Level-logica** (`LevelSession`): `keens` (speler 1 is nog steeds `keen`), `add_player`, `remove_player`, `step_players`. Items, deuren, schieten, beelden en de uitgang werken voor beide Keens. Vijanden gaan op de dichtstbijzijnde levende Keen af en raken beide; ze worden wakker in het beeld van elk van beide spelers (`view_rects`). De uitgang gaat niet open terwijl de andere Keen doodgaat; wie de uitgang in loopt, maakt het level voor allebei af.
-- **Split-screen** (`SplitScreen` rekent, `TwoPlayerView` tekent): samen één beeld; als een speler verder komt dan halverwege het midden en de rand, glijden de camera's uit elkaar en splitst het scherm met een donkere lijn door het midden, loodrecht op de lijn tussen de spelers (draait mee). Bij de rand van een level blijft het langer één scherm, en het komt pas weer samen 8 pixels verder (geen flikkeren). Een tweede viewport (`World2`) deelt het level met `World`; `split_screen.gdshader` legt zijn beeld over de helft van speler 2, onder de HUD. Kleine pijltjes (`PartnerArrows`) naast elke Keen wijzen naar de ander, in diens kleur.
+- **Split-screen** (`SplitScreen` rekent, `TwoPlayerView` tekent): samen één beeld; als een speler verder komt dan halverwege het midden en de rand, glijden de camera's uit elkaar en splitst het scherm met een donkere lijn door het midden, loodrecht op de lijn tussen de spelers (draait mee). Bij de rand van een level blijft het langer één scherm, en het komt pas weer samen 8 pixels verder (geen flikkeren). Een tweede viewport (`World2`) deelt het level met `World`; `split_screen.gdshader` legt zijn beeld over de helft van speler 2, onder de HUD. Er is geen pijltje naar de andere speler: na de speeltest wilde de gebruiker het weg (je ziet aan de split welke kant je op moet). Voor online multiplayer is het wel nodig; dat staat beschreven in `docs/two-players.md` onder "Later: online".
 - `LevelView` werd te lang: het twee-spelersdeel staat in `TwoPlayerView`, de hulpregel in `StatusLine`, het instellen van een viewport in `DisplaySettings.set_up_viewport`.
 - `tools/scripted_play.gd` kent nu `LeftShift` / `RightShift`.
 - Tests: `test_two_players.gd` (twee Keens: meedoen, eigen besturing, gedeelde items en munitie, doodgaan, uitgang, vijanden, wakker worden, vertrekken, god mode; de standaardtoetsen, linker/rechter Shift, overlappende sets, opslaan met kant, gecombineerde invoer op de kaart), `test_split_screen.gd` (één scherm, splitsen, geen sprong, binnen het level, bij de rand, smal level, dode speler, dode zone), plus menutests (speler 2 toevoegen, toets van speler 2 wijzigen).
@@ -176,9 +176,9 @@ was, ook de toetsen. Uitleg van alles: `docs/two-players.md`.
 Getest met Godot 4.7.2 en de shareware-versie 1.1: alle tests slagen, gdlint
 is schoon, en met gescripte invoer is in level 1 gecontroleerd dat speler 2
 erbij komt, apart bestuurd wordt (pijltjes en .), andere kleuren heeft, en
-dat het scherm splitst met de lijn en de pijltjes. De aanpassing bij de rand
-van een level (later splitsen, sterkere lijn) is alleen met tests
-gecontroleerd. De gebruiker speelt de build nu.
+dat het scherm splitst met de lijn. De gebruiker heeft het gespeeld en vindt
+het er goed uitzien (14-10-2026); alleen de pijltjes naar de andere speler
+moesten weg.
 
 ## Bekende beperkingen
 
@@ -211,7 +211,6 @@ gecontroleerd. De gebruiker speelt de build nu.
 
 ## Volgende stap
 
-1. **Voor de gebruiker:** speel `build/CommanderPerfect.app` met z'n tweeën. Druk F7 in een level. Let op: voelen de toetsen goed (linker Shift / ` / Z en . / / / rechter Shift), splitst het scherm op het goede moment (niet te vroeg, niet te laat), zijn de lijn en de pijltjes goed te zien, en is Keen 2 duidelijk anders van kleur? Probeer ook doodgaan, de uitgang, de kaart (speler 1 alleen, alle toetsen) en F7 nog eens om speler 2 weg te halen.
+1. **Voor de gebruiker:** speel verder met z'n tweeën (`build/CommanderPerfect.app`, nu zonder pijltjes) en kijk vooral naar doodgaan, de uitgang, de kaart en F7 om speler 2 weg te halen. Als alles goed is: mergen naar `main`.
 2. Mijlpaal 7 staat op `main`; de punten uit de vorige lijst (xBRZ/vloeiende beweging bekijken, Windows-build op een pc starten) staan nog open.
-3. Mijlpaal 8 afronden met wat uit de test komt, en mergen naar `main`.
-4. Daarna: de openstaande punten (natuurkunde en vijanden naast DOSBox leggen, de intro, de hulpregel in 4:3), eventueel twee controllers voor twee spelers, en later misschien online.
+3. Daarna: de openstaande punten (natuurkunde en vijanden naast DOSBox leggen, de intro, de hulpregel in 4:3), eventueel twee controllers voor twee spelers, en later misschien online.

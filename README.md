@@ -106,8 +106,7 @@ The keys for walking, jumping, pogo and firing can be changed in the menu
 Press F7 at any moment during a game and a second player joins. In the
 levels both play, sharing score, lives and items; on the world map player 1
 walks alone. Close together the two share the screen; when they move apart
-it splits in two, with a dark line in the middle and a small arrow next to
-each Keen that points to the other. As in the original, the level is over
+it splits in two, with a dark line in the middle. As in the original, the level is over
 when one of them dies, and complete when one of them walks out.
 
 | | Player 1 | Player 2 |

@@ -80,7 +80,27 @@ is laid over player 2's half of `World`'s picture by `split_screen.gdshader`
 (on the `SplitView` in the UI layer, so the HUD and windows stay on top),
 with the dark line. `World2` only draws while the screen is split.
 
-`PartnerArrows` draws a small arrow next to each Keen, pointing at the
-other one, in the other one's color (yellow for player 1, blue for player
-2). The arrows are drawn in the level, so each half only shows its own
-player's arrow.
+There is no arrow pointing to the other player: on one screen each player
+can see from the split which way his partner is (tried and taken out on
+request of the user, 14-10-2026).
+
+## Later: online
+
+When two play online, each player has a screen of his own and only sees
+his own Keen, so he cannot tell where his partner is. Then an arrow is
+needed:
+
+- A small arrow next to the player's own Keen (about 20 pixels from his
+  middle), pointing toward the partner, in the partner's color (yellow for
+  player 1, blue for player 2: Keen's helmet color with the same hue turn
+  as `player_colors.gdshader`), with a thin dark outline so it shows on
+  every background.
+- Only while the partner is out of sight; it can fade in as he leaves the
+  view.
+- Draw it in the level (like the Keens), or in the UI layer at the edge of
+  the view in the partner's direction; on a shared screen the first is
+  enough, online the second may read better.
+
+A first version (`PartnerArrows`, next to each Keen during a split screen)
+is in commit 547bf5c on branch `milestone-8-coop`; it can be the starting
+point.

@@ -1,4 +1,4 @@
-[gd_scene load_steps=13 format=3]
+[gd_scene load_steps=12 format=3]
 
 [ext_resource type="Script" path="res://src/game/level_view.gd" id="1_view"]
 [ext_resource type="Script" path="res://src/level/level_map.gd" id="2_map"]
@@ -10,7 +10,6 @@
 [ext_resource type="Script" path="res://src/game/sprite_view.gd" id="8_sprite"]
 [ext_resource type="Script" path="res://src/game/picture_layer.gd" id="9_pictures"]
 [ext_resource type="Script" path="res://src/game/hud.gd" id="10_hud"]
-[ext_resource type="Script" path="res://src/game/partner_arrows.gd" id="11_arrows"]
 [ext_resource type="Script" path="res://src/game/two_player_view.gd" id="12_two"]
 
 [node name="LevelView" type="Control"]
@@ -94,10 +93,6 @@ script = ExtResource("5_keen")
 [node name="Mark" type="Node2D" parent="World"]
 unique_name_in_owner = true
 script = ExtResource("8_sprite")
-
-[node name="PartnerArrows" type="Node2D" parent="World"]
-unique_name_in_owner = true
-script = ExtResource("11_arrows")
 
 [node name="Pictures" type="Node2D" parent="World"]
 unique_name_in_owner = true

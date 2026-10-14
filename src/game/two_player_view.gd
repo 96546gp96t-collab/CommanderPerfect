@@ -7,9 +7,8 @@ extends Node
 ## place and the World viewport shows them both. When they move apart, the
 ## World2 viewport, which looks at the same level with the second camera,
 ## is laid over the half of the screen on player 2's side (the SplitView),
-## with a dark line between the halves, and a small arrow next to each Keen
-## points to the other one ([PartnerArrows]). World2 only draws while the
-## screen is split.
+## with a dark line between the halves. World2 only draws while the screen
+## is split.
 ##
 ## The nodes it uses are in the scene of [LevelView].
 
@@ -18,12 +17,8 @@ const SPLIT_SCREEN_SHADER := preload("res://src/graphics/split_screen.gdshader")
 ## Player 2's Keen has every color turned this far around the color wheel:
 ## his yellow helmet turns blue.
 const PLAYER_2_HUE_SHIFT := 0.5
-## The color of Keen's helmet, which stands for player 1.
-const HELMET_COLOR := Color("ffff55")
 
 var split := SplitScreen.new()
-## The color of each player, for the arrows that point to him.
-var player_colors: Array[Color] = [HELMET_COLOR, turn_hue(HELMET_COLOR, PLAYER_2_HUE_SHIFT)]
 ## The level the second player plays in; null when he does not.
 var _session: LevelSession
 
@@ -36,7 +31,6 @@ var _session: LevelSession
 @onready var _camera_2: LevelCamera = %Camera2
 @onready var _camera_anchor_2: Node2D = %CameraAnchor2
 @onready var _split_view: TextureRect = %SplitView
-@onready var _arrows: PartnerArrows = %PartnerArrows
 
 
 func _ready() -> void:
@@ -49,12 +43,6 @@ func _ready() -> void:
 	colors.shader = PLAYER_COLORS_SHADER
 	colors.set_shader_parameter("hue_shift", PLAYER_2_HUE_SHIFT)
 	_keen_2.material = colors
-
-
-## [param color] with its hue turned [param shift] around the color wheel,
-## as the player colors shader does.
-static func turn_hue(color: Color, shift: float) -> Color:
-	return Color.from_hsv(fposmod(color.h + shift, 1.0), color.s, color.v, color.a)
 
 
 func set_textures(textures: GraphicsTextures) -> void:
@@ -93,7 +81,6 @@ func stop() -> void:
 	_keen_2.visible = false
 	_split_view.visible = false
 	_world_2.render_target_update_mode = SubViewport.UPDATE_DISABLED
-	_arrows.hide_arrows()
 	_camera.follow_exactly(false)
 
 
@@ -145,14 +132,11 @@ func update(delta: float) -> void:
 		SubViewport.UPDATE_ALWAYS if is_split else SubViewport.UPDATE_DISABLED
 	)
 	if not is_split:
-		_arrows.hide_arrows()
 		return
-	var strength := split.line_strength()
 	var material := _split_view.material as ShaderMaterial
 	material.set_shader_parameter("view_size", split.view_size)
 	material.set_shader_parameter("normal", split.normal)
-	material.set_shader_parameter("line_strength", strength)
-	_arrows.show_arrows(centers, player_colors, strength)
+	material.set_shader_parameter("line_strength", split.line_strength())
 
 
 ## The middle of [param keen]'s sprite where it is drawn now.

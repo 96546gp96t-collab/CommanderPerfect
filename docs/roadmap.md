@@ -70,4 +70,6 @@ zoals het titelscherm.
   pijltjes), op elk moment in of uit te stappen.
 - Dynamisch split-screen: samen één scherm, ver uit elkaar twee helften met
   een donkere lijn en een pijltje naar de ander.
-- Later eventueel online.
+- Later eventueel online. Dan is wel een pijltje nodig dat naar de andere
+  speler wijst, want elke speler ziet alleen zijn eigen scherm (zie
+  [two-players.md](two-players.md#later-online)).
