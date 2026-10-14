@@ -91,11 +91,11 @@ are not.
   unzip -q Godot_v4.7.2-stable_linux.x86_64.zip
   ln -sf "$PWD/Godot_v4.7.2-stable_linux.x86_64" /usr/local/bin/godot
   ```
-- **Game data:** the Keen 1 shareware release (v1.1, freely distributable) is
-  available as a PCjs diskette image in the public GitHub repository
-  `jeffpar/pcjs-gamedisks`, file `pcx86/game/id/commander_keen/KEEN1-V11.json`.
-  Clone it with `--filter=blob:none --no-checkout`, check out only that file,
-  then run `python3 tools/extract_pcjs_diskette.py KEEN1-V11.json game_data/keen1`.
+- **Game data:** run `tools/get_shareware.sh`. It downloads the Keen 1
+  shareware release (v1.1, freely distributable) as a PCjs diskette image
+  from the public GitHub repository `jeffpar/pcjs-gamedisks` (file
+  `pcx86/game/id/commander_keen/KEEN1-V11.json`) and unpacks it with
+  `tools/extract_pcjs_diskette.py` into `game_data/keen1`.
 - **Screenshots:** `xvfb-run -a godot --path . --rendering-driver opengl3
   --write-movie /tmp/shot.png --quit-after 20` saves rendered frames as PNG.
 

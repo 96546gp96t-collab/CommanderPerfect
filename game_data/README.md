@@ -17,6 +17,9 @@ game_data/
 
 Where to get them:
 
+- **Quickest:** run `tools/get_shareware.sh` from the project folder. It
+  downloads the freely distributable shareware release 1.1, checks every file
+  and puts it here.
 - **Steam / GOG:** copy the episode 1 files from the install folder of the
   "Commander Keen Complete Pack".
 - **Shareware:** episode 1 was released as freely distributable shareware.
