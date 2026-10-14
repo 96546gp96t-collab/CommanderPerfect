@@ -27,3 +27,31 @@ func completed_levels() -> PackedInt32Array:
 	var numbers := PackedInt32Array(_completed.keys())
 	numbers.sort()
 	return numbers
+
+
+## Everything needed to continue this game later, as plain values for JSON.
+func to_dict() -> Dictionary:
+	var position := [] if not map_position.is_finite() else [map_position.x, map_position.y]
+	return {
+		"inventory": inventory.to_dict(),
+		"completed": Array(completed_levels()),
+		"map_position": position,
+	}
+
+
+## The game saved with [method to_dict], or null when [param data] is not one.
+static func from_dict(data: Dictionary) -> GameProgress:
+	var saved_inventory: Variant = data.get("inventory")
+	var completed: Variant = data.get("completed")
+	var position: Variant = data.get("map_position")
+	if not (saved_inventory is Dictionary and completed is Array and position is Array):
+		return null
+	var game := GameProgress.new()
+	game.inventory = Inventory.from_dict(saved_inventory)
+	if game.inventory == null:
+		return null
+	for number: Variant in completed:
+		game.complete_level(int(number))
+	if position.size() == 2:
+		game.map_position = Vector2(float(position[0]), float(position[1]))
+	return game

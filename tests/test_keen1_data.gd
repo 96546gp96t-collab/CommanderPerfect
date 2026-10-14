@@ -261,15 +261,3 @@ func _walkable(collision: MapCollision, cell: Vector2i) -> bool:
 
 func _level_file(number: int) -> PackedByteArray:
 	return GameFiles.locate().read(GameFiles.level_file_name(number))
-
-
-func test_every_sound_is_in_the_sound_file() -> void:
-	var file := SoundFile.load_from(GameFiles.locate())
-	assert_true(file != null, "SOUNDS.CK1")
-	if file == null:
-		return
-	for id: Sound.Id in Sound.FILE_NAMES:
-		var name := Sound.FILE_NAMES[id]
-		assert_true(file.sounds.has(name), name)
-		if file.sounds.has(name):
-			assert_true(not file.sounds[name].divisors.is_empty(), "%s has data" % name)

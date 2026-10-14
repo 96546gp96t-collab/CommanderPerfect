@@ -1,7 +1,7 @@
 class_name TextDocument
 extends RefCounted
-## Reads the text files of the game (ENDTEXT.CK1, and later STORYTXT.CK1 and
-## HELPTEXT.CK1) and lays them out for a screen of a given width.
+## Reads the text files of the game (ENDTEXT.CK1 and STORYTXT.CK1) and lays
+## them out for a screen of a given width.
 ##
 ## The files are plain text, written for an 80-column screen:
 ##   CR LF      ends a line

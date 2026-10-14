@@ -23,6 +23,18 @@ func test_playable_rect_leaves_out_the_border() -> void:
 	assert_equal(LevelMap.playable_pixels(level), Rect2i(32, 32, 96, 64), "playable pixels")
 
 
+func test_crop_keeps_only_the_chosen_cells() -> void:
+	var level := _create_level(Vector2i(10, 8))
+	for index in level.tiles.size():
+		level.tiles[index] = index
+	level.infos[2 * 10 + 5] = 7
+	var screen := level.crop(Rect2i(4, 1, 3, 2))
+	assert_equal(screen.playable_rect(), Rect2i(2, 2, 3, 2), "the cells, inside a new border")
+	assert_equal(screen.tile_at(Vector2i(2, 2)), 1 * 10 + 4, "top left cell")
+	assert_equal(screen.info_at(Vector2i(3, 3)), 7, "info layer too")
+	assert_equal(screen.tile_at(Vector2i(0, 0)), 0, "outside the old map: tile 0")
+
+
 func test_find_info_returns_first_match() -> void:
 	var level := _create_level(Vector2i(10, 8))
 	level.infos[3 * 10 + 4] = LevelData.PLAYER_START_INFO

@@ -21,6 +21,9 @@ const _RGB_HEX: PackedStringArray = [
 	"FFFFFF",  # 15 white
 ]
 
+## The color the font draws its background in.
+const WHITE := 15
+
 ## RGBA bytes for every palette entry, four bytes per color.
 static var _rgba_bytes := _build_rgba_bytes()
 

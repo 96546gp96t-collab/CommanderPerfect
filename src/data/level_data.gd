@@ -88,3 +88,24 @@ func find_info(value: int) -> Vector2i:
 	if index < 0:
 		return Vector2i(-1, -1)
 	return Vector2i(index % width, index / width)
+
+
+## A new map with only the cells [param area] of this one visible: the
+## result has a border of [constant BORDER_CELLS] around them, so its
+## [method playable_rect] is exactly [param area]. Cells outside this map
+## become tile 0 (the border is never drawn anyway).
+func crop(area: Rect2i) -> LevelData:
+	var source := area.grow(BORDER_CELLS)
+	var result := LevelData.new()
+	result.width = source.size.x
+	result.height = source.size.y
+	result.tiles.resize(result.width * result.height)
+	result.infos.resize(result.width * result.height)
+	var bounds := Rect2i(Vector2i.ZERO, Vector2i(width, height))
+	for y in result.height:
+		for x in result.width:
+			var cell := source.position + Vector2i(x, y)
+			if bounds.has_point(cell):
+				result.tiles[y * result.width + x] = tile_at(cell)
+				result.infos[y * result.width + x] = info_at(cell)
+	return result

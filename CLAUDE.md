@@ -39,11 +39,15 @@ src/keen/      Keen: movement physics, input, sprite
 src/actors/    Everything else that moves: enemies, shots, opening doors
 src/map/       The world map: Keen walking, level entrances, teleporters
 src/sound/     PC speaker sounds: synthesis and playback
-src/game/      Game screen (main scene), LevelSession, Inventory, the ending, display settings
+src/menu/      Menus: main menu, save slots, controls, options, name entry
+src/game/      Game screen (main scene), LevelSession, Inventory, the ending, title and
+               high scores, settings, saved games
 src/viewer/    Data viewer scene
 tests/         Headless test runner and test suites
-tools/         Command-line tools (graphics export, shareware diskette extraction)
-docs/          File formats, Keen's physics, enemies and items, the world map
+tools/         Command-line tools (graphics export, shareware diskette extraction,
+               scripted play with screenshots)
+docs/          File formats, Keen's physics, enemies and items, the world map, sounds,
+               menus
 game_data/     The player's own game files (ignored by git)
 ```
 
@@ -55,9 +59,11 @@ Godot 4.7 is required (`godot` must be on the PATH).
 godot --headless --path . --import                                # first run: build the class cache
 godot --headless --path . --script res://tests/run_tests.gd       # run all tests
 godot --headless --path . --script res://tools/export_graphics.gd # dump graphics to exported/
-godot --path .                                                    # start the game (world map)
+godot --path .                                                    # start the game (title screen)
+godot --path . -- --level=80                                      # start on the world map (or level N)
 godot --path . res://src/viewer/data_viewer.tscn                  # open the data viewer
 gdformat src tests tools && gdlint src tests tools                # format + lint (pip install gdtoolkit)
+STEPS="20:Space,30:shot_menu" OUT=/tmp/shots godot --path . --script res://tools/scripted_play.gd  # scripted keys + screenshots
 ```
 
 All tests must pass and `gdlint` must be clean before committing.

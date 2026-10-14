@@ -13,8 +13,8 @@ Wat elke mijlpaal precies inhoudt, staat in [docs/roadmap.md](docs/roadmap.md).
 | 2 | Levels tekenen met TileMapLayer, scrollen, widescreen-camera | ✅ Klaar (branch `milestone-2-level-view`) |
 | 3 | Keen: lopen, springen, pogo, botsingen (tile-eigenschappen uit KEEN1.EXE) | ✅ Klaar en gemerged; de besturing voelt goed volgens de gebruiker (14-10-2026), naast DOSBox leggen staat nog open |
 | 4 | Vijanden, items, deuren, sleutelkaarten, straalgeweer | ✅ Gemerged naar `main` (PR #4); speeltesten loopt nog |
-| 5 | Wereldkaart, levelovergangen, scheepsonderdelen, einde | 🔶 Gebouwd, nog speeltesten (branch `milestone-5-world-map`) |
-| 6 | Geluid, menu's, opslaan | |
+| 5 | Wereldkaart, levelovergangen, scheepsonderdelen, einde | ✅ Getest door de gebruiker en gemerged naar `main` (PR #5) |
+| 6 | Geluid, menu's, opslaan | 🔶 Gebouwd, nog speeltesten (branch `milestone-6-sound-menus`) |
 | 7 | Hogere framerate (interpolatie), xBRZ met wisselknop, Real-ESRGAN-pipeline | |
 | 8 | Lokale co-op, later eventueel online | |
 
@@ -113,6 +113,25 @@ is schoon, en met gescripte invoer zijn de kaart (Keens Left, statusscherm,
 het schipbericht, level 1 in) en het hele einde opgenomen en via screenshots
 gecontroleerd. Het spel helemaal met de hand uitspelen moet nog.
 
+## Mijlpaal 6: wat er nu is
+
+- **Geluid.** `SoundFile` leest `SOUNDS.CK1` (41 geluiden met prioriteit; formaat in `docs/file-formats.md`). `SpeakerSynth` maakt van elk geluid een blokgolf zoals de PC-speaker (140 stappen per seconde, met een zacht laagdoorlaatfilter), en `SoundPlayer` speelt ze op één kanaal: een nieuw geluid onderbreekt alleen een geluid met een lagere of gelijke prioriteit. Keen (lopen, springen, landen, pogo, hoofd stoten, schieten, doodgaan, bevriezen), items, deuren, de uitgang, vijanden, de kaart (stappen, botsen, level in, teleporter), "Keens Left", game over en highscores hebben hun geluid. Welk geluid waarbij hoort (en wat nog een gok is) staat in `docs/sounds.md`.
+- **Titelscherm.** Het spel start nu op het titelscherm: Keen bij zijn schip uit map 90 met het TITLE-plaatje erboven. Na 8 seconden wisselt het af met de highscores. Een toets opent het hoofdmenu. `Backdrops` snijdt de schermen uit map 90 (`LevelData.crop`), zodat breedbeeld zwarte balken geeft. `-- --level=N` start nog steeds direct in een level.
+- **Menu's** (`src/menu/`): `Menu` (keuzes en cursor, testbaar), `MenuView` (tekent in een `GameWindow` met het draaiende bolletje uit het lettertype als cursor) en `MenuController` (alle schermen). Escape opent het menu tijdens het spel; het spel pauzeert dan. Keuzes: Return to Game, New Game, Continue Game, Save Game, Story (`STORYTXT.CK1`, scrollen), High Scores, Controls, Options, Quit to Title, Quit. Zie `docs/menus.md`.
+- **Opslaan en laden.** `SaveGames`: 9 plekken, alleen op de wereldkaart (zoals het origineel), met een vraag voor overschrijven. `GameProgress` en `Inventory` kunnen zichzelf naar JSON schrijven en teruglezen. Bestanden in de gebruikersmap van Godot (op de Mac `~/Library/Application Support/Godot/app_userdata/CommanderPerfect/`).
+- **Toetsen instellen.** `KeyBindings`: per actie de eerste toets vervangen; een toets hoort bij één actie; terugzetten kan. Controllerknoppen blijven zoals ze zijn.
+- **Instellingen onthouden.** `UserSettings` bewaart breedbeeld, 4:3-pixels, geluid aan/uit en de toetsen in `settings.cfg`. F2/F3 slaan ook op.
+- **Game over en highscores.** Na het laatste leven het GAMEOVER-plaatje, daarna (en ook na het einde) de highscores: met een goede score vraagt het spel om een naam ("You got first place!"). `HighScores` (7 plaatsen, naam, score, scheepsonderdelen) wordt bewaard in `high_scores.json`. De standaardnamen en de woorden voor de plaatsen komen uit de eigen `KEEN1.EXE` (`ScoreTexts`).
+- `GraphicsTextures`: gedeelde cache van texturen (lettertype, tiles, sprites, bitmaps) voor `GameWindow` en de nieuwe `PictureLayer` (plaatjes en tekst op een map). `GameWindow` kan nu ook bitmaps tonen.
+- `tools/scripted_play.gd`: speelt het spel met gescripte toetsen en maakt screenshots (uitleg bovenin het script). Let op: dat schrijft wel naar de echte instellingen, saves en highscores.
+- Tests: `test_sounds.gd` (geluidsbestand, synthese, prioriteit, welke gebeurtenissen geluid maken), `test_saving.gd` (voortgang, saves, highscores, toetsen, instellingen), `test_menus.gd` (cursor, hoofdmenu, opslaan, overschrijven, laden, toets wijzigen, opties, naam typen, story), een kaartgeluid-test in `test_world_map.gd`, `LevelData.crop` in `test_level_rendering.gd`, en op de echte data in het nieuwe `test_keen1_extras.gd`: alle geluiden bestaan, de highscoreteksten worden gevonden, de schermen van map 90 en de plaatjes bestaan, en de story past in het venster.
+
+Getest met Godot 4.7.2 en de shareware-versie 1.1: alle tests slagen, gdlint
+is schoon, en met gescripte invoer zijn het titelscherm, het hoofdmenu,
+Controls, Continue, Story, game over, een naam invullen, de highscores (ook
+in breedbeeld) en opslaan + laden op de wereldkaart via screenshots
+gecontroleerd. Het geluid is nog niet met het oor naast het origineel gelegd.
+
 ## Bekende beperkingen
 
 - De natuurkunde-getallen zijn startwaarden (overgenomen van Commander Genius als documentatie, zie `docs/keen-physics.md`). Ze moeten nog naast het origineel (DOSBox) worden gelegd; de lijst met punten staat onderaan dat document.
@@ -121,14 +140,15 @@ gecontroleerd. Het spel helemaal met de hand uitspelen moet nog.
 - Veel getallen op de kaart en in het einde zijn overgenomen van Commander Genius of geschat: loopsnelheid op de kaart, de teleporter, de vluchten van het schip (de vlucht naar de aarde duurt nu ~28 s). De lijst staat onderaan `docs/world-map.md`.
 - De doelen van de teleporters staan in de code van `KEEN1.EXE`, niet in een tabel; ze zijn als vaste waarden in `MapSession` gezet (volgens de documentatie van Commander Genius wijst elk doel precies naar een andere teleporter). Mods met andere doelen werken dus niet.
 - In de EXE zijn de vraag van de ouders en Keens antwoord ("Aw, Mom...") één bericht; het origineel toont ze misschien als twee vensters.
-- Na het einde begint direct een nieuw spel; titelscherm en highscores komen in mijlpaal 6.
-- Er is nog geen geluid. De regel bovenin (score, levens, munitie) is een hulpmiddel; het origineel heeft alleen het statusscherm.
+- De regel bovenin (score, levens, munitie) en de toetsenregel onderin zijn hulpmiddelen; het origineel heeft alleen het statusscherm. De toetsenregel noemt de standaardtoetsen, ook als ze zijn veranderd.
+- De snelheid van de geluiden (140 Hz) komt uit openbare documentatie en is nog niet met het oor vergeleken. Een paar koppelingen van geluid aan gebeurtenis zijn gokken (zie `docs/sounds.md`); `CLICKSND`, `CRYSTALSND` en `GOINDOORSND` worden niet gebruikt.
+- Niet nagebouwd: de intro (Apogee- en id-schermen), de demo, "About ID...", "Ordering Info" en "Previews!". De helptekst (`HELPTEXT.CK1`) wordt niet getoond, omdat die de toetsen van het origineel beschrijft.
+- De scores in een nieuwe highscorelijst (100) en de plek van de tabel in de rode lijst zijn geschat.
 - Level overslaan (cheat of Page Up/Down) houdt de inventaris, en een level dat zo gekozen is telt wel mee als het wordt uitgespeeld.
 - De data viewer toont tiles nog zonder animatie en zonder voorgrond-markering.
 - Gemaskeerde tiles (gedrag -2) worden als gewone voorgrond-tiles getekend; Keen 1 gebruikt ze niet.
 - In de data viewer wordt de info-laag nog alleen gemarkeerd, zonder namen van de vijanden.
 - Bij een venstergrootte die geen heel veelvoud van het beeld is, worden niet alle pixels even breed of hoog getekend (vooral zichtbaar met de 4:3-correctie). Dit lossen we op in mijlpaal 7, samen met xBRZ (bijv. eerst op een heel veelvoud renderen en dan glad verkleinen).
-- Instellingen (beeldverhouding, pixelverhouding) worden nog niet onthouden; opslaan volgt in mijlpaal 6.
 - Of de wereldkaart ook precies een rand van 2 tiles verbergt, is aangenomen maar niet vergeleken met het origineel.
 
 ## Open beslissingen
@@ -137,6 +157,6 @@ gecontroleerd. Het spel helemaal met de hand uitspelen moet nog.
 
 ## Volgende stap
 
-1. **Voor de gebruiker:** speel het spel vanaf de wereldkaart: level 1, de blokkade, de teleporter achter level 7, en kijk of lopen op de kaart goed voelt. Bekijk het einde met `godot --path . -- --ending`. Vergelijk als het kan met het origineel (DOSBox), vooral de punten onderaan `docs/world-map.md` en `docs/enemies.md`.
-2. Mijlpaal 5 afronden met wat uit die test komt, en mergen naar `main`.
-3. **Mijlpaal 6**: geluid (`SOUNDS.CK1`), titelscherm en menu's (de tekstbestanden `STORYTXT.CK1` en `HELPTEXT.CK1` kunnen met `TextDocument` en een venster zoals bij de eindtekst), toetsen instellen, opslaan en laden (`GameProgress` is wat er bewaard moet worden).
+1. **Voor de gebruiker:** speel de nieuwe build (`build/CommanderPerfect.app`): luister of de geluiden kloppen (toonhoogte, lengte, welke wanneer), probeer het menu (Escape), toetsen wijzigen, opslaan op de kaart en weer laden, en een game over met de highscores. Vergelijk als het kan met het origineel (DOSBox), vooral de punten onderaan `docs/sounds.md` en `docs/menus.md`.
+2. Mijlpaal 6 afronden met wat uit die test komt, en mergen naar `main`.
+3. **Mijlpaal 7**: hogere framerate via interpolatie, xBRZ met wisselknop, de Real-ESRGAN-pipeline, en een Windows-build. Daar hoort ook bij: pixels netjes schalen bij vensters die geen heel veelvoud zijn.
