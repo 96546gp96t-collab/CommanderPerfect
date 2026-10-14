@@ -67,3 +67,4 @@ func _fire(session: LevelSession) -> void:
 	var x := hitbox().end.x if facing > 0 else hitbox().position.x - KeenPhysics.SHOT_SIZE.x
 	var start := Vector2(x, position.y + SHOT_HEIGHT)
 	session.add_actor(RaygunShot.create(start, facing, false))
+	session.play_sound_at(Sound.Id.TANK_FIRE, start)

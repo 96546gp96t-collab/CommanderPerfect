@@ -61,6 +61,7 @@ var _buttons_close_window := false
 var _hints: HintTexts
 var _ending_texts: EndingTexts
 var _god_mode := false
+var _sounds := SoundPlayer.new()
 
 @onready var _screen: TextureRect = %Screen
 @onready var _world: SubViewport = %World
@@ -79,6 +80,7 @@ var _god_mode := false
 
 
 func _ready() -> void:
+	add_child(_sounds)
 	resized.connect(_fit_screen)
 	_screen.texture = _world.get_texture()
 	_apply_display_settings()
@@ -107,6 +109,8 @@ func _ready() -> void:
 	_window.set_graphics(_graphics)
 	_hints = HintTexts.load_from(_files)
 	_ending_texts = EndingTexts.load_from(_files)
+	if _files.has_file(GameFiles.SOUNDS):
+		_sounds.load_sounds(SoundFile.load_from(_files))
 	if OS.get_cmdline_user_args().has(ENDING_OPTION):
 		_progress.inventory.ship_parts.fill(true)
 	_go_to(_requested_level())
@@ -304,6 +308,7 @@ func _enter_map(show_lives: bool) -> void:
 	_level_map.show_level(_level, _properties)
 	_map_session.tile_changed.connect(_level_map.set_tile)
 	_map_session.ship_used.connect(_on_ship_used)
+	_map_session.sound_played.connect(_sounds.play)
 	_mode = Mode.MAP
 	_keen.show_on_map(_map_session.keen)
 	_follow(_keen)
@@ -311,6 +316,7 @@ func _enter_map(show_lives: bool) -> void:
 		_start_ending()
 	elif show_lives:
 		MapMessages.show_lives(_window, _progress.inventory.lives)
+		_sounds.play(Sound.Id.KEENS_LEFT)
 		_lives_time_left = LIVES_SECONDS
 		_buttons_close_window = true
 
@@ -326,6 +332,7 @@ func _enter_level(number: int) -> void:
 	)
 	_session.tile_changed.connect(_level_map.set_tile)
 	_session.hint_touched.connect(_on_hint_touched)
+	_session.sound_played.connect(_sounds.play)
 	_session.keen.invincible = _god_mode
 	_mode = Mode.LEVEL
 	_keen.show_body(_session.keen)
@@ -355,6 +362,7 @@ func _on_level_over(outcome: LevelSession.Outcome) -> void:
 				_map_session.teleport_to_secret_place()
 		LevelSession.Outcome.DIED:
 			if _progress.inventory.is_game_over():
+				_sounds.play(Sound.Id.GAME_OVER)
 				_start_new_game("Game over. Starting again.")
 			else:
 				_enter_map(true)

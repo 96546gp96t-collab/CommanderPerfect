@@ -17,6 +17,11 @@ extends RefCounted
 ## Firing the raygun is one too: Keen holds it out for a moment, and on the
 ## ground he stands still meanwhile. An ice chunk freezes him: for a while he
 ## ignores all buttons, but still slides and falls.
+##
+## What Keen does makes sounds; [signal sound_played] reports them.
+
+## Emitted when Keen makes a sound: a jump, a landing, a step, and so on.
+signal sound_played(sound: Sound.Id)
 
 enum State { STANDING, CROUCHING, RISING, FALLING, POGO_COMPRESSED, DYING, EXITING }
 
@@ -97,6 +102,11 @@ func hitbox() -> Rect2:
 	return Rect2(position + KeenPhysics.HITBOX.position, KeenPhysics.HITBOX.size)
 
 
+## Whether something is pushing Keen sideways right now.
+func is_pushed() -> bool:
+	return _push_speed != 0.0
+
+
 ## Whether Keen is holding the raygun out after firing.
 func is_shooting() -> bool:
 	return _shoot_timer > 0
@@ -112,6 +122,7 @@ func kill() -> void:
 	state = State.DYING
 	_timer = 0
 	_death_start_y = position.y
+	sound_played.emit(Sound.Id.KEEN_DIES)
 	velocity = Vector2(-facing * KeenPhysics.DIE_DRIFT_SPEED, -KeenPhysics.DIE_RISE_SPEED)
 
 
@@ -138,6 +149,7 @@ func freeze(push_speed: float) -> void:
 	if is_dead or state == State.EXITING:
 		return
 	_frozen_ticks = KeenPhysics.FROZEN_TICKS
+	sound_played.emit(Sound.Id.KEEN_FROZEN)
 	on_pogo = false
 	_shoot_timer = 0
 	velocity.x = push_speed
@@ -205,6 +217,7 @@ func step(input: KeenInput) -> void:
 	if collision.is_below_level(box):
 		is_dead = true
 		death_finished = true
+		sound_played.emit(Sound.Id.PLUMMET)
 	elif collision.touches_deadly_tile(box):
 		kill()
 
@@ -352,8 +365,9 @@ func _walk(input: KeenInput, floor_type: TileProperties.Floor) -> void:
 			velocity.x = input.direction * KeenPhysics.WALK_START_SPEED
 		var target := input.direction * KeenPhysics.WALK_MAX_SPEED
 		velocity.x = move_toward(velocity.x, target, KeenPhysics.WALK_ACCELERATION)
-		_advance_walk_animation()
-	_move_horizontally()
+	var blocked := not _move_horizontally()
+	if input.direction != 0 and _advance_walk_animation():
+		_play_step_sound(blocked)
 
 
 ## On ice Keen cannot stop or turn: he slides at full speed the way he faces,
@@ -385,6 +399,7 @@ func _crouch(input: KeenInput) -> void:
 	if input.direction != 0:
 		facing = input.direction
 	_launch(KeenPhysics.JUMP_SPEED * strength)
+	sound_played.emit(Sound.Id.KEEN_JUMP)
 
 
 func _compress(input: KeenInput) -> void:
@@ -400,6 +415,7 @@ func _compress(input: KeenInput) -> void:
 		)
 	_first_bounce = false
 	_launch(speed)
+	sound_played.emit(Sound.Id.KEEN_POGO)
 
 
 func _launch(speed: float) -> void:
@@ -415,6 +431,8 @@ func _rise(input: KeenInput) -> void:
 	position.y += moved
 	if moved != velocity.y:
 		# Bumped his head: the upward speed drops off quickly, but not at once.
+		if velocity.y < -KeenPhysics.SUBPIXEL:
+			sound_played.emit(Sound.Id.BUMP_HEAD)
 		velocity.y /= 2.0
 		if velocity.y > -KeenPhysics.SUBPIXEL:
 			velocity.y = 0.0
@@ -433,6 +451,8 @@ func _fall(input: KeenInput) -> void:
 	if moved != velocity.y:
 		velocity.y = 0.0
 		_enter_ground_state(State.POGO_COMPRESSED if on_pogo else State.STANDING)
+		if not on_pogo:
+			sound_played.emit(Sound.Id.KEEN_LAND)
 
 
 func _start_falling(speed: float, acceleration: float, after_jump: bool) -> void:
@@ -478,23 +498,41 @@ func _steer_off_ledge(direction: int) -> void:
 		velocity.x += direction * KeenPhysics.LEDGE_AIR_CONTROL
 
 
-func _move_horizontally() -> void:
+## Moves sideways with the current speed. Returns false when a wall
+## stopped Keen.
+func _move_horizontally() -> bool:
 	var moved := collision.sweep_x(hitbox(), velocity.x)
 	position.x += moved
 	if moved != velocity.x:
 		velocity.x = 0.0
+		return false
+	return true
 
 
-func _advance_walk_animation() -> void:
+## Moves the walking animation on. Returns true when a new frame starts.
+func _advance_walk_animation() -> bool:
 	if not _is_walking:
 		_is_walking = true
 		_walk_frame = 1
 		_walk_timer = 0
-		return
+		return true
 	_walk_timer += 1
-	if _walk_timer >= KeenPhysics.WALK_FRAME_TICKS:
-		_walk_timer = 0
-		_walk_frame = (_walk_frame + 1) % KeenPhysics.WALK_FRAMES
+	if _walk_timer < KeenPhysics.WALK_FRAME_TICKS:
+		return false
+	_walk_timer = 0
+	_walk_frame = (_walk_frame + 1) % KeenPhysics.WALK_FRAMES
+	return true
+
+
+## A footstep on every other frame of the walk, the two feet sounding a
+## little different; walking into a wall sounds like a bump instead.
+func _play_step_sound(blocked: bool) -> void:
+	if _walk_frame % 2 == 0:
+		return
+	if blocked:
+		sound_played.emit(Sound.Id.KEEN_BLOCKED)
+	else:
+		sound_played.emit(Sound.Id.KEEN_WALK if _walk_frame == 1 else Sound.Id.KEEN_WALK_2)
 
 
 func _stop_walk_animation() -> void:

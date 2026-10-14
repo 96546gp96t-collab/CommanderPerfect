@@ -20,7 +20,7 @@ these descriptions and checked against the shareware files (version 1.1).
 | `FINALE.CK1` | Picture of Keen's house at the end of the game | `FinaleImage` |
 | `ENDTEXT.CK1` | Text shown after the ending | `TextDocument` |
 | `STORYTXT.CK1`, `HELPTEXT.CK1` | The story and the help texts (milestone 6), same format | `TextDocument` |
-| `SOUNDS.CK1` | PC speaker sounds (milestone 6) | — |
+| `SOUNDS.CK1` | PC speaker sounds | `SoundFile` |
 
 ## EGA planar graphics
 
@@ -298,3 +298,39 @@ empty line ends a paragraph. Lines that fit are kept as they are, spaces
 included, because some are laid out by hand. Bytes from 0x80 on are
 characters of the game font: `0x97 0x98` over `0x99 0x9A` draw a little
 Keen face next to "Commander Keen says:".
+
+## SOUNDS.CK1
+
+All sounds of the game for the PC speaker. Little-endian, in three parts.
+
+Header (16 bytes):
+
+| Offset | Size | Meaning |
+|---|---|---|
+| 0 | 4 | `SND\0` |
+| 4 | u16 | Size of the file (8898 in version 1.1) |
+| 6 | u16 | Number of entries in the table (63) |
+| 8 | u16 | Unknown (60) |
+| 10 | 6 | Zero |
+
+Table, one entry of 16 bytes per sound:
+
+| Offset | Size | Meaning |
+|---|---|---|
+| 0 | u16 | Offset of the sound data in the file |
+| 2 | u8 | Priority: a new sound only cuts off the one that is playing if its priority is at least as high |
+| 3 | u8 | Unknown: 8 for the real sounds, 1 for the empty slots |
+| 4 | 12 | Name, zero-padded, for example `KEENJUMPSND` (three are lower case: `vortscream`, `keencicle`, `keensleft`) |
+
+Version 1.1 has 41 real sounds, followed by 22 slots called `__UnNamed__`
+that hold a single tone. The data of a sound is a list of u16 values ending
+with `0xFFFF`. Each value lasts one tick of the game's 140 Hz sound timer.
+0 is silence; any other value is the divisor for the PC's timer chip
+(1193182 Hz), so the speaker plays a square wave of 1193182 / value Hz.
+Values go from 60 (about 20 kHz, inaudible) to about 10000 (120 Hz).
+
+The 140 Hz rate comes from the public documentation of the format (the
+"inverse frequency" sound format); it still has to be checked by ear
+against the original. Which sound belongs to which event is in
+[sounds.md](sounds.md).
+

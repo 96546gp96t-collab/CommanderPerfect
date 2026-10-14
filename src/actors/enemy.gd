@@ -76,6 +76,11 @@ func die() -> void:
 	is_dead = true
 
 
+## The sound this enemy makes when it dies.
+func death_sound() -> Sound.Id:
+	return Sound.Id.NONE
+
+
 ## Keen touches this enemy. Most enemies kill him.
 func touch_keen(session: LevelSession) -> void:
 	session.keen.kill()

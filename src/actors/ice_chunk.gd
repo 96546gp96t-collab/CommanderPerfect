@@ -55,5 +55,6 @@ func _push_speed(session: LevelSession) -> float:
 
 func _shatter(session: LevelSession) -> void:
 	removed = true
+	session.play_sound_at(Sound.Id.CHUNK_SMASH, position)
 	for direction in [Vector2(-1, -1), Vector2(1, -1), Vector2(-1, 1), Vector2(1, 1)]:
 		session.add_actor(IceBit.create(position, direction))

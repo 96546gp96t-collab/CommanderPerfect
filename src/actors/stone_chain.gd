@@ -72,6 +72,7 @@ func _think(session: LevelSession) -> void:
 	session.crush(stone_rect())
 	if _rows_dropped >= DROP_ROWS:
 		removed = true
+		session.play_sound(Sound.Id.SLAM)
 
 
 func _drop_one_row(session: LevelSession) -> void:

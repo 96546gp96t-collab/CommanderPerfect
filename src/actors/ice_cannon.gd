@@ -37,3 +37,4 @@ func _think(session: LevelSession) -> void:
 	if direction.x > 0:
 		start.x += EgaGraphics.TILE_SIZE
 	session.add_actor(IceChunk.create(start, direction))
+	session.play_sound_at(Sound.Id.CANNON_FIRE, start)

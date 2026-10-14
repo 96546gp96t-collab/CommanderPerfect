@@ -40,6 +40,7 @@ func step(session: LevelSession) -> void:
 	var moved := session.collision.sweep_x(hitbox(), distance)
 	position.x += moved
 	if moved != distance:
+		session.play_sound_at(Sound.Id.SHOT_HIT, position)
 		splash()
 
 

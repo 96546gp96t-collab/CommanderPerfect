@@ -38,6 +38,7 @@ src/level/     Drawing a level (TileSet, TileMapLayer, camera) and tile collisio
 src/keen/      Keen: movement physics, input, sprite
 src/actors/    Everything else that moves: enemies, shots, opening doors
 src/map/       The world map: Keen walking, level entrances, teleporters
+src/sound/     PC speaker sounds: synthesis and playback
 src/game/      Game screen (main scene), LevelSession, Inventory, the ending, display settings
 src/viewer/    Data viewer scene
 tests/         Headless test runner and test suites

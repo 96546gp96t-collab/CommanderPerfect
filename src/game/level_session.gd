@@ -21,6 +21,8 @@ signal tile_changed(cell: Vector2i, tile: int)
 ## Emitted when Keen touches a Yorp or Garg statue; the view shows its
 ## message. Each statue speaks only once.
 signal hint_touched
+## Emitted for every sound that Keen, an actor or an item makes.
+signal sound_played(sound: Sound.Id)
 
 ## TELEPORTED: Keen left through the teleporter; the level is not done.
 enum Outcome { PLAYING, COMPLETED, DIED, TELEPORTED }
@@ -98,6 +100,7 @@ static func create(
 	session.collision = LevelCollision.create(level_data, tile_properties)
 	session.inventory = keen_inventory
 	session.keen = KeenBody.create(session.collision, start)
+	session.keen.sound_played.connect(session.play_sound)
 	keen_inventory.enter_level()
 	session._spawn_enemies(level_number == COMMANDER_LEVEL)
 	return session
@@ -151,9 +154,20 @@ func enemies() -> Array[Enemy]:
 func crush(area: Rect2) -> void:
 	for enemy in enemies():
 		if enemy.touches_keen() and enemy.hitbox().intersects(area):
-			enemy.die()
+			_kill(enemy, enemy.die)
 	if keen.hitbox().intersects(area):
 		keen.kill()
+
+
+func play_sound(sound: Sound.Id) -> void:
+	sound_played.emit(sound)
+
+
+## Plays [param sound] only when [param point] is in sight, so that cannons
+## and robots far away stay quiet.
+func play_sound_at(sound: Sound.Id, point: Vector2) -> void:
+	if active_area().has_point(point):
+		play_sound(sound)
 
 
 ## Changes a tile of the level and lets the view know.
@@ -205,7 +219,8 @@ func _resolve_hits() -> void:
 			continue
 		for enemy in targets:
 			if enemy.stops_shots() and shot.hitbox().intersects(enemy.hitbox()):
-				enemy.hit_by_shot(self)
+				play_sound(Sound.Id.SHOT_HIT)
+				_kill(enemy, enemy.hit_by_shot.bind(self))
 				shot.splash()
 				break
 	if keen.is_dead:
@@ -215,9 +230,19 @@ func _resolve_hits() -> void:
 			enemy.touch_keen(self)
 
 
+## Does [param attack] to [param enemy], and lets it scream if that kills it.
+func _kill(enemy: Enemy, attack: Callable) -> void:
+	var was_dead := enemy.is_dead
+	attack.call()
+	if enemy.is_dead and not was_dead:
+		play_sound(enemy.death_sound())
+
+
 func _fire() -> void:
 	if inventory.charges <= 0:
+		play_sound(Sound.Id.GUN_CLICK)
 		return
+	play_sound(Sound.Id.KEEN_FIRE)
 	inventory.charges -= 1
 	add_actor(RaygunShot.create(keen.shot_position(), keen.facing))
 
@@ -229,6 +254,7 @@ func _touch_tiles(box: Rect2) -> void:
 			_pick_up(cell, tile)
 		elif properties.is_exit(tile) and keen.can_exit():
 			keen.start_exit(cell.x)
+			play_sound(Sound.Id.LEVEL_DONE)
 		elif properties.is_teleporter(tile) and outcome == Outcome.PLAYING:
 			outcome = Outcome.TELEPORTED
 		elif properties.is_hint(tile):
@@ -246,16 +272,24 @@ func _pick_up(cell: Vector2i, tile: int) -> void:
 	var behavior := properties.behavior(tile)
 	var first_part := TileProperties.Behavior.SHIP_JOYSTICK
 	var first_card := TileProperties.Behavior.KEYCARD_YELLOW
+	var lives := inventory.lives
 	if behavior == TileProperties.Behavior.RAYGUN:
 		inventory.charges += Inventory.RAYGUN_CHARGES
+		play_sound(Sound.Id.GOT_ITEM)
 	elif behavior == TileProperties.Behavior.POGO:
 		inventory.has_pogo = true
+		play_sound(Sound.Id.GOT_ITEM)
 	elif behavior >= first_part and behavior <= TileProperties.Behavior.SHIP_WHISKEY:
 		inventory.add_ship_part((behavior - first_part) as Inventory.ShipPart)
+		play_sound(Sound.Id.GOT_PART)
 	elif behavior >= first_card and behavior <= TileProperties.Behavior.KEYCARD_BLUE:
 		inventory.keycards[behavior - first_card] = true
+		play_sound(Sound.Id.GOT_CARD)
 	else:
 		inventory.add_points(POINTS.get(behavior, 0))
+		play_sound(Sound.Id.GOT_BONUS)
+	if inventory.lives > lives:
+		play_sound(Sound.Id.EXTRA_LIFE)
 
 
 ## Opens the whole door that [param cell] is part of: the column of door
@@ -273,6 +307,7 @@ func _open_door(cell: Vector2i) -> void:
 		current += Vector2i.DOWN
 	inventory.keycards[color] = false
 	add_actor(OpeningDoor.create(top, door_tiles))
+	play_sound(Sound.Id.DOOR_OPEN)
 
 
 func _is_door_of_color(cell: Vector2i, color: TileProperties.KeyColor) -> bool:
