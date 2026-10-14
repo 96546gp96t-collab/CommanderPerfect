@@ -9,24 +9,64 @@ graphics. It runs on macOS and Windows.
 > menus, saved games and high scores. The modern extras are being tested.
 > See [PROGRESS.md](PROGRESS.md).
 
-## You need the game files
+## Before you start: you need the original game
 
-CommanderPerfect contains **no** original graphics, levels or sounds: those
-belong to the owners of the original game and are never part of this
-repository. Episode 1 was released as freely distributable shareware, so the
-quickest way to get them is:
+**CommanderPerfect is only an engine. It does not include the game itself.**
+Like DOSBox, it needs the files of the original Keen 1 (episode 1, "Marooned
+on Mars"). Those files belong to the owners of the original game; they are
+not in this repository and may not be added to it.
 
-```sh
-tools/get_shareware.sh
+### Step 1: get the files of Keen 1
+
+Pick one:
+
+- **The shareware version (free).** Episode 1 was released as freely
+  distributable shareware. From the project folder, run:
+
+  ```sh
+  tools/get_shareware.sh
+  ```
+
+  This downloads release 1.1 from the PCjs diskette archive on GitHub, checks
+  every file and puts it in the right place (step 2 is then done for you). It
+  needs `curl` and `python3`.
+- **Your own copy.** If you own the game, for example the *Commander Keen
+  Complete Pack* on Steam or GOG, use the files of episode 1 from its install
+  folder: the files ending in `.CK1`, and `KEEN1.EXE`.
+
+### Step 2: put the files in `game_data/keen1/`
+
+Copy all files of episode 1 into the folder `keen1` inside `game_data` (create
+`keen1` if it is not there). It must look like this:
+
+```
+CommanderPerfect/
+└── game_data/
+    └── keen1/
+        ├── EGAHEAD.CK1     ┐
+        ├── EGALATCH.CK1    │ needed: without these
+        ├── EGASPRIT.CK1    │ the game does not start
+        ├── KEEN1.EXE       ┘
+        ├── LEVEL01.CK1 … LEVEL16.CK1, LEVEL80.CK1, LEVEL81.CK1, LEVEL90.CK1
+        ├── SOUNDS.CK1, FINALE.CK1, ENDTEXT.CK1, STORYTXT.CK1
+        └── … (any other files of the episode may stay)
 ```
 
-This downloads the shareware release 1.1 (from the PCjs diskette archive on
-GitHub), checks every file and unpacks it into `game_data/keen1/`. It needs
-`curl` and `python3`.
+- Put the files **directly** in `keen1`, not in a folder inside it.
+- Upper or lower case in the file names does not matter.
+- Only episode 1 works; the files of episodes 2 and 3 end in `.CK2` and
+  `.CK3`.
+- The files can also stay somewhere else: then start the game with
+  `godot --path . -- --data-dir=/path/to/the/files`.
+- For a built app (see [Building the apps](#building-the-apps)) the files
+  go in `game_data/keen1/` **next to** `CommanderPerfect.app` or
+  `CommanderPerfect.exe`. The build scripts copy them there for you.
 
-You can also copy the episode 1 files from your own copy (for example the
-*Commander Keen Complete Pack* on Steam or GOG) into `game_data/keen1/`. See
-[game_data/README.md](game_data/README.md).
+If the files are missing or in the wrong place, the game says so on the
+screen: "Keen 1 data not found".
+
+Git ignores everything in `game_data/` (except its README), so the files can
+never end up in the repository by accident.
 
 ## Running
 
