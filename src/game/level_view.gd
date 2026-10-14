@@ -89,8 +89,9 @@ var _score_texts: ScoreTexts
 var _pending_place := -1
 ## Counts down on the title and high score screens, and after game over.
 var _screen_time_left := 0.0
-## Whether the line with the keys is shown while playing (F1).
-var _show_help := true
+## Whether the line with the keys is shown while playing; hidden until F1
+## asks for it.
+var _show_help := false
 
 @onready var _screen: TextureRect = %Screen
 @onready var _world: SubViewport = %World

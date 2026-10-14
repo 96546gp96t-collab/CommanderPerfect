@@ -36,6 +36,11 @@ the spinning ball of the font (characters 9-15) as the cursor.
 Escape goes back one menu. The controller can use the menus too (d-pad,
 A to pick, B to go back).
 
+## The line with the keys
+
+A line at the bottom lists the keys. It is hidden at the start; F1 shows or
+hides it while playing.
+
 ## Extra information in widescreen
 
 In widescreen there is room next to the original picture, so while Keen is
