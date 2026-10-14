@@ -205,3 +205,19 @@ milestone 5.
 | 22 | 435-438, 485-488 | Animated (light) switch? |
 | 23 | 271 | Light switch? |
 | 24 | 481-484, 494-497 | Teleporter? |
+
+**Points table.** Right before the statue messages (below) are five 16-bit
+words: 500, 100, 200, 1000, 5000. These are the points of behaviors 6-10,
+which confirms the values in `docs/enemies.md`. CommanderPerfect does not read
+them; it uses the same numbers as constants.
+
+**Statue messages.** The texts of the Yorp and Garg statues (behavior 22) are
+a run of zero-terminated lines, each about 20 characters padded with spaces
+and ending in a newline, followed directly by the string `Press ENTER:`. The
+first line has no zero in front of it (the points table is there). Every
+message starts with a two-line header whose second line ends in a colon, then
+a blank line; the messages have 4 to 7 lines. They belong, in order, to the
+levels with a statue: 2, 6, 9, 10, 11 (the Garg statue), 12 and 15.
+`HintTexts` reads them from the player's own executable at runtime. After
+its message a statue stops glowing: Yorp statues (485-488) become tile 315,
+the Garg statue (435-438) tile 434.

@@ -31,6 +31,9 @@ code are guesses that still have to be compared with the original.
 A picked-up item leaves the gray background tile 143 behind. Keen gets an extra
 life at every 20,000 points and starts with 4 lives and no charges.
 
+**Statues** (behavior 22) show a message from `KEEN1.EXE` the first time
+Keen touches them (see `docs/file-formats.md`); the game pauses until Enter.
+
 **Doors** (behaviors 2-5) are two tiles high and solid. When Keen touches one
 with the matching keycard, the keycard is used up, the door tiles become tile
 143 and the door sinks into the floor (`OpeningDoor`). Every level with a door

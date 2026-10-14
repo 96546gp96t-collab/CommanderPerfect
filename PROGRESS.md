@@ -77,6 +77,14 @@ naast het origineel gelegd.
 - De info-laag is ontcijferd (1-10 en 255), zie `docs/file-formats.md`. Gedrag en herkomst van alle getallen: `docs/enemies.md`.
 - Tests: `test_keen_actions.gd` (schieten, pogo vinden, doodgaan), `test_level_session.gd` (items, deuren, uitgang, schoten, levens), `test_enemies.gd` (alle vijanden), plus op de echte data: elke deur heeft een sleutelkaart van zijn kleur in hetzelfde level, en geen enkele vijand valt bij de start uit het level.
 
+Na de eerste speeltest van de gebruiker (14-10-2026) toegevoegd:
+
+- Statusscherm op Enter (of Start op de controller): score, levens, volgende extra leven, straalgeweer met ladingen, pogo, sleutelkaarten en scheepsonderdelen, in de stijl van het origineel (`GameWindow` met de buisrand en het lettertype uit `EGALATCH`, `StatusScreen`). Het spel pauzeert zolang het open is.
+- De beeldjes van Yorps en de Garg tonen hun bericht uit `KEEN1.EXE` (`HintTexts`), één keer per poging; daarna gloeien ze niet meer.
+- Cheats om te testen: Shift+N / Shift+P (vorig/volgend level, naast Page Up/Down, die op een MacBook Fn+pijltje zijn), Shift+I (alle sleutelkaarten, pogo, 99 ladingen) en Shift+G (god mode).
+- Bug opgelost: bij doodgaan sprong de camera even naar linksboven. De camera werd verhangen in de scèneboom, en in dat ene frame had de viewport geen camera. Nu hangt hij vast aan een eigen anker (`CameraAnchor`).
+- macOS-build: `tools/build_macos.sh` maakt `build/CommanderPerfect.app` (universeel, ad-hoc ondertekend) met de speldata ernaast; `GameFiles` zoekt de data ook naast een `.app`. Hiervoor is de macOS-template van Godot 4.7.2 geïnstalleerd (alleen macOS; Windows volgt in mijlpaal 7).
+
 Getest met Godot 4.7.2 en de shareware-versie 1.1: alle tests slagen, gdlint
 is schoon, en met gescripte invoer zijn level 1 (Yorps, items), level 4
 (deur, schieten) en level 8 (robots, ijskanonnen) gespeeld en via
@@ -86,9 +94,9 @@ screenshots gecontroleerd. Een level helemaal uitspelen met de hand moet nog.
 
 - De natuurkunde-getallen zijn startwaarden (overgenomen van Commander Genius als documentatie, zie `docs/keen-physics.md`). Ze moeten nog naast het origineel (DOSBox) worden gelegd; de lijst met punten staat onderaan dat document.
 - Veel getallen voor vijanden zijn schattingen (gemarkeerd met *estimate* in de code); de lijst met wat nog naast het origineel moet staat onderaan `docs/enemies.md`. Vooral: levenspunten van Vorticons (4) en de commandant (105).
-- Schakelaars (gedrag 23), teleporters (24) en de hint-beelden van Yorps en Garg's (22) doen nog niets (mijlpaal 5).
-- Er is nog geen geluid, en geen statusscherm zoals in het origineel; de HUD is een tekstregel bovenin.
-- Pagina omhoog/omlaag springt nog naar elk level, ook als debugfunctie; de inventaris blijft dan staan.
+- Schakelaars (gedrag 23) en teleporters (24) doen nog niets (mijlpaal 5).
+- Er is nog geen geluid. De regel bovenin (score, levens, munitie) is een hulpmiddel; het origineel heeft alleen het statusscherm.
+- Na de uitgang ga je direct naar het volgende level; de wereldkaart komt in mijlpaal 5. Level overslaan (cheat of Page Up/Down) houdt de inventaris.
 - De data viewer toont tiles nog zonder animatie en zonder voorgrond-markering.
 - Gemaskeerde tiles (gedrag -2) worden als gewone voorgrond-tiles getekend; Keen 1 gebruikt ze niet.
 - In de data viewer wordt de info-laag nog alleen gemarkeerd, zonder namen van de vijanden.

@@ -90,6 +90,13 @@ func test_fire_button_fires_once_per_press() -> void:
 	)
 
 
+func test_god_mode_keeps_keen_alive() -> void:
+	var keen := _settled_keen()
+	keen.invincible = true
+	keen.kill()
+	assert_true(not keen.is_dead, "alive")
+
+
 ## Keen standing still on the floor of [constant OPEN_FIELD].
 func _settled_keen() -> KeenBody:
 	var border := Vector2i(LevelData.BORDER_CELLS, LevelData.BORDER_CELLS)

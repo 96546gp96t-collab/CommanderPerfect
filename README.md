@@ -36,10 +36,31 @@ Or open the project in the Godot editor and press F5.
 | Ctrl / Z / A button | Jump; hold longer to jump higher |
 | Alt / X / B button | Take out or put away the pogo stick; hold jump to bounce higher |
 | Space / C / gamepad X button | Fire the raygun (once you have charges) |
+| Enter / Start button | Status screen (score, lives, raygun, keycards, ship parts); also closes messages |
 | Page Up / Page Down / shoulder buttons | Previous / next level |
 | F2 | Original view (320x200) or widescreen (16:9) |
 | F3 | Pixels as on a 4:3 monitor, or square pixels |
 | F1 | Show or hide the help line |
+
+Cheats, for testing:
+
+| Keys | Cheat |
+|---|---|
+| Shift+N / Shift+P (or Page Down / Page Up) | Next / previous level |
+| Shift+I | All keycards, the pogo stick and 99 raygun charges |
+| Shift+G | God mode: nothing kills Keen, except falling out of the level |
+
+## Building a Mac app
+
+```sh
+tools/build_macos.sh
+```
+
+This makes `build/CommanderPerfect.app` (Intel and Apple Silicon) and copies
+`game_data/keen1` next to it, so the app starts with a double click. It needs
+the Godot 4.7.2 export template for macOS (Editor > Manage Export
+Templates). The `build/` folder is ignored by git, because it holds a copy of
+the game files.
 
 ## Development
 

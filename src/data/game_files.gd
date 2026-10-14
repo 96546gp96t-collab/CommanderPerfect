@@ -12,6 +12,7 @@ extends RefCounted
 
 const DATA_DIR_OPTION := "--data-dir="
 const DEFAULT_SUBFOLDER := "game_data/keen1"
+const MACOS_EXECUTABLE_DIR := ".app/Contents/MacOS"
 const EXECUTABLE := "KEEN1.EXE"
 const REQUIRED_FILES: PackedStringArray = [
 	"EGAHEAD.CK1", "EGALATCH.CK1", "EGASPRIT.CK1", EXECUTABLE
@@ -44,7 +45,13 @@ static func candidate_directories() -> PackedStringArray:
 		if argument.begins_with(DATA_DIR_OPTION):
 			candidates.append(argument.trim_prefix(DATA_DIR_OPTION))
 	candidates.append(ProjectSettings.globalize_path("res://" + DEFAULT_SUBFOLDER))
-	candidates.append(OS.get_executable_path().get_base_dir().path_join(DEFAULT_SUBFOLDER))
+	var executable_dir := OS.get_executable_path().get_base_dir()
+	candidates.append(executable_dir.path_join(DEFAULT_SUBFOLDER))
+	# A macOS app keeps its executable in Name.app/Contents/MacOS; the game
+	# files sit next to the app.
+	if executable_dir.ends_with(MACOS_EXECUTABLE_DIR):
+		var app_folder := executable_dir.trim_suffix(MACOS_EXECUTABLE_DIR).get_base_dir()
+		candidates.append(app_folder.path_join(DEFAULT_SUBFOLDER))
 	return candidates
 
 

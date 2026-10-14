@@ -103,6 +103,25 @@ func test_exit_completes_the_level() -> void:
 	assert_equal(session.outcome, LevelSession.Outcome.COMPLETED, "completed")
 
 
+func test_statue_speaks_once() -> void:
+	var session := _session_with_items("......Y.............")
+	var count := [0]
+	session.hint_touched.connect(func() -> void: count[0] += 1)
+	_run(session, KeenInput.create(1), 60)
+	_run(session, KeenInput.create(-1), 60)
+	assert_equal(count[0], 1, "one message")
+	var cell := Vector2i(6, FEET_ROW) + _border()
+	assert_equal(session.level.tile_at(cell), LevelSession.SILENT_YORP_STATUE, "stopped glowing")
+
+
+func test_item_cheat_gives_everything() -> void:
+	var inventory := Inventory.new()
+	inventory.give_everything()
+	assert_true(inventory.has_pogo, "pogo stick")
+	assert_equal(inventory.charges, Inventory.CHEAT_CHARGES, "charges")
+	assert_true(not inventory.keycards.has(false), "all keycards")
+
+
 func test_firing_without_charges_does_nothing() -> void:
 	var session := _session(FIELD)
 	_run(session, KeenInput.create(0, false, false, true), 1)

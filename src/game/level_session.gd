@@ -8,6 +8,7 @@ extends RefCounted
 ##   items    picked up: the tile is replaced by the background
 ##   doors    open when Keen has the keycard of their color, which is used up
 ##   exit     completes the level
+##   statues  show a message once, then stop glowing
 ## Enemies start where the info layer of the level says (see
 ## [constant ENEMY_INFOS]); their shots, and Keen's, are actors too.
 ## The attempt ends when Keen reaches the exit or when he has died (after
@@ -15,6 +16,9 @@ extends RefCounted
 
 ## Emitted when a tile of the level changes, so that it can be redrawn.
 signal tile_changed(cell: Vector2i, tile: int)
+## Emitted when Keen touches a Yorp or Garg statue; the view shows its
+## message. Each statue speaks only once.
+signal hint_touched
 
 enum Outcome { PLAYING, COMPLETED, DIED }
 
@@ -31,6 +35,12 @@ const POINTS: Dictionary[int, int] = {
 	TileProperties.Behavior.POINTS_1000: 1000,
 	TileProperties.Behavior.POINTS_5000: 5000,
 }
+## After its message, a statue becomes this tile: the same statue without
+## its glow. Garg statues are tiles 435-438, Yorp statues 485-488.
+const FIRST_GARG_STATUE := 435
+const LAST_GARG_STATUE := 438
+const SILENT_GARG_STATUE := 434
+const SILENT_YORP_STATUE := 315
 ## Doors are solid, so Keen touches one when he stands this close to it.
 const DOOR_REACH := 1.0
 ## Info layer values of the enemies in Keen 1. Ice cannons fire in the
@@ -198,6 +208,10 @@ func _touch_tiles(box: Rect2) -> void:
 			_pick_up(cell, tile)
 		elif properties.is_exit(tile):
 			outcome = Outcome.COMPLETED
+		elif properties.is_hint(tile):
+			var garg := tile >= FIRST_GARG_STATUE and tile <= LAST_GARG_STATUE
+			set_tile(cell, SILENT_GARG_STATUE if garg else SILENT_YORP_STATUE)
+			hint_touched.emit()
 	for cell in LevelCollision.cells_under(box.grow_individual(DOOR_REACH, 0, DOOR_REACH, 0)):
 		var tile := collision.tile_at(cell)
 		if properties.is_door(tile) and inventory.has_keycard(properties.door_color(tile)):

@@ -31,6 +31,8 @@ var has_pogo := false
 var on_pogo := false
 ## Killed; from then on he only plays the dying animation.
 var is_dead := false
+## God mode (a cheat): nothing kills Keen, except falling out of the level.
+var invincible := false
 ## The dying animation is over, or Keen fell out of the level.
 var death_finished := false
 ## Set during a tick in which Keen pulled the trigger. Whether a shot comes
@@ -90,7 +92,7 @@ func is_shooting() -> bool:
 ## Kills Keen: he starts the dying animation. Nothing happens if he is
 ## already dead.
 func kill() -> void:
-	if is_dead:
+	if is_dead or invincible:
 		return
 	is_dead = true
 	on_pogo = false

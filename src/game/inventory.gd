@@ -14,6 +14,8 @@ const EXTRA_LIFE_EVERY := 20000
 ## Charges in one raygun found in a level.
 const RAYGUN_CHARGES := 5
 const SHIP_PART_POINTS := 10000
+## Charges the item cheat gives.
+const CHEAT_CHARGES := 99
 
 var score := 0
 var lives := START_LIVES
@@ -30,6 +32,19 @@ func add_points(points: int) -> void:
 	while score >= _next_extra_life:
 		lives += 1
 		_next_extra_life += EXTRA_LIFE_EVERY
+
+
+## The score at which Keen gets his next extra life.
+func next_extra_life() -> int:
+	return _next_extra_life
+
+
+## Gives Keen everything at once (the cheat): all keycards, the pogo stick
+## and a full raygun.
+func give_everything() -> void:
+	keycards.fill(true)
+	has_pogo = true
+	charges = maxi(charges, CHEAT_CHARGES)
 
 
 func add_ship_part(part: ShipPart) -> void:

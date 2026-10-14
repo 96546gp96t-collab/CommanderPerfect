@@ -16,8 +16,8 @@ extends RefCounted
 ## without knowing where its table is. The positions known from the
 ## ModdingWiki are tried first.
 
-## Tile behaviors. 22 (hint statues), 23 (switch) and 24 (teleporter) are
-## not used yet; they follow in milestone 5.
+## Tile behaviors. 23 (switch) and 24 (teleporter) are not used yet; they
+## follow in milestone 5.
 enum Behavior {
 	MASKED = -2,  ## drawn in front of Keen through a mask (the next tile)
 	FOREGROUND = -1,  ## drawn in front of Keen
@@ -43,6 +43,7 @@ enum Behavior {
 	KEYCARD_RED = 19,
 	KEYCARD_GREEN = 20,
 	KEYCARD_BLUE = 21,
+	HINT = 22,  ## a Yorp or Garg statue that shows a message
 }
 
 ## The four colors of keycards and doors, in the order of their behaviors.
@@ -130,6 +131,10 @@ func is_item(tile: int) -> bool:
 	return (
 		value >= Behavior.POINTS_500 and value <= Behavior.KEYCARD_BLUE and value != Behavior.EXIT
 	)
+
+
+func is_hint(tile: int) -> bool:
+	return behavior(tile) == Behavior.HINT
 
 
 func is_exit(tile: int) -> bool:
