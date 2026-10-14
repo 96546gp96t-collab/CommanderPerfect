@@ -108,6 +108,7 @@ func test_changing_a_key() -> void:
 	_create_menus()
 	_menus.open_main(false, false)
 	_choose("Controls")
+	_choose("One player")
 	_press(KEY_DOWN)
 	_press(KEY_DOWN)
 	_press(KEY_DOWN)
@@ -121,6 +122,37 @@ func test_changing_a_key() -> void:
 	assert_true(_labels()[4].contains("K"), "the menu shows it")
 	var stored := ConfigFile.new()
 	assert_equal(stored.load(_menus.settings.path), OK, "settings saved")
+	KeyBindings.reset()
+
+
+func test_main_menu_adds_and_removes_player_2() -> void:
+	_create_menus()
+	_menus.open_main(false, false)
+	assert_true(not _labels().has("Add Player 2"), "not at the title")
+	_menus.open_main(true, false)
+	_choose("Add Player 2")
+	assert_equal(_chosen, [[MenuController.CHOICE_SECOND_PLAYER, 0]], "joins")
+	_menus.open_main(true, false, true)
+	assert_true(_labels().has("Remove Player 2"), "can leave again")
+
+
+func test_changing_a_key_of_player_2() -> void:
+	KeyBindings.reset()
+	_create_menus()
+	_menus.open_main(false, false)
+	_choose("Controls")
+	_choose("Two players: player 2")
+	assert_true(_labels()[2].contains("."), "jumps with the period")
+	_choose(_labels()[2])
+	var right_shift := InputEventKey.new()
+	right_shift.physical_keycode = KEY_SHIFT
+	right_shift.location = KEY_LOCATION_RIGHT
+	right_shift.pressed = true
+	_menus.handle_input(right_shift)
+	var code := KeyBindings.make_code(KEY_SHIFT, KEY_LOCATION_RIGHT)
+	assert_equal(KeyBindings.keys_of("p2_jump"), [code] as Array[int], "jumps with right shift")
+	assert_true(KeyBindings.keys_of("p2_fire").is_empty(), "taken from fire")
+	assert_true(_labels()[2].contains("RIGHT SHIFT"), "the menu shows it")
 	KeyBindings.reset()
 
 

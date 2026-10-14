@@ -81,8 +81,9 @@ func _think(session: LevelSession) -> void:
 
 
 func _after_looking(session: LevelSession) -> void:
-	if _keen_at_same_height(session):
-		facing = _direction_to_keen(session)
+	var keen := _keen_at_same_height(session)
+	if keen != null:
+		facing = _direction_to(keen)
 		_set_mode(Mode.CHARGING)
 	else:
 		facing = 1 if session.rng.randf() < 0.5 else -1
@@ -90,7 +91,7 @@ func _after_looking(session: LevelSession) -> void:
 
 
 func _wander(session: LevelSession) -> void:
-	if _timer % SEARCH_TICKS == 0 and _keen_at_same_height(session):
+	if _timer % SEARCH_TICKS == 0 and _keen_at_same_height(session) != null:
 		_set_mode(Mode.LOOKING)
 		return
 	if on_ground and _timer > MIN_WALK_TICKS and session.rng.randf() < LOOK_CHANCE:

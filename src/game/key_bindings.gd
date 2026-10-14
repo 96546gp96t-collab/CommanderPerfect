@@ -4,11 +4,22 @@ extends RefCounted
 ## the Controls menu. Only keyboard keys are changed; the controller buttons
 ## stay as they are.
 ##
+## There are three sets of keys. Playing alone uses [constant ACTIONS]: the
+## arrows or WASD, with the keys of the original. When two play on one
+## keyboard, each player has a set of his own ([constant PLAYER_ACTIONS]):
+## player 1 on the left side of the keyboard, player 2 on the right.
+##
 ## Changing an action replaces its first key and keeps the others (the
-## arrows keep WASD, for example). A key belongs to one action only: giving
-## it to another action takes it away from the first.
+## arrows keep WASD, for example). A key belongs to one action only among
+## the keys that are used at the same time: giving it to another action
+## takes it away from the first. The keys for one player and the keys for
+## two players are never used at the same time, so they may overlap.
+##
+## A key is stored as a code: its physical keycode, plus which of the two
+## keys it is for keys such as Shift that are on both sides of the keyboard
+## (see [method code_of]).
 
-## The actions that can be changed, with the names the menu shows.
+## The actions for playing alone, with the names the menu shows.
 const ACTIONS: Dictionary[String, String] = {
 	"move_left": "Left",
 	"move_right": "Right",
@@ -19,67 +30,167 @@ const ACTIONS: Dictionary[String, String] = {
 	"fire": "Fire",
 	"status": "Status",
 }
+## The actions of each player when two play, with the names the menu shows.
+## Walking up and down is only needed on the world map, where player 1 plays
+## alone with the keys of [constant ACTIONS].
+const PLAYER_ACTIONS: Array[Dictionary] = [
+	{
+		"p1_left": "Left",
+		"p1_right": "Right",
+		"p1_jump": "Jump",
+		"p1_pogo": "Pogo",
+		"p1_fire": "Fire",
+	},
+	{
+		"p2_left": "Left",
+		"p2_right": "Right",
+		"p2_jump": "Jump",
+		"p2_pogo": "Pogo",
+		"p2_fire": "Fire",
+	},
+]
+## The status screen is there in both ways of playing.
+const SHARED_ACTION := "status"
 ## Keys the game itself uses; they cannot be given to an action.
-const RESERVED_KEYS: Array[Key] = [KEY_ESCAPE, KEY_F1, KEY_F2, KEY_F3, KEY_F4, KEY_F5, KEY_F6]
+const RESERVED_KEYS: Array[Key] = [
+	KEY_ESCAPE, KEY_F1, KEY_F2, KEY_F3, KEY_F4, KEY_F5, KEY_F6, KEY_F7
+]
+## A code keeps the side of the keyboard above the keycode.
+const LOCATION_SHIFT := 32
+const KEYCODE_MASK := (1 << LOCATION_SHIFT) - 1
+## Names for keys whose own name is long, or that read better as a sign.
+const SHORT_NAMES: Dictionary[Key, String] = {
+	KEY_QUOTELEFT: "`",
+	KEY_PERIOD: ".",
+	KEY_COMMA: ",",
+	KEY_SLASH: "/",
+	KEY_BACKSLASH: "\\",
+	KEY_SEMICOLON: ";",
+	KEY_APOSTROPHE: "'",
+	KEY_BRACKETLEFT: "[",
+	KEY_BRACKETRIGHT: "]",
+	KEY_MINUS: "-",
+	KEY_EQUAL: "=",
+}
+const LOCATION_NAMES: Dictionary[KeyLocation, String] = {
+	KEY_LOCATION_LEFT: "LEFT ",
+	KEY_LOCATION_RIGHT: "RIGHT ",
+}
 
 
-## The physical keycodes of the keys of [param action], in order.
-static func keys_of(action: String) -> Array[Key]:
-	var keys: Array[Key] = []
+## The code of the key of [param event]: its physical keycode, and for a
+## key that is on both sides of the keyboard (Shift, Alt, ...) which one.
+static func code_of(event: InputEventKey) -> int:
+	return make_code(event.physical_keycode, event.location)
+
+
+static func make_code(key: Key, location := KEY_LOCATION_UNSPECIFIED) -> int:
+	return key | (location << LOCATION_SHIFT)
+
+
+static func keycode(code: int) -> Key:
+	return (code & KEYCODE_MASK) as Key
+
+
+static func location(code: int) -> KeyLocation:
+	return (code >> LOCATION_SHIFT) as KeyLocation
+
+
+## Every action whose keys can be changed.
+static func all_actions() -> Array[String]:
+	var actions: Array[String] = []
+	actions.append_array(ACTIONS.keys())
+	for player_actions in PLAYER_ACTIONS:
+		actions.append_array(player_actions.keys())
+	return actions
+
+
+## The name of [param action] in the menu.
+static func action_name(action: String) -> String:
+	if ACTIONS.has(action):
+		return ACTIONS[action]
+	for player_actions in PLAYER_ACTIONS:
+		if player_actions.has(action):
+			return player_actions[action]
+	return action
+
+
+## The codes of the keys of [param action], in order.
+static func keys_of(action: String) -> Array[int]:
+	var keys: Array[int] = []
 	for event in InputMap.action_get_events(action):
 		var key := event as InputEventKey
 		if key != null and not _has_modifier(key):
-			keys.append(key.physical_keycode)
+			keys.append(code_of(key))
 	return keys
 
 
 ## Names of the keys of [param action], for the menu: "LEFT, A".
 static func describe(action: String) -> String:
 	var names := PackedStringArray()
-	for key in keys_of(action):
-		names.append(key_name(key))
+	for code in keys_of(action):
+		names.append(key_name(code))
 	return ", ".join(names) if not names.is_empty() else "-"
 
 
-static func key_name(key: Key) -> String:
-	return OS.get_keycode_string(key).to_upper()
+## The name of the key with [param code]: "A", "LEFT SHIFT", "/".
+static func key_name(code: int) -> String:
+	var key := keycode(code)
+	var key_text: String = SHORT_NAMES.get(key, OS.get_keycode_string(key).to_upper())
+	return LOCATION_NAMES.get(location(code), "") + key_text
 
 
-## Whether [param key] may be given to an action.
-static func can_bind(key: Key) -> bool:
+## Whether the key with [param code] may be given to an action.
+static func can_bind(code: int) -> bool:
+	var key := keycode(code)
 	return key != KEY_NONE and not RESERVED_KEYS.has(key)
 
 
-## Makes [param key] the first key of [param action], and takes it away from
-## every other action that is in [constant ACTIONS].
-static func bind(action: String, key: Key) -> void:
-	if not can_bind(key):
+## Makes the key with [param code] the first key of [param action], and
+## takes it away from every other action that is used at the same time.
+static func bind(action: String, code: int) -> void:
+	if not can_bind(code):
 		return
-	for other: String in ACTIONS:
-		_remove_key(other, key)
+	for other in actions_used_with(action):
+		_remove_key(other, code)
 	var keys := keys_of(action)
 	if not keys.is_empty():
 		keys.remove_at(0)
-	keys.insert(0, key)
+	keys.insert(0, code)
 	set_keys(action, keys)
 
 
-## Replaces the keyboard keys of [param action] with [param keys]; the
-## controller buttons stay.
-static func set_keys(action: String, keys: Array[Key]) -> void:
+## The actions whose keys are in use at the same time as those of
+## [param action], [param action] included.
+static func actions_used_with(action: String) -> Array[String]:
+	var alone: Array[String] = []
+	alone.append_array(ACTIONS.keys())
+	var together: Array[String] = [SHARED_ACTION]
+	for player_actions in PLAYER_ACTIONS:
+		together.append_array(player_actions.keys())
+	if action == SHARED_ACTION:
+		alone.append_array(together)
+		return alone
+	return alone if ACTIONS.has(action) else together
+
+
+## Replaces the keyboard keys of [param action] with the keys with
+## [param codes]; the controller buttons stay.
+static func set_keys(action: String, codes: Array[int]) -> void:
 	for event in InputMap.action_get_events(action):
 		var key := event as InputEventKey
 		if key != null and not _has_modifier(key):
 			InputMap.action_erase_event(action, event)
-	for code in keys:
+	for code in codes:
 		var event := InputEventKey.new()
-		event.physical_keycode = code
+		event.physical_keycode = keycode(code)
+		event.location = location(code)
 		InputMap.action_add_event(action, event)
 
 
 ## Puts every action back as it is in the project settings.
 static func reset() -> void:
-	for action: String in ACTIONS:
+	for action in all_actions():
 		var setting: Variant = ProjectSettings.get_setting("input/" + action)
 		if not setting is Dictionary:
 			continue
@@ -91,29 +202,30 @@ static func reset() -> void:
 ## The keys of every action, to store in the settings.
 static func to_dict() -> Dictionary:
 	var data := {}
-	for action: String in ACTIONS:
+	for action in all_actions():
 		data[action] = Array(keys_of(action))
 	return data
 
 
 ## Applies keys stored with [method to_dict]. Unknown actions and keys are
-## ignored.
+## ignored; actions that are missing (from an older version) keep their
+## keys.
 static func apply_dict(data: Dictionary) -> void:
-	for action: String in ACTIONS:
+	for action in all_actions():
 		var stored: Variant = data.get(action)
 		if not stored is Array:
 			continue
-		var keys: Array[Key] = []
+		var codes: Array[int] = []
 		for code: Variant in stored:
-			if (code is int or code is float) and can_bind(int(code) as Key):
-				keys.append(int(code) as Key)
-		set_keys(action, keys)
+			if (code is int or code is float) and can_bind(int(code)):
+				codes.append(int(code))
+		set_keys(action, codes)
 
 
-static func _remove_key(action: String, key: Key) -> void:
+static func _remove_key(action: String, code: int) -> void:
 	var keys := keys_of(action)
-	if keys.has(key):
-		keys.erase(key)
+	if keys.has(code):
+		keys.erase(code)
 		set_keys(action, keys)
 
 

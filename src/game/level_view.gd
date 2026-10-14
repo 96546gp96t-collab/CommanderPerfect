@@ -16,6 +16,12 @@ extends Control
 ## score table; then the title returns. The special maps (81, 90) can be
 ## looked at freely, for testing.
 ##
+## Two can play on one keyboard: F7 (or the menu) lets a second player join
+## or leave at any moment. In the levels both play, each with his own keys
+## ([KeyBindings]), sharing the [Inventory]; on the world map player 1 walks
+## alone, steered by the keys of both. When the two move apart the screen
+## splits in two ([TwoPlayerView]).
+##
 ## Escape opens the menu ([MenuController]); Enter shows the status screen;
 ## the statues and the ship show messages. While a menu or such a
 ## [GameWindow] is open the game is paused. For testing there are cheats:
@@ -54,7 +60,7 @@ const LIVES_SECONDS := 3.0
 ## viewport uses.
 const MAX_RENDER_SCALE := 8
 const EVEN_PIXELS_SHADER := preload("res://src/graphics/even_pixels.gdshader")
-const GRAPHICS_TITLES: Array[String] = ["Original graphics", "xBRZ graphics", "HD graphics"]
+const GRAPHICS_TITLES := StatusLine.GRAPHICS_TITLES
 const MISSING_HD_MESSAGE := "No HD graphics yet: make them with tools/make_hd_graphics.sh"
 const MISSING_DATA_MESSAGE := (
 	"Keen 1 data not found. Put the files in game_data/keen1 "
@@ -106,6 +112,8 @@ var _screen_time_left := 0.0
 ## Whether the line with the keys is shown while playing; hidden until F1
 ## asks for it.
 var _show_help := false
+## Whether a second player plays along in the levels.
+var _two_players := false
 
 @onready var _screen: TextureRect = %Screen
 @onready var _world: SubViewport = %World
@@ -116,6 +124,8 @@ var _show_help := false
 @onready var _actor_layer: ActorLayer = %ActorLayer
 @onready var _camera: LevelCamera = %Camera
 @onready var _camera_anchor: Node2D = %CameraAnchor
+@onready var _world_2: SubViewport = %World2
+@onready var _second_player: TwoPlayerView = %TwoPlayers
 @onready var _pictures: PictureLayer = %Pictures
 @onready var _hud: Hud = %Hud
 @onready var _picture: Sprite2D = %Picture
@@ -165,6 +175,7 @@ func _ready() -> void:
 	_textures = GraphicsTextures.create(_graphics)
 	_level_map.tile_set = LevelTileSet.build(_graphics, _textures)
 	_keen.set_textures(_textures)
+	_second_player.set_textures(_textures)
 	_mark.set_textures(_textures)
 	_actor_layer.set_textures(_textures)
 	_window.set_textures(_textures)
@@ -218,6 +229,7 @@ func _process(delta: float) -> void:
 	_count_down_screen(delta)
 	if _mode == Mode.ENDING or (_mode in [Mode.MAP, Mode.LEVEL] and not _window.visible):
 		_play(delta)
+	_second_player.update(delta)
 	_move_camera_anchor()
 	_update_status()
 
@@ -226,14 +238,11 @@ func _process(delta: float) -> void:
 func _play(delta: float) -> void:
 	_time_left = minf(_time_left + delta, KeenPhysics.MAX_TICKS_PER_FRAME * KeenPhysics.TICK)
 	if _session != null:
-		var view_size := Vector2(_settings.game_size())
-		_session.view_rect = Rect2(
-			_camera.get_screen_center_position() - view_size / 2.0, view_size
-		)
+		_session.view_rects = _view_rects()
 	var mode := _mode
 	while _time_left >= KeenPhysics.TICK and _mode == mode:
 		_time_left -= KeenPhysics.TICK
-		_tick(KeenInput.from_actions())
+		_tick()
 		_show_sprites()
 	_place_sprites(_time_left / KeenPhysics.TICK)
 
@@ -243,25 +252,47 @@ func _play(delta: float) -> void:
 func _place_sprites(blend: float) -> void:
 	var smooth := _settings.smooth_motion
 	_keen.place(blend, smooth)
+	_second_player.place(blend, smooth)
 	_mark.place(blend, smooth)
 	_actor_layer.place(blend, smooth)
 
 
+## What the players see in the level, for waking up the enemies.
+func _view_rects() -> Array[Rect2]:
+	if _second_player.is_active():
+		return _second_player.view_rects()
+	var view_size := Vector2(_settings.game_size())
+	return [Rect2(_camera.get_screen_center_position() - view_size / 2.0, view_size)]
+
+
 ## One tick of whatever is going on.
-func _tick(input: KeenInput) -> void:
+func _tick() -> void:
 	match _mode:
 		Mode.LEVEL:
-			_session.step(input)
+			if _second_player.is_active():
+				_session.step_players([KeenInput.for_player(0), KeenInput.for_player(1)])
+			else:
+				_session.step(KeenInput.from_actions())
 			if _session.outcome != LevelSession.Outcome.PLAYING:
 				_on_level_over(_session.outcome)
 		Mode.MAP:
-			_map_session.step(input)
+			_map_session.step(_map_input())
 			if _map_session.outcome == MapSession.Outcome.ENTER_LEVEL:
 				_go_to(_map_session.chosen_level)
 		Mode.ENDING:
+			var input := _map_input()
 			_ending.step(input.jump or input.pogo or input.fire, input.vertical)
 			if _ending.is_finished():
 				_finish_game()
+
+
+## The buttons for the world map and the ending, where player 1 is alone:
+## when two play, the keys of both steer him.
+func _map_input() -> KeenInput:
+	var input := KeenInput.from_actions()
+	if _two_players:
+		input = KeenInput.combine([input, KeenInput.for_player(0), KeenInput.for_player(1)])
+	return input
 
 
 func _show_sprites() -> void:
@@ -269,6 +300,7 @@ func _show_sprites() -> void:
 	match _mode:
 		Mode.LEVEL:
 			_keen.show_body(_session.keen)
+			_second_player.show_body()
 			_actor_layer.show_actors(_session.actors)
 		Mode.MAP:
 			_keen.show_on_map(_map_session.keen)
@@ -343,10 +375,12 @@ func _handle_game_input(event: InputEvent) -> void:
 	elif event.is_action_pressed("cheat_items"):
 		_progress.inventory.give_everything()
 		_show_message("Cheat: all keycards, the pogo stick and a full raygun")
+	elif event.is_action_pressed("toggle_second_player"):
+		_toggle_second_player()
 	elif event.is_action_pressed("cheat_god"):
 		_god_mode = not _god_mode
 		if _session != null:
-			_session.keen.invincible = _god_mode
+			_session.set_invincible(_god_mode)
 		_show_message("Cheat: god mode " + ("on" if _god_mode else "off"))
 	elif event.is_action_pressed("next_level"):
 		_go_to(_neighbor_level(1))
@@ -366,12 +400,13 @@ static func _is_any_press(event: InputEvent) -> bool:
 	)
 
 
+## Jump, pogo or fire, of one player or of either of two.
 static func _is_button(event: InputEvent) -> bool:
-	return (
-		event.is_action_pressed("jump")
-		or event.is_action_pressed("pogo")
-		or event.is_action_pressed("fire")
-	)
+	for prefix in ["", "p1_", "p2_"]:
+		for button in ["jump", "pogo", "fire"]:
+			if event.is_action_pressed(prefix + button):
+				return true
+	return false
 
 
 ## Enter moves on in the ending, closes a window, or opens the status screen.
@@ -428,7 +463,7 @@ func _open_menu() -> void:
 	_close_window()
 	var in_game := _mode in [Mode.MAP, Mode.LEVEL, Mode.LOOK, Mode.ENDING]
 	_user_settings.fullscreen = _is_fullscreen()
-	_menus.open_main(in_game, _can_save())
+	_menus.open_main(in_game, _can_save(), _two_players)
 
 
 ## Saving is only possible while Keen stands still on the world map.
@@ -444,6 +479,8 @@ func _on_menu_chosen(id: StringName, slot: int) -> void:
 	match id:
 		MenuController.CHOICE_NEW_GAME:
 			_start_new_game("")
+		MenuController.CHOICE_SECOND_PLAYER:
+			_toggle_second_player()
 		MenuController.CHOICE_LOAD:
 			_load_game(slot)
 		MenuController.CHOICE_SAVE:
@@ -502,6 +539,7 @@ func _use_graphics(scaled: ScaledGraphics) -> void:
 	_textures.use_scaled(scaled)
 	_level_map.use_tile_set(LevelTileSet.build(_graphics, _textures))
 	_keen.refresh()
+	_second_player.refresh()
 	_mark.refresh()
 	_actor_layer.refresh()
 	_window.queue_redraw()
@@ -690,10 +728,30 @@ func _enter_level(number: int) -> void:
 	_session.tile_changed.connect(_level_map.set_tile)
 	_session.hint_touched.connect(_on_hint_touched)
 	_session.sound_played.connect(_sounds.play)
-	_session.keen.invincible = _god_mode
+	_session.set_invincible(_god_mode)
 	_mode = Mode.LEVEL
 	_keen.show_body(_session.keen)
 	_follow(_keen)
+	if _two_players:
+		_second_player.start(_session, _session.keen.position, _camera_anchor.position)
+
+
+## A second player joins, or leaves. In a level his Keen appears at player
+## 1's, or disappears; on the map he joins from the next level on.
+func _toggle_second_player() -> void:
+	_two_players = not _two_players
+	if _mode == Mode.LEVEL and _session != null:
+		if _two_players:
+			var view_center := _camera.get_screen_center_position()
+			_second_player.start(_session, _session.keen.position, view_center)
+		else:
+			_second_player.stop()
+	if not _two_players:
+		_show_message("Player 2 left")
+	elif _mode == Mode.LEVEL:
+		_show_message("Player 2 joined: player 1 on WASD, player 2 on the arrows")
+	else:
+		_show_message("Player 2 plays along in the levels")
 
 
 ## Shows a special map to look around in.
@@ -782,6 +840,7 @@ func _show_picture(shown: bool) -> void:
 ## With [param area], only those cells of it are kept (see [Backdrops]).
 ## Returns false (and says why) when it cannot be read.
 func _load_map(number: int, area := Rect2i()) -> bool:
+	_second_player.stop()
 	_session = null
 	_map_session = null
 	_actor_layer.clear()
@@ -819,6 +878,7 @@ func _start_cell() -> Vector2i:
 func _follow(target: Node2D) -> void:
 	var following_keen := target == _keen
 	_keen.visible = following_keen
+	_second_player.set_keen_visible(following_keen)
 	_mark.visible = following_keen
 	_free_look.set_process(target == _free_look)
 	_camera.use_dead_zone(following_keen)
@@ -837,7 +897,8 @@ func _move_camera_anchor() -> void:
 			_camera_anchor.position = _free_look.position
 		Mode.LEVEL:
 			# When Keen dies the camera stays put, so that he flies off the screen.
-			if not _session.keen.is_dead:
+			# With two Keens the split screen moves the cameras.
+			if not _session.keen.is_dead and not _second_player.is_active():
 				_camera_anchor.position = _keen.smooth_position() + KeenPhysics.SPRITE_SIZE / 2.0
 		Mode.MAP:
 			_camera_anchor.position = _map_keen_center()
@@ -871,6 +932,7 @@ func _frame_camera() -> void:
 	var view_size := _settings.game_size()
 	var area := LevelMap.playable_pixels(_level)
 	_camera.frame(area, view_size)
+	_second_player.frame(area, view_size)
 	_free_look.bounds = LevelCamera.center_range(LevelCamera.limits_for(area, view_size), view_size)
 	_free_look.move_to(_free_look.position)
 
@@ -883,21 +945,9 @@ func _fit_screen() -> void:
 	var render_scale := 1
 	if not _settings.is_original_picture():
 		render_scale = clampi(ceili(rect.size.y / game_size.y), 2, MAX_RENDER_SCALE)
-	_world.size_2d_override = game_size
-	_world.size_2d_override_stretch = true
-	if _world.size != game_size * render_scale:
-		_world.size = game_size * render_scale
-	# Snapping works in game pixels: right for the original picture, but it
-	# would undo smooth motion on a larger viewport.
-	_world.snap_2d_transforms_to_pixel = render_scale == 1
-	_world.snap_2d_vertices_to_pixel = render_scale == 1
-	# Scaled graphics are drawn smoothly; the original pixels stay sharp.
 	var smooth_textures := _textures != null and _textures.scaled != null
-	_world.canvas_item_default_texture_filter = (
-		Viewport.DEFAULT_CANVAS_ITEM_TEXTURE_FILTER_LINEAR
-		if smooth_textures
-		else Viewport.DEFAULT_CANVAS_ITEM_TEXTURE_FILTER_NEAREST
-	)
+	for viewport: SubViewport in [_world, _world_2]:
+		DisplaySettings.set_up_viewport(viewport, game_size, render_scale, smooth_textures)
 
 
 func _update_status() -> void:
@@ -922,26 +972,11 @@ func _update_status() -> void:
 			notes.append(_message)
 		_status_label.text = "\n".join(notes)
 		return
-	var game_size := _settings.game_size()
-	var lines := PackedStringArray()
-	(
-		lines
-		. append(
-			(
-				"%s   %s %d x %d, %s pixels, %s"
-				% [
-					"Ending" if _mode == Mode.ENDING else GameFiles.level_title(_level_number),
-					_settings.aspect_name(),
-					game_size.x,
-					game_size.y,
-					"4:3 monitor" if _settings.correct_pixel_aspect else "square",
-					GRAPHICS_TITLES[_settings.graphics].to_lower(),
-				]
-			)
-		)
-	)
+	var title := "Ending" if _mode == Mode.ENDING else GameFiles.level_title(_level_number)
+	var lines := PackedStringArray([StatusLine.picture_text(title, _settings)])
 	if _mode in [Mode.MAP, Mode.LEVEL]:
-		lines.append(_inventory_text() + ("   GOD MODE" if _god_mode else ""))
+		var inventory := StatusLine.inventory_text(_progress.inventory)
+		lines.append(inventory + ("   GOD MODE" if _god_mode else ""))
 	if _message_time_left > 0.0:
 		lines.append(_message)
 	_status_label.text = "\n".join(lines)
@@ -961,26 +996,3 @@ func _update_hud() -> void:
 func _show_message(text: String) -> void:
 	_message = text
 	_message_time_left = MESSAGE_SECONDS
-
-
-func _inventory_text() -> String:
-	var inventory := _progress.inventory
-	var parts := PackedStringArray(
-		[
-			"Score %d" % inventory.score,
-			"Lives %d" % inventory.lives,
-			"Ammo %d" % inventory.charges,
-		]
-	)
-	if inventory.has_pogo:
-		parts.append("Pogo")
-	var cards := PackedStringArray()
-	for color: String in TileProperties.KeyColor.keys():
-		if inventory.keycards[TileProperties.KeyColor[color]]:
-			cards.append(color.capitalize())
-	if not cards.is_empty():
-		parts.append("Keycards: " + ", ".join(cards))
-	var parts_found := inventory.ship_parts.count(true)
-	if parts_found > 0:
-		parts.append("Ship parts %d/%d" % [parts_found, inventory.ship_parts.size()])
-	return "   ".join(parts)

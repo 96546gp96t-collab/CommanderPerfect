@@ -8,7 +8,8 @@ extends SceneTree
 ##
 ## STEPS is a list of FRAME:ACTION, where ACTION is one of
 ##   KEY        press and release a key (a Godot key name: Space, Down, A,
-##              also with modifiers: Shift+I)
+##              also with modifiers: Shift+I, and LeftShift or RightShift
+##              for one of the two keys of a pair)
 ##   hold_KEY   press a key and keep it down
 ##   up_KEY     release a key
 ##   shot_NAME  save the window as OUT/NAME.png
@@ -19,6 +20,10 @@ const MAIN_SCENE := "res://src/game/level_view.tscn"
 const HOLD_PREFIX := "hold_"
 const RELEASE_PREFIX := "up_"
 const SHOT_PREFIX := "shot_"
+## Prefixes for the left or right one of keys such as Shift.
+const SIDES: Dictionary[String, KeyLocation] = {
+	"Left": KEY_LOCATION_LEFT, "Right": KEY_LOCATION_RIGHT
+}
 ## Frames to wait after the last step, so that it takes effect.
 const FRAMES_AFTER := 2
 
@@ -56,6 +61,10 @@ func _do(action: String) -> void:
 		return
 	var key_name := action.trim_prefix(HOLD_PREFIX).trim_prefix(RELEASE_PREFIX)
 	var event := InputEventKey.new()
+	for side: String in SIDES:
+		if key_name.begins_with(side) and key_name.length() > side.length():
+			key_name = key_name.trim_prefix(side)
+			event.location = SIDES[side]
 	var code := OS.find_keycode_from_string(key_name)
 	event.physical_keycode = code & KEY_CODE_MASK
 	event.keycode = event.physical_keycode

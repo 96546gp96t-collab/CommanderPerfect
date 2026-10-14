@@ -70,6 +70,28 @@ func is_original_picture() -> bool:
 	return graphics == Graphics.ORIGINAL and not smooth_motion
 
 
+## Makes [param viewport] draw a view of [param game_size] game pixels at
+## [param render_scale] screen pixels per game pixel. With
+## [param smooth_textures] (scaled graphics) textures are drawn smoothly;
+## the original pixels stay sharp.
+static func set_up_viewport(
+	viewport: SubViewport, game_size: Vector2i, render_scale: int, smooth_textures: bool
+) -> void:
+	viewport.size_2d_override = game_size
+	viewport.size_2d_override_stretch = true
+	if viewport.size != game_size * render_scale:
+		viewport.size = game_size * render_scale
+	# Snapping works in game pixels: right for the original picture, but it
+	# would undo smooth motion on a larger viewport.
+	viewport.snap_2d_transforms_to_pixel = render_scale == 1
+	viewport.snap_2d_vertices_to_pixel = render_scale == 1
+	viewport.canvas_item_default_texture_filter = (
+		Viewport.DEFAULT_CANVAS_ITEM_TEXTURE_FILTER_LINEAR
+		if smooth_textures
+		else Viewport.DEFAULT_CANVAS_ITEM_TEXTURE_FILTER_NEAREST
+	)
+
+
 static func graphics_name(style: Graphics) -> String:
 	return GRAPHICS_NAMES[style]
 

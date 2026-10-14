@@ -1,7 +1,7 @@
 class_name IceChunk
 extends Actor
 ## A chunk of ice from an [IceCannon]. It flies in a straight line until it
-## hits a wall or Keen, and then shatters into four [IceBit]s. Keen is frozen
+## hits a wall or a Keen, and then shatters into four [IceBit]s. Keen is frozen
 ## and pushed along in the chunk's direction.
 
 const SPRITE := 112
@@ -33,11 +33,11 @@ func sprite_index() -> int:
 
 
 func step(session: LevelSession) -> void:
-	var keen := session.keen
-	if not keen.is_dead and hitbox().intersects(keen.hitbox()):
-		keen.freeze(_push_speed(session))
-		_shatter(session)
-		return
+	for keen in session.keens:
+		if not keen.is_dead and hitbox().intersects(keen.hitbox()):
+			keen.freeze(_push_speed(session))
+			_shatter(session)
+			return
 	var box := hitbox()
 	var moved := Vector2(
 		session.collision.sweep_x(box, velocity.x), session.collision.sweep_y(box, velocity.y)

@@ -96,9 +96,29 @@ Or open the project in the Godot editor and press F5.
 | F4 | Full screen or a window |
 | F5 | Graphics: original, xBRZ or HD |
 | F6 | Smooth motion on or off |
+| F7 | A second player joins or leaves (also in the menu) |
 
 The keys for walking, jumping, pogo and firing can be changed in the menu
 (Controls). All settings are remembered.
+
+### Two players on one keyboard
+
+Press F7 at any moment during a game and a second player joins. In the
+levels both play, sharing score, lives and items; on the world map player 1
+walks alone. Close together the two share the screen; when they move apart
+it splits in two, with a dark line in the middle and a small arrow next to
+each Keen that points to the other. As in the original, the level is over
+when one of them dies, and complete when one of them walks out.
+
+| | Player 1 | Player 2 |
+|---|---|---|
+| Walk | A / D | Left / Right |
+| Jump | Left Shift | . |
+| Pogo | ` | / |
+| Fire | Z | Right Shift |
+
+These keys have their own pages in Controls. See
+[docs/two-players.md](docs/two-players.md).
 
 Cheats, for testing:
 
