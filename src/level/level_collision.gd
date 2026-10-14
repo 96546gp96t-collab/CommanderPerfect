@@ -10,7 +10,8 @@ extends RefCounted
 ## Everything outside the playable area is a wall, except below it: falling
 ## out of the bottom of a level is possible (and deadly).
 ##
-## Doors are solid from every side until keycards exist (milestone 4).
+## Doors are solid from every side; opening one with a keycard removes its
+## tiles from the level.
 
 enum Edge { TOP, RIGHT, BOTTOM, LEFT }
 
@@ -115,12 +116,20 @@ func floor_under(box: Rect2) -> TileProperties.Floor:
 
 ## Whether [param box] overlaps a deadly tile.
 func touches_deadly_tile(box: Rect2) -> bool:
+	for cell in cells_under(box):
+		var tile := tile_at(cell)
+		if tile >= 0 and properties.is_deadly(tile):
+			return true
+	return false
+
+
+## The cells that [param box] overlaps, row by row.
+static func cells_under(box: Rect2) -> Array[Vector2i]:
+	var cells: Array[Vector2i] = []
 	for row in _cells_spanned(box.position.y, box.end.y):
 		for column in _cells_spanned(box.position.x, box.end.x):
-			var tile := tile_at(Vector2i(column, row))
-			if tile >= 0 and properties.is_deadly(tile):
-				return true
-	return false
+			cells.append(Vector2i(column, row))
+	return cells
 
 
 ## Whether [param box] is completely below the playable area.

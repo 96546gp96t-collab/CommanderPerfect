@@ -112,8 +112,26 @@ view: the 24-cell-wide levels are exactly 20 cells, or 320 pixels, wide inside
 it. CommanderPerfect therefore only draws the cells inside the border.
 
 **Info layer.** The value 255 marks where Keen starts. Every level and the
-world map have exactly one. The meaning of the other values follows in
-milestones 4 and 5.
+world map have exactly one. In levels 1-16 the other values are the enemies,
+each starting with the top left of its sprite at the top left of the cell:
+
+| Value | Enemy |
+|---|---|
+| 1 | Yorp |
+| 2 | Garg |
+| 3 | Vorticon (the commander in level 16) |
+| 4 | Butler robot |
+| 5 | Tank robot |
+| 6 | Ice cannon, fires up and to the right |
+| 7 | Ice cannon, fires straight up |
+| 8 | Ice cannon, fires straight down |
+| 9 | Ice cannon, fires up and to the left |
+| 10 | Chain holding the stone above the Vorticon commander (level 16) |
+
+Level 2 has two cells with 23 and level 12 a stretch of large values that
+look like leftover data; the game ignores them, and so does CommanderPerfect.
+What the values on the world map mean follows in milestone 5. See
+`docs/enemies.md` for how the enemies behave.
 
 Special maps:
 
@@ -167,9 +185,9 @@ n tiles, counted from the start of the run (Keen 1's runs are not aligned to
 multiples of n: 83-86 is one group, 208-219 are three). A level can place any
 frame of a group; the animation then starts from there.
 
-Behaviors seen in Keen 1 (version 1.1). Only the first group is used so far;
-the others are what the tiles look like and still need to be confirmed in
-milestones 4 and 5.
+Behaviors seen in Keen 1 (version 1.1). Values 1-21 are used by the engine;
+22-24 are what the tiles look like and still need to be confirmed in
+milestone 5.
 
 | Value | Tiles | Meaning |
 |---|---|---|
@@ -177,13 +195,29 @@ milestones 4 and 5.
 | -1 | 32 tiles, e.g. 288-301, 408-423 | Foreground: drawn in front of Keen |
 | 0 | most | Nothing |
 | 1 | fire, spikes, water, icicles | Deadly |
-| 2-5 | 173-174, 195-200 | Doors: yellow, red, green, blue (their sides are not marked solid; the game blocks them) |
-| 6-10 | 201-205 | Points: pizza, lollipop, soda, book, teddy bear |
-| 11-14 | 221-248 | Ship parts: joystick, battery, vacuum cleaner, whiskey |
+| 2-5 | 173-174, 195-200 | Doors: yellow, red, green, blue, two tiles each (their sides are not marked solid; the game blocks them) |
+| 6-10 | 201-205 | Points: pizza 500, lollipop 100, soda 200, book 1000, teddy bear 5000 |
+| 11-14 | 221-248 | Ship parts: joystick, battery, vacuum cleaner, whiskey (animated) |
 | 15 | 175 | Raygun |
 | 16 | 176 | Pogo stick |
-| 17 | 159 | Exit door? |
-| 18-21 | 190-193 | Keycards: yellow, red, green, blue |
+| 17 | 159 | Exit |
+| 18-21 | 190-193 | Keycards: yellow, red, green, blue (every level with a door has the keycard of its color) |
 | 22 | 435-438, 485-488 | Animated (light) switch? |
 | 23 | 271 | Light switch? |
 | 24 | 481-484, 494-497 | Teleporter? |
+
+**Points table.** Right before the statue messages (below) are five 16-bit
+words: 500, 100, 200, 1000, 5000. These are the points of behaviors 6-10,
+which confirms the values in `docs/enemies.md`. CommanderPerfect does not read
+them; it uses the same numbers as constants.
+
+**Statue messages.** The texts of the Yorp and Garg statues (behavior 22) are
+a run of zero-terminated lines, each about 20 characters padded with spaces
+and ending in a newline, followed directly by the string `Press ENTER:`. The
+first line has no zero in front of it (the points table is there). Every
+message starts with a two-line header whose second line ends in a colon, then
+a blank line; the messages have 4 to 7 lines. They belong, in order, to the
+levels with a statue: 2, 6, 9, 10, 11 (the Garg statue), 12 and 15.
+`HintTexts` reads them from the player's own executable at runtime. After
+its message a statue stops glowing: Yorp statues (485-488) become tile 315,
+the Garg statue (435-438) tile 434.

@@ -11,8 +11,8 @@ Wat elke mijlpaal precies inhoudt, staat in [docs/roadmap.md](docs/roadmap.md).
 |---|---|---|
 | 1 | Originele bestanden inlezen in Godot (graphics, levels) + data viewer | ✅ Klaar (branch `milestone-1-data-loading`) |
 | 2 | Levels tekenen met TileMapLayer, scrollen, widescreen-camera | ✅ Klaar (branch `milestone-2-level-view`) |
-| 3 | Keen: lopen, springen, pogo, botsingen (tile-eigenschappen uit KEEN1.EXE) | ✅ Klaar, vergelijken met het origineel staat nog open (branch `claude/commanderperfect-milestone-3-vm67b1`) |
-| 4 | Vijanden, items, deuren, sleutelkaarten, straalgeweer | ⏳ Volgende |
+| 3 | Keen: lopen, springen, pogo, botsingen (tile-eigenschappen uit KEEN1.EXE) | ✅ Klaar en gemerged; de besturing voelt goed volgens de gebruiker (14-10-2026), naast DOSBox leggen staat nog open |
+| 4 | Vijanden, items, deuren, sleutelkaarten, straalgeweer | 🔶 Gebouwd, nog speeltesten (branch `milestone-4-items-enemies`) |
 | 5 | Wereldkaart, levelovergangen, scheepsonderdelen, einde | |
 | 6 | Geluid, menu's, opslaan | |
 | 7 | Hogere framerate (interpolatie), xBRZ met wisselknop, Real-ESRGAN-pipeline | |
@@ -66,15 +66,42 @@ is schoon, en level 1 is met gescripte invoer gespeeld (lopen, springen, pogo)
 en via screenshots gecontroleerd. Het gevoel van de besturing is nog niet
 naast het origineel gelegd.
 
+## Mijlpaal 4: wat er nu is
+
+- `Inventory` (`src/game/`): score, levens (4 bij de start, extra leven per 20.000 punten), ladingen van het straalgeweer, pogo-stick, sleutelkaarten (alleen binnen een level) en scheepsonderdelen (kwijt als Keen doodgaat in het level waar hij ze vond).
+- `LevelSession` (`src/game/`): één poging aan een level, in vaste ticks, zonder nodes, dus volledig testbaar. Items oppakken, deuren openen met de juiste sleutelkaart, de uitgang, schieten, vijanden plaatsen vanuit de info-laag en alle botsingen tussen Keen, schoten en vijanden. Willekeur gebruikt een vaste seed, dus elke poging begint hetzelfde.
+- `src/actors/`: `Actor` (basis), `RaygunShot`, `OpeningDoor` (zakt in de vloer), `Enemy` met `Yorp`, `Garg`, `Vorticon`, `Robot` (`ButlerRobot`, `TankRobot`), `IceCannon` met `IceChunk` en `IceBit`, en `StoneChain` (de ketting met de steen in level 16). `ActorLayer` tekent ze.
+- `KeenBody`: begint zonder pogo-stick, schiet (met het geweer-frame; op de grond staat hij dan even stil), gaat dood met de `KEENISDEAD`-animatie en vliegt van het scherm, kan bevriezen door ijs, en kan geduwd worden door Yorps en robots.
+- `LevelView`: de tick-lus zit nu hier (niet meer in de `Keen`-node, die alleen nog tekent). HUD met score, levens, munitie, pogo, sleutelkaarten en scheepsonderdelen. Doodgaan start het level opnieuw met één leven minder; na het laatste leven begint het spel opnieuw. De uitgang gaat naar het volgende level (tot de wereldkaart er in mijlpaal 5 is).
+- Nieuwe knop: vuren met Spatie, C of X op de controller.
+- De info-laag is ontcijferd (1-10 en 255), zie `docs/file-formats.md`. Gedrag en herkomst van alle getallen: `docs/enemies.md`.
+- Tests: `test_keen_actions.gd` (schieten, pogo vinden, doodgaan), `test_level_session.gd` (items, deuren, uitgang, schoten, levens), `test_enemies.gd` (alle vijanden), plus op de echte data: elke deur heeft een sleutelkaart van zijn kleur in hetzelfde level, en geen enkele vijand valt bij de start uit het level.
+
+Na de eerste speeltest van de gebruiker (14-10-2026) toegevoegd:
+
+- Statusscherm op Enter (of Start op de controller): score, levens, volgende extra leven, straalgeweer met ladingen, pogo, sleutelkaarten en scheepsonderdelen, in de stijl van het origineel (`GameWindow` met de buisrand en het lettertype uit `EGALATCH`, `StatusScreen`). Het spel pauzeert zolang het open is.
+- De beeldjes van Yorps en de Garg tonen hun bericht uit `KEEN1.EXE` (`HintTexts`), één keer per poging; daarna gloeien ze niet meer.
+- Cheats om te testen: Shift+N / Shift+P (vorig/volgend level, naast Page Up/Down, die op een MacBook Fn+pijltje zijn), Shift+I (alle sleutelkaarten, pogo, 99 ladingen) en Shift+G (god mode).
+- Bug opgelost: bij doodgaan sprong de camera even naar linksboven. De camera werd verhangen in de scèneboom, en in dat ene frame had de viewport geen camera. Nu hangt hij vast aan een eigen anker (`CameraAnchor`).
+- De uitgang werkt nu zoals in het origineel: alleen als Keen op de grond staat (niet op de pogo-stick of met het geweer in de hand) loopt hij vanzelf langzaam de deur in, verdwijnt er stukje bij beetje achter, en na 200 ticks is het level klaar. Niets kan hem dan nog doden.
+- Bug opgelost: in breedbeeld stonden vijanden net buiten het gewone beeld stil en een beetje in de lucht. Vijanden worden nu wakker zodra ze in het echte beeld komen (de view geeft zijn rechthoek door aan `LevelSession`), en ze landen bij de start van het level meteen op de vloer onder hun cel.
+- macOS-build: `tools/build_macos.sh` maakt `build/CommanderPerfect.app` (universeel, ad-hoc ondertekend) met de speldata ernaast; `GameFiles` zoekt de data ook naast een `.app`. Hiervoor is de macOS-template van Godot 4.7.2 geïnstalleerd (alleen macOS; Windows volgt in mijlpaal 7).
+
+Getest met Godot 4.7.2 en de shareware-versie 1.1: alle tests slagen, gdlint
+is schoon, en met gescripte invoer zijn level 1 (Yorps, items), level 4
+(deur, schieten) en level 8 (robots, ijskanonnen) gespeeld en via
+screenshots gecontroleerd. Een level helemaal uitspelen met de hand moet nog.
+
 ## Bekende beperkingen
 
 - De natuurkunde-getallen zijn startwaarden (overgenomen van Commander Genius als documentatie, zie `docs/keen-physics.md`). Ze moeten nog naast het origineel (DOSBox) worden gelegd; de lijst met punten staat onderaan dat document.
-- Keen heeft voorlopig altijd de pogo-stick; in het origineel moet je hem eerst vinden (mijlpaal 4).
-- Deuren zijn altijd dicht, ook met sleutelkaart (mijlpaal 4). Items, schakelaars en teleporters doen nog niets.
-- De betekenis van gedragswaarden 6-24 is afgeleid uit hoe de tiles eruitzien en nog niet bevestigd.
+- Veel getallen voor vijanden zijn schattingen (gemarkeerd met *estimate* in de code); de lijst met wat nog naast het origineel moet staat onderaan `docs/enemies.md`. Vooral: levenspunten van Vorticons (4) en de commandant (105).
+- Schakelaars (gedrag 23) en teleporters (24) doen nog niets (mijlpaal 5).
+- Er is nog geen geluid. De regel bovenin (score, levens, munitie) is een hulpmiddel; het origineel heeft alleen het statusscherm.
+- Na de uitgang ga je direct naar het volgende level; de wereldkaart komt in mijlpaal 5. Level overslaan (cheat of Page Up/Down) houdt de inventaris.
 - De data viewer toont tiles nog zonder animatie en zonder voorgrond-markering.
 - Gemaskeerde tiles (gedrag -2) worden als gewone voorgrond-tiles getekend; Keen 1 gebruikt ze niet.
-- De info-laag wordt nu alleen gemarkeerd; wat elk getal betekent, volgt in mijlpaal 4 en 5.
+- In de data viewer wordt de info-laag nog alleen gemarkeerd, zonder namen van de vijanden.
 - Bij een venstergrootte die geen heel veelvoud van het beeld is, worden niet alle pixels even breed of hoog getekend (vooral zichtbaar met de 4:3-correctie). Dit lossen we op in mijlpaal 7, samen met xBRZ (bijv. eerst op een heel veelvoud renderen en dan glad verkleinen).
 - Instellingen (beeldverhouding, pixelverhouding) worden nog niet onthouden; opslaan volgt in mijlpaal 6.
 - Of de wereldkaart ook precies een rand van 2 tiles verbergt, is aangenomen maar niet vergeleken met het origineel.
@@ -85,5 +112,6 @@ naast het origineel gelegd.
 
 ## Volgende stap
 
-1. **Voor de gebruiker:** speel level 1-3 in CommanderPerfect en in het origineel (DOSBox) naast elkaar en noteer wat anders voelt (zie de lijst in `docs/keen-physics.md`). Test ook de Steam-versie (1.34): wordt de tile-tabel gevonden?
-2. **Mijlpaal 4**, beginnen met items: de info-laag van de levels ontcijferen (welke getallen zijn Yorps, Garg's, enz.), dan punten-items en de pogo-stick oppakken (gedrag 6-10 en 16), sleutelkaarten en deuren (18-21 en 2-5), en doodgaan met de `KEENISDEAD`-sprites in plaats van direct opnieuw beginnen.
+1. **Voor de gebruiker:** speel een paar levels met vijanden (bijv. 1, 3, 4 en 8) en kijk of iets vreemd voelt: Yorps die duwen, Garg's die aanvallen, robots, ijs. Vergelijk als het kan met het origineel (DOSBox), vooral de punten onderaan `docs/enemies.md`.
+2. Daarna mijlpaal 4 afronden met wat uit die test komt, en mergen.
+3. **Mijlpaal 5**: de wereldkaart. Eerst de info-waarden op kaart 80 ontcijferen (welke getallen zijn levelingangen, wat betekenen de waarden met 0x8000), dan Keen over de kaart laten lopen en levels in- en uitgaan.

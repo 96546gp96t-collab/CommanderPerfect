@@ -1,8 +1,16 @@
 extends Control
-## The game screen as of milestone 3: Keen walks, jumps and pogo-jumps
-## through a level, followed by a smoothly scrolling camera. On the world map
-## and the special maps, where Keen cannot play yet, the player looks around
-## freely instead.
+## The game screen as of milestone 4: Keen plays a level ([LevelSession]),
+## followed by a smoothly scrolling camera. On the world map and the special
+## maps, where Keen cannot play yet, the player looks around freely instead.
+##
+## Dying starts the level again with one life less; after the last life the
+## game starts over with a new [Inventory]. The exit leads to the next level
+## (until the world map exists in milestone 5).
+##
+## Enter shows the status screen; the statues show their message. While such
+## a [GameWindow] is open the game is paused. For testing there are cheats:
+## Shift+N / Shift+P skip levels, Shift+I gives every item, Shift+G toggles
+## god mode.
 ##
 ## The level is rendered at its original resolution into the World viewport.
 ## That picture is then stretched to fit the window, see [DisplaySettings].
@@ -12,6 +20,8 @@ extends Control
 
 const LEVEL_OPTION := "--level="
 const DEFAULT_LEVEL := 1
+## Seconds a message such as "Game over" stays on the screen.
+const MESSAGE_SECONDS := 3.0
 const MISSING_DATA_MESSAGE := (
 	"Keen 1 data not found. Put the files in game_data/keen1 "
 	+ "(see game_data/README.md) or start with: -- --data-dir=PATH"
@@ -23,13 +33,27 @@ var _level_index := 0
 var _level: LevelData
 var _properties: TileProperties
 var _settings := DisplaySettings.new()
+var _inventory := Inventory.new()
+var _session: LevelSession
+var _time_left := 0.0
+## Shown below the status for [constant MESSAGE_SECONDS].
+var _message := ""
+var _message_time_left := 0.0
+## Keen or the free-look point: what the camera anchor follows.
+var _followed: Node2D
+## The statue messages; null when they could not be read.
+var _hints: HintTexts
+var _god_mode := false
 
 @onready var _screen: TextureRect = %Screen
 @onready var _world: SubViewport = %World
 @onready var _level_map: LevelMap = %LevelMap
 @onready var _free_look: FreeLook = %FreeLook
 @onready var _keen: Keen = %Keen
+@onready var _actor_layer: ActorLayer = %ActorLayer
 @onready var _camera: LevelCamera = %Camera
+@onready var _camera_anchor: Node2D = %CameraAnchor
+@onready var _window: GameWindow = %Window
 @onready var _status_label: Label = %StatusLabel
 @onready var _help_label: Label = %HelpLabel
 
@@ -59,15 +83,53 @@ func _ready() -> void:
 
 	_level_map.tile_set = LevelTileSet.build(graphics)
 	_keen.set_graphics(graphics)
-	_keen.died.connect(_on_keen_died)
+	_actor_layer.set_graphics(graphics)
+	_window.set_graphics(graphics)
+	_hints = HintTexts.load_from(_files)
 	_level_index = maxi(0, _level_numbers.find(_requested_level()))
 	_load_level()
+
+
+func _process(delta: float) -> void:
+	_message_time_left -= delta
+	if _session != null and not _window.visible:
+		_play(delta)
+	_move_camera_anchor()
+
+
+## Runs the level's ticks for [param delta] seconds and shows the result.
+func _play(delta: float) -> void:
+	_time_left = minf(_time_left + delta, KeenPhysics.MAX_TICKS_PER_FRAME * KeenPhysics.TICK)
+	var view_size := Vector2(_world.size)
+	_session.view_rect = Rect2(_camera.get_screen_center_position() - view_size / 2.0, view_size)
+	while _time_left >= KeenPhysics.TICK and _session.outcome == LevelSession.Outcome.PLAYING:
+		_time_left -= KeenPhysics.TICK
+		_session.step(KeenInput.from_actions())
+	_keen.show_body(_session.keen)
+	_actor_layer.show_actors(_session.actors)
+	_update_status()
+	match _session.outcome:
+		LevelSession.Outcome.COMPLETED:
+			_show_message("Level completed!")
+			_select_level(_level_index + 1)
+		LevelSession.Outcome.DIED:
+			_on_keen_died()
 
 
 func _unhandled_input(event: InputEvent) -> void:
 	if _level_numbers.is_empty():
 		return
-	if event.is_action_pressed("next_level"):
+	if event.is_action_pressed("status"):
+		_toggle_status()
+	elif event.is_action_pressed("cheat_items"):
+		_inventory.give_everything()
+		_show_message("Cheat: all keycards, the pogo stick and a full raygun")
+	elif event.is_action_pressed("cheat_god"):
+		_god_mode = not _god_mode
+		if _session != null:
+			_session.keen.invincible = _god_mode
+		_show_message("Cheat: god mode " + ("on" if _god_mode else "off"))
+	elif event.is_action_pressed("next_level"):
 		_select_level(_level_index + 1)
 	elif event.is_action_pressed("previous_level"):
 		_select_level(_level_index - 1)
@@ -86,6 +148,24 @@ func _unhandled_input(event: InputEvent) -> void:
 	else:
 		return
 	get_viewport().set_input_as_handled()
+
+
+## Opens the status screen, or closes whatever window is open.
+func _toggle_status() -> void:
+	if _window.visible:
+		_window.close()
+	elif _session != null:
+		StatusScreen.fill(_window, _inventory, _god_mode)
+
+
+func _on_hint_touched() -> void:
+	if _hints == null:
+		return
+	var lines := _hints.for_level(_level_numbers[_level_index])
+	if lines.is_empty():
+		return
+	lines.append_array(["", HintTexts.PROMPT])
+	_window.show_lines(lines)
 
 
 func _requested_level() -> int:
@@ -107,7 +187,11 @@ func _select_level(index: int) -> void:
 	_load_level()
 
 
+## Loads the level fresh from its file, so that every item is back.
 func _load_level() -> void:
+	_session = null
+	_actor_layer.clear()
+	_window.close()
 	var file_name := GameFiles.level_file_name(_level_numbers[_level_index])
 	_level = LevelData.parse(_files.read(file_name))
 	if _level == null:
@@ -120,9 +204,21 @@ func _load_level() -> void:
 	_frame_camera()
 	var start := _start_cell()
 	if GameFiles.is_playable_level(_level_numbers[_level_index]):
-		_keen.enter_level(
-			LevelCollision.create(_level, _properties), Vector2(start * EgaGraphics.TILE_SIZE)
+		_session = (
+			LevelSession
+			. create(
+				_level,
+				_properties,
+				_inventory,
+				Vector2(start * EgaGraphics.TILE_SIZE),
+				_level_numbers[_level_index],
+			)
 		)
+		_session.tile_changed.connect(_level_map.set_tile)
+		_session.hint_touched.connect(_on_hint_touched)
+		_session.keen.invincible = _god_mode
+		_time_left = 0.0
+		_keen.show_body(_session.keen)
 		_follow(_keen)
 	else:
 		_free_look.move_to((Vector2(start) + Vector2(0.5, 0.5)) * EgaGraphics.TILE_SIZE)
@@ -142,21 +238,41 @@ func _start_cell() -> Vector2i:
 ## other one is switched off.
 func _follow(target: Node2D) -> void:
 	var playing := target == _keen
+	_followed = target
 	_keen.visible = playing
-	_keen.set_process(playing)
 	_free_look.set_process(not playing)
-	_camera.reparent(target, false)
-	_camera.position = KeenPhysics.SPRITE_SIZE / 2.0 if playing else Vector2.ZERO
 	_camera.use_dead_zone(playing)
+	_move_camera_anchor()
 	_camera.reset_smoothing()
+
+
+## Puts the camera anchor on the followed node. The camera itself never
+## changes parent: while it is out of the tree, the view would jump to the
+## top left of the level for a frame.
+func _move_camera_anchor() -> void:
+	if _followed == null:
+		return
+	if _followed == _keen:
+		# When Keen dies the camera stays put, so that he flies off the screen.
+		if _session != null and not _session.keen.is_dead:
+			_camera_anchor.position = _keen.position + KeenPhysics.SPRITE_SIZE / 2.0
+	else:
+		_camera_anchor.position = _followed.position
 
 
 func _on_keen_died() -> void:
-	_camera.reset_smoothing()
+	if _inventory.is_game_over():
+		_inventory = Inventory.new()
+		_show_message("Game over. Starting again.")
+	else:
+		_show_message("Keen died. Lives left: %d" % _inventory.lives)
+	_load_level()
 
 
 func _apply_display_settings() -> void:
 	_world.size = _settings.game_size()
+	_window.view_size = _settings.game_size()
+	_window.queue_redraw()
 	_fit_screen()
 	if _level != null:
 		_frame_camera()
@@ -180,15 +296,53 @@ func _fit_screen() -> void:
 func _update_status() -> void:
 	var number := _level_numbers[_level_index]
 	var game_size := _settings.game_size()
-	_status_label.text = (
-		"%s (%d x %d cells)   %s %d x %d, %s pixels"
-		% [
-			GameFiles.level_title(number),
-			_level.width,
-			_level.height,
-			_settings.aspect_name(),
-			game_size.x,
-			game_size.y,
-			"4:3 monitor" if _settings.correct_pixel_aspect else "square",
+	var lines := PackedStringArray()
+	(
+		lines
+		. append(
+			(
+				"%s (%d x %d cells)   %s %d x %d, %s pixels"
+				% [
+					GameFiles.level_title(number),
+					_level.width,
+					_level.height,
+					_settings.aspect_name(),
+					game_size.x,
+					game_size.y,
+					"4:3 monitor" if _settings.correct_pixel_aspect else "square",
+				]
+			)
+		)
+	)
+	if _session != null:
+		lines.append(_inventory_text() + ("   GOD MODE" if _god_mode else ""))
+	if _message_time_left > 0.0:
+		lines.append(_message)
+	_status_label.text = "\n".join(lines)
+
+
+func _show_message(text: String) -> void:
+	_message = text
+	_message_time_left = MESSAGE_SECONDS
+
+
+func _inventory_text() -> String:
+	var parts := PackedStringArray(
+		[
+			"Score %d" % _inventory.score,
+			"Lives %d" % _inventory.lives,
+			"Ammo %d" % _inventory.charges,
 		]
 	)
+	if _inventory.has_pogo:
+		parts.append("Pogo")
+	var cards := PackedStringArray()
+	for color: String in TileProperties.KeyColor.keys():
+		if _inventory.keycards[TileProperties.KeyColor[color]]:
+			cards.append(color.capitalize())
+	if not cards.is_empty():
+		parts.append("Keycards: " + ", ".join(cards))
+	var parts_found := _inventory.ship_parts.count(true)
+	if parts_found > 0:
+		parts.append("Ship parts %d/%d" % [parts_found, _inventory.ship_parts.size()])
+	return "   ".join(parts)

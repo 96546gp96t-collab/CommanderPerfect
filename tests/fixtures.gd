@@ -2,7 +2,7 @@ extends RefCounted
 ## Small hand-made tiles, tile properties and levels for the tests, so that
 ## they run without the original game data.
 
-const TILE_COUNT := 16
+const TILE_COUNT := 23
 
 const AIR := 0
 const WALL := 1
@@ -15,6 +15,13 @@ const DOOR := 7
 ## Two animations of four frames in one run: tiles 8-11 and 12-15.
 const ANIMATION_START := 8
 const ANIMATION_FRAMES := 4
+const LOLLIPOP := 16
+const POGO := 17
+const RAYGUN := 18
+const RED_KEYCARD := 19
+const EXIT := 20
+const JOYSTICK := 21
+const STATUE := 22
 
 ## Level characters and the tiles they stand for.
 const LEGEND := {
@@ -27,6 +34,13 @@ const LEGEND := {
 	"P": PILLAR,
 	"D": DOOR,
 	"A": ANIMATION_START,
+	"o": LOLLIPOP,
+	"p": POGO,
+	"g": RAYGUN,
+	"k": RED_KEYCARD,
+	"E": EXIT,
+	"J": JOYSTICK,
+	"Y": STATUE,
 }
 
 
@@ -51,8 +65,15 @@ static func create_table() -> PackedByteArray:
 	behavior[DOOR] = TileProperties.Behavior.DOOR_RED
 	top[DOOR] = 1
 	bottom[DOOR] = 1
-	for tile in range(ANIMATION_START, TILE_COUNT):
+	for tile in range(ANIMATION_START, ANIMATION_START + 2 * ANIMATION_FRAMES):
 		animation[tile] = ANIMATION_FRAMES
+	behavior[LOLLIPOP] = TileProperties.Behavior.POINTS_100
+	behavior[POGO] = TileProperties.Behavior.POGO
+	behavior[RAYGUN] = TileProperties.Behavior.RAYGUN
+	behavior[RED_KEYCARD] = TileProperties.Behavior.KEYCARD_RED
+	behavior[EXIT] = TileProperties.Behavior.EXIT
+	behavior[JOYSTICK] = TileProperties.Behavior.SHIP_JOYSTICK
+	behavior[STATUE] = TileProperties.Behavior.HINT
 
 	var table := PackedByteArray()
 	for plane in [animation, behavior, top, right, bottom, left]:

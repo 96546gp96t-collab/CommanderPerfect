@@ -7,6 +7,9 @@
 !/game_data/README.md
 !/game_data/.gdignore
 
+# Exported builds (tools/build_macos.sh); they hold a copy of the game data.
+/build/
+
 # Output of tools/export_graphics.gd (derived from the original game data)
 /exported/
 

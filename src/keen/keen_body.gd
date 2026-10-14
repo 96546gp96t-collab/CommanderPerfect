@@ -10,9 +10,15 @@ extends RefCounted
 ##   RISING           going up after a jump or pogo bounce
 ##   FALLING          going down, after a jump or off a ledge
 ##   POGO_COMPRESSED  on the ground on the pogo stick, about to bounce
+##   DYING            killed: lies still for a moment, then flies off the screen
+##   EXITING          walks by himself through the exit door and disappears
+##                    behind it
 ## The pogo stick is a separate switch: with it out, Keen keeps bouncing.
+## Firing the raygun is one too: Keen holds it out for a moment, and on the
+## ground he stands still meanwhile. An ice chunk freezes him: for a while he
+## ignores all buttons, but still slides and falls.
 
-enum State { STANDING, CROUCHING, RISING, FALLING, POGO_COMPRESSED }
+enum State { STANDING, CROUCHING, RISING, FALLING, POGO_COMPRESSED, DYING, EXITING }
 
 var collision: LevelCollision
 ## Top left of the sprite, in level pixels.
@@ -22,11 +28,22 @@ var velocity := Vector2.ZERO
 ## 1 when looking right, -1 when looking left.
 var facing := 1
 var state := State.FALLING
-## Keen 1 starts without the pogo stick; until items exist (milestone 4) he
-## always has it.
-var has_pogo := true
+## Keen 1 starts without the pogo stick; he has to find it first.
+var has_pogo := false
 var on_pogo := false
+## Killed; from then on he only plays the dying animation.
 var is_dead := false
+## God mode (a cheat): nothing kills Keen, except falling out of the level.
+var invincible := false
+## The dying animation is over, or Keen fell out of the level.
+var death_finished := false
+## Keen walked through the exit door and the level is over.
+var exit_finished := false
+## While exiting: Keen is hidden to the right of this x (level pixels).
+var exit_hide_x := INF
+## Set during a tick in which Keen pulled the trigger. Whether a shot comes
+## out depends on the charges, which [LevelSession] keeps.
+var fired := false
 
 var _timer := 0
 var _crouch_frame := 0
@@ -37,7 +54,13 @@ var _is_walking := false
 var _jumped := false
 var _fall_acceleration := KeenPhysics.LEDGE_FALL_ACCELERATION
 var _pogo_was_held := false
+var _fire_was_held := false
+var _shoot_timer := 0
 var _first_bounce := false
+var _death_start_y := 0.0
+var _frozen_ticks := 0
+## Sideways speed of a push, on top of Keen's own movement.
+var _push_speed := 0.0
 
 
 static func create(level_collision: LevelCollision, start: Vector2) -> KeenBody:
@@ -54,6 +77,13 @@ func reset(start: Vector2) -> void:
 	facing = 1
 	on_pogo = false
 	is_dead = false
+	death_finished = false
+	exit_finished = false
+	exit_hide_x = INF
+	fired = false
+	_shoot_timer = 0
+	_frozen_ticks = 0
+	_push_speed = 0.0
 	_start_falling(0.0, KeenPhysics.LEDGE_FALL_ACCELERATION, false)
 
 
@@ -62,11 +92,99 @@ func hitbox() -> Rect2:
 	return Rect2(position + KeenPhysics.HITBOX.position, KeenPhysics.HITBOX.size)
 
 
+## Whether Keen is holding the raygun out after firing.
+func is_shooting() -> bool:
+	return _shoot_timer > 0
+
+
+## Kills Keen: he starts the dying animation. Nothing happens if he is
+## already dead.
+func kill() -> void:
+	if is_dead or invincible or state == State.EXITING:
+		return
+	is_dead = true
+	on_pogo = false
+	state = State.DYING
+	_timer = 0
+	_death_start_y = position.y
+	velocity = Vector2(-facing * KeenPhysics.DIE_DRIFT_SPEED, -KeenPhysics.DIE_RISE_SPEED)
+
+
+func is_frozen() -> bool:
+	return _frozen_ticks > 0
+
+
+## Pushes Keen sideways with [param speed] (pixels per tick; negative is
+## left), for example when a robot walks into him. The push dies down by
+## itself; until then Keen cannot walk.
+func push(speed: float) -> void:
+	_push_speed = speed
+	velocity.x = 0.0
+
+
+## Makes Keen hop up from where he is, for example off a Yorp's head.
+func bounce(speed: float) -> void:
+	if not is_dead and state != State.EXITING:
+		_launch(speed)
+
+
+## Freezes Keen in a block of ice and pushes him with [param push_speed].
+func freeze(push_speed: float) -> void:
+	if is_dead or state == State.EXITING:
+		return
+	_frozen_ticks = KeenPhysics.FROZEN_TICKS
+	on_pogo = false
+	_shoot_timer = 0
+	velocity.x = push_speed
+	if state == State.CROUCHING or state == State.POGO_COMPRESSED:
+		_enter_ground_state(State.STANDING)
+
+
+## Whether Keen can walk through an exit door now: only when he stands on
+## the ground, without the pogo stick and without firing.
+func can_exit() -> bool:
+	return state == State.STANDING and not on_pogo and not is_shooting() and not is_dead
+
+
+## Starts walking through the exit door whose tile Keen touched in
+## [param exit_column]. From now on he ignores the buttons.
+func start_exit(exit_column: int) -> void:
+	state = State.EXITING
+	facing = 1
+	velocity = Vector2(KeenPhysics.EXIT_WALK_SPEED, 0.0)
+	_frozen_ticks = 0
+	_push_speed = 0.0
+	_timer = 0
+	exit_hide_x = exit_column * EgaGraphics.TILE_SIZE + KeenPhysics.EXIT_HIDE_DISTANCE
+
+
+## How many pixels of the sprite, from its left side, are in front of the
+## exit door.
+func visible_width() -> float:
+	return clampf(exit_hide_x - position.x, 0.0, KeenPhysics.SPRITE_SIZE.x)
+
+
 ## Advances one tick with the buttons in [param input].
 func step(input: KeenInput) -> void:
+	fired = false
+	if state == State.DYING:
+		_die()
+		return
+	if state == State.EXITING:
+		_walk_through_exit()
+		return
 	if is_dead:
 		return
+	if _frozen_ticks > 0:
+		_frozen_ticks -= 1
+		input = KeenInput.create(0)
+	elif _push_speed != 0.0:
+		input = KeenInput.create(0, input.jump, input.pogo, input.fire)
+	_apply_push()
+	_handle_fire_button(input)
 	_handle_pogo_button(input)
+	if is_shooting() and state == State.STANDING:
+		input = KeenInput.create(0)
 	match state:
 		State.STANDING:
 			_stand(input)
@@ -79,18 +197,52 @@ func step(input: KeenInput) -> void:
 		State.FALLING:
 			_fall(input)
 	var box := hitbox()
-	if collision.touches_deadly_tile(box) or collision.is_below_level(box):
+	if collision.is_below_level(box):
 		is_dead = true
+		death_finished = true
+	elif collision.touches_deadly_tile(box):
+		kill()
+
+
+## Top left of a raygun shot fired now: just in front of the raygun.
+func shot_position() -> Vector2:
+	var box := hitbox()
+	var y := position.y + KeenPhysics.SHOT_HEIGHT
+	if facing > 0:
+		return Vector2(box.end.x + velocity.x, y)
+	return Vector2(box.position.x + velocity.x - KeenPhysics.SHOT_SIZE.x, y)
 
 
 ## Number of the sprite to draw, see the sprite constants in [KeenPhysics].
 func sprite_index() -> int:
 	var right := facing > 0
+	if state == State.DYING:
+		return (
+			KeenPhysics.SPRITE_DEAD
+			+ (_timer / KeenPhysics.DIE_FRAME_TICKS) % KeenPhysics.DEAD_FRAMES
+		)
+	if is_frozen():
+		return _frozen_sprite()
+	if is_shooting():
+		return KeenPhysics.SPRITE_SHOOT_RIGHT if right else KeenPhysics.SPRITE_SHOOT_LEFT
 	if on_pogo:
 		var compressed := 1 if state == State.POGO_COMPRESSED else 0
 		return (
 			(KeenPhysics.SPRITE_POGO_RIGHT if right else KeenPhysics.SPRITE_POGO_LEFT) + compressed
 		)
+	return _moving_sprite()
+
+
+func _frozen_sprite() -> int:
+	if _frozen_ticks <= KeenPhysics.THAW_TICKS:
+		return KeenPhysics.SPRITE_THAWING
+	var frame := (_frozen_ticks / KeenPhysics.FROZEN_FRAME_TICKS) % KeenPhysics.FROZEN_FRAMES
+	return KeenPhysics.SPRITE_FROZEN + frame
+
+
+## Walking, standing, crouching or in the air.
+func _moving_sprite() -> int:
+	var right := facing > 0
 	var jump_sprite := KeenPhysics.SPRITE_JUMP_RIGHT if right else KeenPhysics.SPRITE_JUMP_LEFT
 	match state:
 		State.CROUCHING:
@@ -98,6 +250,56 @@ func sprite_index() -> int:
 		State.RISING, State.FALLING:
 			return jump_sprite + KeenPhysics.CROUCH_FRAMES
 	return (KeenPhysics.SPRITE_WALK_RIGHT if right else KeenPhysics.SPRITE_WALK_LEFT) + _walk_frame
+
+
+func _apply_push() -> void:
+	if _push_speed == 0.0:
+		return
+	var moved := collision.sweep_x(hitbox(), _push_speed)
+	position.x += moved
+	if moved != _push_speed:
+		_push_speed = 0.0
+	_push_speed = move_toward(_push_speed, 0.0, KeenPhysics.PUSH_DECELERATION)
+
+
+## The fire button fires once per press, and not again until the raygun has
+## almost been put away. Firing puts the pogo stick away.
+func _handle_fire_button(input: KeenInput) -> void:
+	var pressed := input.fire and not _fire_was_held
+	_fire_was_held = input.fire
+	if _shoot_timer > 0:
+		_shoot_timer -= 1
+	if not pressed or _shoot_timer >= KeenPhysics.SHOOT_REPEAT_TICKS:
+		return
+	fired = true
+	_shoot_timer = KeenPhysics.SHOOT_FRAME_TICKS
+	on_pogo = false
+	if state == State.CROUCHING or state == State.POGO_COMPRESSED:
+		state = State.STANDING
+
+
+## Walks right at a slow pace, through everything and without falling,
+## until he is behind the door; then waits until the level is over.
+func _walk_through_exit() -> void:
+	_timer += 1
+	if visible_width() > 0.0:
+		position.x += velocity.x
+		_advance_walk_animation()
+	else:
+		_stop_walk_animation()
+	if _timer >= KeenPhysics.EXIT_TICKS:
+		exit_finished = true
+
+
+## Lies still for a moment, then flies up and off the screen, through
+## everything.
+func _die() -> void:
+	_timer += 1
+	if _timer <= KeenPhysics.DIE_WAIT_TICKS:
+		return
+	position += velocity
+	if _death_start_y - position.y >= KeenPhysics.DIE_RISE_DISTANCE:
+		death_finished = true
 
 
 ## The pogo button takes the stick out or puts it away, once per press.

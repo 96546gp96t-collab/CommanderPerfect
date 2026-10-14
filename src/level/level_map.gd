@@ -55,6 +55,15 @@ func show_level(level: LevelData, properties: TileProperties = null) -> void:
 			_draw_tile(cell, tile)
 
 
+## Changes the tile in [param cell], for example when Keen picks up an item.
+func set_tile(cell: Vector2i, tile: int) -> void:
+	if _properties != null and _properties.is_animated(tile):
+		_animated_cells[cell] = tile
+	else:
+		_animated_cells.erase(cell)
+	_draw_tile(cell, tile)
+
+
 ## The layer with the tiles that are drawn in front of Keen.
 func foreground() -> TileMapLayer:
 	return _foreground

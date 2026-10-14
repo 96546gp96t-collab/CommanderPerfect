@@ -101,5 +101,59 @@ func test_keen_lands_safely_in_every_level() -> void:
 		assert_equal(keen.state, KeenBody.State.STANDING, "Keen stands in level %d" % number)
 
 
+## Confirms the meaning of behaviors 2-5 and 18-21: every level with a door
+## of some color also has a keycard of that color.
+func test_every_door_has_a_keycard_of_its_color() -> void:
+	var properties := TileProperties.load_from(GameFiles.locate(), 611)
+	var first_card := TileProperties.Behavior.KEYCARD_YELLOW
+	for number in range(GameFiles.FIRST_LEVEL, GameFiles.LAST_LEVEL + 1):
+		var level := LevelData.parse(_level_file(number))
+		var door_colors := {}
+		var card_colors := {}
+		for tile in level.tiles:
+			if properties.is_door(tile):
+				door_colors[properties.door_color(tile)] = true
+			elif properties.behavior(tile) >= first_card and properties.is_item(tile):
+				card_colors[properties.behavior(tile) - first_card] = true
+		for color: int in door_colors:
+			assert_true(card_colors.has(color), "keycard %d in level %d" % [color, number])
+
+
+## Every enemy must start inside the level, not stuck in a wall or floor
+## through which it would fall out.
+func test_enemies_start_in_a_valid_place() -> void:
+	var properties := TileProperties.load_from(GameFiles.locate(), 611)
+	for number in range(GameFiles.FIRST_LEVEL, GameFiles.LAST_LEVEL + 1):
+		var level := LevelData.parse(_level_file(number))
+		var start := Vector2(level.find_info(LevelData.PLAYER_START_INFO) * EgaGraphics.TILE_SIZE)
+		var session := LevelSession.create(level, properties, Inventory.new(), start, number)
+		for enemy in session.enemies():
+			enemy.is_active = true
+		for tick in KeenPhysics.TICKS_PER_SECOND:
+			for enemy in session.enemies():
+				enemy.step(session)
+		for enemy in session.enemies():
+			assert_true(not enemy.removed, "enemy fell out of level %d" % number)
+
+
+## The statue messages are found, and the levels they belong to are exactly
+## the levels with a statue.
+func test_statue_messages_match_the_statues() -> void:
+	var files := GameFiles.locate()
+	var hints := HintTexts.load_from(files)
+	assert_true(hints != null, "messages found")
+	if hints == null:
+		return
+	assert_equal(hints.messages.size(), HintTexts.HINT_LEVELS.size(), "one per statue")
+	assert_equal(hints.for_level(11)[3].strip_edges(), "GAAARRRRRGG!", "the Garg statue")
+	var properties := TileProperties.load_from(files, 611)
+	for number in range(GameFiles.FIRST_LEVEL, GameFiles.LAST_LEVEL + 1):
+		var level := LevelData.parse(_level_file(number))
+		var has_statue := Array(level.tiles).any(
+			func(tile: int) -> bool: return properties.is_hint(tile)
+		)
+		assert_equal(has_statue, HintTexts.HINT_LEVELS.has(number), "statue in level %d" % number)
+
+
 func _level_file(number: int) -> PackedByteArray:
 	return GameFiles.locate().read(GameFiles.level_file_name(number))

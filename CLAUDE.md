@@ -33,11 +33,12 @@ Real-ESRGAN graphics. Singleplayer comes first; local co-op may follow later.
 src/data/      Reading the original files (decompression, EGA graphics, levels)
 src/level/     Drawing a level (TileSet, TileMapLayer, camera) and tile collisions
 src/keen/      Keen: movement physics, input, sprite
-src/game/      Game screen (main scene) and display settings
+src/actors/    Everything else that moves: enemies, shots, opening doors
+src/game/      Game screen (main scene), LevelSession, Inventory, display settings
 src/viewer/    Data viewer scene
 tests/         Headless test runner and test suites
 tools/         Command-line tools (graphics export, shareware diskette extraction)
-docs/          File format documentation
+docs/          File formats, Keen's physics, enemies and items
 game_data/     The player's own game files (ignored by git)
 ```
 

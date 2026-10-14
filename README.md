@@ -5,9 +5,9 @@ Keen 1 ("Marooned on Mars", 1990) on modern computers, with optional modern
 extras: widescreen, a higher frame rate, xBRZ pixel-art scaling and
 AI-upscaled graphics.
 
-> **Status:** early development. Keen can walk, jump and pogo through every
-> level, but there are no enemies, items or doors yet. See
-> [PROGRESS.md](PROGRESS.md).
+> **Status:** early development. Every level can be played to the end:
+> items, keycards and doors, the raygun, and all enemies. The world map and
+> the end of the game follow next. See [PROGRESS.md](PROGRESS.md).
 
 ## You need your own game files
 
@@ -35,10 +35,32 @@ Or open the project in the Godot editor and press F5.
 | Arrows / WASD / D-pad / left stick | Walk (look around on the world map) |
 | Ctrl / Z / A button | Jump; hold longer to jump higher |
 | Alt / X / B button | Take out or put away the pogo stick; hold jump to bounce higher |
+| Space / C / gamepad X button | Fire the raygun (once you have charges) |
+| Enter / Start button | Status screen (score, lives, raygun, keycards, ship parts); also closes messages |
 | Page Up / Page Down / shoulder buttons | Previous / next level |
 | F2 | Original view (320x200) or widescreen (16:9) |
 | F3 | Pixels as on a 4:3 monitor, or square pixels |
 | F1 | Show or hide the help line |
+
+Cheats, for testing:
+
+| Keys | Cheat |
+|---|---|
+| Shift+N / Shift+P (or Page Down / Page Up) | Next / previous level |
+| Shift+I | All keycards, the pogo stick and 99 raygun charges |
+| Shift+G | God mode: nothing kills Keen, except falling out of the level |
+
+## Building a Mac app
+
+```sh
+tools/build_macos.sh
+```
+
+This makes `build/CommanderPerfect.app` (Intel and Apple Silicon) and copies
+`game_data/keen1` next to it, so the app starts with a double click. It needs
+the Godot 4.7.2 export template for macOS (Editor > Manage Export
+Templates). The `build/` folder is ignored by git, because it holds a copy of
+the game files.
 
 ## Development
 
@@ -49,7 +71,8 @@ godot --headless --path . --script res://tools/export_graphics.gd # export graph
 ```
 
 File formats are documented in [docs/file-formats.md](docs/file-formats.md),
-Keen's movement in [docs/keen-physics.md](docs/keen-physics.md).
+Keen's movement in [docs/keen-physics.md](docs/keen-physics.md), items and
+enemies in [docs/enemies.md](docs/enemies.md).
 
 ## Legal
 
