@@ -97,6 +97,17 @@ const DIE_DRIFT_SPEED := 16 * SUBPIXEL
 ## Once Keen has risen this far he is surely off the screen.
 const DIE_RISE_DISTANCE := 240.0
 
+# --- Enemies ------------------------------------------------------------------
+## A push from a Yorp or robot dies down by this much per tick. While it
+## lasts, Keen cannot walk. An estimate, still to be compared with the original.
+const PUSH_DECELERATION := 2 * SUBPIXEL
+## Upward speed when Keen lands on a Yorp's head and stuns it.
+const STOMP_BOUNCE_SPEED := 64 * SUBPIXEL
+## Ticks Keen stays frozen after an ice chunk hits him. Near the end he thaws.
+const FROZEN_TICKS := 250
+const THAW_TICKS := 20
+const FROZEN_FRAME_TICKS := 25
+
 # --- Sprites (numbers in the sprite table) ------------------------------------
 const SPRITE_WALK_RIGHT := 0
 const SPRITE_WALK_LEFT := 4
@@ -109,3 +120,6 @@ const SPRITE_SHOOT_RIGHT := 20
 const SPRITE_SHOOT_LEFT := 21
 const SPRITE_DEAD := 22
 const DEAD_FRAMES := 2
+const SPRITE_FROZEN := 28
+const FROZEN_FRAMES := 2
+const SPRITE_THAWING := 31

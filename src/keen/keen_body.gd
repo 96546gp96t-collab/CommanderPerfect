@@ -13,7 +13,8 @@ extends RefCounted
 ##   DYING            killed: lies still for a moment, then flies off the screen
 ## The pogo stick is a separate switch: with it out, Keen keeps bouncing.
 ## Firing the raygun is one too: Keen holds it out for a moment, and on the
-## ground he stands still meanwhile.
+## ground he stands still meanwhile. An ice chunk freezes him: for a while he
+## ignores all buttons, but still slides and falls.
 
 enum State { STANDING, CROUCHING, RISING, FALLING, POGO_COMPRESSED, DYING }
 
@@ -49,6 +50,9 @@ var _fire_was_held := false
 var _shoot_timer := 0
 var _first_bounce := false
 var _death_start_y := 0.0
+var _frozen_ticks := 0
+## Sideways speed of a push, on top of Keen's own movement.
+var _push_speed := 0.0
 
 
 static func create(level_collision: LevelCollision, start: Vector2) -> KeenBody:
@@ -68,6 +72,8 @@ func reset(start: Vector2) -> void:
 	death_finished = false
 	fired = false
 	_shoot_timer = 0
+	_frozen_ticks = 0
+	_push_speed = 0.0
 	_start_falling(0.0, KeenPhysics.LEDGE_FALL_ACCELERATION, false)
 
 
@@ -94,6 +100,36 @@ func kill() -> void:
 	velocity = Vector2(-facing * KeenPhysics.DIE_DRIFT_SPEED, -KeenPhysics.DIE_RISE_SPEED)
 
 
+func is_frozen() -> bool:
+	return _frozen_ticks > 0
+
+
+## Pushes Keen sideways with [param speed] (pixels per tick; negative is
+## left), for example when a robot walks into him. The push dies down by
+## itself; until then Keen cannot walk.
+func push(speed: float) -> void:
+	_push_speed = speed
+	velocity.x = 0.0
+
+
+## Makes Keen hop up from where he is, for example off a Yorp's head.
+func bounce(speed: float) -> void:
+	if not is_dead:
+		_launch(speed)
+
+
+## Freezes Keen in a block of ice and pushes him with [param push_speed].
+func freeze(push_speed: float) -> void:
+	if is_dead:
+		return
+	_frozen_ticks = KeenPhysics.FROZEN_TICKS
+	on_pogo = false
+	_shoot_timer = 0
+	velocity.x = push_speed
+	if state == State.CROUCHING or state == State.POGO_COMPRESSED:
+		_enter_ground_state(State.STANDING)
+
+
 ## Advances one tick with the buttons in [param input].
 func step(input: KeenInput) -> void:
 	fired = false
@@ -102,6 +138,12 @@ func step(input: KeenInput) -> void:
 		return
 	if is_dead:
 		return
+	if _frozen_ticks > 0:
+		_frozen_ticks -= 1
+		input = KeenInput.create(0)
+	elif _push_speed != 0.0:
+		input = KeenInput.create(0, input.jump, input.pogo, input.fire)
+	_apply_push()
 	_handle_fire_button(input)
 	_handle_pogo_button(input)
 	if is_shooting() and state == State.STANDING:
@@ -142,6 +184,8 @@ func sprite_index() -> int:
 			KeenPhysics.SPRITE_DEAD
 			+ (_timer / KeenPhysics.DIE_FRAME_TICKS) % KeenPhysics.DEAD_FRAMES
 		)
+	if is_frozen():
+		return _frozen_sprite()
 	if is_shooting():
 		return KeenPhysics.SPRITE_SHOOT_RIGHT if right else KeenPhysics.SPRITE_SHOOT_LEFT
 	if on_pogo:
@@ -149,6 +193,19 @@ func sprite_index() -> int:
 		return (
 			(KeenPhysics.SPRITE_POGO_RIGHT if right else KeenPhysics.SPRITE_POGO_LEFT) + compressed
 		)
+	return _moving_sprite()
+
+
+func _frozen_sprite() -> int:
+	if _frozen_ticks <= KeenPhysics.THAW_TICKS:
+		return KeenPhysics.SPRITE_THAWING
+	var frame := (_frozen_ticks / KeenPhysics.FROZEN_FRAME_TICKS) % KeenPhysics.FROZEN_FRAMES
+	return KeenPhysics.SPRITE_FROZEN + frame
+
+
+## Walking, standing, crouching or in the air.
+func _moving_sprite() -> int:
+	var right := facing > 0
 	var jump_sprite := KeenPhysics.SPRITE_JUMP_RIGHT if right else KeenPhysics.SPRITE_JUMP_LEFT
 	match state:
 		State.CROUCHING:
@@ -156,6 +213,16 @@ func sprite_index() -> int:
 		State.RISING, State.FALLING:
 			return jump_sprite + KeenPhysics.CROUCH_FRAMES
 	return (KeenPhysics.SPRITE_WALK_RIGHT if right else KeenPhysics.SPRITE_WALK_LEFT) + _walk_frame
+
+
+func _apply_push() -> void:
+	if _push_speed == 0.0:
+		return
+	var moved := collision.sweep_x(hitbox(), _push_speed)
+	position.x += moved
+	if moved != _push_speed:
+		_push_speed = 0.0
+	_push_speed = move_toward(_push_speed, 0.0, KeenPhysics.PUSH_DECELERATION)
 
 
 ## The fire button fires once per press, and not again until the raygun has

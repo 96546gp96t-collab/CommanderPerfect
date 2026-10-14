@@ -119,5 +119,22 @@ func test_every_door_has_a_keycard_of_its_color() -> void:
 			assert_true(card_colors.has(color), "keycard %d in level %d" % [color, number])
 
 
+## Every enemy must start inside the level, not stuck in a wall or floor
+## through which it would fall out.
+func test_enemies_start_in_a_valid_place() -> void:
+	var properties := TileProperties.load_from(GameFiles.locate(), 611)
+	for number in range(GameFiles.FIRST_LEVEL, GameFiles.LAST_LEVEL + 1):
+		var level := LevelData.parse(_level_file(number))
+		var start := Vector2(level.find_info(LevelData.PLAYER_START_INFO) * EgaGraphics.TILE_SIZE)
+		var session := LevelSession.create(level, properties, Inventory.new(), start, number)
+		for enemy in session.enemies():
+			enemy.is_active = true
+		for tick in KeenPhysics.TICKS_PER_SECOND:
+			for enemy in session.enemies():
+				enemy.step(session)
+		for enemy in session.enemies():
+			assert_true(not enemy.removed, "enemy fell out of level %d" % number)
+
+
 func _level_file(number: int) -> PackedByteArray:
 	return GameFiles.locate().read(GameFiles.level_file_name(number))

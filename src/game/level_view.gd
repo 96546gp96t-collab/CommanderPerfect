@@ -157,8 +157,15 @@ func _load_level() -> void:
 	_frame_camera()
 	var start := _start_cell()
 	if GameFiles.is_playable_level(_level_numbers[_level_index]):
-		_session = LevelSession.create(
-			_level, _properties, _inventory, Vector2(start * EgaGraphics.TILE_SIZE)
+		_session = (
+			LevelSession
+			. create(
+				_level,
+				_properties,
+				_inventory,
+				Vector2(start * EgaGraphics.TILE_SIZE),
+				_level_numbers[_level_index],
+			)
 		)
 		_session.tile_changed.connect(_level_map.set_tile)
 		_time_left = 0.0

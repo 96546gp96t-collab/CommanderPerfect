@@ -8,6 +8,8 @@ extends RefCounted
 ##   items    picked up: the tile is replaced by the background
 ##   doors    open when Keen has the keycard of their color, which is used up
 ##   exit     completes the level
+## Enemies start where the info layer of the level says (see
+## [constant ENEMY_INFOS]); their shots, and Keen's, are actors too.
 ## The attempt ends when Keen reaches the exit or when he has died (after
 ## the dying animation, or at once when he falls out of the level).
 
@@ -31,6 +33,25 @@ const POINTS: Dictionary[int, int] = {
 }
 ## Doors are solid, so Keen touches one when he stands this close to it.
 const DOOR_REACH := 1.0
+## Info layer values of the enemies in Keen 1. Ice cannons fire in the
+## direction given by their value.
+const INFO_YORP := 1
+const INFO_GARG := 2
+const INFO_VORTICON := 3
+const INFO_BUTLER := 4
+const INFO_TANK := 5
+const INFO_CHAIN := 10
+const ICE_CANNON_INFOS: Dictionary[int, Vector2i] = {
+	6: Vector2i(1, -1),
+	7: Vector2i(0, -1),
+	8: Vector2i(0, 1),
+	9: Vector2i(-1, -1),
+}
+## The Vorticon in this level is their commander.
+const COMMANDER_LEVEL := 16
+## Seed for the enemies' random choices, so that every attempt at a level
+## starts out the same (and the tests are repeatable).
+const RANDOM_SEED := 1990
 
 var level: LevelData
 var properties: TileProperties
@@ -39,22 +60,27 @@ var inventory: Inventory
 var keen: KeenBody
 var actors: Array[Actor] = []
 var outcome := Outcome.PLAYING
+var rng := RandomNumberGenerator.new()
 
 
 ## Starts an attempt at [param level_data] with Keen's sprite at [param start].
+## [param level_number] tells which enemies are special.
 static func create(
 	level_data: LevelData,
 	tile_properties: TileProperties,
 	keen_inventory: Inventory,
 	start: Vector2,
+	level_number := 0,
 ) -> LevelSession:
 	var session := LevelSession.new()
+	session.rng.seed = RANDOM_SEED
 	session.level = level_data
 	session.properties = tile_properties
 	session.collision = LevelCollision.create(level_data, tile_properties)
 	session.inventory = keen_inventory
 	session.keen = KeenBody.create(session.collision, start)
 	keen_inventory.enter_level()
+	session._spawn_enemies(level_number == COMMANDER_LEVEL)
 	return session
 
 
@@ -71,6 +97,7 @@ func step(input: KeenInput) -> void:
 	# Actors can add new actors while they step; those start next tick.
 	for actor in actors.duplicate():
 		actor.step(self)
+	_resolve_hits()
 	actors = actors.filter(func(actor: Actor) -> bool: return not actor.removed)
 	if keen.death_finished and outcome == Outcome.PLAYING:
 		inventory.lose_life()
@@ -79,6 +106,82 @@ func step(input: KeenInput) -> void:
 
 func add_actor(actor: Actor) -> void:
 	actors.append(actor)
+
+
+## The enemies of the level that are still around, dead or alive.
+func enemies() -> Array[Enemy]:
+	var result: Array[Enemy] = []
+	for actor in actors:
+		if actor is Enemy and not actor.removed:
+			result.append(actor)
+	return result
+
+
+## Kills everything in [param area], Keen included: the falling stone.
+func crush(area: Rect2) -> void:
+	for enemy in enemies():
+		if enemy.touches_keen() and enemy.hitbox().intersects(area):
+			enemy.die()
+	if keen.hitbox().intersects(area):
+		keen.kill()
+
+
+## Changes a tile of the level and lets the view know.
+func set_tile(cell: Vector2i, tile: int) -> void:
+	level.set_tile(cell, tile)
+	tile_changed.emit(cell, tile)
+
+
+func _spawn_enemies(has_commander: bool) -> void:
+	for y in level.height:
+		for x in level.width:
+			var start := Vector2(x, y) * EgaGraphics.TILE_SIZE
+			var enemy := _create_enemy(level.info_at(Vector2i(x, y)), start, has_commander)
+			if enemy != null:
+				add_actor(enemy)
+
+
+static func _create_enemy(info: int, start: Vector2, has_commander: bool) -> Enemy:
+	match info:
+		INFO_YORP:
+			return Yorp.create(start)
+		INFO_GARG:
+			return Garg.create(start)
+		INFO_VORTICON:
+			return Vorticon.create(start, has_commander)
+		INFO_BUTLER:
+			return ButlerRobot.create(start)
+		INFO_TANK:
+			return TankRobot.create(start)
+		INFO_CHAIN:
+			return StoneChain.create(start)
+	if ICE_CANNON_INFOS.has(info):
+		return IceCannon.create(start, ICE_CANNON_INFOS[info])
+	return null
+
+
+## Shots against enemies and Keen, and enemies against Keen.
+func _resolve_hits() -> void:
+	var targets := enemies()
+	for actor in actors:
+		var shot := actor as RaygunShot
+		if shot == null or not shot.is_flying():
+			continue
+		if not shot.from_keen:
+			if not keen.is_dead and shot.hitbox().intersects(keen.hitbox()):
+				keen.kill()
+				shot.splash()
+			continue
+		for enemy in targets:
+			if enemy.stops_shots() and shot.hitbox().intersects(enemy.hitbox()):
+				enemy.hit_by_shot(self)
+				shot.splash()
+				break
+	if keen.is_dead:
+		return
+	for enemy in targets:
+		if enemy.touches_keen() and enemy.hitbox().intersects(keen.hitbox()):
+			enemy.touch_keen(self)
 
 
 func _fire() -> void:
@@ -102,7 +205,7 @@ func _touch_tiles(box: Rect2) -> void:
 
 
 func _pick_up(cell: Vector2i, tile: int) -> void:
-	_set_tile(cell, HIGH_BACKGROUND_TILE if tile >= HIGH_TILES_START else BACKGROUND_TILE)
+	set_tile(cell, HIGH_BACKGROUND_TILE if tile >= HIGH_TILES_START else BACKGROUND_TILE)
 	var behavior := properties.behavior(tile)
 	var first_part := TileProperties.Behavior.SHIP_JOYSTICK
 	var first_card := TileProperties.Behavior.KEYCARD_YELLOW
@@ -129,7 +232,7 @@ func _open_door(cell: Vector2i) -> void:
 	var current := top
 	while _is_door_of_color(current, color):
 		door_tiles.append(level.tile_at(current))
-		_set_tile(current, BACKGROUND_TILE)
+		set_tile(current, BACKGROUND_TILE)
 		current += Vector2i.DOWN
 	inventory.keycards[color] = false
 	add_actor(OpeningDoor.create(top, door_tiles))
@@ -138,8 +241,3 @@ func _open_door(cell: Vector2i) -> void:
 func _is_door_of_color(cell: Vector2i, color: TileProperties.KeyColor) -> bool:
 	var tile := collision.tile_at(cell)
 	return properties.is_door(tile) and properties.door_color(tile) == color
-
-
-func _set_tile(cell: Vector2i, tile: int) -> void:
-	level.set_tile(cell, tile)
-	tile_changed.emit(cell, tile)
