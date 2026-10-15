@@ -14,6 +14,10 @@ extends SceneTree
 ##   up_KEY     release a key
 ##   shot_NAME  save the window as OUT/NAME.png
 ##   type_TEXT  type TEXT, one key per character (for names and addresses)
+##   mouse_X_Y  move the mouse to window pixel X, Y
+##   click_X_Y  move the mouse there and click the left button
+## SCENE picks another scene than the game screen, such as the start screen
+## (res://src/launcher/launcher.tscn).
 ## Key events are handled one frame after they are sent. Note that the game
 ## remembers settings, saved games and high scores in the user folder.
 
@@ -22,6 +26,8 @@ const HOLD_PREFIX := "hold_"
 const RELEASE_PREFIX := "up_"
 const SHOT_PREFIX := "shot_"
 const TYPE_PREFIX := "type_"
+const MOUSE_PREFIX := "mouse_"
+const CLICK_PREFIX := "click_"
 ## Characters whose key has a name of its own.
 const KEY_NAMES: Dictionary[String, String] = {".": "Period", ":": "Semicolon", "-": "Minus"}
 ## Prefixes for the left or right one of keys such as Shift.
@@ -46,8 +52,12 @@ func _initialize() -> void:
 		push_error("Set STEPS and OUT, see the comment at the top of this script.")
 		quit(1)
 		return
-	var scene: PackedScene = load(MAIN_SCENE)
-	root.add_child(scene.instantiate())
+	var scene_path := OS.get_environment("SCENE")
+	var scene: PackedScene = load(scene_path if not scene_path.is_empty() else MAIN_SCENE)
+	var node := scene.instantiate()
+	root.add_child(node)
+	# As the game itself does, so that changing scenes replaces this one.
+	current_scene = node
 
 
 func _process(_delta: float) -> bool:
@@ -62,6 +72,9 @@ func _do(action: String) -> void:
 	if action.begins_with(SHOT_PREFIX):
 		var path := _out.path_join(action.trim_prefix(SHOT_PREFIX) + ".png")
 		root.get_texture().get_image().save_png(path)
+		return
+	if action.begins_with(MOUSE_PREFIX) or action.begins_with(CLICK_PREFIX):
+		_mouse(action)
 		return
 	if action.begins_with(TYPE_PREFIX):
 		for character in action.trim_prefix(TYPE_PREFIX):
@@ -102,3 +115,23 @@ func _type(character: String) -> void:
 	var release: InputEventKey = event.duplicate()
 	release.pressed = false
 	Input.parse_input_event(release)
+
+
+## Moves the mouse to the place in [param action] (mouse_X_Y or
+## click_X_Y), and clicks for click_.
+func _mouse(action: String) -> void:
+	var parts := action.split("_")
+	var at := Vector2(parts[1].to_float(), parts[2].to_float())
+	var motion := InputEventMouseMotion.new()
+	motion.position = at
+	motion.global_position = at
+	Input.parse_input_event(motion)
+	if not action.begins_with(CLICK_PREFIX):
+		return
+	for pressed in [true, false]:
+		var button := InputEventMouseButton.new()
+		button.button_index = MOUSE_BUTTON_LEFT
+		button.position = at
+		button.global_position = at
+		button.pressed = pressed
+		Input.parse_input_event(button)

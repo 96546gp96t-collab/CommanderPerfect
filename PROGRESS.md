@@ -18,6 +18,7 @@ Wat elke mijlpaal precies inhoudt, staat in [docs/roadmap.md](docs/roadmap.md).
 | 7 | Hogere framerate (interpolatie), xBRZ met wisselknop, Real-ESRGAN-pipeline, Windows-build | ✅ Gemerged naar `main` (PR #7) |
 | 8 | Twee spelers op één toetsenbord, dynamisch split-screen | ✅ Gemerged naar `main` (PR #8) |
 | 9 | Online co-op: hosten en joinen via Steam of IP | 🔶 Gebouwd, speeltest door de gebruiker loopt (branch `milestone-9-online-coop`) |
+| 10 | Startscherm met een icoon per spel | 🔶 Gebouwd, bovenop mijlpaal 9 (branch `milestone-10-menu`) |
 
 ## Mijlpaal 1: wat er nu is
 
@@ -254,6 +255,44 @@ naar zijn titel met "The host has left the game". Steam kon hier niet
 getest worden (geen Steam in de cloud) en is ook in Together Around nog
 niet met twee echte accounts geprobeerd. De ping is niet beluisterd.
 
+## Mijlpaal 10: wat er nu is
+
+Afspraken met de gebruiker (15-10-2026): het spel begint altijd op een
+startscherm met het aangeleverde CommanderPerfect-plaatje, heel en zo groot
+als past, met daaronder een donkergrijze balk die altijd ruimte heeft
+(minstens 10% van de hoogte; op 16:9 wordt het plaatje iets kleiner met
+grijs ernaast). Rechtsonder een icoon per spel, nu alleen "Keen 1" (niet
+"Commander Keen", zie CLAUDE.md), met Keen uit de eigen speldata. Hover
+of kiezen met pijltjes/controller maakt het icoon iets donkerder; klik,
+Enter of A opent het bestaande hoofdmenu. Zonder speldata een grijs icoon
+met uitleg. "Quit to Title" blijft naar de Keen 1-titel gaan; nieuw in het
+hoofdmenu is "Choose Game" (terug naar het startscherm). Met `--level=N` of
+`--ending` wordt het startscherm overgeslagen.
+
+- `src/launcher/`: `Launcher` (de scène, nu de hoofdscène in
+  `project.godot`), `LauncherLayout` (waar plaatje, balk en iconen komen),
+  `GameIcon` (het icoon, getekend in icoonpixels en met een heel getal
+  vergroot), `GameCatalog` (de spellen; hier komen latere delen bij) en
+  `GameLaunch` (geeft door dat het hoofdmenu meteen open moet, en welke
+  opstartopties het startscherm overslaan).
+- Het plaatje staat in `assets/launcher/background.png` (eigen plaatje van
+  de gebruiker, mag in de repo).
+- Escape op het startscherm: "Press Escape again to quit"; nog een keer
+  Escape sluit het programma. Volledig scherm volgt de instelling van het
+  spel.
+- `tools/scripted_play.gd`: `SCENE=` voor een andere scène (zoals het
+  startscherm), `mouse_X_Y` en `click_X_Y`, en de scène wordt nu echt de
+  huidige scène (anders bleef bij wisselen de oude staan).
+- Tests: `test_launcher.gd` (indeling op 16:10 en 16:9, iconen rechtsonder,
+  donkerder onder de muis, grijs zonder bestanden, de uitleg, alleen
+  "Keen 1", het hoofdmenu één keer openen, opstartopties, "Choose Game").
+
+Getest met Godot 4.7.2 en de shareware-versie 1.1: alle tests slagen, gdlint
+is schoon, en met gescripte invoer zijn het startscherm (1280x800 en
+1600x900), hover en het pijltje, klik en Enter naar het hoofdmenu, "Choose
+Game" terug naar het startscherm en de Escape-melding via screenshots
+gecontroleerd.
+
 ## Bekende beperkingen
 
 - De natuurkunde-getallen zijn startwaarden (overgenomen van Commander Genius als documentatie, zie `docs/keen-physics.md`). Ze moeten nog naast het origineel (DOSBox) worden gelegd; de lijst met punten staat onderaan dat document.
@@ -286,17 +325,16 @@ niet met twee echte accounts geprobeerd. De ping is niet beluisterd.
 
 ## Volgende stap
 
-1. **Voor de gebruiker:** bouw de app (`tools/build_macos.sh`, en
-   `tools/build_windows.sh` voor een pc) en probeer online: eerst via IP op
-   het thuisnetwerk (Escape > Online Game > Host via IP op de ene computer,
-   Join via IP met het adres uit het venster op de andere), dan via Steam met
-   een vriend (Steam moet draaien). Let op: de vertraging van je eigen Keen
-   als je joint, de ping, de melding rechtsonder, de kaart, doodgaan en de
-   uitgang. Controleer ook of de Steam-bibliotheken goed in de `.app` en naast
-   de `.exe` komen (Godot zet ze er zelf bij). Als alles goed is: mergen naar
-   `main`.
-2. Mijlpaal 8 en 7: de open punten (xBRZ/vloeiende beweging bekijken,
-   Windows-build op een pc starten) staan nog.
+1. **Voor de gebruiker:** bouw de app (`tools/build_macos.sh`) en bekijk
+   het startscherm op de Mac (volledig scherm, hover, klikken, Choose Game).
+   Daarna verder met de speeltest van mijlpaal 9 (online, zie hieronder).
+   Mijlpaal 10 staat bovenop 9: eerst 9 mergen, dan 10.
+2. Mijlpaal 9: bouw ook `tools/build_windows.sh` en probeer online via IP
+   op het thuisnetwerk en via Steam met een vriend. Let op de vertraging van
+   je eigen Keen als je joint, de ping, de melding rechtsonder, de kaart,
+   doodgaan en de uitgang, en of de Steam-bibliotheken in de `.app` en naast
+   de `.exe` komen.
 3. Daarna: de openstaande punten (natuurkunde en vijanden naast DOSBox
-   leggen, de intro, de hulpregel in 4:3), eventueel voorspelling voor wie
-   online joint, en twee controllers voor twee spelers.
+   leggen, de intro, de hulpregel in 4:3, xBRZ/vloeiende beweging bekijken,
+   de Windows-build op een pc), eventueel voorspelling voor wie online
+   joint, en later de andere Keen-delen op het startscherm.

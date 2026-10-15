@@ -82,3 +82,10 @@ zoals het titelscherm.
   ander als hij uit beeld is. Alleen de host loopt op de wereldkaart.
 - Lokaal spelen (alleen en met twee op één toetsenbord) blijft zoals het
   was. Zie [online.md](online.md).
+
+## 10. Startscherm
+
+- Het spel begint altijd op een startscherm met het CommanderPerfect-plaatje
+  en rechtsonder een icoon per spel (voor nu Keen 1). Klikken opent het
+  hoofdmenu van dat spel; "Choose Game" in het hoofdmenu gaat terug.
+- Later komen daar de andere delen bij.

@@ -6,6 +6,19 @@ the spinning ball of the font (characters 9-15) as the cursor.
 
 ## From start to finish
 
+0. **Start screen.** CommanderPerfect always starts here (`Launcher`, in
+   `src/launcher/`): the CommanderPerfect picture, whole and as large as
+   fits, with a dark gray bar below it. In the bottom right of the bar is an
+   icon for each game (`GameCatalog`); for now only **Keen 1**: a light
+   panel with Keen from the player's own graphics and "Keen 1" in the game's
+   font (nothing of the original graphics is in the repository). The bar
+   is always at least a tenth of the screen high, so on a 16:9 screen the
+   picture is a little smaller, with dark gray beside it. Under the mouse,
+   or chosen with the arrow keys or the controller, an icon is a little
+   darker; a click, Enter or A starts the game with its main menu open.
+   Without the game's files the icon is gray and a click says where the
+   files go. Escape twice closes the program. With `-- --level=N` or
+   `-- --ending` on the command line (for testing) Keen 1 starts at once.
 1. **Title.** Keen next to his ship (a screen of map 90, see
    [file-formats.md](file-formats.md)) with the `TITLE` bitmap above. Left
    alone, the title and the high scores take turns every 8 seconds. Any key
@@ -32,7 +45,8 @@ the spinning ball of the font (characters 9-15) as the cursor.
 | High Scores | The table |
 | Controls | Three sets of keys: "One player", and "Two players: player 1" and "player 2". Pick an action, then press its new key. The new key replaces the first key of the action; a key belongs to one action only among the keys used at the same time (one player's keys and two players' keys may overlap; Status is in both). Left and right Shift, Alt and Ctrl count as different keys. Escape and F1-F7 cannot be used. "Reset to defaults" puts all keys back |
 | Options | Sound, widescreen, 4:3 pixels, full screen and smooth motion on or off; graphics original, xBRZ or HD (HD only once the player has made it, see [graphics.md](graphics.md)) |
-| Quit to Title | Only during a game |
+| Quit to Title | Only during a game: back to the Keen 1 title |
+| Choose Game | Back to the start screen, to choose another game |
 | Quit | Closes the program |
 
 Escape goes back one menu. The controller can use the menus too (d-pad,

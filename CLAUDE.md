@@ -44,6 +44,7 @@ src/keen/      Keen: movement physics, input, sprite
 src/actors/    Everything else that moves: enemies, shots, opening doors
 src/map/       The world map: Keen walking, level entrances, teleporters
 src/sound/     PC speaker sounds: synthesis and playback
+src/launcher/  The start screen: the CommanderPerfect picture and an icon per game
 src/menu/      Menus: main menu, save slots, controls, options, name entry, online
 src/online/    Playing online: ENet/Steam transports, the join handshake, snapshots
 src/game/      Game screen (main scene), LevelSession, Inventory, the ending, title and
@@ -55,6 +56,7 @@ tools/         Command-line tools (graphics export, shareware diskette extractio
 docs/          File formats, Keen's physics, enemies and items, the world map, sounds,
                menus, graphics (xBRZ, HD, smooth motion), two players, online
 addons/        GodotSteam (Steam for online play; macOS and Windows libraries only)
+assets/        Our own pictures (the start screen); never anything from the game files
 game_data/     The player's own game files (ignored by git)
 ```
 

@@ -12,7 +12,7 @@ config_version=5
 
 config/name="CommanderPerfect"
 config/description="A fan-made engine that plays Keen 1 with modern graphics options."
-run/main_scene="res://src/game/level_view.tscn"
+run/main_scene="res://src/launcher/launcher.tscn"
 config/features=PackedStringArray("4.7", "GL Compatibility")
 config/icon="res://icon.svg"
 
