@@ -70,6 +70,15 @@ zoals het titelscherm.
   pijltjes), op elk moment in of uit te stappen.
 - Dynamisch split-screen: samen één scherm, ver uit elkaar twee helften met
   een donkere lijn en een pijltje naar de ander.
-- Later eventueel online. Dan is wel een pijltje nodig dat naar de andere
-  speler wijst, want elke speler ziet alleen zijn eigen scherm (zie
-  [two-players.md](two-players.md#later-online)).
+- Online: zie mijlpaal 9.
+
+## 9. Online co-op
+
+- Hosten via Steam (alleen vrienden) of via IP (UDP-poort 24800, dezelfde
+  als Together Around), joinen via de lijst van Steam-vrienden of een adres.
+- De host speelt het spel; wie joint stuurt zijn toetsen en ziet wat de host
+  stuurt. Zijn Keen verschijnt altijd naast die van de host.
+- Een ping en "... joined" rechtsonder bij de host; een pijltje naar de
+  ander als hij uit beeld is. Alleen de host loopt op de wereldkaart.
+- Lokaal spelen (alleen en met twee op één toetsenbord) blijft zoals het
+  was. Zie [online.md](online.md).

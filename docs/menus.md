@@ -23,9 +23,10 @@ the spinning ball of the font (characters 9-15) as the cursor.
 | Choice | What it does |
 |---|---|
 | Return to Game | Only during a game: closes the menu |
-| Add Player 2 / Remove Player 2 | Only during a game: a second player joins or leaves (the same as F7), see [two-players.md](two-players.md) |
+| Add Player 2 / Remove Player 2 | Only during a game, not online: a second player joins or leaves (the same as F7), see [two-players.md](two-players.md) |
 | New Game | Starts at the world map with 4 lives |
 | Continue Game | Picks one of the 9 saved games (also with the keys 1-9) |
+| Online Game | Host or join a game over the network, by IP or through Steam; while hosting, how others can join and Stop Hosting. See [online.md](online.md) |
 | Save Game | Only during a game, and only on the world map (like the original). A taken position asks before it is overwritten |
 | Story | `STORYTXT.CK1`; up/down and Page Up/Page Down scroll |
 | High Scores | The table |
@@ -36,6 +37,10 @@ the spinning ball of the font (characters 9-15) as the cursor.
 
 Escape goes back one menu. The controller can use the menus too (d-pad,
 A to pick, B to go back).
+
+The player who joined someone's online game has a menu of his own: Return
+to Game, Leave Game, Story, Controls, Options and Quit. Online the game does
+not stand still behind the menu.
 
 ## The line with the keys
 
@@ -59,7 +64,7 @@ Everything is kept in the user folder of Godot; on the Mac that is
 
 | File | Contents |
 |---|---|
-| `settings.cfg` | Full screen, widescreen, 4:3 pixels, graphics, smooth motion, sound, and the keys |
+| `settings.cfg` | Full screen, widescreen, 4:3 pixels, graphics, smooth motion, sound, the keys, and for playing online your name and the last address you joined |
 | `saves/slotN.json` | Saved game N: score, lives, raygun charges, pogo stick, ship parts, completed levels and Keen's place on the map |
 | `high_scores.json` | The high score table |
 

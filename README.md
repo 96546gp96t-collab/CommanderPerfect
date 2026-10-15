@@ -119,6 +119,16 @@ when one of them dies, and complete when one of them walks out.
 These keys have their own pages in Controls. See
 [docs/two-players.md](docs/two-players.md).
 
+### Playing online
+
+One player hosts, the other joins: Escape (or a key at the title) > Online
+Game. Host through Steam (only your Steam friends see the game) or by IP
+(UDP port 24800; over the internet the host forwards that port on his
+router), and join from the list of your friends' games or by typing the
+host's address. The Keen of whoever joins appears next to the host's;
+each plays on his own screen, and only the host walks on the world map.
+See [docs/online.md](docs/online.md).
+
 Cheats, for testing:
 
 | Keys | Cheat |

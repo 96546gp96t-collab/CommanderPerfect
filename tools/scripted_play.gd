@@ -13,6 +13,7 @@ extends SceneTree
 ##   hold_KEY   press a key and keep it down
 ##   up_KEY     release a key
 ##   shot_NAME  save the window as OUT/NAME.png
+##   type_TEXT  type TEXT, one key per character (for names and addresses)
 ## Key events are handled one frame after they are sent. Note that the game
 ## remembers settings, saved games and high scores in the user folder.
 
@@ -20,6 +21,9 @@ const MAIN_SCENE := "res://src/game/level_view.tscn"
 const HOLD_PREFIX := "hold_"
 const RELEASE_PREFIX := "up_"
 const SHOT_PREFIX := "shot_"
+const TYPE_PREFIX := "type_"
+## Characters whose key has a name of its own.
+const KEY_NAMES: Dictionary[String, String] = {".": "Period", ":": "Semicolon", "-": "Minus"}
 ## Prefixes for the left or right one of keys such as Shift.
 const SIDES: Dictionary[String, KeyLocation] = {
 	"Left": KEY_LOCATION_LEFT, "Right": KEY_LOCATION_RIGHT
@@ -59,6 +63,10 @@ func _do(action: String) -> void:
 		var path := _out.path_join(action.trim_prefix(SHOT_PREFIX) + ".png")
 		root.get_texture().get_image().save_png(path)
 		return
+	if action.begins_with(TYPE_PREFIX):
+		for character in action.trim_prefix(TYPE_PREFIX):
+			_type(character)
+		return
 	var key_name := action.trim_prefix(HOLD_PREFIX).trim_prefix(RELEASE_PREFIX)
 	var event := InputEventKey.new()
 	for side: String in SIDES:
@@ -79,3 +87,18 @@ func _do(action: String) -> void:
 		var release: InputEventKey = event.duplicate()
 		release.pressed = false
 		Input.parse_input_event(release)
+
+
+## Presses and releases the key for [param character], with its text.
+func _type(character: String) -> void:
+	var event := InputEventKey.new()
+	event.physical_keycode = OS.find_keycode_from_string(
+		KEY_NAMES.get(character, character.to_upper())
+	)
+	event.keycode = event.physical_keycode
+	event.unicode = character.unicode_at(0)
+	event.pressed = true
+	Input.parse_input_event(event)
+	var release: InputEventKey = event.duplicate()
+	release.pressed = false
+	Input.parse_input_event(release)

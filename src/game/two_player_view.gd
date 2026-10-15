@@ -10,6 +10,11 @@ extends Node
 ## with a dark line between the halves. World2 only draws while the screen
 ## is split.
 ##
+## Online the second Keen is the player who joined. He sees his own screen,
+## so the host's screen does not split: his Keen is only drawn there. And
+## the player who joined draws his own Keen here, from what the host sends
+## ([method show_remote]).
+##
 ## The nodes it uses are in the scene of [LevelView].
 
 const PLAYER_COLORS_SHADER := preload("res://src/graphics/player_colors.gdshader")
@@ -21,6 +26,10 @@ const PLAYER_2_HUE_SHIFT := 0.5
 var split := SplitScreen.new()
 ## The level the second player plays in; null when he does not.
 var _session: LevelSession
+## Whether the screen splits when the two move apart: not online.
+var _splits := true
+## Whether the Keen shown is one the host sent (for the player who joined).
+var _remote := false
 
 @onready var _world: SubViewport = %World
 @onready var _world_2: SubViewport = %World2
@@ -59,14 +68,47 @@ func is_active() -> bool:
 	return _session != null
 
 
+## Whether two play on this screen, which splits when they move apart.
+func is_split_screen() -> bool:
+	return _session != null and _splits
+
+
+## Shows the Keen of the player who joined as the host sent it: [param keen].
+func show_remote(keen: Snapshot.Figure) -> void:
+	_keen_2.show_frame(keen.position, keen.sprite, keen.width)
+	if not _remote:
+		_keen_2.snap()
+	_remote = true
+	_keen_2.visible = true
+
+
+func hide_remote() -> void:
+	_remote = false
+	_keen_2.visible = false
+
+
+## The middle of player 2's Keen where it is drawn now.
+func keen_center() -> Vector2:
+	return _middle_of(_keen_2)
+
+
+## Whether player 2's Keen is shown from what the host sent.
+func is_remote() -> bool:
+	return _remote
+
+
 ## The second player joins [param session]: his Keen appears with its
 ## sprite at [param at], and both cameras start at [param view_center].
-func start(session: LevelSession, at: Vector2, view_center: Vector2) -> void:
+## Without [param splits] (online) the screen stays one view of player 1.
+func start(session: LevelSession, at: Vector2, view_center: Vector2, splits := true) -> void:
 	_session = session
+	_splits = splits
 	var body := session.add_player(at)
 	_keen_2.show_body(body)
 	_keen_2.snap()
 	_keen_2.visible = true
+	if not splits:
+		return
 	split.reset(view_center)
 	_camera.follow_exactly(true)
 	update(0.0)
@@ -78,6 +120,8 @@ func stop() -> void:
 	if _session != null and _session.keens.size() > 1:
 		_session.remove_player(_session.keens[1])
 	_session = null
+	_splits = true
+	_remote = false
 	_keen_2.visible = false
 	_split_view.visible = false
 	_world_2.render_target_update_mode = SubViewport.UPDATE_DISABLED
@@ -97,7 +141,7 @@ func place(blend: float, smooth: bool) -> void:
 
 ## Hides or shows player 2's Keen together with player 1's.
 func set_keen_visible(shown: bool) -> void:
-	_keen_2.visible = shown and _session != null
+	_keen_2.visible = shown and (_session != null or _remote)
 
 
 ## What each player sees, in level pixels.
@@ -119,7 +163,7 @@ func frame(area: Rect2i, view_size: Vector2i) -> void:
 ## Moves the two cameras after [param delta] seconds, and shows the second
 ## half of the screen while the players are far apart.
 func update(delta: float) -> void:
-	if _session == null:
+	if _session == null or not _splits:
 		return
 	var keens := _session.keens
 	var centers: Array[Vector2] = [_middle_of(_keen), _middle_of(_keen_2)]

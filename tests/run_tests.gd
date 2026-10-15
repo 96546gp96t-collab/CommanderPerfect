@@ -20,6 +20,9 @@ const SUITES: Array[Script] = [
 	preload("res://tests/test_graphics.gd"),
 	preload("res://tests/test_two_players.gd"),
 	preload("res://tests/test_split_screen.gd"),
+	preload("res://tests/test_online_session.gd"),
+	preload("res://tests/test_online_sync.gd"),
+	preload("res://tests/test_online_menus.gd"),
 	preload("res://tests/test_keen1_data.gd"),
 	preload("res://tests/test_keen1_extras.gd"),
 ]

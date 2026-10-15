@@ -150,6 +150,19 @@ func test_settings_survive_a_round_trip() -> void:
 	KeyBindings.reset()
 
 
+func test_online_name_and_address_are_remembered() -> void:
+	var path := _path("online.cfg")
+	DirAccess.remove_absolute(ProjectSettings.globalize_path(path))
+	var settings := UserSettings.load_from(path)
+	assert_equal(settings.online_name, "", "no name until the player types one")
+	settings.online_name = "Billy"
+	settings.online_address = "10.0.0.7"
+	assert_true(settings.save(), "saved")
+	var loaded := UserSettings.load_from(path)
+	assert_equal(loaded.online_name, "Billy", "name")
+	assert_equal(loaded.online_address, "10.0.0.7", "address")
+
+
 func _path(file_name: String) -> String:
 	return TEST_DIRECTORY.path_join(file_name)
 

@@ -1,4 +1,4 @@
-extends Control
+extends GameScreen
 ## The game screen: the whole of Keen 1, from the title to the end.
 ##
 ##   title        the title over Keen's ship; any key opens the main menu.
@@ -22,6 +22,13 @@ extends Control
 ## alone, steered by the keys of both. When the two move apart the screen
 ## splits in two ([TwoPlayerView]).
 ##
+## Two can also play online ([OnlinePlay], docs/online.md): one hosts, by IP
+## or through Steam, and runs the game as always, with the Keen of the
+## player who joins as player 2 (next to the host's Keen, on one screen of
+## his own). The player who joins sees the host's game in the REMOTE mode:
+## the host's map or level, drawn from what the host sends. Online nothing
+## pauses: menus and windows are each player's own.
+##
 ## Escape opens the menu ([MenuController]); Enter shows the status screen;
 ## the statues and the ship show messages. While a menu or such a
 ## [GameWindow] is open the game is paused. For testing there are cheats:
@@ -36,11 +43,13 @@ extends Control
 ## window with every game pixel the same size, see [DisplaySettings] and
 ## docs/graphics.md. F5 switches the graphics, F6 smooth motion.
 ##
+## What is on the screen and how it is drawn (the picture, the graphics,
+## the status line, the HUD and the windows) is in [GameScreen]; this is
+## what happens in the game.
+##
 ## Command-line options: [code]-- --level=N[/code] starts in level N
 ## (80 is the world map) instead of at the title; [code]-- --ending[/code]
 ## shows the ending straight away.
-
-enum Mode { NONE, TITLE, HIGH_SCORES, MAP, LEVEL, GAME_OVER, ENDING, LOOK }
 
 const LEVEL_OPTION := "--level="
 const ENDING_OPTION := "--ending"
@@ -52,55 +61,27 @@ const GAME_OVER_SECONDS := 4.0
 const GAME_OVER_BITMAP := "GAMEOVER"
 ## The GAMEOVER bitmap is 112x24 pixels: 14x3 cells of the window.
 const GAME_OVER_CELLS := Vector2i(14, 3)
-## Seconds a message such as "Level 3 completed!" stays on the screen.
-const MESSAGE_SECONDS := 3.0
 ## Seconds the "Keens Left" window stays open, unless a button closes it.
 const LIVES_SECONDS := 3.0
-## The largest number of screen pixels per game pixel that the World
-## viewport uses.
-const MAX_RENDER_SCALE := 8
-const EVEN_PIXELS_SHADER := preload("res://src/graphics/even_pixels.gdshader")
-const GRAPHICS_TITLES := StatusLine.GRAPHICS_TITLES
-const MISSING_HD_MESSAGE := "No HD graphics yet: make them with tools/make_hd_graphics.sh"
+## Online nothing pauses, so the other windows of the game close by
+## themselves after this many seconds too (or with a button).
+const ONLINE_WINDOW_SECONDS := 6.0
+const ONLY_HOST_WALKS_MESSAGE := "Only the host can walk on the world map"
 const MISSING_DATA_MESSAGE := (
 	"Keen 1 data not found. Put the files in game_data/keen1 "
 	+ "(see game_data/README.md) or start with: -- --data-dir=PATH"
 )
 
-var _mode := Mode.NONE
 var _files: GameFiles
-var _graphics: EgaGraphics
 var _properties: TileProperties
 var _level_numbers := PackedInt32Array()
-## The map or level on the screen, and its data.
-var _level_number := 0
-var _level: LevelData
-var _user_settings := UserSettings.new()
-var _settings := _user_settings.display
-var _progress := GameProgress.new()
 var _session: LevelSession
 var _map_session: MapSession
-var _ending: EndingSequence
 var _time_left := 0.0
-## Shown below the status for [constant MESSAGE_SECONDS].
-var _message := ""
-var _message_time_left := 0.0
-## Counts down while the "Keens Left" window is open.
-var _lives_time_left := 0.0
-## Whether jump, pogo or fire close the open window (the map messages);
-## otherwise only Enter does.
-var _buttons_close_window := false
 ## The statue messages and the texts of the ending; null when they could
 ## not be read.
 var _hints: HintTexts
 var _ending_texts: EndingTexts
-var _god_mode := false
-var _sounds := SoundPlayer.new()
-var _menus := MenuController.new()
-var _textures: GraphicsTextures
-var _graphics_loader: GraphicsLoader
-## The picture of Keen's house; null when FINALE.CK1 could not be read.
-var _finale_image: Image
 var _saves := SaveGames.new()
 var _high_scores := HighScores.new()
 ## The words for the places in the high score table; null when not found.
@@ -109,30 +90,8 @@ var _score_texts: ScoreTexts
 var _pending_place := -1
 ## Counts down on the title and high score screens, and after game over.
 var _screen_time_left := 0.0
-## Whether the line with the keys is shown while playing; hidden until F1
-## asks for it.
-var _show_help := false
 ## Whether a second player plays along in the levels.
 var _two_players := false
-
-@onready var _screen: TextureRect = %Screen
-@onready var _world: SubViewport = %World
-@onready var _level_map: LevelMap = %LevelMap
-@onready var _free_look: FreeLook = %FreeLook
-@onready var _keen: Keen = %Keen
-@onready var _mark: SpriteView = %Mark
-@onready var _actor_layer: ActorLayer = %ActorLayer
-@onready var _camera: LevelCamera = %Camera
-@onready var _camera_anchor: Node2D = %CameraAnchor
-@onready var _world_2: SubViewport = %World2
-@onready var _second_player: TwoPlayerView = %TwoPlayers
-@onready var _pictures: PictureLayer = %Pictures
-@onready var _hud: Hud = %Hud
-@onready var _picture: Sprite2D = %Picture
-@onready var _window_light: Sprite2D = %WindowLight
-@onready var _window: GameWindow = %Window
-@onready var _status_label: Label = %StatusLabel
-@onready var _help_label: Label = %HelpLabel
 
 
 func _ready() -> void:
@@ -147,6 +106,7 @@ func _ready() -> void:
 	_menus.settings_changed.connect(_on_settings_changed)
 	_menus.name_entered.connect(_on_name_entered)
 	add_child(_menus)
+	_connect_online()
 	_apply_window_mode()
 	resized.connect(_fit_screen)
 	_screen.texture = _world.get_texture()
@@ -181,6 +141,9 @@ func _ready() -> void:
 	_window.set_textures(_textures)
 	_pictures.set_textures(_textures)
 	_hud.set_textures(_textures)
+	_online.set_textures(_textures)
+	_online.files = _files
+	_online.fingerprint = LevelFingerprint.of(_files)
 	_load_texts()
 	_finale_image = FinaleImage.load_from(_files)
 	_graphics_loader = GraphicsLoader.create(_files, _graphics, _finale_image)
@@ -216,22 +179,30 @@ func _load_texts() -> void:
 func _exit_tree() -> void:
 	if _graphics_loader != null:
 		_graphics_loader.finish()
+	_online.leave()
 
 
 func _process(delta: float) -> void:
 	_message_time_left -= delta
 	if _graphics_loader != null and _graphics_loader.poll():
 		_apply_graphics()
-	if _menus.is_open():
+	if _menus.is_open() and not _plays_on_behind_menu():
 		_update_status()
 		return
-	_count_down_lives_window(delta)
+	_count_down_window(delta)
 	_count_down_screen(delta)
-	if _mode == Mode.ENDING or (_mode in [Mode.MAP, Mode.LEVEL] and not _window.visible):
+	var window_pauses := _window.visible and not _online.is_together()
+	if _mode == Mode.ENDING or (_mode in [Mode.MAP, Mode.LEVEL, Mode.REMOTE] and not window_pauses):
 		_play(delta)
 	_second_player.update(delta)
 	_move_camera_anchor()
+	_point_arrow()
 	_update_status()
+
+
+## Online nothing pauses: the game goes on behind a menu.
+func _plays_on_behind_menu() -> bool:
+	return _online.is_together() and _mode in [Mode.MAP, Mode.LEVEL, Mode.REMOTE]
 
 
 ## Runs the ticks for [param delta] seconds and shows the result.
@@ -247,36 +218,33 @@ func _play(delta: float) -> void:
 	_place_sprites(_time_left / KeenPhysics.TICK)
 
 
-## Puts the sprites [param blend] of the way from the previous tick to the
-## last one, when motion is smooth; otherwise on the last one.
-func _place_sprites(blend: float) -> void:
-	var smooth := _settings.smooth_motion
-	_keen.place(blend, smooth)
-	_second_player.place(blend, smooth)
-	_mark.place(blend, smooth)
-	_actor_layer.place(blend, smooth)
-
-
 ## What the players see in the level, for waking up the enemies.
 func _view_rects() -> Array[Rect2]:
-	if _second_player.is_active():
+	if _second_player.is_split_screen():
 		return _second_player.view_rects()
-	var view_size := Vector2(_settings.game_size())
-	return [Rect2(_camera.get_screen_center_position() - view_size / 2.0, view_size)]
+	var rects: Array[Rect2] = [_own_view()]
+	var partner_view := _online.partner_view()
+	if partner_view.has_area():
+		rects.append(partner_view)
+	return rects
 
 
 ## One tick of whatever is going on.
 func _tick() -> void:
 	match _mode:
 		Mode.LEVEL:
-			if _second_player.is_active():
+			if _second_player.is_split_screen():
 				_session.step_players([KeenInput.for_player(0), KeenInput.for_player(1)])
+			elif _second_player.is_active():
+				_session.step_players([_local_input(), _online.partner_input()])
 			else:
-				_session.step(KeenInput.from_actions())
+				_session.step(_local_input())
+			_online.send_level(_session, _progress.inventory)
 			if _session.outcome != LevelSession.Outcome.PLAYING:
 				_on_level_over(_session.outcome)
 		Mode.MAP:
 			_map_session.step(_map_input())
+			_online.send_map(_map_session.keen, _progress.inventory)
 			if _map_session.outcome == MapSession.Outcome.ENTER_LEVEL:
 				_go_to(_map_session.chosen_level)
 		Mode.ENDING:
@@ -284,12 +252,24 @@ func _tick() -> void:
 			_ending.step(input.jump or input.pogo or input.fire, input.vertical)
 			if _ending.is_finished():
 				_finish_game()
+		Mode.REMOTE:
+			var snapshot := _online.client_tick(_local_input(), _own_view())
+			if snapshot != null:
+				_show_remote(snapshot)
+
+
+## The buttons of this player, playing alone or online. Online the game
+## goes on behind a menu; the keys are the menu's then.
+func _local_input() -> KeenInput:
+	if _menus.is_open():
+		return KeenInput.new()
+	return KeenInput.from_actions()
 
 
 ## The buttons for the world map and the ending, where player 1 is alone:
 ## when two play, the keys of both steer him.
 func _map_input() -> KeenInput:
-	var input := KeenInput.from_actions()
+	var input := _local_input()
 	if _two_players:
 		input = KeenInput.combine([input, KeenInput.for_player(0), KeenInput.for_player(1)])
 	return input
@@ -334,49 +314,23 @@ func _unhandled_input(event: InputEvent) -> void:
 	get_viewport().set_input_as_handled()
 
 
-## F1-F6: the help line, widescreen, the shape of the pixels, full screen,
-## the graphics and smooth motion. Returns whether [param event] was one of
-## them.
-func _handle_display_keys(event: InputEvent) -> bool:
-	if event.is_action_pressed("toggle_fullscreen"):
-		_user_settings.fullscreen = not _is_fullscreen()
-		_apply_window_mode()
-	elif event.is_action_pressed("toggle_widescreen"):
-		_settings.aspect = (
-			DisplaySettings.Aspect.WIDESCREEN
-			if _settings.aspect == DisplaySettings.Aspect.ORIGINAL
-			else DisplaySettings.Aspect.ORIGINAL
-		)
-	elif event.is_action_pressed("toggle_pixel_aspect"):
-		_settings.correct_pixel_aspect = not _settings.correct_pixel_aspect
-	elif event.is_action_pressed("toggle_graphics"):
-		_settings.graphics = MenuController.next_graphics(_settings.graphics, _menus.hd_available)
-		_show_message(GRAPHICS_TITLES[_settings.graphics])
-		_apply_graphics()
-	elif event.is_action_pressed("toggle_smooth_motion"):
-		_settings.smooth_motion = not _settings.smooth_motion
-		_show_message("Smooth motion " + ("on" if _settings.smooth_motion else "off"))
-	elif event.is_action_pressed("toggle_help"):
-		_show_help = not _show_help
-		return true
-	else:
-		return false
-	_apply_display_settings()
-	_user_settings.save()
-	return true
-
-
 ## Keys while the game is being played.
 func _handle_game_input(event: InputEvent) -> void:
 	if event.is_action_pressed("status"):
 		_on_enter_pressed()
 	elif _window.visible and _buttons_close_window and _is_button(event):
 		_close_window()
+	elif _mode == Mode.REMOTE or _joined_online:
+		_handle_joined_input(event)
+		return
 	elif event.is_action_pressed("cheat_items"):
 		_progress.inventory.give_everything()
 		_show_message("Cheat: all keycards, the pogo stick and a full raygun")
 	elif event.is_action_pressed("toggle_second_player"):
-		_toggle_second_player()
+		if _online.is_active():
+			_show_message("Not while playing online")
+		else:
+			_toggle_second_player()
 	elif event.is_action_pressed("cheat_god"):
 		_god_mode = not _god_mode
 		if _session != null:
@@ -389,6 +343,18 @@ func _handle_game_input(event: InputEvent) -> void:
 	else:
 		return
 	get_viewport().set_input_as_handled()
+
+
+## Keys of the player who joined someone's game: no cheats, and on the
+## world map only the host walks.
+func _handle_joined_input(event: InputEvent) -> void:
+	if _mode != Mode.REMOTE or _remote.kind != OnlineMessages.Scene.MAP:
+		return
+	for action in ["move_left", "move_right", "move_up", "move_down", "jump", "pogo", "fire"]:
+		if event.is_action_pressed(action):
+			_show_message(ONLY_HOST_WALKS_MESSAGE)
+			get_viewport().set_input_as_handled()
+			return
 
 
 ## A key or button that was just pressed (not held, not the mouse).
@@ -415,22 +381,8 @@ func _on_enter_pressed() -> void:
 		_ending.confirm()
 	elif _window.visible:
 		_close_window()
-	elif _mode in [Mode.MAP, Mode.LEVEL]:
+	elif _mode in [Mode.MAP, Mode.LEVEL, Mode.REMOTE]:
 		StatusScreen.fill(_window, _progress.inventory, _god_mode)
-
-
-func _close_window() -> void:
-	_window.close()
-	_lives_time_left = 0.0
-	_buttons_close_window = false
-
-
-func _count_down_lives_window(delta: float) -> void:
-	if _lives_time_left <= 0.0:
-		return
-	_lives_time_left -= delta
-	if _lives_time_left <= 0.0:
-		_close_window()
 
 
 func _on_hint_touched() -> void:
@@ -439,16 +391,36 @@ func _on_hint_touched() -> void:
 	var lines := _hints.for_level(_level_number)
 	if lines.is_empty():
 		return
+	_online.send_event(OnlineMessages.Event.HINT, _level_number)
+	if _menus.is_open():
+		return
 	lines.append_array(["", HintTexts.PROMPT])
 	_window.show_lines(lines)
+	_close_by_itself_online()
+
+
+## Online nothing pauses, so a window of the game closes by itself (or
+## with a button).
+func _close_by_itself_online() -> void:
+	if _online.is_together():
+		_window_time_left = ONLINE_WINDOW_SECONDS
+		_buttons_close_window = true
 
 
 func _on_ship_used() -> void:
 	if _progress.inventory.has_all_ship_parts():
 		_start_ending()
 	elif _ending_texts != null:
-		MapMessages.show_missing_parts(_window, _ending_texts.missing_parts, _progress.inventory)
-		_buttons_close_window = true
+		_online.send_event(OnlineMessages.Event.SHIP_MISSING, 0)
+		_show_missing_parts()
+
+
+func _show_missing_parts() -> void:
+	if _ending_texts == null or _menus.is_open():
+		return
+	MapMessages.show_missing_parts(_window, _ending_texts.missing_parts, _progress.inventory)
+	_buttons_close_window = true
+	_close_by_itself_online()
 
 
 ## The level asked for on the command line, or 0 to start at the title.
@@ -461,9 +433,14 @@ func _requested_level() -> int:
 
 func _open_menu() -> void:
 	_close_window()
-	var in_game := _mode in [Mode.MAP, Mode.LEVEL, Mode.LOOK, Mode.ENDING]
+	var in_game := _mode in [Mode.MAP, Mode.LEVEL, Mode.LOOK, Mode.ENDING, Mode.REMOTE]
+	_open_main_menu(in_game, _can_save())
+
+
+func _open_main_menu(in_game: bool, can_save: bool) -> void:
 	_user_settings.fullscreen = _is_fullscreen()
-	_menus.open_main(in_game, _can_save(), _two_players)
+	_menus.online = _online.menu_info()
+	_menus.open_main(in_game, can_save, _two_players)
 
 
 ## Saving is only possible while Keen stands still on the world map.
@@ -493,6 +470,12 @@ func _on_menu_chosen(id: StringName, slot: int) -> void:
 			_show_title()
 		MenuController.CHOICE_QUIT:
 			get_tree().quit()
+		MenuController.CHOICE_LEAVE_ONLINE:
+			_leave_online()
+		_:
+			if id == MenuController.CHOICE_HOST and _two_players:
+				_toggle_second_player()
+			_online.handle_choice(id, slot)
 
 
 func _load_game(slot: int) -> void:
@@ -503,73 +486,6 @@ func _load_game(slot: int) -> void:
 	_progress = game
 	_god_mode = false
 	_enter_map(true)
-
-
-func _on_settings_changed() -> void:
-	_sounds.set_enabled(_user_settings.sound_enabled)
-	_apply_window_mode()
-	_apply_graphics()
-	_apply_display_settings()
-
-
-## Switches to the graphics the settings ask for. xBRZ and HD graphics are
-## made on a worker thread the first time; until they are ready the current
-## graphics stay.
-func _apply_graphics() -> void:
-	if _textures == null:
-		return
-	var style := _settings.graphics
-	if style == DisplaySettings.Graphics.ORIGINAL:
-		_use_graphics(null)
-		return
-	var scaled := _graphics_loader.fetch(style)
-	if scaled != null:
-		_use_graphics(scaled)
-	elif _graphics_loader.has_failed(style):
-		_show_message(MISSING_HD_MESSAGE)
-		_settings.graphics = DisplaySettings.Graphics.ORIGINAL
-		_use_graphics(null)
-	elif _graphics_loader.is_busy():
-		_show_message("Preparing %s..." % GRAPHICS_TITLES[style])
-
-
-func _use_graphics(scaled: ScaledGraphics) -> void:
-	if _textures.scaled == scaled:
-		return
-	_textures.use_scaled(scaled)
-	_level_map.use_tile_set(LevelTileSet.build(_graphics, _textures))
-	_keen.refresh()
-	_second_player.refresh()
-	_mark.refresh()
-	_actor_layer.refresh()
-	_window.queue_redraw()
-	_hud.queue_redraw()
-	_pictures.queue_redraw()
-	if _picture.visible:
-		_show_picture(true)
-	_fit_screen()
-
-
-## Full screen or a window, as the settings say.
-func _apply_window_mode() -> void:
-	if _user_settings.fullscreen == _is_fullscreen():
-		return
-	DisplayServer.window_set_mode(
-		(
-			DisplayServer.WINDOW_MODE_FULLSCREEN
-			if _user_settings.fullscreen
-			else DisplayServer.WINDOW_MODE_WINDOWED
-		)
-	)
-
-
-## Whether the window fills the screen now. The player can also change that
-## with the green button of the Mac window.
-static func _is_fullscreen() -> bool:
-	return (
-		DisplayServer.window_get_mode()
-		in [DisplayServer.WINDOW_MODE_FULLSCREEN, DisplayServer.WINDOW_MODE_EXCLUSIVE_FULLSCREEN]
-	)
 
 
 ## Shows the title over Keen's ship.
@@ -592,6 +508,7 @@ func _show_backdrop(mode: Mode, area: Rect2i) -> bool:
 	_level_map.show_level(_level, _properties)
 	_mode = mode
 	_screen_time_left = ATTRACT_SECONDS
+	_announce_scene()
 	_follow(_camera_anchor)
 	# The screens are a little taller than the view: show their top.
 	var area_pixels := LevelMap.playable_pixels(_level)
@@ -624,8 +541,7 @@ func _on_screen_key() -> void:
 	if _mode == Mode.GAME_OVER:
 		_finish_game()
 	else:
-		_user_settings.fullscreen = _is_fullscreen()
-		_menus.open_main(false, false)
+		_open_main_menu(false, false)
 
 
 ## The last life is gone: GAMEOVER, then the high scores.
@@ -635,12 +551,18 @@ func _game_over() -> void:
 	_screen_time_left = GAME_OVER_SECONDS
 	_window.open(GAME_OVER_CELLS)
 	_window.put_bitmap(Vector2i.ZERO, GAME_OVER_BITMAP)
+	_announce_scene()
 
 
 ## The game is over (game over or the ending): a good score asks for a name
 ## and goes into the table, which is shown.
 func _finish_game() -> void:
 	_close_window()
+	if _joined_online:
+		# The host's table, not ours; wait for the host's next game.
+		_progress = GameProgress.new()
+		_show_title()
+		return
 	_show_high_scores()
 	_pending_place = _high_scores.place_for(_progress.inventory.score)
 	if _pending_place < 0:
@@ -660,12 +582,6 @@ func _on_name_entered(player_name: String) -> void:
 	_pending_place = -1
 	_progress = GameProgress.new()
 	_show_high_scores()
-
-
-func _show_error(message: String) -> void:
-	_status_label.text = message
-	_help_label.visible = false
-	push_error(message)
 
 
 ## The map that comes [param offset] places after the current one (for the
@@ -701,19 +617,27 @@ func _enter_map(show_lives: bool) -> void:
 		return
 	_map_session = MapSession.create(_level, _properties, _progress)
 	_level_map.show_level(_level, _properties)
-	_map_session.tile_changed.connect(_level_map.set_tile)
+	_map_session.tile_changed.connect(_on_tile_changed)
 	_map_session.ship_used.connect(_on_ship_used)
-	_map_session.sound_played.connect(_sounds.play)
+	_map_session.sound_played.connect(_play_game_sound)
 	_mode = Mode.MAP
+	_announce_scene()
 	_keen.show_on_map(_map_session.keen)
 	_follow(_keen)
 	if _progress.inventory.has_all_ship_parts():
 		_start_ending()
 	elif show_lives:
-		MapMessages.show_lives(_window, _progress.inventory.lives)
-		_sounds.play(Sound.Id.KEENS_LEFT)
-		_lives_time_left = LIVES_SECONDS
-		_buttons_close_window = true
+		_online.send_event(OnlineMessages.Event.KEENS_LEFT, _progress.inventory.lives)
+		_show_lives(_progress.inventory.lives)
+
+
+func _show_lives(lives: int) -> void:
+	_sounds.play(Sound.Id.KEENS_LEFT)
+	if _menus.is_open():
+		return
+	MapMessages.show_lives(_window, lives)
+	_window_time_left = LIVES_SECONDS
+	_buttons_close_window = true
 
 
 ## Starts an attempt at level [param number].
@@ -725,15 +649,37 @@ func _enter_level(number: int) -> void:
 	_session = LevelSession.create(
 		_level, _properties, _progress.inventory, Vector2(start * EgaGraphics.TILE_SIZE), number
 	)
-	_session.tile_changed.connect(_level_map.set_tile)
+	_session.tile_changed.connect(_on_tile_changed)
 	_session.hint_touched.connect(_on_hint_touched)
-	_session.sound_played.connect(_sounds.play)
+	_session.sound_played.connect(_play_game_sound)
 	_session.set_invincible(_god_mode)
 	_mode = Mode.LEVEL
+	_announce_scene()
 	_keen.show_body(_session.keen)
 	_follow(_keen)
 	if _two_players:
 		_second_player.start(_session, _session.keen.position, _camera_anchor.position)
+	elif _online.has_partner():
+		_add_online_partner()
+
+
+## A tile of the level changed: draw it, and let the other player know.
+func _on_tile_changed(cell: Vector2i, tile: int) -> void:
+	_level_map.set_tile(cell, tile)
+	_online.send_tile(cell, tile)
+
+
+## A sound of the game: play it, and let the other player hear it too.
+func _play_game_sound(sound: Sound.Id) -> void:
+	_sounds.play(sound)
+	_online.send_sound(sound)
+
+
+## The player who joined online plays along in this level: his Keen
+## appears next to the host's.
+func _add_online_partner() -> void:
+	var at := OnlineSpawn.beside(_session, _session.keen)
+	_second_player.start(_session, at, _camera.get_screen_center_position(), false)
 
 
 ## A second player joins, or leaves. In a level his Keen appears at player
@@ -760,6 +706,7 @@ func _look_at(number: int) -> void:
 		return
 	_level_map.show_level(_level, _properties)
 	_mode = Mode.LOOK
+	_announce_scene()
 	_free_look.move_to((Vector2(_start_cell()) + Vector2(0.5, 0.5)) * EgaGraphics.TILE_SIZE)
 	_follow(_free_look)
 
@@ -771,6 +718,7 @@ func _on_level_over(outcome: LevelSession.Outcome) -> void:
 			_progress.complete_level(number)
 			_show_message("Level %d completed!" % number)
 			_enter_map(false)
+			_online.send_event(OnlineMessages.Event.MESSAGE, _message)
 		LevelSession.Outcome.TELEPORTED:
 			_enter_map(false)
 			if _mode == Mode.MAP:
@@ -790,6 +738,7 @@ func _start_ending() -> void:
 	_ending = EndingSequence.create(_ending_texts, _files.read(GameFiles.END_TEXT))
 	_ending.changed.connect(_on_ending_changed)
 	_mode = Mode.ENDING
+	_announce_scene()
 	_on_ending_changed()
 
 
@@ -819,21 +768,6 @@ func _on_ending_changed() -> void:
 	var at_end_text := _ending.stage == EndingSequence.Stage.END_TEXT
 	_window.at_bottom = _ending.stage == EndingSequence.Stage.AT_HOME
 	_window.show_lines(lines, EndingSequence.TEXT_WIDTH if at_end_text else 0)
-
-
-## Shows or hides the picture of Keen's house, with the light in the
-## bedroom window as the conversation asks.
-func _show_picture(shown: bool) -> void:
-	_picture.visible = shown
-	if not shown:
-		return
-	_picture.texture = _textures.finale(_finale_image)
-	_picture.position.x = floorf((_settings.game_size().x - FinaleImage.SIZE.x) / 2.0)
-	var bitmap := _ending.window_bitmap()
-	_window_light.visible = not bitmap.is_empty()
-	if not bitmap.is_empty():
-		_window_light.texture = _textures.bitmap(bitmap)
-		_window_light.position = EndingSequence.WINDOW_POSITION
 
 
 ## Loads map [param number] fresh from its file, so that every item is back.
@@ -898,10 +832,12 @@ func _move_camera_anchor() -> void:
 		Mode.LEVEL:
 			# When Keen dies the camera stays put, so that he flies off the screen.
 			# With two Keens the split screen moves the cameras.
-			if not _session.keen.is_dead and not _second_player.is_active():
+			if not _session.keen.is_dead and not _second_player.is_split_screen():
 				_camera_anchor.position = _keen.smooth_position() + KeenPhysics.SPRITE_SIZE / 2.0
 		Mode.MAP:
 			_camera_anchor.position = _map_keen_center()
+		Mode.REMOTE:
+			_camera_anchor.position = _remote.camera_target(_camera_anchor.position)
 		Mode.ENDING:
 			var flight := _ending.flight
 			if _ending.map_number() == GameFiles.ENDING_LEVEL and flight.scrolling:
@@ -916,83 +852,128 @@ func _map_keen_center() -> Vector2:
 	return _keen.smooth_position() + map_keen.center() - map_keen.position
 
 
-func _apply_display_settings() -> void:
-	_window.view_size = _settings.game_size()
-	_hud.view_size = _settings.game_size()
-	_hud.queue_redraw()
-	_window.queue_redraw()
-	_fit_screen()
-	if _level != null:
-		_frame_camera()
-	if _picture != null and _picture.visible:
-		_show_picture(true)
-
-
-func _frame_camera() -> void:
-	var view_size := _settings.game_size()
-	var area := LevelMap.playable_pixels(_level)
-	_camera.frame(area, view_size)
-	_second_player.frame(area, view_size)
-	_free_look.bounds = LevelCamera.center_range(LevelCamera.limits_for(area, view_size), view_size)
-	_free_look.move_to(_free_look.position)
-
-
-func _fit_screen() -> void:
-	var rect := _settings.fit_rect(size)
-	_screen.position = rect.position
-	_screen.size = rect.size
-	var game_size := _settings.game_size()
-	var render_scale := 1
-	if not _settings.is_original_picture():
-		render_scale = clampi(ceili(rect.size.y / game_size.y), 2, MAX_RENDER_SCALE)
-	var smooth_textures := _textures != null and _textures.scaled != null
-	for viewport: SubViewport in [_world, _world_2]:
-		DisplaySettings.set_up_viewport(viewport, game_size, render_scale, smooth_textures)
-
-
-func _update_status() -> void:
-	var playing := _mode in [Mode.MAP, Mode.LEVEL, Mode.LOOK]
-	_help_label.visible = _show_help and playing and not _menus.is_open()
-	_update_hud()
-	if _level == null:
-		return
-	# A menu has the screen to itself.
-	if _menus.is_open():
-		_status_label.text = ""
-		return
-	# With the HUD in the corners, only messages are shown, in the middle.
-	_status_label.horizontal_alignment = (
-		HORIZONTAL_ALIGNMENT_CENTER if _hud.visible else HORIZONTAL_ALIGNMENT_LEFT
+func _connect_online() -> void:
+	_online.attach(_menus, _user_settings)
+	_online.sound_enabled = _user_settings.sound_enabled
+	_remote.sounds = _sounds
+	_online.hosting_started.connect(_on_hosting_started)
+	_online.joined.connect(_on_joined_online)
+	_online.stopped.connect(_on_online_stopped)
+	_online.partner_joined.connect(_on_partner_joined)
+	_online.partner_left.connect(_drop_online_partner)
+	_online.scene_changed.connect(_on_remote_scene)
+	_online.tile_changed.connect(
+		func(cell: Vector2i, tile: int) -> void: _remote.change_tile(_level, cell, tile)
 	)
-	if _hud.visible or (not playing and _mode != Mode.ENDING):
-		var notes := PackedStringArray()
-		if _hud.visible and _god_mode:
-			notes.append("GOD MODE")
-		if _message_time_left > 0.0:
-			notes.append(_message)
-		_status_label.text = "\n".join(notes)
+	_online.event_shown.connect(_on_remote_event)
+
+
+## (Host) tells the player who joined what the screen shows now.
+func _announce_scene() -> void:
+	if not _online.is_hosting():
 		return
-	var title := "Ending" if _mode == Mode.ENDING else GameFiles.level_title(_level_number)
-	var lines := PackedStringArray([StatusLine.picture_text(title, _settings)])
-	if _mode in [Mode.MAP, Mode.LEVEL]:
-		var inventory := StatusLine.inventory_text(_progress.inventory)
-		lines.append(inventory + ("   GOD MODE" if _god_mode else ""))
-	if _message_time_left > 0.0:
-		lines.append(_message)
-	_status_label.text = "\n".join(lines)
+	var kinds := {
+		Mode.MAP: OnlineMessages.Scene.MAP,
+		Mode.LEVEL: OnlineMessages.Scene.LEVEL,
+		Mode.GAME_OVER: OnlineMessages.Scene.GAME_OVER,
+		Mode.ENDING: OnlineMessages.Scene.ENDING,
+	}
+	_online.announce(kinds.get(_mode, OnlineMessages.Scene.WAITING), _level_number, _level)
 
 
-## The HUD is for widescreen, while Keen is on the map or in a level.
-func _update_hud() -> void:
-	_hud.visible = (
-		_settings.aspect == DisplaySettings.Aspect.WIDESCREEN
-		and _mode in [Mode.MAP, Mode.LEVEL]
-		and not _menus.is_open()
-	)
-	if _hud.visible:
-		_hud.show_inventory(_progress.inventory)
+## Hosting has begun: the other player needs a game to join, so from the
+## title a new one starts.
+func _on_hosting_started() -> void:
+	if _mode in [Mode.MAP, Mode.LEVEL, Mode.LOOK, Mode.ENDING]:
+		_announce_scene()
+	else:
+		_start_new_game("")
 
 
-func _show_message(text: String) -> void:
-	_message = text
-	_message_time_left = MESSAGE_SECONDS
+## Stops hosting, or leaves the host's game.
+func _leave_online() -> void:
+	_online.leave()
+	_on_online_stopped()
+	if _mode != Mode.TITLE:
+		_show_message("Hosting stopped")
+
+
+func _on_partner_joined(_player_name: String) -> void:
+	if _mode == Mode.LEVEL and _session != null and not _second_player.is_active():
+		_add_online_partner()
+
+
+func _drop_online_partner(_player_name := "") -> void:
+	if _second_player.is_active() and not _second_player.is_split_screen():
+		_second_player.stop()
+
+
+## (Joiner) the host let us in: our own game makes way for his.
+func _on_joined_online(_host_name: String) -> void:
+	if _two_players:
+		_toggle_second_player()
+	_joined_online = true
+	_progress = GameProgress.new()
+	_god_mode = false
+	_show_title()
+
+
+## The online game is over (or never began): a player who had joined is
+## back at his own title.
+func _on_online_stopped() -> void:
+	_drop_online_partner()
+	if _joined_online:
+		_joined_online = false
+		_progress = GameProgress.new()
+		_show_title()
+
+
+## (Joiner) the host shows another scene.
+func _on_remote_scene(kind: OnlineMessages.Scene, number: int, tiles: PackedInt32Array) -> void:
+	match kind:
+		OnlineMessages.Scene.MAP, OnlineMessages.Scene.LEVEL:
+			if not _load_map(number):
+				return
+			_remote.begin(kind, _level, _properties, tiles)
+			_mode = Mode.REMOTE
+			_follow(_keen)
+		OnlineMessages.Scene.GAME_OVER:
+			_game_over()
+		OnlineMessages.Scene.ENDING:
+			# Each player watches the ending at his own pace.
+			_progress.map_position = _remote.map_position
+			_progress.inventory.ship_parts.fill(true)
+			_enter_map(false)
+		_:
+			_show_title()
+
+
+## (Joiner) a message of the host's game.
+func _on_remote_event(kind: OnlineMessages.Event, value: Variant) -> void:
+	if _mode != Mode.REMOTE:
+		return
+	match kind:
+		OnlineMessages.Event.HINT:
+			_on_hint_touched()
+		OnlineMessages.Event.KEENS_LEFT:
+			_show_lives(value)
+		OnlineMessages.Event.SHIP_MISSING:
+			_show_missing_parts()
+		OnlineMessages.Event.MESSAGE:
+			_show_message(value)
+
+
+## (Joiner) one tick of the host's game.
+func _show_remote(snapshot: Snapshot) -> void:
+	_progress.inventory = snapshot.inventory
+	if _remote.show(snapshot):
+		_follow(_keen)
+
+
+## Online, in a level: the arrow toward the other player when he is out of
+## sight.
+func _point_arrow() -> void:
+	var to_partner := _mode == Mode.LEVEL and _online.has_partner() and _second_player.is_active()
+	var to_host := _mode == Mode.REMOTE and _remote.kind == OnlineMessages.Scene.LEVEL
+	var shown := not _menus.is_open()
+	_remote.point_arrow(_own_view(), to_partner and shown, to_host and shown)

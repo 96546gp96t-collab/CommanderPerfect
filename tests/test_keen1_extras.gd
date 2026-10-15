@@ -1,6 +1,7 @@
 extends "res://tests/test_case.gd"
-## Checks the sounds, the texts and the screens of the menus against the real
-## Keen 1 files. Skipped when the game data is not available.
+## Checks the sounds, the texts, the screens of the menus and what online
+## play needs (the fingerprint of the levels) against the real Keen 1 files.
+## Skipped when the game data is not available.
 
 
 func run_all() -> void:
@@ -58,3 +59,17 @@ func test_story_fits_the_window() -> void:
 	assert_true(lines.size() > MenuController.TEXT_LINES, "longer than one page")
 	for line in lines:
 		assert_true(line.length() <= MenuController.TEXT_WIDTH, "fits: " + line)
+
+
+func test_level_fingerprint_is_short_and_stable() -> void:
+	var files := GameFiles.locate()
+	var fingerprint := LevelFingerprint.of(files)
+	assert_equal(fingerprint.length(), LevelFingerprint.LENGTH, "short")
+	assert_equal(LevelFingerprint.of(files), fingerprint, "the same every time")
+
+
+func test_a_fresh_map_has_no_changed_tiles() -> void:
+	var files := GameFiles.locate()
+	var data := files.read(GameFiles.level_file_name(GameFiles.WORLD_MAP_LEVEL))
+	var map := LevelData.parse(data)
+	assert_equal(OnlinePlay.changed_tiles(map, LevelData.parse(data)).size(), 0, "nothing to send")

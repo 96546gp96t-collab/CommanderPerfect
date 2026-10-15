@@ -3,3 +3,5 @@
 
 *.png binary
 *.svg text
+*.dylib binary
+*.dll binary

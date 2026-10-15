@@ -1,4 +1,4 @@
-[gd_scene load_steps=12 format=3]
+[gd_scene load_steps=16 format=3]
 
 [ext_resource type="Script" path="res://src/game/level_view.gd" id="1_view"]
 [ext_resource type="Script" path="res://src/level/level_map.gd" id="2_map"]
@@ -11,6 +11,10 @@
 [ext_resource type="Script" path="res://src/game/picture_layer.gd" id="9_pictures"]
 [ext_resource type="Script" path="res://src/game/hud.gd" id="10_hud"]
 [ext_resource type="Script" path="res://src/game/two_player_view.gd" id="12_two"]
+[ext_resource type="Script" path="res://src/game/online_play.gd" id="13_online"]
+[ext_resource type="Script" path="res://src/game/online_notice.gd" id="14_notice"]
+[ext_resource type="Script" path="res://src/game/partner_arrow.gd" id="15_arrow"]
+[ext_resource type="Script" path="res://src/game/remote_game.gd" id="16_remote"]
 
 [node name="LevelView" type="Control"]
 layout_mode = 3
@@ -113,6 +117,16 @@ unique_name_in_owner = true
 visible = false
 script = ExtResource("10_hud")
 
+[node name="Arrow" type="Node2D" parent="World/Ui"]
+unique_name_in_owner = true
+visible = false
+script = ExtResource("15_arrow")
+
+[node name="Notice" type="Node2D" parent="World/Ui"]
+unique_name_in_owner = true
+visible = false
+script = ExtResource("14_notice")
+
 [node name="Picture" type="Sprite2D" parent="World/Ui"]
 unique_name_in_owner = true
 visible = false
@@ -130,6 +144,14 @@ script = ExtResource("7_window")
 [node name="TwoPlayers" type="Node" parent="."]
 unique_name_in_owner = true
 script = ExtResource("12_two")
+
+[node name="Online" type="Node" parent="."]
+unique_name_in_owner = true
+script = ExtResource("13_online")
+
+[node name="Remote" type="Node" parent="."]
+unique_name_in_owner = true
+script = ExtResource("16_remote")
 
 [node name="Overlay" type="MarginContainer" parent="."]
 layout_mode = 1
