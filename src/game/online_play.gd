@@ -92,7 +92,7 @@ func _ready() -> void:
 	steam.lobby_entered.connect(_on_lobby_entered)
 	steam.games_listed.connect(_on_games_listed)
 	steam.failed.connect(func(reason: String) -> void: _stop(OnlineText.steam(reason)))
-	addresses.public_address_found.connect(func(_found: String) -> void: _refresh_menu())
+	addresses.public_lookup_finished.connect(func(_found: String) -> void: _refresh_menu())
 
 
 ## Uses [param menu_controller] to ask and tell the player things, and the
@@ -101,6 +101,7 @@ func attach(menu_controller: MenuController, user_settings: UserSettings) -> voi
 	menus = menu_controller
 	settings = user_settings
 	menus.steam_games_wanted.connect(steam.ask_for_games)
+	menus.addresses_wanted.connect(_on_addresses_wanted)
 
 
 func set_textures(textures: GraphicsTextures) -> void:
@@ -165,7 +166,7 @@ func is_hosting() -> bool:
 
 ## What the menus show about playing online.
 func menu_info() -> OnlineMenuInfo:
-	var info := OnlineMenuInfo.new()
+	var info := _address_info()
 	if session.is_host():
 		info.role = OnlineMenuInfo.Role.HOST
 		info.host_lines = _host_lines()
@@ -282,13 +283,18 @@ func _join_through_steam(index: int, password: String) -> void:
 
 
 ## The game makes way for the online one first; then the window says how
-## to join.
+## to join (and fills in the internet address once it is found).
 func _on_hosting_started() -> void:
 	hosting_started.emit()
-	var lines := PackedStringArray(["  HOSTING"])
-	lines.append_array(_host_lines())
-	lines.append_array(["", "Escape > Online Game shows", "this again."])
-	_tell(lines)
+	menus.online = menu_info()
+	menus.close_all()
+	menus.show_hosting()
+
+
+## The menus want this computer's addresses (to set up hosting).
+func _on_addresses_wanted() -> void:
+	addresses.look_up()
+	_refresh_menu()
 
 
 ## Shows [param lines] in a window that any key closes.
@@ -346,16 +352,22 @@ func _take_sounds() -> PackedByteArray:
 	return sounds
 
 
+## Menu info with only this computer's addresses filled in.
+func _address_info() -> OnlineMenuInfo:
+	var info := OnlineMenuInfo.new()
+	info.local_addresses = HostAddresses.local()
+	info.public_address = addresses.public_address
+	info.public_lookup_done = addresses.public_lookup_done
+	return info
+
+
 func _host_lines() -> PackedStringArray:
 	var lines := PackedStringArray()
 	if _over_steam:
 		lines.append("Via Steam, friends only")
 	else:
 		lines.append("Via IP, UDP port %d" % OnlineProtocol.GAME_PORT)
-		for address in HostAddresses.local().slice(0, 2):
-			lines.append("Network:  " + address)
-		var public := addresses.public_address
-		lines.append("Internet: " + (public if not public.is_empty() else "?"))
+		lines.append_array(_address_info().address_lines())
 	lines.append("Password: " + (_password if not _password.is_empty() else "none"))
 	return lines
 

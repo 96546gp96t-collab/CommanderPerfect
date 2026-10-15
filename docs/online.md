@@ -14,7 +14,7 @@ Escape during a game):
 | Choice | What it does |
 |---|---|
 | Host via Steam | Opens a lobby that only your Steam friends can see. No address, no port: Steam finds the way. No password by default |
-| Host via IP | Hosts on UDP port **24800** (the same port as Together Around, so one port forwarded on the router serves both). A password is made up and switched on by default; it can be switched off or made again |
+| Host via IP | Shows this computer's addresses (network and internet) before hosting starts. Hosts on UDP port **24800** (the same port as Together Around, so one port forwarded on the router serves both). A password is on by default: a random one, or one the host types himself with **Type Password** (remembered in `settings.cfg` and used again next time, until **Random Password** makes a new random one). It can also be switched off |
 | Join via Steam | The games your Steam friends host; a game with a `*` wants a password |
 | Join via IP | Type the host's address (remembered for next time), then the password (empty if none) |
 | Your Name | The name the other player sees when playing by IP; asked for the first time. Over Steam your Steam name is used |
@@ -22,7 +22,9 @@ Escape during a game):
 Hosting from the title starts a new game; hosting during a game keeps it
 going, with your score, lives and ship parts. A window shows how to join:
 the addresses on your own network, the address on the internet (looked up
-at api.ipify.org, as in Together Around) and the password. Escape > Online
+at api.ipify.org, as in Together Around, when the Host via IP screen opens;
+"looking up..." until it is found, "not found" if that fails) and the
+password. The window fills in the internet address as soon as it arrives. Escape > Online
 Game shows it again, says who plays along, and has **Stop Hosting**.
 
 Over the internet by IP the host must forward UDP port 24800 on his router
