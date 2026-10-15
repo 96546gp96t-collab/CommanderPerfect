@@ -22,6 +22,9 @@ var fullscreen := true
 var online_name := ""
 ## The address the player last joined by IP.
 var online_address := ""
+## The password the player chose for hosting; empty: a new random one each
+## time he hosts.
+var host_password := ""
 
 
 ## The settings stored at [param file_path], with the defaults for whatever
@@ -53,6 +56,9 @@ static func load_from(file_path := DEFAULT_PATH) -> UserSettings:
 	settings.online_address = str(config.get_value(ONLINE, "address", "")).left(
 		MenuController.ADDRESS_LENGTH
 	)
+	settings.host_password = str(config.get_value(ONLINE, "host_password", "")).left(
+		MenuController.PASSWORD_LENGTH
+	)
 	var keys: Variant = config.get_value(CONTROLS, "keys", {})
 	if keys is Dictionary:
 		KeyBindings.apply_dict(keys)
@@ -72,6 +78,7 @@ func save() -> bool:
 	config.set_value(CONTROLS, "keys", KeyBindings.to_dict())
 	config.set_value(ONLINE, "name", online_name)
 	config.set_value(ONLINE, "address", online_address)
+	config.set_value(ONLINE, "host_password", host_password)
 	var error := config.save(path)
 	if error != OK:
 		push_error("Could not save %s: %s" % [path, error_string(error)])

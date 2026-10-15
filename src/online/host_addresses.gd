@@ -6,7 +6,9 @@ extends Node
 ## What that service answers is a stranger's text and is only shown when it
 ## is a plain public IPv4 address.
 
-signal public_address_found(address: String)
+## The look-up is over: [param address] is the public address, or empty
+## when it could not be found.
+signal public_lookup_finished(address: String)
 
 ## Plain text: one IPv4 address and nothing else.
 const SERVICE_URL := "https://api.ipify.org"
@@ -18,6 +20,8 @@ const HTTP_OK := 200
 
 ## The public address, once found.
 var public_address := ""
+## Whether the last look-up is over (found or not).
+var public_lookup_done := false
 var _request: HTTPRequest
 
 
@@ -30,11 +34,16 @@ func _ready() -> void:
 
 ## Asks for the public address; hosting never waits for it.
 func look_up() -> void:
-	if not look_up_public or not public_address.is_empty() or _request == null:
+	if not look_up_public:
+		public_lookup_done = true
+		return
+	if not public_address.is_empty() or _request == null:
 		return
 	if _request.get_http_client_status() != HTTPClient.STATUS_DISCONNECTED:
 		return
-	_request.request(SERVICE_URL)
+	public_lookup_done = false
+	if _request.request(SERVICE_URL) != OK:
+		_finish_lookup()
 
 
 ## The private IPv4 addresses of this machine, sorted.
@@ -84,9 +93,13 @@ static func _octets(address: String) -> PackedInt32Array:
 func _on_completed(
 	result: int, code: int, _headers: PackedStringArray, body: PackedByteArray
 ) -> void:
-	if result != HTTPRequest.RESULT_SUCCESS or code != HTTP_OK or body.size() > MAX_ANSWER_BYTES:
-		return
-	var answer := body.get_string_from_utf8().strip_edges()
-	if is_public_ipv4(answer):
-		public_address = answer
-		public_address_found.emit(answer)
+	if result == HTTPRequest.RESULT_SUCCESS and code == HTTP_OK and body.size() <= MAX_ANSWER_BYTES:
+		var answer := body.get_string_from_utf8().strip_edges()
+		if is_public_ipv4(answer):
+			public_address = answer
+	_finish_lookup()
+
+
+func _finish_lookup() -> void:
+	public_lookup_done = true
+	public_lookup_finished.emit(public_address)

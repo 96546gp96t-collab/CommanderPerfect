@@ -26,6 +26,9 @@ signal name_entered(player_name: String)
 signal closed
 ## The player wants the list of his friends' games on Steam (again).
 signal steam_games_wanted
+## The menus want this computer's addresses (setting up hosting by IP); the
+## game screen looks them up and refreshes [member online].
+signal addresses_wanted
 
 const CHOICE_RESUME := &"resume"
 ## A second player joins, or leaves when two are playing.
@@ -62,6 +65,8 @@ const MESSAGE := &"message"
 const NAME := &"name"
 const ONLINE := &"online"
 const HOST_SETUP := &"host_setup"
+## The window that tells a new host how to join; any key closes it.
+const HOSTING := &"hosting"
 const STEAM_GAMES := &"steam_games"
 const TEXT := &"text"
 ## What a text being typed is for.
@@ -69,6 +74,7 @@ const TEXT_PLAYER_NAME := &"player_name"
 const TEXT_ADDRESS := &"address"
 const TEXT_PASSWORD := &"password"
 const TEXT_STEAM_PASSWORD := &"steam_password"
+const TEXT_HOST_PASSWORD := &"host_password"
 const PASSWORD_LENGTH := 20
 const ADDRESS_LENGTH := 32
 
@@ -196,7 +202,7 @@ func handle_input(event: InputEvent) -> void:
 			_handle_text_key(event)
 		STORY:
 			_handle_story_key(event)
-		MESSAGE:
+		MESSAGE, HOSTING:
 			if not event.is_echo():
 				_pop()
 		_:
@@ -543,14 +549,44 @@ func show_steam_games(lines: PackedStringArray, locked: Array[bool]) -> void:
 		_redraw()
 
 
-## Rebuilds the online menu when it is on the screen, after something
-## changed (someone joined, the public address was found).
+## Rebuilds the online menu, the hosting setup or the hosting window when
+## it is on the screen, after something changed (someone joined, the
+## public address was found).
 func refresh_online() -> void:
-	if is_open() and _top().kind == ONLINE:
-		var cursor := _top().cursor
-		_stack[-1] = _online_menu()
-		_top().cursor = mini(cursor, _top().items.size() - 1)
-		_redraw()
+	if not is_open():
+		return
+	var rebuilt: Menu
+	match _top().kind:
+		ONLINE:
+			rebuilt = _online_menu()
+		HOST_SETUP:
+			rebuilt = _host_setup_menu()
+		HOSTING:
+			rebuilt = _hosting_menu()
+		_:
+			return
+	_replace_top(rebuilt)
+
+
+## Tells a host who just started how a friend can join.
+func show_hosting() -> void:
+	_push(_hosting_menu())
+
+
+func _hosting_menu() -> Menu:
+	var lines := PackedStringArray(["  HOSTING"])
+	lines.append_array(online.host_lines)
+	lines.append_array(["", "Escape > Online Game shows", "this again.", "", "   Press a key"])
+	return Menu.create(HOSTING, lines)
+
+
+## Puts [param menu] in place of the top one, keeping the cursor where it
+## was.
+func _replace_top(menu: Menu) -> void:
+	var cursor := _top().cursor
+	_stack[-1] = menu
+	_top().cursor = clampi(cursor, 0, maxi(0, menu.items.size() - 1))
+	_redraw()
 
 
 ## The main menu of a player who joined someone else's game: the host
@@ -627,18 +663,24 @@ func _continue_online(next: StringName) -> void:
 
 
 ## Over IP a password is on by default: the address may be known to anyone.
-## Through Steam only friends see the game, so it is off.
+## Through Steam only friends see the game, so it is off. The password is
+## the one the player typed before, or else a new random one.
 func _open_host_setup(kind: int) -> void:
 	_host_kind = kind
 	host_locked = kind == HOST_BY_IP
-	host_password = OnlineMenuInfo.make_password()
+	host_password = settings.host_password
+	if host_password.is_empty():
+		host_password = OnlineMenuInfo.make_password()
 	_push(_host_setup_menu())
+	if kind == HOST_BY_IP:
+		addresses_wanted.emit()
 
 
 func _host_setup_menu() -> Menu:
 	var by_ip := _host_kind == HOST_BY_IP
 	var header := PackedStringArray(["  HOST VIA IP" if by_ip else "  HOST VIA STEAM"])
 	if by_ip:
+		header.append_array(online.address_lines())
 		header.append("UDP port %d" % OnlineProtocol.GAME_PORT)
 	else:
 		header.append("Only your Steam friends")
@@ -647,7 +689,8 @@ func _host_setup_menu() -> Menu:
 	var menu := Menu.create(HOST_SETUP, header)
 	menu.add("Start Hosting", &"start")
 	menu.add("Password      " + _on_off(host_locked), &"lock")
-	menu.add("New Password", &"new_password", 0, host_locked)
+	menu.add("Type Password", &"type_password")
+	menu.add("Random Password", &"new_password")
 	return menu
 
 
@@ -659,12 +702,16 @@ func _pick_host_setup(id: StringName) -> void:
 			return
 		&"lock":
 			host_locked = not host_locked
+		&"type_password":
+			_ask_text(TEXT_HOST_PASSWORD, settings.host_password)
+			return
 		&"new_password":
+			# A random password is made anew every time: forget the typed one.
 			host_password = OnlineMenuInfo.make_password()
-	var cursor := _top().cursor
-	_stack[-1] = _host_setup_menu()
-	_top().cursor = cursor
-	_redraw()
+			host_locked = true
+			settings.host_password = ""
+			settings.save()
+	_replace_top(_host_setup_menu())
 
 
 func _steam_games_menu() -> Menu:
@@ -768,6 +815,15 @@ func _finish_text(text: String) -> void:
 			join_password = text
 			close_all()
 			chosen.emit(CHOICE_JOIN_STEAM, _steam_pick)
+		TEXT_HOST_PASSWORD:
+			if text.is_empty():
+				return
+			host_password = text
+			host_locked = true
+			settings.host_password = text
+			settings.save()
+			_pop()
+			_replace_top(_host_setup_menu())
 
 
 func _show_text_entry() -> void:
@@ -779,6 +835,10 @@ func _show_text_entry() -> void:
 		TEXT_ADDRESS:
 			lines = ["  JOIN VIA IP", "", "The host's address:", ""]
 			width = ADDRESS_LENGTH + 2
+		TEXT_HOST_PASSWORD:
+			lines = [
+				"  YOUR PASSWORD", "", "Your friend types this", "to join. Capitals count.", ""
+			]
 		_:
 			lines = ["  PASSWORD", "", "The host's password", "(empty if none):", ""]
 	lines.append(_typed_text + String.chr(MenuView.cursor_char(_seconds)))

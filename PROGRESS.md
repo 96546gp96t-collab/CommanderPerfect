@@ -324,6 +324,14 @@ gecontroleerd.
 - **Licentie** voor de code (bijv. MIT of GPL-3.0): nog kiezen voordat de repo publiek wordt.
 - **HD met nieuwe details (generatieve AI)**, besproken op 14-10-2026, voor nu geparkeerd door de gebruiker. Oordeel van de gebruiker: de Real-ESRGAN-HD is "best lelijk", xBRZ ziet er mooier uit, maar hij mist nieuwe details. Real-ESRGAN kan geen details verzinnen; daarvoor is een generatief model nodig. Het plan staat in `docs/graphics.md` onder "Plan: HD with new details". Eerste stap als de gebruiker verder wil: toestemming vragen om Stable Diffusion 1.5 + ControlNet Tile te downloaden (~6 GB, Hugging Face, naar een map die git negeert) en een proef doen met ~10 plaatjes naast xBRZ.
 
+### Toegevoegd op 15-10-2026 (op `milestone-10-menu`)
+
+Na de eerste eigen test van de gebruiker:
+
+- **Adressen zichtbaar.** Het scherm *Host via IP* toont nu meteen het adres op het eigen netwerk en het internetadres (wordt opgezocht zodra het scherm opent: eerst "looking up...", daarna het adres of "not found"). Het venster *Hosting* vult het internetadres in zodra het binnen is; eerder bleef daar "?" staan omdat het venster niet ververste.
+- **Eigen wachtwoord.** In de host-setup: *Type Password* (zelf intypen, tot 20 tekens, hoofdletters tellen) en *Random Password*. Een getypt wachtwoord wordt onthouden in `settings.cfg` en de volgende keer weer gebruikt; *Random Password* maakt een nieuw willekeurig wachtwoord en vergeet het getypte.
+- Tests in `test_online_menus.gd`: adressen in de setup, het hosting-venster ververst, `address_lines`, eigen wachtwoord typen en onthouden.
+
 ## Volgende stap
 
 1. **Voor de gebruiker:** bouw de app (`tools/build_macos.sh`) en bekijk
