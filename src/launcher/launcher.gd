@@ -2,7 +2,8 @@ class_name Launcher
 extends Control
 ## The start screen: CommanderPerfect always begins here. The picture of
 ## CommanderPerfect fills the screen, whole; below it, in a dark gray bar,
-## an icon for each game ([GameCatalog]), for now only Keen 1. Picking one
+## an icon for each game ([GameCatalog]) from the left, for now only Keen
+## 1. Picking one
 ## starts that game with its main menu open. See docs/menus.md.
 ##
 ## The mouse, the arrow keys and the controller pick an icon; a click,
@@ -148,10 +149,11 @@ func _arrange() -> void:
 	for index in _icons.size():
 		_icons[index].pixel_scale = scale
 		_icons[index].position = positions[index]
-	var left := bar.size.y * LauncherLayout.GAP_SHARE
-	var right := positions[0].x if not positions.is_empty() else bar.end.x
+	# The message goes to the right of the icons.
+	var gap := LauncherLayout.gap_in(bar)
+	var left := positions[-1].x + icon_size.x + gap if not positions.is_empty() else gap
 	_message.position = Vector2(left, bar.position.y)
-	_message.size = Vector2(maxf(0.0, right - 2.0 * left), bar.size.y)
+	_message.size = Vector2(maxf(0.0, bar.end.x - gap - left), bar.size.y)
 	_message.add_theme_font_size_override("font_size", maxi(12, roundi(bar.size.y * MESSAGE_SHARE)))
 
 

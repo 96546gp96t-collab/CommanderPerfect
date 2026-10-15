@@ -2,7 +2,8 @@ class_name LauncherLayout
 extends RefCounted
 ## Where the start screen puts things: the picture as large as fits at the
 ## top, whole and in its own shape, and below it a dark gray bar with the
-## icons of the games in its bottom right. The bar always keeps room for
+## icons of the games in its bottom left, the first game (Keen 1) on the
+## far left. The bar always keeps room for
 ## the icons, so on a 16:9 screen the picture is a little smaller, with dark
 ## gray beside it.
 
@@ -37,13 +38,20 @@ static func icon_scale(bar_height: float) -> int:
 
 
 ## Where the icons of [param count] games of [param icon_size] go in
-## [param bar]: against its right edge, in the middle of its height.
+## [param bar]: from its left edge to the right, in the order of the games,
+## in the middle of its height.
 static func icon_positions(bar: Rect2, icon_size: Vector2, count: int) -> Array[Vector2]:
-	var gap := roundf(bar.size.y * GAP_SHARE)
+	var gap := gap_in(bar)
 	var positions: Array[Vector2] = []
-	var x := bar.end.x - gap - icon_size.x
+	var x := bar.position.x + gap
 	var y := bar.position.y + (bar.size.y - icon_size.y) / 2.0
 	for index in count:
-		positions.push_front(Vector2(x, y).round())
-		x -= icon_size.x + gap
+		positions.append(Vector2(x, y).round())
+		x += icon_size.x + gap
 	return positions
+
+
+## The space between the icons, and between them and the edges, in
+## [param bar].
+static func gap_in(bar: Rect2) -> float:
+	return roundf(bar.size.y * GAP_SHARE)

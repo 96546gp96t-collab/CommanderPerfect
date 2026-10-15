@@ -86,6 +86,6 @@ zoals het titelscherm.
 ## 10. Startscherm
 
 - Het spel begint altijd op een startscherm met het CommanderPerfect-plaatje
-  en rechtsonder een icoon per spel (voor nu Keen 1). Klikken opent het
+  en linksonder een icoon per spel (Keen 1 helemaal links). Klikken opent het
   hoofdmenu van dat spel; "Choose Game" in het hoofdmenu gaat terug.
 - Later komen daar de andere delen bij.

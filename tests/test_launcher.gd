@@ -27,15 +27,16 @@ func test_bar_keeps_its_room_on_a_16_by_9_screen() -> void:
 	assert_true(is_equal_approx(picture.position.x, screen.x - picture.end.x), "in the middle")
 
 
-func test_icons_sit_in_the_bottom_right_corner() -> void:
+func test_icons_sit_in_the_bottom_left_corner() -> void:
 	var bar := Rect2(0, 720, 1280, 80)
 	var scale := LauncherLayout.icon_scale(bar.size.y)
 	assert_equal(scale, 2, "whole icon pixels that fit the bar")
 	var size := Vector2(GameIcon.BASE_SIZE * scale)
 	var positions := LauncherLayout.icon_positions(bar, size, 2)
 	assert_equal(positions.size(), 2, "one place per game")
-	assert_true(positions[1].x + size.x < bar.end.x, "inside the right edge")
-	assert_true(positions[0].x + size.x < positions[1].x, "the first on the left")
+	var gap := LauncherLayout.gap_in(bar)
+	assert_equal(positions[0].x, gap, "the first game (Keen 1) on the far left")
+	assert_true(positions[0].x + size.x < positions[1].x, "the next to its right")
 	assert_true(positions[1].y >= bar.position.y, "in the bar")
 	assert_true(positions[1].y + size.y <= bar.end.y, "not below the screen")
 

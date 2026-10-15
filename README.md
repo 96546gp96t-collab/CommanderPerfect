@@ -122,7 +122,7 @@ These keys have their own pages in Controls. See
 ### The start screen
 
 The game starts on the CommanderPerfect screen with an icon for each game
-in the bottom right; for now Keen 1. Click it (or press Enter) to get to
+in the bottom left, Keen 1 first; for now only Keen 1. Click it (or press Enter) to get to
 its main menu. "Choose Game" in the main menu leads back here.
 
 ### Playing online

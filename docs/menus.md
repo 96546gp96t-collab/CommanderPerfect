@@ -8,8 +8,8 @@ the spinning ball of the font (characters 9-15) as the cursor.
 
 0. **Start screen.** CommanderPerfect always starts here (`Launcher`, in
    `src/launcher/`): the CommanderPerfect picture, whole and as large as
-   fits, with a dark gray bar below it. In the bottom right of the bar is an
-   icon for each game (`GameCatalog`); for now only **Keen 1**: a light
+   fits, with a dark gray bar below it. In the bottom left of the bar is an
+   icon for each game, the first game (Keen 1) on the far left (`GameCatalog`); for now only **Keen 1**: a light
    panel with Keen from the player's own graphics and "Keen 1" in the game's
    font (nothing of the original graphics is in the repository). The bar
    is always at least a tenth of the screen high, so on a 16:9 screen the

@@ -261,7 +261,8 @@ Afspraken met de gebruiker (15-10-2026): het spel begint altijd op een
 startscherm met het aangeleverde CommanderPerfect-plaatje, heel en zo groot
 als past, met daaronder een donkergrijze balk die altijd ruimte heeft
 (minstens 10% van de hoogte; op 16:9 wordt het plaatje iets kleiner met
-grijs ernaast). Rechtsonder een icoon per spel, nu alleen "Keen 1" (niet
+grijs ernaast). Linksonder een icoon per spel (Keen 1 helemaal links, op
+verzoek van de gebruiker), nu alleen "Keen 1" (niet
 "Commander Keen", zie CLAUDE.md), met Keen uit de eigen speldata. Hover
 of kiezen met pijltjes/controller maakt het icoon iets donkerder; klik,
 Enter of A opent het bestaande hoofdmenu. Zonder speldata een grijs icoon
@@ -283,7 +284,7 @@ hoofdmenu is "Choose Game" (terug naar het startscherm). Met `--level=N` of
 - `tools/scripted_play.gd`: `SCENE=` voor een andere scène (zoals het
   startscherm), `mouse_X_Y` en `click_X_Y`, en de scène wordt nu echt de
   huidige scène (anders bleef bij wisselen de oude staan).
-- Tests: `test_launcher.gd` (indeling op 16:10 en 16:9, iconen rechtsonder,
+- Tests: `test_launcher.gd` (indeling op 16:10 en 16:9, iconen linksonder,
   donkerder onder de muis, grijs zonder bestanden, de uitleg, alleen
   "Keen 1", het hoofdmenu één keer openen, opstartopties, "Choose Game").
 
