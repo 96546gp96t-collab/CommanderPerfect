@@ -7,7 +7,9 @@ extends Node2D
 ##   top left    Keen (as in the "Keens Left" window) with the number of
 ##               lives, and "Score" with the score: the game has no picture
 ##               that clearly means score
-##   top right   the raygun with its charges, and the keycards Keen has
+##   top right   the raygun with its charges, and the keycards Keen has;
+##               on the world map and in the ship also the ship parts he
+##               has found
 ## Each corner is one row on a small light blue panel, drawn with the game
 ## font and the item tiles, whose gray level background is left out. Put
 ## the node in a CanvasLayer, so that the camera does not move it.
@@ -38,6 +40,7 @@ var _lives := 0
 var _score := 0
 var _charges := 0
 var _keycards: Array[bool] = [false, false, false, false]
+var _parts: Array[bool] = [false, false, false, false]
 
 
 func set_textures(textures: GraphicsTextures) -> void:
@@ -45,20 +48,26 @@ func set_textures(textures: GraphicsTextures) -> void:
 	queue_redraw()
 
 
-## Shows what [param inventory] holds; redraws only when something changed.
-func show_inventory(inventory: Inventory) -> void:
+## Shows what [param inventory] holds, the ship parts only [param with_parts];
+## redraws only when something changed.
+func show_inventory(inventory: Inventory, with_parts := false) -> void:
 	var lives := maxi(inventory.lives, 0)
+	var parts: Array[bool] = inventory.ship_parts.duplicate()
+	if not with_parts:
+		parts.fill(false)
 	if (
 		lives == _lives
 		and inventory.score == _score
 		and inventory.charges == _charges
 		and inventory.keycards == _keycards
+		and parts == _parts
 	):
 		return
 	_lives = lives
 	_score = inventory.score
 	_charges = inventory.charges
 	_keycards = inventory.keycards.duplicate()
+	_parts = parts
 	queue_redraw()
 
 
@@ -69,6 +78,16 @@ static func keycard_tiles(keycards: Array[bool]) -> PackedInt32Array:
 	for color in keycards.size():
 		if keycards[color]:
 			tiles.append(StatusScreen.KEYCARD_TILES[color])
+	return tiles
+
+
+## The tiles of the ship parts in [param parts] that Keen has, in the order
+## of [enum Inventory.ShipPart].
+static func part_tiles(parts: Array[bool]) -> PackedInt32Array:
+	var tiles := PackedInt32Array()
+	for part in parts.size():
+		if parts[part]:
+			tiles.append(StatusScreen.SHIP_PART_TILES[part])
 	return tiles
 
 
@@ -95,7 +114,7 @@ func _draw_left_panel() -> void:
 
 func _draw_right_panel() -> void:
 	var charges := str(_charges)
-	var cards := keycard_tiles(_keycards)
+	var cards := keycard_tiles(_keycards) + part_tiles(_parts)
 	var width := ICON + charges.length() * CHAR
 	if not cards.is_empty():
 		width += GAP + cards.size() * ICON

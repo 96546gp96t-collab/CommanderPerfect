@@ -19,7 +19,7 @@ enum Event {
 	KEENS_LEFT,
 	## The ship is missing parts.
 	SHIP_MISSING,
-	## A short message such as "Level 3 completed!"; the value is the text.
+	## A short message such as "Battery in place!"; the value is the text.
 	MESSAGE,
 }
 

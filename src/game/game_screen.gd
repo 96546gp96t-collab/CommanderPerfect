@@ -14,7 +14,7 @@ extends Control
 ## What is on the screen; see [LevelView].
 enum Mode { NONE, TITLE, HIGH_SCORES, MAP, LEVEL, GAME_OVER, ENDING, LOOK, REMOTE }
 
-## Seconds a message such as "Level 3 completed!" stays on the screen.
+## Seconds a message such as "Cheat: god mode on" stays on the screen.
 const MESSAGE_SECONDS := 3.0
 ## The largest number of screen pixels per game pixel that the World
 ## viewport uses.
@@ -37,6 +37,13 @@ var _user_settings := UserSettings.new()
 var _settings := _user_settings.display
 var _progress := GameProgress.new()
 var _ending: EndingSequence
+## Keen in a level or on the world map; null when he is not there.
+var _session: LevelSession
+var _map_session: MapSession
+## Smoke over the crashed ship, and the cabin inside it ([ShipLevels]).
+var _ship_smoke := ShipSmoke.new()
+var _ship_interior := ShipInterior.new()
+var _screen_note := ScreenNote.new()
 ## Shown below the status for [constant MESSAGE_SECONDS].
 var _message := ""
 var _message_time_left := 0.0
@@ -211,6 +218,7 @@ func _apply_display_settings() -> void:
 	_online.set_view_size(_settings.game_size())
 	_window.view_size = _settings.game_size()
 	_hud.view_size = _settings.game_size()
+	_screen_note.view_size = _settings.game_size()
 	_hud.queue_redraw()
 	_window.queue_redraw()
 	_fit_screen()
@@ -227,19 +235,23 @@ func _apply_display_settings() -> void:
 func _apply_backdrop() -> void:
 	var picture: Texture2D = null
 	var color := Color.TRANSPARENT
+	var picture_level := ShipLevels.picture_level(_level_number)
 	if (
 		_backdrop_pictures != null
 		and _level != null
 		and _settings.shows_backgrounds()
-		and GameFiles.is_playable_level(_level_number)
+		and GameFiles.is_playable_level(picture_level)
 	):
-		picture = _backdrop_pictures.picture(_level_number)
+		picture = _backdrop_pictures.picture(picture_level)
 	if picture != null:
 		var tile := BackdropPictures.background_tile(_level, _properties, _graphics.tiles)
 		if tile >= 0:
 			color = BackdropPictures.color_of(_graphics.tiles[tile])
 		else:
 			picture = null
+	if _level_number == ShipLevels.INSIDE_LEVEL and _graphics != null:
+		# The cabin is drawn behind the tiles: their background goes.
+		color = BackdropPictures.color_of(_graphics.tiles[ShipLevels.BACKGROUND_TILE])
 	var area := Rect2(LevelMap.playable_pixels(_level)) if _level != null else Rect2()
 	_backdrop.show_picture(picture, area)
 	_backdrop_2.show_picture(picture, area)
@@ -333,13 +345,16 @@ func _update_status() -> void:
 	if _menus.is_open():
 		_status_label.text = ""
 		return
-	# With the HUD in the corners, only messages are shown, in the middle.
+	# The line with the level, the picture and the inventory is a help for
+	# testing: only with the help (F1), and not next to the HUD. Otherwise
+	# only messages are shown, in the middle, as the original has no such line.
+	var info_line := _show_help and not _hud.visible and (playing or _mode == Mode.ENDING)
 	_status_label.horizontal_alignment = (
-		HORIZONTAL_ALIGNMENT_CENTER if _hud.visible else HORIZONTAL_ALIGNMENT_LEFT
+		HORIZONTAL_ALIGNMENT_LEFT if info_line else HORIZONTAL_ALIGNMENT_CENTER
 	)
-	if _hud.visible or (not playing and _mode != Mode.ENDING):
+	if not info_line:
 		var notes := PackedStringArray()
-		if _hud.visible and _god_mode:
+		if playing and _god_mode:
 			notes.append("GOD MODE")
 		if _joined_online and _mode in [Mode.TITLE, Mode.HIGH_SCORES]:
 			notes.append("Waiting for %s to start a game" % _online.partner_name())
@@ -347,7 +362,7 @@ func _update_status() -> void:
 			notes.append(_message)
 		_status_label.text = "\n".join(notes)
 		return
-	var title := "Ending" if _mode == Mode.ENDING else GameFiles.level_title(_level_number)
+	var title := "Ending" if _mode == Mode.ENDING else ShipLevels.title(_level_number)
 	var lines := PackedStringArray([StatusLine.picture_text(title, _settings)])
 	if _mode in [Mode.MAP, Mode.LEVEL]:
 		var inventory := StatusLine.inventory_text(_progress.inventory)
@@ -365,4 +380,70 @@ func _update_hud() -> void:
 		and not _menus.is_open()
 	)
 	if _hud.visible:
-		_hud.show_inventory(_progress.inventory)
+		var with_parts := _mode == Mode.MAP or ShipLevels.is_ship_level(_level_number)
+		_hud.show_inventory(_progress.inventory, with_parts)
+
+
+## Makes the camera follow [param target]: Keen (or his ship), the
+## free-look point, or (for a screen that stands still) its own anchor. The
+## others are switched off.
+func _follow(target: Node2D) -> void:
+	var following_keen := target == _keen
+	_keen.visible = following_keen
+	_second_player.set_keen_visible(following_keen)
+	_mark.visible = following_keen
+	_free_look.set_process(target == _free_look)
+	_camera.use_dead_zone(following_keen)
+	_keen.snap()
+	_mark.snap()
+	_move_camera_anchor()
+	_camera.reset_smoothing()
+
+
+## Puts the camera anchor on what the view follows. The camera itself never
+## changes parent: while it is out of the tree, the view would jump to the
+## top left of the level for a frame.
+func _move_camera_anchor() -> void:
+	match _mode:
+		Mode.LOOK:
+			_camera_anchor.position = _free_look.position
+		Mode.LEVEL:
+			# When Keen dies the camera stays put, so that he flies off the screen.
+			# With two Keens the split screen moves the cameras.
+			if not _session.keen.is_dead and not _second_player.is_split_screen():
+				_camera_anchor.position = _keen.smooth_position() + KeenPhysics.SPRITE_SIZE / 2.0
+		Mode.MAP:
+			_camera_anchor.position = _map_keen_center()
+		Mode.REMOTE:
+			_camera_anchor.position = _remote.camera_target(_camera_anchor.position)
+		Mode.ENDING:
+			var flight := _ending.flight
+			if _ending.map_number() == GameFiles.ENDING_LEVEL and flight.scrolling:
+				_camera_anchor.position = _keen.smooth_position()
+			elif _ending.map_number() == GameFiles.WORLD_MAP_LEVEL and _map_session != null:
+				_camera_anchor.position = _map_keen_center()
+
+
+## The middle of Keen on the world map, where he is drawn now.
+func _map_keen_center() -> Vector2:
+	var map_keen := _map_session.keen
+	return _keen.smooth_position() + map_keen.center() - map_keen.position
+
+
+## Puts the drawings of the ship into the world: the cabin behind the
+## tiles, the smoke over them and under the sprites.
+func _add_ship_drawings() -> void:
+	_world.add_child(_ship_interior)
+	_world.move_child(_ship_interior, _level_map.get_index())
+	_world.add_child(_ship_smoke)
+	_world.move_child(_ship_smoke, _actor_layer.get_index())
+	# With the HUD, so that the camera does not move it.
+	_hud.get_parent().add_child(_screen_note)
+
+
+## Shows the drawings of the ship level that is shown now; nothing for
+## another level.
+func _show_ship_drawings() -> void:
+	_ship_smoke.start(ShipLevels.smoke_sources(_level_number))
+	_screen_note.clear()
+	_ship_interior.show_level(_level if _level_number == ShipLevels.INSIDE_LEVEL else null)

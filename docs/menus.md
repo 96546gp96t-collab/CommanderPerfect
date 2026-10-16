@@ -44,7 +44,7 @@ the spinning ball of the font (characters 9-15) as the cursor.
 | Story | `STORYTXT.CK1`; up/down and Page Up/Page Down scroll |
 | High Scores | The table |
 | Controls | Three sets of keys: "One player", and "Two players: player 1" and "player 2". Pick an action, then press its new key. The new key replaces the first key of the action; a key belongs to one action only among the keys used at the same time (one player's keys and two players' keys may overlap; Status is in both). Left and right Shift, Alt and Ctrl count as different keys. Escape and F1-F7 cannot be used. "Reset to defaults" puts all keys back |
-| Options | Sound, widescreen, 4:3 pixels, full screen and smooth motion on or off; graphics original, xBRZ or HD (HD only once the player has made it, see [graphics.md](graphics.md)) |
+| Options | Sound, widescreen, 4:3 pixels, full screen and smooth motion on or off; backgrounds (widescreen only); graphics original, xBRZ or HD (HD only once the player has made it, see [graphics.md](graphics.md)); extra levels (the ship as a level of its own and playing the pogo level again, see [world-map.md](world-map.md); on by default) |
 | Quit to Title | Only during a game: back to the Keen 1 title |
 | Choose Game | Back to the start screen, to choose another game |
 | Quit | Closes the program |
@@ -59,7 +59,10 @@ not stand still behind the menu.
 ## The line with the keys
 
 A line at the bottom lists the keys. It is hidden at the start; F1 shows or
-hides it while playing.
+hides it while playing. In the original 4:3 picture F1 also shows a line at
+the top left with the level, the picture settings, the score, lives and
+charges; without F1 only short messages are shown there, in the middle, as
+the original has no such line.
 
 ## Extra information in widescreen
 

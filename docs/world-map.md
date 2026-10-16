@@ -89,6 +89,43 @@ The speeds of the ship (16/32 pixel per tick, half that downwards) and the
 lengths of the script are those of Commander Genius. In total the flight to
 Earth takes about 28 seconds.
 
+## Extra levels (not in the original)
+
+With the option *Extra levels* (Options; on by default, the user's choice)
+the game has two extras. Switched off, everything is as in the original.
+
+**The ship as a level of its own** (`ShipLevels`, `ShipVisit`,
+`ShipRepair`). Using the ship on the map, or standing right next to it
+(10 pixels), starts the ship level instead of showing the missing parts:
+
+- *Outside*: the ship of the title screen (tiles 351-383, map 90) on the
+  ground of Mars, with smoke rising from it (`ShipSmoke`), and the picture
+  of level 1 behind it when backgrounds are on. Keen walks out of sight at
+  the left or right to go back to the map, where he stood. Walking into the
+  back of the ship (two cells that work as an exit door without being
+  drawn) takes him inside with the walk of the exit doors; to go on to the
+  right he jumps over them.
+- *Inside*: a small cabin drawn by the engine (`ShipInterior`,
+  `ShipPicture`: pixel art of our own in the EGA palette), with a place
+  for each part: the Everclear at the fuel tank, the battery, the vacuum
+  cleaner, the joystick at the controls. An empty place shows the gray
+  picture of its part (tiles 321-324); walking into it with the part puts
+  it in (tile of the part, `GOTPARTSND`), without it a short note says it is
+  still missing. A light above each place is red or green. The parts that
+  are in are kept in the saved game (`installed_parts`). Out through the
+  hatch at the left, Keen is outside again next to the ship.
+- *The ending* starts a moment (90 ticks) after the last part is in, on the
+  map as always. The ending no longer starts by itself when Keen has all
+  four parts.
+
+The cabin's walls are solid cells of their own (`LevelCollision.solid_cells`)
+and its tiles are only background, which is left out of the tiles as for
+the pictures behind the levels, so that the drawing shows through.
+
+**The pogo level again.** Level 5, where the pogo stick lies, can be entered
+again after it is done, as long as Keen does not have the pogo stick. Items
+there then give no points; the raygun still gives charges.
+
 ## Still to compare with the original
 
 - Keen's walking speed on the map, and whether diagonal walking is as fast.
