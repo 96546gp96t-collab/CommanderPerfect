@@ -19,7 +19,7 @@ Wat elke mijlpaal precies inhoudt, staat in [docs/roadmap.md](docs/roadmap.md).
 | 8 | Twee spelers op één toetsenbord, dynamisch split-screen | ✅ Gemerged naar `main` (PR #8) |
 | 9 | Online co-op: hosten en joinen via Steam of IP | ✅ Gemerged naar `main` (PR #9); speeltest online loopt nog |
 | 10 | Startscherm met een icoon per spel | ✅ Gemerged naar `main` (PR #10) |
-| 11 | Fixes: crash bij "Choose Game", nieuw app-icoon | 🔶 Gebouwd (branch `milestone-11-fixes`) |
+| 11 | Fixes: crash bij "Choose Game", nieuw app-icoon, achtergronden achter levels | 🔶 Gebouwd (branch `milestone-11-fixes`) |
 
 ## Mijlpaal 1: wat er nu is
 
@@ -306,20 +306,49 @@ Gemeld door de gebruiker (16-10-2026) na het mergen van mijlpaal 10.
   vanuit invoer gebeuren (naar en van het startscherm) gaan nu met
   `call_deferred`. Nagespeeld met gescripte invoer: "Choose Game" vanuit een
   lopend spel en vanuit het titelmenu, en daarna weer Keen 1.
-- **Nieuw app-icoon** (Dock en taakbalk), op verzoek van de gebruiker: een
-  eigen getekende pixel-Keen (gele helm, paarse trui, blauwe broek) met de
-  letters "CP" ernaast (geel met rode schaduw, zoals het logo op het
-  startplaatje) op een grijze tegel. Niets uit de originele bestanden.
-  `tools/make_app_icon.py` (Python + Pillow) tekent het uit rasters in het
-  script en schrijft `assets/icon/app_icon.png` (macOS-build),
+- **Nieuw app-icoon** (Dock en taakbalk). Eerst een pixel-Keen met "CP" op
+  grijs; de gebruiker vond Keen lelijk, dus nu alleen de letters "CP" (dik,
+  geel met rode diepte en zwarte rand, zoals het logo op het startplaatje)
+  voor een kleurrijke sterrenhemel met planeet, paarse bergen en grijze
+  grond, pixel-art op 64x64. Niets uit de originele bestanden.
+  `tools/make_app_icon.py` (Python + Pillow) tekent het en schrijft `assets/icon/app_icon.png` (macOS-build),
   `assets/icon/app_icon.ico` (Windows-build) en `icon.svg` (venster en
   editor). In `export_presets.cfg` staan de iconen nu ingesteld; voor
   Windows staat `modify_resources` daarvoor aan (Godot zet het icoon dan zelf
   in de .exe).
 
-Getest: alle tests slagen, gdlint is schoon. De builds zelf (en het icoon in
-de Dock en op de .exe) kon hier niet gemaakt worden (geen export-templates
-in de cloud).
+- **Achtergronden achter levels** (op verzoek van de gebruiker, met zijn
+  eigen plaatje voor level 1): in widescreen toont een level met een eigen
+  plaatje dat achter zich in plaats van de egale achtergrond. Optie
+  *Backgrounds* in Options; **standaard aan** (keuze van de gebruiker, een
+  uitzondering op "extra's standaard uit", ook in CLAUDE.md gezet), in 4:3
+  altijd uit (niet te kiezen). Zonder plaatje: het origineel.
+  - Plaatjes: `assets/backgrounds/levelNN.png/.webp/.jpg` (nu
+    `level01.webp`, 1536x1024). Om te proberen zonder te bouwen: een
+    plaatje met dezelfde naam in `backgrounds/` naast de speldata (bijv.
+    `game_data/keen1/backgrounds/level01.png`) gaat voor.
+  - De egale achtergrond-tile van een level wordt gevonden (meest gebruikt,
+    één kleur, nergens op te staan; level 1: tile 143, lichtgrijs). Die
+    kleur wordt uit alle tiles weggelaten waar hij de rand raakt, zodat het
+    grijs rond snoep, pilaren en platforms weg is en grijs binnen in dingen
+    blijft (`GraphicsTextures.backdrop_tile_atlas`; voor xBRZ/HD worden de
+    gaten mee vergroot).
+  - Het plaatje bedekt het beeld (15% ruimer), bovenkant aan de bovenkant
+    (lucht en horizon altijd in beeld), en schuift van links naar rechts
+    mee met hoe ver je in het level bent (`LevelBackdrop`, ook in de tweede
+    helft van het split-screen).
+  - Het plaatje is 3:2; daardoor schuift het weinig (een breder plaatje,
+    zoals 3840x1080, geeft meer diepte) en de zijkanten sluiten niet
+    naadloos aan (maakt niet uit: het herhaalt niet).
+- Tests: `test_backdrops.gd` (achtergrond-tile, gaten alleen rond dingen,
+  plaats van het plaatje links/rechts/smal level, standaard aan en alleen
+  in widescreen, onthouden, menu-optie, eigen map gaat voor, level 1 heeft
+  een plaatje).
+
+Getest: alle tests slagen, gdlint is schoon; met gescripte invoer is level 1
+met de achtergrond bekeken (lopen, origineel, xBRZ, 4:3 = origineel, optie
+uit = origineel). De builds zelf (en het icoon in de Dock en op de .exe)
+kon hier niet gemaakt worden (geen export-templates in de cloud).
 
 ## Bekende beperkingen
 
@@ -355,13 +384,14 @@ in de cloud).
 
 1. **Voor de gebruiker:** bouw de app (`tools/build_macos.sh` en
    `tools/build_windows.sh`) en controleer: "Choose Game" crasht niet meer,
-   en het nieuwe icoon staat in de Dock en op de .exe. Mocht de Windows-build
+   het nieuwe "CP"-icoon staat in de Dock en op de .exe, en level 1 heeft
+   de nieuwe achtergrond (Options > Backgrounds zet hem uit). Mocht de Windows-build
    klagen over het aanpassen van de .exe, zet dan `modify_resources` weer
    uit (dan zonder eigen icoon). Bevalt het icoon niet: de rasters staan
    bovenin `tools/make_app_icon.py`.
 2. Mijlpaal 9 (online): probeer via IP op het thuisnetwerk en via Steam met
    een vriend.
-3. Eventueel een eigen achtergrond voor level 1 (de gebruiker laat een
-   plaatje maken; als optie die standaard uit staat), en de openstaande
+3. Eventueel een breder plaatje voor level 1 en plaatjes voor andere
+   levels (in `assets/backgrounds/`), en de openstaande
    punten (natuurkunde en vijanden naast DOSBox leggen, de intro, de
    hulpregel in 4:3, xBRZ/vloeiende beweging bekijken).

@@ -21,6 +21,8 @@ var _sprites: Dictionary[int, ImageTexture] = {}
 var _bitmaps: Dictionary[String, ImageTexture] = {}
 var _doors: Dictionary[PackedInt32Array, ImageTexture] = {}
 var _finale: ImageTexture
+## Tile atlases with a level's background color left out, by that color.
+var _backdrop_atlases: Dictionary[Color, ImageTexture] = {}
 
 
 static func create(ega_graphics: EgaGraphics) -> GraphicsTextures:
@@ -41,6 +43,7 @@ func use_scaled(scaled_graphics: ScaledGraphics) -> void:
 	_bitmaps.clear()
 	_doors.clear()
 	_finale = null
+	_backdrop_atlases.clear()
 
 
 ## How many times larger the images in the textures are than the original.
@@ -145,6 +148,29 @@ func tile_atlas(columns: int, padding: int) -> ImageTexture:
 	return _texture(original, big)
 
 
+## The tile atlas of [method tile_atlas], with every pixel of
+## [param color] that touches the edge of its tile (directly or through more
+## of that color) left out: a level's plain background, so that a picture
+## behind the level shows through ([LevelBackdrop]). Color inside the things
+## on a tile stays. Scaled graphics get the same holes, enlarged.
+func backdrop_tile_atlas(columns: int, padding: int, color: Color) -> ImageTexture:
+	if _backdrop_atlases.has(color):
+		return _backdrop_atlases[color]
+	var originals: Array[Image] = []
+	var bigs: Array[Image] = []
+	for index in graphics.tiles.size():
+		var image := graphics.tiles[index].duplicate() as Image
+		image.convert(Image.FORMAT_RGBA8)
+		_clear_background(image, color)
+		originals.append(image)
+		if scaled != null:
+			bigs.append(_with_holes_of(scaled.tiles[index], image))
+	var original := _atlas(originals, 1, columns, padding)
+	var big := _atlas(bigs, scaled.factor, columns, padding) if scaled != null else null
+	_backdrop_atlases[color] = _texture(original, big)
+	return _backdrop_atlases[color]
+
+
 func _scaled_font_char(code: int) -> Image:
 	return scaled.font_chars[code] if scaled != null else null
 
@@ -231,6 +257,19 @@ static func _repeat_edges(image: Image, rect: Rect2i, border: int) -> void:
 		image.blit_rect(
 			image, Rect2i(rect.end.x - 1, top, 1, bottom - top + 1), Vector2i(right, top)
 		)
+
+
+## [param big] (a scaled image) with the transparent pixels of
+## [param small] (the original it was made from, with holes) cut out.
+static func _with_holes_of(big: Image, small: Image) -> Image:
+	var size := big.get_size()
+	var mask := small.duplicate() as Image
+	mask.resize(size.x, size.y, Image.INTERPOLATE_NEAREST)
+	var source := big.duplicate() as Image
+	source.convert(Image.FORMAT_RGBA8)
+	var result := Image.create_empty(size.x, size.y, false, Image.FORMAT_RGBA8)
+	result.blit_rect_mask(source, mask, Rect2i(Vector2i.ZERO, size), Vector2i.ZERO)
+	return result
 
 
 ## Makes every pixel of [param color] that is connected to the edge of

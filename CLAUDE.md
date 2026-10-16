@@ -16,7 +16,9 @@ Real-ESRGAN graphics. Singleplayer comes first; local co-op may follow later.
   `tools/build_windows.sh` makes `build/windows/` for a Windows PC.
 - **Keep the original as it is:** extras (graphics, smooth motion, …) are
   options that are off by default, so the game looks like the original
-  unless the player switches them on.
+  unless the player switches them on. The user decided two exceptions:
+  widescreen (with the HUD) and the pictures behind the levels (only in
+  widescreen) are on by default; the 4:3 picture is always the original.
 - Work per milestone on a branch named `milestone-<n>-<topic>`.
 - Talk to the user in Dutch. Code, comments and commit messages are in English.
 

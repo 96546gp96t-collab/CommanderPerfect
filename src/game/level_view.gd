@@ -73,7 +73,6 @@ const MISSING_DATA_MESSAGE := (
 )
 
 var _files: GameFiles
-var _properties: TileProperties
 var _level_numbers := PackedInt32Array()
 var _session: LevelSession
 var _map_session: MapSession
@@ -134,6 +133,7 @@ func _ready() -> void:
 
 	_textures = GraphicsTextures.create(_graphics)
 	_level_map.tile_set = LevelTileSet.build(_graphics, _textures)
+	_backdrop_pictures = BackdropPictures.create(_files)
 	_keen.set_textures(_textures)
 	_second_player.set_textures(_textures)
 	_mark.set_textures(_textures)
@@ -199,6 +199,7 @@ func _process(delta: float) -> void:
 		_play(delta)
 	_second_player.update(delta)
 	_move_camera_anchor()
+	_update_backdrops()
 	_point_arrow()
 	_update_status()
 
@@ -802,6 +803,7 @@ func _load_map(number: int, area := Rect2i()) -> bool:
 		_level = _level.crop(area)
 	_time_left = 0.0
 	_frame_camera()
+	_apply_backdrop()
 	return true
 
 

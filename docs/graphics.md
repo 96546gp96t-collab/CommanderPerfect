@@ -137,6 +137,34 @@ screens and when frames and ticks do not line up, at the cost of showing
 everything one tick (17 ms) late. A move of more than 24 pixels in one tick
 is a jump (a new level, a teleporter) and is not drawn in between.
 
+## Pictures behind the levels
+
+In widescreen a level can show a picture behind it instead of its plain
+background (option *Backgrounds* in Options; on by default, by decision of
+the user; on the original 4:3 screen it is always off, so the original
+stays as it was). A level without a picture looks as in the original.
+
+- **Where the pictures are.** `assets/backgrounds/levelNN.png` (or `.webp`,
+  `.jpg`), NN being the level number: `level01.webp` for level 1. To try
+  another picture without building the game, put one of the same name in a
+  folder `backgrounds` next to the game files (such as
+  `game_data/keen1/backgrounds/level01.png`, or next to the app): that one
+  wins (`BackdropPictures`).
+- **Which tiles it shows through.** The level's plain background is the
+  tile used most that is one color only, with nothing to stand on or touch
+  (in level 1 tile 143, light gray). That color is left out of every tile
+  where it touches the edge of the tile, directly or through more of it, so
+  the gray around candy, pillars and platforms goes and gray inside things
+  stays (`GraphicsTextures.backdrop_tile_atlas`). With xBRZ or HD graphics
+  the holes of the original tiles are cut out of the larger ones.
+- **How it moves.** The picture covers the view in its own shape, 15%
+  larger, with its top at the top of the view, so its sky and horizon are
+  always in sight. From side to side it glides with the view through the
+  level: the left edge of the picture at the left end of the level, its
+  right edge at the right end (`LevelBackdrop`). A wider picture glides
+  more and looks deeper; 3840x1080 or so suits a level like level 1 well.
+  In a split screen each half has its own.
+
 ## Still open
 
 - The camera scrolls in parts of a game pixel whenever the picture is not
