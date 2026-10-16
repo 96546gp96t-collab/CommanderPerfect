@@ -474,7 +474,9 @@ func _on_menu_chosen(id: StringName, slot: int) -> void:
 		MenuController.CHOICE_QUIT:
 			get_tree().quit()
 		MenuController.CHOICE_CHOOSE_GAME:
-			get_tree().change_scene_to_file(GameLaunch.LAUNCHER_SCENE)
+			# Deferred: this runs inside the handling of a key, and changing the
+			# scene takes this one out of the tree at once.
+			get_tree().change_scene_to_file.call_deferred(GameLaunch.LAUNCHER_SCENE)
 		MenuController.CHOICE_LEAVE_ONLINE:
 			_leave_online()
 		_:

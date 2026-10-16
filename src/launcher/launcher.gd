@@ -164,4 +164,6 @@ func _start(game: GameCatalog.Game) -> void:
 		_quit_time_left = 0.0
 		return
 	GameLaunch.request_menu()
-	get_tree().change_scene_to_file(game.scene)
+	# Deferred: this runs inside the handling of a click or a key, and
+	# changing the scene takes this one out of the tree at once.
+	get_tree().change_scene_to_file.call_deferred(game.scene)
