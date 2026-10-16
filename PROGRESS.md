@@ -32,7 +32,7 @@ Voor een volgend deel: [docs/new-episode-guide.md](docs/new-episode-guide.md).
 
 | # | Mijlpaal | Status |
 |---|---|---|
-| B1 | Onderzoek: code in kaart, Keen 2 uitgezocht, architectuur, mijlpalen, handleiding | 🔶 Documenten klaar (branch `milestone-b1-onderzoek`); wacht op antwoorden van de gebruiker |
+| B1 | Onderzoek: code in kaart, Keen 2 uitgezocht, architectuur, mijlpalen, handleiding | ✅ Klaar (branch `milestone-b1-onderzoek`); vragen beantwoord op 16-10-2026 |
 | B2 | De bestanden van Keen 2 inlezen, data viewer, tweede icoon op het startscherm | ⬜ |
 | B3 | Een level spelen (Keen, items, deuren, uitgang) | ⬜ |
 | B4 | Vijanden en meerijden (platforms, Scrubs) | ⬜ |
@@ -468,8 +468,8 @@ het origineel. Details in `docs/world-map.md` onder "Extra levels".
 - **Licentie** voor de code (bijv. MIT of GPL-3.0): nog kiezen voordat de repo publiek wordt.
 - **HD met nieuwe details (generatieve AI)**, besproken op 14-10-2026, voor nu geparkeerd door de gebruiker. Oordeel van de gebruiker: de Real-ESRGAN-HD is "best lelijk", xBRZ ziet er mooier uit, maar hij mist nieuwe details. Real-ESRGAN kan geen details verzinnen; daarvoor is een generatief model nodig. Het plan staat in `docs/graphics.md` onder "Plan: HD with new details". Eerste stap als de gebruiker verder wil: toestemming vragen om Stable Diffusion 1.5 + ControlNet Tile te downloaden (~6 GB, Hugging Face, naar een map die git negeert) en een proef doen met ~10 plaatjes naast xBRZ.
 
-- **Keen 2: Chocolate Keen als bron?** (B1, 16-10-2026) Chocolate Keen is een reconstructie van de originele code van deel 1-3. In B1 zijn alleen de datatabellen gelezen (offsets, namen, groottes), nooit de code met gedrag. De gebruiker beslist of die bron mag; tot dan worden "(Choco)"-feiten eerst met de echte bestanden gecontroleerd.
-- **Keen 2: welke versie heeft de gebruiker** (Steam/GOG v1.31 verwacht), en kunnen de bestanden in een cloud-sessie worden geüpload om mee te testen?
+- **Keen 2: besluiten van de gebruiker (16-10-2026, B1).** Gedeelde code mag alleen toevoegingen krijgen met Keen 1 als standaard; Keen 1-code blijft onaangeroerd. Chocolate Keen mag als bron voor datatabellen (adressen, namen, groottes), nooit voor code met gedrag. De architect (deze sessie) stuurt een developer-subagent aan en controleert zijn werk.
+- **Keen 2: speldata.** De gebruiker heeft Keen 2 op floppies maar geen floppylezer. Keen 2 is geen shareware en wordt nog verkocht, dus het wordt niet gedownload van onofficiële sites. Opties: de Complete Pack op Steam/GOG, of een USB-floppylezer. Tot dan: bouwen en testen met zelfgemaakte testdata; de suites met echte data slaan zich over, en de vragen die alleen de echte bestanden beantwoorden blijven open (research.md).
 - **Geluidssnelheid (ook Keen 1):** Commander Genius speelt de geluiden met 145,6 Hz, `docs/sounds.md` zegt 140 Hz. Niet aangepast (Keen 1 blijft zoals het is); naast het origineel leggen.
 
 ### Toegevoegd op 15-10-2026 (op `milestone-10-menu`)
@@ -484,10 +484,9 @@ Na de eerste eigen test van de gebruiker:
 
 Keen 2:
 
-1. **Voor de gebruiker:** de vragen van B1 beantwoorden (zie open
-   beslissingen: versie en bestanden van Keen 2, Chocolate Keen als bron),
-   en de opzet in `docs/keen2/architecture.md` goedkeuren.
-2. Daarna B2 op branch `milestone-b2-bestanden`: de opdracht staat in
+1. **Voor de gebruiker:** zo mogelijk de Keen 2-bestanden regelen (zie
+   open beslissingen).
+2. B2 op branch `milestone-b2-bestanden`: de opdracht staat in
    `docs/keen2/roadmap.md`.
 
 Keen 1:
