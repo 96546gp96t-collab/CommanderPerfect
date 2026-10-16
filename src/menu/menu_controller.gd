@@ -391,6 +391,14 @@ func _options_menu() -> Menu:
 	menu.add("4:3 pixels    " + _on_off(display.correct_pixel_aspect), &"pixels")
 	menu.add("Full screen   " + _on_off(settings.fullscreen), &"fullscreen")
 	menu.add("Smooth motion " + _on_off(display.smooth_motion), &"smooth_motion")
+	# Pictures behind the levels only go with widescreen.
+	var widescreen := display.aspect == DisplaySettings.Aspect.WIDESCREEN
+	menu.add(
+		"Backgrounds   " + (_on_off(display.backgrounds) if widescreen else "-"),
+		&"backgrounds",
+		0,
+		widescreen
+	)
 	menu.add("Graphics      " + GRAPHICS_LABELS[display.graphics], &"graphics")
 	return menu
 
@@ -423,6 +431,8 @@ func _toggle_option(id: StringName) -> void:
 			settings.fullscreen = not settings.fullscreen
 		&"smooth_motion":
 			display.smooth_motion = not display.smooth_motion
+		&"backgrounds":
+			display.backgrounds = not display.backgrounds
 		&"graphics":
 			display.graphics = next_graphics(display.graphics, hd_available)
 	settings.save()

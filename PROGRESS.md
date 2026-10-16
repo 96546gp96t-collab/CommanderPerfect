@@ -17,8 +17,9 @@ Wat elke mijlpaal precies inhoudt, staat in [docs/roadmap.md](docs/roadmap.md).
 | 6 | Geluid, menu's, opslaan | ✅ Getest door de gebruiker en gemerged naar `main` (PR #6) |
 | 7 | Hogere framerate (interpolatie), xBRZ met wisselknop, Real-ESRGAN-pipeline, Windows-build | ✅ Gemerged naar `main` (PR #7) |
 | 8 | Twee spelers op één toetsenbord, dynamisch split-screen | ✅ Gemerged naar `main` (PR #8) |
-| 9 | Online co-op: hosten en joinen via Steam of IP | 🔶 Gebouwd, speeltest door de gebruiker loopt (branch `milestone-9-online-coop`) |
-| 10 | Startscherm met een icoon per spel | 🔶 Gebouwd, bovenop mijlpaal 9 (branch `milestone-10-menu`) |
+| 9 | Online co-op: hosten en joinen via Steam of IP | ✅ Gemerged naar `main` (PR #9); speeltest online loopt nog |
+| 10 | Startscherm met een icoon per spel | ✅ Gemerged naar `main` (PR #10) |
+| 11 | Fixes: crash bij "Choose Game", nieuw app-icoon, achtergronden achter levels | 🔶 Gebouwd (branch `milestone-11-fixes`) |
 
 ## Mijlpaal 1: wat er nu is
 
@@ -294,6 +295,69 @@ is schoon, en met gescripte invoer zijn het startscherm (1280x800 en
 Game" terug naar het startscherm en de Escape-melding via screenshots
 gecontroleerd.
 
+## Mijlpaal 11: wat er nu is
+
+Gemeld door de gebruiker (16-10-2026) na het mergen van mijlpaal 10.
+
+- **Crash bij "Choose Game"** (macOS en Windows) opgelost. De scène wisselde
+  terwijl `LevelView` de toets nog afhandelde; Godot haalt de oude scène dan
+  meteen uit de boom, en de rest van de afhandeling liep op een node zonder
+  viewport (hier een scriptfout, in de builds een crash). Beide wissels die
+  vanuit invoer gebeuren (naar en van het startscherm) gaan nu met
+  `call_deferred`. Nagespeeld met gescripte invoer: "Choose Game" vanuit een
+  lopend spel en vanuit het titelmenu, en daarna weer Keen 1.
+- **Nieuw app-icoon** (Dock en taakbalk). Eerst een pixel-Keen met "CP" op
+  grijs; de gebruiker vond Keen lelijk, dus nu alleen de letters "CP" (dik,
+  geel met rode diepte en zwarte rand, zoals het logo op het startplaatje)
+  voor een kleurrijke sterrenhemel met planeet, paarse bergen en grijze
+  grond, pixel-art op 64x64. Niets uit de originele bestanden.
+  `tools/make_app_icon.py` (Python + Pillow) tekent het en schrijft `assets/icon/app_icon.png` (macOS-build),
+  `assets/icon/app_icon.ico` (Windows-build) en `icon.svg` (venster en
+  editor). In `export_presets.cfg` staan de iconen nu ingesteld; voor
+  Windows staat `modify_resources` daarvoor aan (Godot zet het icoon dan zelf
+  in de .exe).
+
+- **Achtergronden achter levels** (op verzoek van de gebruiker, met zijn
+  eigen plaatje voor level 1): in widescreen toont een level met een eigen
+  plaatje dat achter zich in plaats van de egale achtergrond. Optie
+  *Backgrounds* in Options; **standaard aan** (keuze van de gebruiker, een
+  uitzondering op "extra's standaard uit", ook in CLAUDE.md gezet), in 4:3
+  altijd uit (niet te kiezen). Zonder plaatje: het origineel.
+  - Plaatjes: `assets/backgrounds/levelNN.png/.webp/.jpg` (nu
+    `level01.webp`, 1536x1024). Om te proberen zonder te bouwen: een
+    plaatje met dezelfde naam in `backgrounds/` naast de speldata (bijv.
+    `game_data/keen1/backgrounds/level01.png`) gaat voor.
+  - De egale achtergrond-tile van een level wordt gevonden (meest gebruikt,
+    één kleur, nergens op te staan; level 1: tile 143, lichtgrijs). Die
+    kleur wordt uit alle tiles weggelaten waar hij de rand raakt, zodat het
+    grijs rond snoep, pilaren en platforms weg is en grijs binnen in dingen
+    blijft (`GraphicsTextures.backdrop_tile_atlas`; voor xBRZ/HD worden de
+    gaten mee vergroot).
+  - Het plaatje bedekt het beeld (15% ruimer), bovenkant aan de bovenkant
+    (lucht en horizon altijd in beeld), en schuift van links naar rechts
+    mee met hoe ver je in het level bent (`LevelBackdrop`, ook in de tweede
+    helft van het split-screen).
+  - Het plaatje is 3:2; daardoor schuift het weinig (een breder plaatje,
+    zoals 3840x1080, geeft meer diepte) en de zijkanten sluiten niet
+    naadloos aan (maakt niet uit: het herhaalt niet).
+- Tests: `test_backdrops.gd` (achtergrond-tile, gaten alleen rond dingen,
+  plaats van het plaatje links/rechts/smal level, standaard aan en alleen
+  in widescreen, onthouden, menu-optie, eigen map gaat voor, level 1 heeft
+  een plaatje).
+- **Builds pakten te veel in.** `.gitignore` geldt niet voor Godot: de
+  export ("all_resources") nam ook de plaatjes uit `exported/` en `build/`
+  mee in het pakket (afgeleid van de originele bestanden). Beide presets
+  sluiten nu `build/*, exported/*, game_data/*` uit; het spel laadt daar
+  niets uit via `res://` (de speldata wordt naast de app gelezen). App
+  184 → 172 MB, .exe 119 → 106 MB.
+
+Getest: alle tests slagen, gdlint is schoon; met gescripte invoer is level 1
+met de achtergrond bekeken (lopen, origineel, xBRZ, 4:3 = origineel, optie
+uit = origineel). Op de Mac (16-10-2026) beide builds gemaakt: geen
+meldingen over het icoon, `icon.icns` in de app is het "CP"-icoon, en de
+gebouwde app start level 1 met de achtergrond. De gebruiker heeft
+"Choose Game" in de gebouwde app geprobeerd: geen crash meer.
+
 ## Bekende beperkingen
 
 - De natuurkunde-getallen zijn startwaarden (overgenomen van Commander Genius als documentatie, zie `docs/keen-physics.md`). Ze moeten nog naast het origineel (DOSBox) worden gelegd; de lijst met punten staat onderaan dat document.
@@ -334,16 +398,16 @@ Na de eerste eigen test van de gebruiker:
 
 ## Volgende stap
 
-1. **Voor de gebruiker:** bouw de app (`tools/build_macos.sh`) en bekijk
-   het startscherm op de Mac (volledig scherm, hover, klikken, Choose Game).
-   Daarna verder met de speeltest van mijlpaal 9 (online, zie hieronder).
-   Mijlpaal 10 staat bovenop 9: eerst 9 mergen, dan 10.
-2. Mijlpaal 9: bouw ook `tools/build_windows.sh` en probeer online via IP
-   op het thuisnetwerk en via Steam met een vriend. Let op de vertraging van
-   je eigen Keen als je joint, de ping, de melding rechtsonder, de kaart,
-   doodgaan en de uitgang, en of de Steam-bibliotheken in de `.app` en naast
-   de `.exe` komen.
-3. Daarna: de openstaande punten (natuurkunde en vijanden naast DOSBox
-   leggen, de intro, de hulpregel in 4:3, xBRZ/vloeiende beweging bekijken,
-   de Windows-build op een pc), eventueel voorspelling voor wie online
-   joint, en later de andere Keen-delen op het startscherm.
+1. **Voor de gebruiker:** bouw de app (`tools/build_macos.sh` en
+   `tools/build_windows.sh`) en controleer: "Choose Game" crasht niet meer,
+   het nieuwe "CP"-icoon staat in de Dock en op de .exe, en level 1 heeft
+   de nieuwe achtergrond (Options > Backgrounds zet hem uit). Mocht de Windows-build
+   klagen over het aanpassen van de .exe, zet dan `modify_resources` weer
+   uit (dan zonder eigen icoon). Bevalt het icoon niet: de rasters staan
+   bovenin `tools/make_app_icon.py`.
+2. Mijlpaal 9 (online): probeer via IP op het thuisnetwerk en via Steam met
+   een vriend.
+3. Eventueel een breder plaatje voor level 1 en plaatjes voor andere
+   levels (in `assets/backgrounds/`), en de openstaande
+   punten (natuurkunde en vijanden naast DOSBox leggen, de intro, de
+   hulpregel in 4:3, xBRZ/vloeiende beweging bekijken).

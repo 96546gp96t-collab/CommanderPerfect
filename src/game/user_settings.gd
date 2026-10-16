@@ -50,6 +50,7 @@ static func load_from(file_path := DEFAULT_PATH) -> UserSettings:
 		str(config.get_value(DISPLAY, "graphics", ""))
 	)
 	settings.display.smooth_motion = bool(config.get_value(DISPLAY, "smooth_motion", false))
+	settings.display.backgrounds = bool(config.get_value(DISPLAY, "backgrounds", true))
 	settings.sound_enabled = bool(config.get_value(SOUND, "enabled", true))
 	var stored_name := str(config.get_value(ONLINE, "name", "")).strip_edges()
 	settings.online_name = PlayerName.clean(stored_name) if not stored_name.is_empty() else ""
@@ -74,6 +75,7 @@ func save() -> bool:
 	config.set_value(DISPLAY, "fullscreen", fullscreen)
 	config.set_value(DISPLAY, "graphics", DisplaySettings.graphics_name(display.graphics))
 	config.set_value(DISPLAY, "smooth_motion", display.smooth_motion)
+	config.set_value(DISPLAY, "backgrounds", display.backgrounds)
 	config.set_value(SOUND, "enabled", sound_enabled)
 	config.set_value(CONTROLS, "keys", KeyBindings.to_dict())
 	config.set_value(ONLINE, "name", online_name)

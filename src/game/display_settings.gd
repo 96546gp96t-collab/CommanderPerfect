@@ -29,6 +29,10 @@ var aspect := Aspect.WIDESCREEN
 var correct_pixel_aspect := true
 var graphics := Graphics.ORIGINAL
 var smooth_motion := false
+## Whether levels that have a picture of their own show it behind them
+## instead of their plain background (see [BackdropPictures]). Only in
+## widescreen: the original picture stays as it was.
+var backgrounds := true
 
 
 ## Size of the visible part of the level, in game pixels.
@@ -66,6 +70,11 @@ func aspect_name() -> String:
 
 ## Whether the picture is drawn exactly like the original: game pixels on
 ## whole positions, nothing in between.
+## Whether pictures behind the levels are shown now.
+func shows_backgrounds() -> bool:
+	return backgrounds and aspect == Aspect.WIDESCREEN
+
+
 func is_original_picture() -> bool:
 	return graphics == Graphics.ORIGINAL and not smooth_motion
 

@@ -14,8 +14,12 @@ const PADDING := 1
 
 
 ## Returns a TileSet that holds every tile of [param graphics]. With
-## [param textures] the tiles come from there (and can be xBRZ or HD).
-static func build(graphics: EgaGraphics, textures: GraphicsTextures = null) -> TileSet:
+## [param textures] the tiles come from there (and can be xBRZ or HD). With
+## a [param backdrop_color] that background color is left out of the tiles,
+## for a picture behind the level ([LevelBackdrop]).
+static func build(
+	graphics: EgaGraphics, textures: GraphicsTextures = null, backdrop_color := Color.TRANSPARENT
+) -> TileSet:
 	if textures == null:
 		textures = GraphicsTextures.create(graphics)
 	var tile_size := Vector2i(EgaGraphics.TILE_SIZE, EgaGraphics.TILE_SIZE)
@@ -23,7 +27,10 @@ static func build(graphics: EgaGraphics, textures: GraphicsTextures = null) -> T
 	# Our own border instead of the one Godot can add, which would be made
 	# from the larger images inside scaled textures.
 	source.use_texture_padding = false
-	source.texture = textures.tile_atlas(ATLAS_COLUMNS, PADDING)
+	if backdrop_color.a > 0.0:
+		source.texture = textures.backdrop_tile_atlas(ATLAS_COLUMNS, PADDING, backdrop_color)
+	else:
+		source.texture = textures.tile_atlas(ATLAS_COLUMNS, PADDING)
 	source.margins = Vector2i(PADDING, PADDING)
 	source.separation = Vector2i(2 * PADDING, 2 * PADDING)
 	source.texture_region_size = tile_size

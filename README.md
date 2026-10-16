@@ -146,8 +146,11 @@ Cheats, for testing:
 ## Modern extras
 
 Out of the box the game looks like the original. Only widescreen is on, with
-your lives, score, raygun and keycards in the top corners. Everything else is
-switched on in the menu (Options) or with F5 and F6:
+your lives, score, raygun and keycards in the top corners, and in widescreen
+a level that has a picture of its own shows it behind it (level 1 for now;
+Options > Backgrounds switches it off, see
+[docs/graphics.md](docs/graphics.md)). Everything else is switched on in the
+menu (Options) or with F5 and F6:
 
 - **Smooth motion** draws everything in between the 60 game ticks per
   second, for smooth movement on fast (120 Hz) screens.

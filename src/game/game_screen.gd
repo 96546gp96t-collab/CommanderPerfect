@@ -4,7 +4,9 @@ extends Control
 ## viewport stretched over the window with every game pixel the same size
 ## ([DisplaySettings]), the graphics (original, xBRZ or HD), full screen or
 ## a window, the camera's limits, the status line and the [Hud], short
-## messages and the [GameWindow]. The keys F1-F6 change how it looks.
+## messages and the [GameWindow]. The keys F1-F6 change how it looks. In
+## widescreen a level with a picture of its own shows it behind it
+## ([LevelBackdrop]), when the option is on.
 ##
 ## [LevelView] extends it with what happens in the game; the mode (what is
 ## shown) and the state that the drawing needs live here.
@@ -23,6 +25,11 @@ const MISSING_HD_MESSAGE := "No HD graphics yet: make them with tools/make_hd_gr
 
 var _mode := Mode.NONE
 var _graphics: EgaGraphics
+var _properties: TileProperties
+## The pictures behind the levels, and the background color left out of the
+## tiles for the one shown now (transparent when none is).
+var _backdrop_pictures: BackdropPictures
+var _backdrop_color := Color.TRANSPARENT
 ## The map or level on the screen, and its data.
 var _level_number := 0
 var _level: LevelData
@@ -72,6 +79,9 @@ var _joined_online := false
 @onready var _help_label: Label = %HelpLabel
 @onready var _online: OnlinePlay = %Online
 @onready var _remote: RemoteGame = %Remote
+@onready var _backdrop: LevelBackdrop = %Backdrop
+@onready var _backdrop_2: LevelBackdrop = %Backdrop2
+@onready var _camera_2: LevelCamera = %Camera2
 
 
 ## Puts the sprites [param blend] of the way from the previous tick to the
@@ -147,7 +157,7 @@ func _use_graphics(scaled: ScaledGraphics) -> void:
 	if _textures.scaled == scaled:
 		return
 	_textures.use_scaled(scaled)
-	_level_map.use_tile_set(LevelTileSet.build(_graphics, _textures))
+	_level_map.use_tile_set(_level_tile_set())
 	_keen.refresh()
 	_second_player.refresh()
 	_mark.refresh()
@@ -208,6 +218,51 @@ func _apply_display_settings() -> void:
 		_frame_camera()
 	if _picture != null and _picture.visible:
 		_show_picture(true)
+	_apply_backdrop()
+
+
+## Shows the picture behind the level on the screen, when it has one and
+## the settings want it, and leaves the level's own background out of its
+## tiles; otherwise the level looks as in the original.
+func _apply_backdrop() -> void:
+	var picture: Texture2D = null
+	var color := Color.TRANSPARENT
+	if (
+		_backdrop_pictures != null
+		and _level != null
+		and _settings.shows_backgrounds()
+		and GameFiles.is_playable_level(_level_number)
+	):
+		picture = _backdrop_pictures.picture(_level_number)
+	if picture != null:
+		var tile := BackdropPictures.background_tile(_level, _properties, _graphics.tiles)
+		if tile >= 0:
+			color = BackdropPictures.color_of(_graphics.tiles[tile])
+		else:
+			picture = null
+	var area := Rect2(LevelMap.playable_pixels(_level)) if _level != null else Rect2()
+	_backdrop.show_picture(picture, area)
+	_backdrop_2.show_picture(picture, area)
+	_update_backdrops()
+	if color != _backdrop_color:
+		_backdrop_color = color
+		if _textures != null:
+			_level_map.use_tile_set(_level_tile_set())
+
+
+## Puts the pictures behind the level where the cameras look.
+func _update_backdrops() -> void:
+	if not _backdrop.is_showing():
+		return
+	var view_size := Vector2(_settings.game_size())
+	_backdrop.follow(_camera.get_screen_center_position(), view_size)
+	_backdrop_2.follow(_camera_2.get_screen_center_position(), view_size)
+
+
+## The tiles of the level, without its background when a picture is behind
+## it.
+func _level_tile_set() -> TileSet:
+	return LevelTileSet.build(_graphics, _textures, _backdrop_color)
 
 
 func _frame_camera() -> void:
