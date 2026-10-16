@@ -35,7 +35,7 @@ Voor een volgend deel: [docs/new-episode-guide.md](docs/new-episode-guide.md).
 | B1 | Onderzoek: code in kaart, Keen 2 uitgezocht, architectuur, mijlpalen, handleiding | ✅ Klaar (branch `milestone-b1-onderzoek`); vragen beantwoord op 16-10-2026 |
 | B2 | De bestanden van Keen 2 inlezen, data viewer, tweede icoon op het startscherm | ✅ Klaar en gecontroleerd door de architect (branch `milestone-b2-bestanden`) |
 | B3 | Een level spelen (Keen, items, deuren, uitgang) | ✅ Klaar en gecontroleerd door de architect (branch `milestone-b3-level`) |
-| B4 | Vijanden en meerijden (platforms, Scrubs) | ⬜ |
+| B4 | Vijanden en meerijden (platforms, Scrubs) | ✅ Klaar en gecontroleerd door de architect (branch `milestone-b4-vijanden`) |
 | B5 | Schakelaars, bruggen, licht, de Tantalus-straal, de aarde ontploft | ⬜ |
 | B6 | Wereldkaart, steden, statusscherm, het einde | ⬜ |
 | B7 | Geluid, menu's, opslaan, highscores | ⬜ |
@@ -177,6 +177,79 @@ met de Keen 1-bestanden onder Keen 2-namen. De regels staan in
   titel, level 1 (ook lopend) en kaart zijn byte voor byte gelijk aan
   `main`; alleen `launcher.png` verschilt (het icoon van B2, gelijk aan de
   B2-screenshots).
+
+## Mijlpaal B4: wat er nu is
+
+Gebouwd zonder echte Keen 2-bestanden: getest met zelfgemaakte levels en
+met de Keen 1-bestanden onder Keen 2-namen. De regels en alle getallen
+staan in `docs/keen2/gameplay.md`; elk getal uit Commander Genius heeft
+`# estimate` in de code en staat in de lijst onderaan dat document.
+
+- **Vijanden uit de info-laag** (`Keen2LevelSession.create_enemy`): 1
+  grunt, 2 youth, 3 Elite, 4 Scrub, 5 Guard robot, 6 bewegend platform (4
+  pixels boven zijn cel). 7 (de vonk) komt in B5; waarden van 0x100 en
+  hoger zijn nooit vijanden. Ze worden wakker als ze in beeld komen, het
+  platform is altijd wakker. Kansen gaan zoals in Commander Genius (n + 1
+  op 1000 per tick) met de vaste seed van de sessie.
+- **De vijanden** (`src/keen2/actors/`, op de gedeelde `Enemy` via
+  `Keen2Enemy`): de grunt (kijkt rond, loopt, springt, springt uit een
+  kuil; 1 schot; frame 86 en dan 87, geen witte flits; springt niet in het
+  donker via `Keen2LevelSession.is_dark()`, nu altijd false), de youth
+  (snel, huppelt; **verdooft** Keen), de Elite (4 schoten, stormt op Keen
+  af als hij dichtbij op zijn hoogte staat, schiet met KEENFIRESND), de
+  Scrub (kruipt langs vloer, muur en plafond, valt van een dunne richel,
+  ongevaarlijk, SHOTHIT bij doodgaan), de Guard robot (zweeft, onkwetsbaar,
+  houdt Keens schoten tegen, salvo's van 4 met TANKFIRE) en het platform
+  (heen en weer, wacht 51 ticks bij een muur, slikt schoten).
+- **Vijandschoten** (`Keen2EnemyShot`, sprite 123, 108/32): doden Keen,
+  maar korten bij een verdoofde Keen alleen de verdoving in tot 20 ticks.
+  Ze raken andere vijanden zoals in Commander Genius, achter één constante
+  `ENEMY_SHOTS_HURT_ENEMIES := true  # estimate` (B10 kan hem omzetten);
+  niet hun eigen soort, en een Elite blijft heel bij een schot van een
+  Guard robot.
+- **Verdoving** (`Keen2Body extends KeenBody`, `src/keen2/keen/`): omhoog
+  met een volle sprong, pogo weg, kijkt de kant van de youth op, 250 ticks
+  geen knoppen (vallen en wrijving gaan door), frames 28/29 om de 26 ticks
+  en de laatste 20 ticks frame 31. Keen 1's `freeze()` past niet (andere
+  frametijd, geluid, duw) en is niet aangeraakt.
+- **Meerijden** op platform en Scrub (`Keen2Carrier`): Keen krijgt een
+  eigen botsing (`Keen2RidingCollision extends LevelCollision`) waarin de
+  bovenkant van zo'n drager een vloer is; de sessie schuift hem elke tick
+  mee met de drager. Loopt hij tegen de zijkant, dan wordt hij opzij
+  geduwd. Zolang hij meerijdt kan hij niet door de uitgang.
+- **Gedeelde code: niets veranderd.** Alles zit in `src/keen2/` en in de
+  Keen 2-tests; `git diff` buiten `src/keen2/` is leeg. De haken die er
+  al waren (`KeenBody.collision`, de instance-methodes van `LevelSession`:
+  `_spawn_enemies`, `_create_keen`, `_resolve_hits`, `_shoot_keens`,
+  `_touch_tiles`, `_is_exit`) waren genoeg. Alle geluiden hadden al een
+  `Sound.Id`.
+- **Tests:** `test_keen2_enemies` (welke info-waarde wat maakt, wakker
+  worden, grunt loopt/keert/springt en niet in het donker, één schot,
+  dodelijk, youth verdooft 250 ticks met de juiste frames en Keen staat
+  weer op, schot op verdoofde Keen, vijandschot doodt Keen, Elite stormt
+  en schiet en kan 4 schoten hebben, Guard robot zweeft, salvo van 4 om de
+  13 ticks, onkwetsbaar, dodelijk, friendly fire aan en uit, Elite heel bij
+  Guard robot-schoten en eigen soort) en `test_keen2_riding` (Scrub rond
+  een kamer en rond een blok, valt van een dunne richel, Keen rijdt mee op
+  een Scrub, Scrub duwt Keen, platform neemt Keen mee en wacht 51 ticks,
+  platform altijd actief, geen uitgang tijdens meerijden, platform houdt
+  schoten tegen, Scrub sterft). `test_keen2_stand_in` speelt nu elk level
+  600 ticks met de vijanden die uit de Keen 1-info komen (alle zes soorten
+  komen voor). In `test_keen2_level` werd de B3-test "info-waarden maken
+  niets" aangepast. De twee nieuwe suites staan in `tests/run_tests.gd`.
+- **Screenshots met de testdata** (Keen 1-plaatjes onder Keen
+  2-spritenummers, dus een grunt ziet eruit als een Vorticon en een youth
+  als een Yorp; het platform en sprites vanaf 119 zijn onzichtbaar):
+  grunts lopen, springen op een richel en gaan dood van schoten (level 3),
+  een youth rent en maakt grote sprongen (level 13), level 8 met Scrubs en
+  een Guard robot.
+- **Keen 1-controle:** alle tests slagen, gdlint schoon, titel, level 1
+  (ook lopend) en kaart byte voor byte gelijk aan `main`; alleen
+  `launcher.png` verschilt (gelijk aan de B2-screenshot).
+- **Open:** de botsingsvakken van de vijanden zijn schattingen (pas met
+  `EGAHEAD.CK2` te lezen); de hoekregels van de Scrub zijn eigen werk; of
+  vijandschoten in het origineel andere vijanden raken; de sprites 84/85
+  (springen links/rechts).
 
 ## Mijlpaal 1: wat er nu is
 
@@ -584,6 +657,7 @@ het origineel. Details in `docs/world-map.md` onder "Extra levels".
 - **Keen 2: besluiten van de gebruiker (16-10-2026, B1).** Gedeelde code mag alleen toevoegingen krijgen met Keen 1 als standaard; Keen 1-code blijft onaangeroerd. Chocolate Keen mag als bron voor datatabellen (adressen, namen, groottes), nooit voor code met gedrag. De architect (deze sessie) stuurt een developer-subagent aan en controleert zijn werk.
 - **Keen 2: de knop op het startscherm** (besluit van de gebruiker, 16-10-2026): lettertype en Keen-mannetje komen altijd uit de Keen 2-data. Zonder die bestanden blijft de knop grijs met een gewoon lettertype (geen Keen 1-data als vervanging).
 - **Keen 2: speldata.** De gebruiker heeft Keen 2 op floppies maar geen floppylezer. Keen 2 is geen shareware en wordt nog verkocht, dus het wordt niet gedownload van onofficiële sites. Opties: de Complete Pack op Steam/GOG, of een USB-floppylezer. Tot dan: bouwen en testen met zelfgemaakte testdata; de suites met echte data slaan zich over, en de vragen die alleen de echte bestanden beantwoorden blijven open (research.md).
+- **Keen 2: sprong van de youth** (B4, architect): met de getallen uit Commander Genius (200/32 omhoog, zwaartekracht 4/32) springt hij ruim 10 tiles hoog. Dat lijkt te veel; vermoedelijk heeft de youth in het origineel een eigen zwaartekracht. Naast het origineel leggen in B10.
 - **Geluidssnelheid (ook Keen 1):** Commander Genius speelt de geluiden met 145,6 Hz, `docs/sounds.md` zegt 140 Hz. Niet aangepast (Keen 1 blijft zoals het is); naast het origineel leggen.
 
 ### Toegevoegd op 15-10-2026 (op `milestone-10-menu`)
@@ -605,8 +679,12 @@ Keen 2:
    `docs/keen2/file-formats.md` afvinken.
 3. Met echte Keen 2-bestanden een paar levels spelen: kloppen de items, deuren,
    HUD-plaatjes en geluiden, en hoeveel ladingen heeft Keen bij de start?
-4. B4 (vijanden en meerijden) op `milestone-b4-vijanden`, zie
-   `docs/keen2/roadmap.md`.
+4. Met echte Keen 2-bestanden: de botsingsvakken van de vijanden uit de
+   spritetabel van `EGAHEAD.CK2` halen, en kijken of de Scrub netjes om
+   hoeken kruipt en de platforms op de goede hoogte zweven.
+5. B5 (schakelaars, bruggen, licht, de vonk, de Tantalus-straal) op
+   `milestone-b5-tantalus`; `Keen2LevelSession.is_dark()` krijgt dan echte
+   betekenis.
 
 Keen 1:
 

@@ -2,8 +2,9 @@ extends "res://tests/test_case.gd"
 ## Tests for playing a Keen 2 level ([Keen2LevelSession], [Keen2Inventory],
 ## [Keen2Shot], [Keen2LevelPlay]) in small hand-made levels, without Keen
 ## 2's files. See tests/keen2_fixtures.gd for the level characters. The
-## generic rules must work as in Keen 1; Keen 1's own things (enemies, ship
-## parts, statues, teleporters) must not happen.
+## generic rules must work as in Keen 1; Keen 1's own things (its enemies,
+## ship parts, statues, teleporters) must not happen. Keen 2's enemies are
+## in tests/test_keen2_enemies.gd and tests/test_keen2_riding.gd.
 
 const Fixtures := preload("res://tests/keen2_fixtures.gd")
 const SETTLE_TICKS := 120
@@ -30,9 +31,10 @@ const FIELD: PackedStringArray = [
 ]
 const START_CELL := Vector2i(2, 12)
 const FEET_ROW := 13
-## Info values that are enemies in Keen 1 (and in Keen 2 from B4 on), and
-## bridge offsets of Keen 2's switches.
+## Info values that are enemies in Keen 1, and bridge offsets of Keen 2's
+## switches. In Keen 2, 1-6 are enemies (tests/test_keen2_enemies.gd).
 const ENEMY_INFOS: PackedInt32Array = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+const KEEN_2_ENEMY_INFOS := 6
 const BRIDGE_INFOS: PackedInt32Array = [0x0102, 0xFF03, 0x01FE]
 
 
@@ -167,7 +169,7 @@ func test_keen_1_specials_do_nothing() -> void:
 	assert_true(session.keen.hitbox().position.x > _column_left(11), "walked past them all")
 
 
-func test_info_values_spawn_nothing() -> void:
+func test_only_enemy_info_values_spawn_something() -> void:
 	var infos: Dictionary[Vector2i, int] = {}
 	var column := 4
 	for value in ENEMY_INFOS + BRIDGE_INFOS:
@@ -177,11 +179,7 @@ func test_info_values_spawn_nothing() -> void:
 	var session := Keen2LevelSession.begin(
 		level, Fixtures.create_properties(), Keen2Inventory.new(), _start()
 	)
-	assert_true(session.actors.is_empty(), "no enemies in B3")
-	var keen_1 := LevelSession.create(
-		Fixtures.create_level(FIELD, infos), Fixtures.create_properties(), Inventory.new(), _start()
-	)
-	assert_true(not keen_1.actors.is_empty(), "the same level has enemies in Keen 1")
+	assert_equal(session.actors.size(), KEEN_2_ENEMY_INFOS, "1-6 only (B4; 7 comes in B5)")
 
 
 func test_shots_use_keen_2_sprites() -> void:

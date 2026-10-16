@@ -2,8 +2,10 @@ extends RefCounted
 ## Small hand-made tiles, tile properties and levels for the Keen 2 tests,
 ## so that they run without Keen 2's files (see tests/fixtures.gd for Keen
 ## 1's). The table is long enough for an item from tile 305 on, which leaves
-## a different background behind. Also: copying the Keen 1 files under Keen
-## 2's names, the stand-in data for the tests that need real files.
+## a different background behind. Also: a session with Keen at a cell and
+## where things stand in it (the enemy tests), and copying the Keen 1 files
+## under Keen 2's names, the stand-in data for the tests that need real
+## files.
 
 const TILE_COUNT := 320
 
@@ -26,8 +28,29 @@ const JOYSTICK := 15
 const ELDER := 16
 const TELEPORTER := 17
 const LIGHT_SWITCH := 18
+## A floor that is only solid on top: Keen can jump up through it.
+const LEDGE := 19
 ## An item from [constant LevelSession.HIGH_TILES_START] on.
 const HIGH_LOLLIPOP := 310
+
+## An empty field of 30 x 15 cells with a floor in the bottom row.
+const FIELD: PackedStringArray = [
+	"..............................",
+	"..............................",
+	"..............................",
+	"..............................",
+	"..............................",
+	"..............................",
+	"..............................",
+	"..............................",
+	"..............................",
+	"..............................",
+	"..............................",
+	"..............................",
+	"..............................",
+	"..............................",
+	"##############################",
+]
 
 ## Level characters and the tiles they stand for.
 const LEGEND := {
@@ -51,6 +74,7 @@ const LEGEND := {
 	"T": TELEPORTER,
 	"L": LIGHT_SWITCH,
 	"H": HIGH_LOLLIPOP,
+	"=": LEDGE,
 }
 const BEHAVIORS: Dictionary[int, TileProperties.Behavior] = {
 	FIRE: TileProperties.Behavior.DEADLY,
@@ -82,6 +106,7 @@ static func create_properties() -> TileProperties:
 	for side in range(TileProperties.Field.TOP, TileProperties.PLANE_COUNT):
 		planes[side][WALL] = 1
 	planes[TileProperties.Field.TOP][RED_DOOR] = 1
+	planes[TileProperties.Field.TOP][LEDGE] = 1
 	planes[TileProperties.Field.BOTTOM][RED_DOOR] = 1
 	for tile in BEHAVIORS:
 		planes[TileProperties.Field.BEHAVIOR][tile] = BEHAVIORS[tile]
@@ -112,6 +137,39 @@ static func create_level(
 	for cell in infos:
 		level.infos[(cell.y + border) * level.width + cell.x + border] = infos[cell]
 	return level
+
+
+## A Keen 2 session in [param rows] with Keen's sprite at the top left of
+## [param keen_cell] (counted without the border), before its first tick.
+static func begin_session(
+	rows: PackedStringArray, keen_cell: Vector2i, infos: Dictionary[Vector2i, int] = {}
+) -> Keen2LevelSession:
+	return Keen2LevelSession.begin(
+		create_level(rows, infos),
+		create_properties(),
+		Keen2Inventory.new(),
+		cell_top_left(keen_cell)
+	)
+
+
+## The top left of [param cell] (counted without the border), in level
+## pixels.
+static func cell_top_left(cell: Vector2i) -> Vector2:
+	return Vector2(column_left(cell.x), row_top(cell.y))
+
+
+static func column_left(column: int) -> float:
+	return (column + LevelData.BORDER_CELLS) * EgaGraphics.TILE_SIZE
+
+
+static func row_top(row: int) -> float:
+	return (row + LevelData.BORDER_CELLS) * EgaGraphics.TILE_SIZE
+
+
+## Where a sprite with collision box [param box] goes so that the box
+## stands on the floor in [param floor_row], at the left of [param column].
+static func on_floor(box: Rect2, column: int, floor_row: int) -> Vector2:
+	return Vector2(column_left(column), row_top(floor_row) - box.end.y)
 
 
 ## Copies every file of [param from] into [param to] under its Keen 2 name:
