@@ -8,7 +8,11 @@ extends RefCounted
 ## one-way platforms work: their top is solid, their other sides are not.
 ##
 ## Everything outside the playable area is a wall, except below it: falling
-## out of the bottom of a level is possible (and deadly).
+## out of the bottom of a level is possible (and deadly). With
+## [member open_left] or [member open_right] that side is open instead:
+## there the outermost column goes on, so that Keen can walk out of sight
+## (the ship levels, see [ShipLevels]). [member solid_cells] are solid on
+## every side whatever their tile (the walls of the ship's cabin).
 ##
 ## Doors are solid from every side; opening one with a keycard removes its
 ## tiles from the level.
@@ -22,6 +26,9 @@ const EDGE_TOLERANCE := 0.001
 
 var level: LevelData
 var properties: TileProperties
+var open_left := false
+var open_right := false
+var solid_cells: Dictionary[Vector2i, bool] = {}
 
 
 static func create(level_data: LevelData, tile_properties: TileProperties) -> LevelCollision:
@@ -34,6 +41,7 @@ static func create(level_data: LevelData, tile_properties: TileProperties) -> Le
 ## The tile in [param cell] as seen by the game, or -1 outside the playable
 ## area.
 func tile_at(cell: Vector2i) -> int:
+	cell = _through_open_sides(cell)
 	if not level.playable_rect().has_point(cell):
 		return -1
 	return level.tile_at(cell)
@@ -41,11 +49,12 @@ func tile_at(cell: Vector2i) -> int:
 
 ## Whether [param edge] of the tile in [param cell] stops a box.
 func is_solid(cell: Vector2i, edge: Edge) -> bool:
+	cell = _through_open_sides(cell)
 	var playable := level.playable_rect()
 	if not playable.has_point(cell):
 		return cell.y < playable.end.y
 	var tile := level.tile_at(cell)
-	if properties.is_door(tile):
+	if solid_cells.has(cell) or properties.is_door(tile):
 		return true
 	match edge:
 		Edge.TOP:
@@ -108,7 +117,8 @@ func floor_under(box: Rect2) -> TileProperties.Floor:
 			continue
 		var tile := tile_at(cell)
 		var kind := TileProperties.Floor.SOLID
-		if tile >= 0 and not properties.is_door(tile):
+		var own_floor := properties.is_door(tile) or solid_cells.has(_through_open_sides(cell))
+		if tile >= 0 and not own_floor:
 			kind = properties.floor_type(tile)
 		result = maxi(result, kind) as TileProperties.Floor
 	return result
@@ -160,3 +170,14 @@ func _any_solid_in_row(row: int, columns: PackedInt32Array, edge: Edge) -> bool:
 		if is_solid(Vector2i(column, row), edge):
 			return true
 	return false
+
+
+## Beyond an open side, a cell is the one at the edge of the playable area
+## in the same row.
+func _through_open_sides(cell: Vector2i) -> Vector2i:
+	var playable := level.playable_rect()
+	if open_left and cell.x < playable.position.x:
+		return Vector2i(playable.position.x, cell.y)
+	if open_right and cell.x >= playable.end.x:
+		return Vector2i(playable.end.x - 1, cell.y)
+	return cell

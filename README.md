@@ -90,7 +90,7 @@ Or open the project in the Godot editor and press F5.
 | Space / C / gamepad X button | Fire the raygun (once you have charges) |
 | Enter / Start button | Status screen (score, lives, raygun, keycards, ship parts); also closes messages |
 | Escape | Menu: new game, continue, save (on the world map), story, high scores, controls, options, quit |
-| F1 | Show or hide the line with the keys |
+| F1 | Show or hide the line with the keys (in 4:3 also the line with the level and score) |
 | F2 | Original view (320x200) or widescreen (16:9) |
 | F3 | Pixels as on a 4:3 monitor, or square pixels |
 | F4 | Full screen or a window |

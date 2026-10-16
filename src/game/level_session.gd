@@ -20,7 +20,13 @@ extends RefCounted
 ## [constant ENEMY_INFOS]); their shots, and Keen's, are actors too.
 ## The attempt ends when Keen reaches the exit, uses the teleporter, or has
 ## died (after the dying animation, or at once when he falls out of the
-## level).
+## level). In a level with open sides ([method open_sides], the ship levels)
+## it also ends when Keen walks out of it there.
+##
+## Two switches for the extra levels: without [member scores_points] the
+## items give no points (a level that is played again), and without
+## [member picks_up_items] items stay where they are (the parts in the ship).
+## [member exit_cells] work as exit doors that are not drawn.
 
 ## Emitted when a tile of the level changes, so that it can be redrawn.
 signal tile_changed(cell: Vector2i, tile: int)
@@ -31,7 +37,8 @@ signal hint_touched
 signal sound_played(sound: Sound.Id)
 
 ## TELEPORTED: Keen left through the teleporter; the level is not done.
-enum Outcome { PLAYING, COMPLETED, DIED, TELEPORTED }
+## WALKED_AWAY: Keen walked out at an open side; the level is not done.
+enum Outcome { PLAYING, COMPLETED, DIED, TELEPORTED, WALKED_AWAY }
 
 ## Picked-up items and opened doors leave the gray background behind. Tiles
 ## from [constant HIGH_TILES_START] on leave a different background (no level
@@ -92,6 +99,9 @@ var rng := RandomNumberGenerator.new()
 ## when they come into it. Without a view (in the tests) it is the area of
 ## an original 320x200 screen around each Keen.
 var view_rects: Array[Rect2] = []
+var scores_points := true
+var picks_up_items := true
+var exit_cells: Array[Vector2i] = []
 
 
 ## Starts an attempt at [param level_data] with Keen's sprite at [param start].
@@ -128,6 +138,13 @@ func add_player(start: Vector2) -> KeenBody:
 func remove_player(body: KeenBody) -> void:
 	if body != keen:
 		keens.erase(body)
+
+
+## Opens the left and right sides of the level: Keen can walk out of sight
+## there, and that ends the attempt.
+func open_sides(left := true, right := true) -> void:
+	collision.open_left = left
+	collision.open_right = right
 
 
 ## God mode (a cheat) for every Keen, also for one that joins later.
@@ -272,11 +289,23 @@ func _check_outcome() -> void:
 			return
 	if is_exiting():
 		return
+	if keens.any(_has_walked_away):
+		outcome = Outcome.WALKED_AWAY
+		return
 	for body in keens:
 		if body.death_finished and outcome == Outcome.PLAYING:
 			inventory.lose_life()
 			outcome = Outcome.DIED
 			return
+
+
+## Whether [param body] is out of the playable area at the left or right.
+func _has_walked_away(body: KeenBody) -> bool:
+	var playable := Rect2(LevelMap.playable_pixels(level))
+	var box := body.hitbox()
+	if collision.open_left and box.end.x <= playable.position.x:
+		return true
+	return collision.open_right and box.position.x >= playable.end.x
 
 
 func _spawn_enemies(has_commander: bool) -> void:
@@ -364,9 +393,9 @@ func _touch_tiles(body: KeenBody) -> void:
 	var box := body.hitbox()
 	for cell in LevelCollision.cells_under(box):
 		var tile := collision.tile_at(cell)
-		if properties.is_item(tile):
+		if properties.is_item(tile) and picks_up_items:
 			_pick_up(cell, tile)
-		elif properties.is_exit(tile) and body.can_exit() and not has_dead_keen():
+		elif _is_exit(cell, tile) and body.can_exit() and not has_dead_keen():
 			body.start_exit(cell.x)
 			play_sound(Sound.Id.LEVEL_DONE)
 		elif properties.is_teleporter(tile) and outcome == Outcome.PLAYING:
@@ -379,6 +408,10 @@ func _touch_tiles(body: KeenBody) -> void:
 		var tile := collision.tile_at(cell)
 		if properties.is_door(tile) and inventory.has_keycard(properties.door_color(tile)):
 			_open_door(cell)
+
+
+func _is_exit(cell: Vector2i, tile: int) -> bool:
+	return properties.is_exit(tile) or exit_cells.has(cell)
 
 
 func _pick_up(cell: Vector2i, tile: int) -> void:
@@ -400,7 +433,7 @@ func _pick_up(cell: Vector2i, tile: int) -> void:
 		inventory.keycards[behavior - first_card] = true
 		play_sound(Sound.Id.GOT_CARD)
 	else:
-		inventory.add_points(POINTS.get(behavior, 0))
+		inventory.add_points(POINTS.get(behavior, 0) if scores_points else 0)
 		play_sound(Sound.Id.GOT_BONUS)
 	if inventory.lives > lives:
 		play_sound(Sound.Id.EXTRA_LIFE)

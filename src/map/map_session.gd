@@ -11,6 +11,12 @@ extends RefCounted
 ##   ship            the view shows which parts are still missing
 ## Completed levels show a "done" sign, and the entrances that block the way
 ## let Keen through once their level is done.
+##
+## With [member extra_levels] on, the ship is a level of its own
+## ([ShipLevels]) that Keen enters, and the level with the pogo stick can be
+## entered again as long as he has not got it (see
+## [method GameProgress.can_enter]). Keen then does not have to stand on the
+## ship: right next to it is close enough ([constant SHIP_REACH]).
 
 ## Emitted when a tile of the map changes, so that it can be redrawn.
 signal tile_changed(cell: Vector2i, tile: int)
@@ -32,6 +38,8 @@ const TELEPORTER_DESTINATIONS: Dictionary[int, int] = {38: 41, 41: 38, 46: 41}
 ## The teleporter in level 13 leads to the teleporter with this value, in a
 ## part of the map that cannot be reached on foot.
 const SECRET_DESTINATION := 46
+## With the extra levels, Keen can use his ship from this many pixels away.
+const SHIP_REACH := 10.0
 
 var level: LevelData
 var properties: TileProperties
@@ -41,6 +49,7 @@ var keen: MapKeen
 var outcome := Outcome.PLAYING
 ## The level Keen enters when the outcome is ENTER_LEVEL.
 var chosen_level := 0
+var extra_levels := false
 var _teleport: MapTeleport
 var _action_was_held := false
 
@@ -77,13 +86,27 @@ func step(input: KeenInput) -> void:
 	else:
 		keen.step(input)
 		if action and not _action_was_held:
-			_use(level.info_at(cell_under_keen()))
+			var info := level.info_at(cell_under_keen())
+			# What Keen stands on goes first; then the ship next to him.
+			if extra_levels and (info == 0 or MapInfo.is_ship(info)) and is_near_ship():
+				_enter(ShipLevels.OUTSIDE_LEVEL)
+			else:
+				_use(info)
 	_action_was_held = action
 
 
 ## The cell Keen stands on: the one under the middle of his sprite.
 func cell_under_keen() -> Vector2i:
 	return Vector2i((keen.center() / EgaGraphics.TILE_SIZE).floor())
+
+
+## Whether Keen stands on his ship or right next to it.
+func is_near_ship() -> bool:
+	var bounds := Rect2i(Vector2i.ZERO, Vector2i(level.width, level.height))
+	for cell in LevelCollision.cells_under(keen.hitbox().grow(SHIP_REACH)):
+		if bounds.has_point(cell) and MapInfo.is_ship(level.info_at(cell)):
+			return true
+	return false
 
 
 ## Whether a teleporter is moving Keen.
@@ -117,17 +140,21 @@ func set_tile(cell: Vector2i, tile: int) -> void:
 func _use(info: int) -> void:
 	var number := MapInfo.level_of(info)
 	if number != 0:
-		if not progress.is_completed(number):
-			progress.map_position = keen.position
-			chosen_level = number
-			outcome = Outcome.ENTER_LEVEL
-			sound_played.emit(Sound.Id.MAP_ENTER_LEVEL)
+		if progress.can_enter(number, extra_levels):
+			_enter(number)
 	elif MapInfo.is_ship(info):
 		ship_used.emit()
 	elif TELEPORTER_DESTINATIONS.has(info):
 		var destination := level.find_info(TELEPORTER_DESTINATIONS[info])
 		if destination.x >= 0:
 			_start_teleport(destination)
+
+
+func _enter(level_number: int) -> void:
+	progress.map_position = keen.position
+	chosen_level = level_number
+	outcome = Outcome.ENTER_LEVEL
+	sound_played.emit(Sound.Id.MAP_ENTER_LEVEL)
 
 
 func _start_teleport(destination: Vector2i) -> void:

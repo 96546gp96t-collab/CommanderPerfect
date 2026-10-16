@@ -19,7 +19,8 @@ Wat elke mijlpaal precies inhoudt, staat in [docs/roadmap.md](docs/roadmap.md).
 | 8 | Twee spelers op één toetsenbord, dynamisch split-screen | ✅ Gemerged naar `main` (PR #8) |
 | 9 | Online co-op: hosten en joinen via Steam of IP | ✅ Gemerged naar `main` (PR #9); speeltest online loopt nog |
 | 10 | Startscherm met een icoon per spel | ✅ Gemerged naar `main` (PR #10) |
-| 11 | Fixes: crash bij "Choose Game", nieuw app-icoon, achtergronden achter levels | 🔶 Gebouwd (branch `milestone-11-fixes`) |
+| 11 | Fixes: crash bij "Choose Game", nieuw app-icoon, achtergronden achter levels | 🔶 Gebouwd en getest door de gebruiker (branch `milestone-11-fixes`) |
+| 11.2 | Extra: het schip als eigen level (onderdelen monteren), pogo-level opnieuw, onderdelen op de kaart | 🔶 In test bij de gebruiker (branch `milestone-11.2-extra-mini-game`) |
 
 ## Mijlpaal 1: wat er nu is
 
@@ -358,6 +359,42 @@ meldingen over het icoon, `icon.icns` in de app is het "CP"-icoon, en de
 gebouwde app start level 1 met de achtergrond. De gebruiker heeft
 "Choose Game" in de gebouwde app geprobeerd: geen crash meer.
 
+## Mijlpaal 11.2: wat er nu is
+
+Op verzoek van de gebruiker (16-10-2026). Alles valt onder de nieuwe optie
+**Extra levels** in Options, standaard aan (keuze van de gebruiker); uit =
+het origineel. Details in `docs/world-map.md` onder "Extra levels".
+
+- **Het schip als level** (nummers 100 buiten, 101 binnen; `ShipLevels`,
+  `ShipVisit`, `ShipRepair`, `ShipSmoke`, `ShipInterior`, `ShipPicture`).
+  Op de kaart start het schip het level, ook als Keen ernaast staat (idee
+  van de gebruiker). Buiten: het schip van het titelscherm met rook op
+  Mars; links/rechts uit beeld = terug naar de kaart; achter in het schip
+  loopt Keen naar binnen met de animatie van de einddeuren (onzichtbare
+  ingang, op verzoek van de gebruiker; eerst stond er een zichtbare deur).
+  Binnen: een kleine getekende cabine (ramen, buizen, kabels, tank,
+  cockpit met radar en knipperlampjes); vier plekken met grijze
+  silhouetten; met het onderdeel loop je ertegenaan en het gaat erin, zonder
+  verschijnt een bordje "... still missing". Door het luik links weer
+  naar buiten. Na het vierde onderdeel begint het einde (keuze van de
+  gebruiker: niet meer vanzelf bij vier onderdelen). Ingebouwde onderdelen
+  staan in het opgeslagen spel (`installed_parts`, oude saves werken).
+- Opgelost na de eerste test van de gebruiker: in de cabine liep Keen
+  zonder animatie, kon hij niet springen en "gleed" hij (de eigen vaste
+  cellen telden niet als vloer, dus Keen viel steeds; vermoedelijk ook het
+  harde gekraak: elke tick een landingsgeluid). De meldingen staan nu als
+  één bordje bovenaan in het midden (`ScreenNote`); een nieuwe vervangt de
+  oude.
+- De melding "Level N completed!" is weg (hoorde niet bij het origineel,
+  besluit van de gebruiker); na een level is er alleen het "done"-bord.
+- **Level 5 (pogo) opnieuw** zolang Keen de pogo niet heeft; punten tellen
+  dan niet, munitie wel (keuze van de gebruiker).
+- **Onderdelen in de HUD** rechtsboven, op de kaart en in het schip.
+- `level_view.gd` liep over de 1000 regels: het volgen van de camera staat
+  nu in `GameScreen`.
+- Tests: `test_ship.gd` (zonder speldata) en `test_keen1_ship.gd` (speelt de
+  echte scheepslevels).
+
 ## Bekende beperkingen
 
 - De natuurkunde-getallen zijn startwaarden (overgenomen van Commander Genius als documentatie, zie `docs/keen-physics.md`). Ze moeten nog naast het origineel (DOSBox) worden gelegd; de lijst met punten staat onderaan dat document.
@@ -366,7 +403,7 @@ gebouwde app start level 1 met de achtergrond. De gebruiker heeft
 - Veel getallen op de kaart en in het einde zijn overgenomen van Commander Genius of geschat: loopsnelheid op de kaart, de teleporter, de vluchten van het schip (de vlucht naar de aarde duurt nu ~28 s). De lijst staat onderaan `docs/world-map.md`.
 - De doelen van de teleporters staan in de code van `KEEN1.EXE`, niet in een tabel; ze zijn als vaste waarden in `MapSession` gezet (volgens de documentatie van Commander Genius wijst elk doel precies naar een andere teleporter). Mods met andere doelen werken dus niet.
 - In de EXE zijn de vraag van de ouders en Keens antwoord ("Aw, Mom...") één bericht; het origineel toont ze misschien als twee vensters.
-- In 4:3-beeld staat linksboven nog de hulpregel (levelnaam, beeldinstelling, score, levens, munitie); de gebruiker is gevraagd of die ook standaard weg moet (onder F1). De regel bovenin en de toetsenregel onderin zijn hulpmiddelen; het origineel heeft alleen het statusscherm. De toetsenregel noemt de standaardtoetsen, ook als ze zijn veranderd.
+- In 4:3-beeld staat de hulpregel linksboven (levelnaam, beeldinstelling, score, levens, munitie) alleen nog onder F1 (besluit van de gebruiker, 16-10-2026); zonder F1 alleen korte meldingen in het midden. De regel bovenin en de toetsenregel onderin zijn hulpmiddelen; het origineel heeft alleen het statusscherm. De toetsenregel noemt de standaardtoetsen, ook als ze zijn veranderd.
 - De snelheid van de geluiden (140 Hz) komt uit openbare documentatie en is nog niet met het oor vergeleken. Een paar koppelingen van geluid aan gebeurtenis zijn gokken (zie `docs/sounds.md`); `CLICKSND`, `CRYSTALSND` en `GOINDOORSND` worden niet gebruikt.
 - Niet nagebouwd: de intro (Apogee- en id-schermen), de demo, "About ID...", "Ordering Info" en "Previews!". De helptekst (`HELPTEXT.CK1`) wordt niet getoond, omdat die de toetsen van het origineel beschrijft.
 - De scores in een nieuwe highscorelijst (100) en de plek van de tabel in de rode lijst zijn geschat.
@@ -398,13 +435,10 @@ Na de eerste eigen test van de gebruiker:
 
 ## Volgende stap
 
-1. **Voor de gebruiker:** bouw de app (`tools/build_macos.sh` en
-   `tools/build_windows.sh`) en controleer: "Choose Game" crasht niet meer,
-   het nieuwe "CP"-icoon staat in de Dock en op de .exe, en level 1 heeft
-   de nieuwe achtergrond (Options > Backgrounds zet hem uit). Mocht de Windows-build
-   klagen over het aanpassen van de .exe, zet dan `modify_resources` weer
-   uit (dan zonder eigen icoon). Bevalt het icoon niet: de rasters staan
-   bovenin `tools/make_app_icon.py`.
+1. **Voor de gebruiker:** de scheepslevels proberen in
+   `build/CommanderPerfect.app` (nieuwe binnenkant, onzichtbare ingang,
+   bordjes bij de plekken) en zeggen wat er beter kan; daarna committen en
+   pushen naar `milestone-11.2-extra-mini-game`.
 2. Mijlpaal 9 (online): probeer via IP op het thuisnetwerk en via Steam met
    een vriend.
 3. Eventueel een breder plaatje voor level 1 en plaatjes voor andere

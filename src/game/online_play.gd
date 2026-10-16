@@ -335,6 +335,8 @@ static func changed_tiles(level: LevelData, original: LevelData) -> PackedInt32A
 
 
 func _original(number: int) -> LevelData:
+	if ShipLevels.is_ship_level(number):
+		return ShipLevels.build(number)
 	if files == null:
 		return null
 	return LevelData.parse(files.read(GameFiles.level_file_name(number)))

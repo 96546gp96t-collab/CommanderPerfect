@@ -9,9 +9,13 @@ extends GameScreen
 ##   level        Keen plays a level ([LevelSession]); afterwards he is back
 ##                on the map where he entered it, whether he completed it or
 ##                died
+##   ship         with the extra levels on: Keen's crashed ship as a level of
+##                its own, outside and inside, where he puts the parts back
+##                ([ShipLevels], [ShipRepair])
 ##   game over    the GAMEOVER bitmap, after the last life
 ##   ending       once Keen has all four ship parts, he flies home
-##                ([EndingSequence])
+##                ([EndingSequence]); with the extra levels on, once they
+##                are all back in the ship
 ## After game over and after the ending, a good score goes into the high
 ## score table; then the title returns. The special maps (81, 90) can be
 ## looked at freely, for testing.
@@ -74,8 +78,6 @@ const MISSING_DATA_MESSAGE := (
 
 var _files: GameFiles
 var _level_numbers := PackedInt32Array()
-var _session: LevelSession
-var _map_session: MapSession
 var _time_left := 0.0
 ## The statue messages and the texts of the ending; null when they could
 ## not be read.
@@ -83,6 +85,7 @@ var _hints: HintTexts
 var _ending_texts: EndingTexts
 var _saves := SaveGames.new()
 var _high_scores := HighScores.new()
+var _ship := ShipVisit.new()
 ## The words for the places in the high score table; null when not found.
 var _score_texts: ScoreTexts
 ## The place in the high score table that is waiting for a name, or -1.
@@ -108,6 +111,8 @@ func _ready() -> void:
 	_connect_online()
 	_apply_window_mode()
 	resized.connect(_fit_screen)
+	_ship.note_shown.connect(_show_ship_note)
+	_add_ship_drawings()
 	_screen.texture = _world.get_texture()
 	_screen.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
 	_screen.material = ShaderMaterial.new()
@@ -141,6 +146,7 @@ func _ready() -> void:
 	_window.set_textures(_textures)
 	_pictures.set_textures(_textures)
 	_hud.set_textures(_textures)
+	_screen_note.set_textures(_textures)
 	_online.set_textures(_textures)
 	_online.files = _files
 	_online.fingerprint = LevelFingerprint.of(_files)
@@ -153,6 +159,7 @@ func _ready() -> void:
 		_sounds.load_sounds(SoundFile.load_from(_files))
 	if OS.get_cmdline_user_args().has(ENDING_OPTION):
 		_progress.inventory.ship_parts.fill(true)
+		_progress.installed_parts.fill(true)
 		_enter_map(false)
 		return
 	var level := _requested_level()
@@ -243,10 +250,15 @@ func _tick() -> void:
 				_session.step_players([_local_input(), _online.partner_input()])
 			else:
 				_session.step(_local_input())
+			_ship.step(_session)
 			_online.send_level(_session, _progress.inventory)
 			if _session.outcome != LevelSession.Outcome.PLAYING:
 				_on_level_over(_session.outcome)
+			elif _ship.is_ready_to_fly():
+				# Back on the map with every part in: the ending starts there.
+				_enter_map(false)
 		Mode.MAP:
+			_map_session.extra_levels = _user_settings.extra_levels
 			_map_session.step(_map_input())
 			_online.send_map(_map_session.keen, _progress.inventory)
 			if _map_session.outcome == MapSession.Outcome.ENTER_LEVEL:
@@ -603,7 +615,7 @@ func _neighbor_level(offset: int) -> int:
 func _go_to(number: int) -> void:
 	if number == GameFiles.WORLD_MAP_LEVEL:
 		_enter_map(true)
-	elif GameFiles.is_playable_level(number):
+	elif GameFiles.is_playable_level(number) or ShipLevels.is_ship_level(number):
 		_enter_level(number)
 	else:
 		_look_at(number)
@@ -632,11 +644,19 @@ func _enter_map(show_lives: bool) -> void:
 	_announce_scene()
 	_keen.show_on_map(_map_session.keen)
 	_follow(_keen)
-	if _progress.inventory.has_all_ship_parts():
+	if _ship_can_fly():
 		_start_ending()
 	elif show_lives:
 		_online.send_event(OnlineMessages.Event.KEENS_LEFT, _progress.inventory.lives)
 		_show_lives(_progress.inventory.lives)
+
+
+## Whether Keen can fly home: he has every ship part, and with the extra
+## levels on they are also all back in the ship.
+func _ship_can_fly() -> bool:
+	if not _progress.inventory.has_all_ship_parts():
+		return false
+	return not _user_settings.extra_levels or _progress.all_parts_installed()
 
 
 func _show_lives(lives: int) -> void:
@@ -653,10 +673,13 @@ func _enter_level(number: int) -> void:
 	if not _load_map(number):
 		return
 	_level_map.show_level(_level, _properties)
-	var start := _start_cell()
+	var start := _ship.start_cell(_level, number, _start_cell())
 	_session = LevelSession.create(
 		_level, _properties, _progress.inventory, Vector2(start * EgaGraphics.TILE_SIZE), number
 	)
+	# Playing a level again (the pogo level) gives no points.
+	_session.scores_points = not _progress.is_completed(number)
+	_ship.set_up(_session, number, _progress)
 	_session.tile_changed.connect(_on_tile_changed)
 	_session.hint_touched.connect(_on_hint_touched)
 	_session.sound_played.connect(_play_game_sound)
@@ -669,6 +692,13 @@ func _enter_level(number: int) -> void:
 		_second_player.start(_session, _session.keen.position, _camera_anchor.position)
 	elif _online.has_partner():
 		_add_online_partner()
+
+
+## A note of the ship in the middle of the view; the other player sees it in
+## his status line.
+func _show_ship_note(text: String) -> void:
+	_screen_note.show_text(text)
+	_online.send_event(OnlineMessages.Event.MESSAGE, text)
 
 
 ## A tile of the level changed: draw it, and let the other player know.
@@ -721,12 +751,14 @@ func _look_at(number: int) -> void:
 
 func _on_level_over(outcome: LevelSession.Outcome) -> void:
 	var number := _level_number
+	if ShipLevels.is_ship_level(number) and outcome != LevelSession.Outcome.DIED:
+		_on_ship_level_over(number, outcome)
+		return
 	match outcome:
 		LevelSession.Outcome.COMPLETED:
+			# As in the original: back on the map, where the level shows "done".
 			_progress.complete_level(number)
-			_show_message("Level %d completed!" % number)
 			_enter_map(false)
-			_online.send_event(OnlineMessages.Event.MESSAGE, _message)
 		LevelSession.Outcome.TELEPORTED:
 			_enter_map(false)
 			if _mode == Mode.MAP:
@@ -736,6 +768,16 @@ func _on_level_over(outcome: LevelSession.Outcome) -> void:
 				_game_over()
 			else:
 				_enter_map(true)
+
+
+## Keen went through the door of the ship (in or out), or walked away from
+## it to the map.
+func _on_ship_level_over(number: int, outcome: LevelSession.Outcome) -> void:
+	var next := _ship.next_level(number, outcome)
+	if next == ShipVisit.TO_MAP:
+		_enter_map(false)
+	else:
+		_enter_level(next)
 
 
 func _start_ending() -> void:
@@ -785,6 +827,7 @@ func _load_map(number: int, area := Rect2i()) -> bool:
 	_second_player.stop()
 	_session = null
 	_map_session = null
+	_ship.leave()
 	_actor_layer.clear()
 	_pictures.clear()
 	_close_window()
@@ -792,7 +835,12 @@ func _load_map(number: int, area := Rect2i()) -> bool:
 	_screen.modulate = Color.WHITE
 	_level_number = number
 	var file_name := GameFiles.level_file_name(number)
-	_level = LevelData.parse(_files.read(file_name))
+	if ShipLevels.is_ship_level(number):
+		file_name = ShipLevels.title(number)
+		_level = ShipLevels.build(number, _progress.installed_parts)
+	else:
+		_level = LevelData.parse(_files.read(file_name))
+	_show_ship_drawings()
 	if _level == null:
 		_mode = Mode.NONE
 		_level_map.clear()
@@ -813,52 +861,6 @@ func _start_cell() -> Vector2i:
 	if cell.x < 0:
 		cell = _level.playable_rect().position
 	return cell
-
-
-## Makes the camera follow [param target]: Keen (or his ship), the
-## free-look point, or (for a screen that stands still) its own anchor. The
-## others are switched off.
-func _follow(target: Node2D) -> void:
-	var following_keen := target == _keen
-	_keen.visible = following_keen
-	_second_player.set_keen_visible(following_keen)
-	_mark.visible = following_keen
-	_free_look.set_process(target == _free_look)
-	_camera.use_dead_zone(following_keen)
-	_keen.snap()
-	_mark.snap()
-	_move_camera_anchor()
-	_camera.reset_smoothing()
-
-
-## Puts the camera anchor on what the view follows. The camera itself never
-## changes parent: while it is out of the tree, the view would jump to the
-## top left of the level for a frame.
-func _move_camera_anchor() -> void:
-	match _mode:
-		Mode.LOOK:
-			_camera_anchor.position = _free_look.position
-		Mode.LEVEL:
-			# When Keen dies the camera stays put, so that he flies off the screen.
-			# With two Keens the split screen moves the cameras.
-			if not _session.keen.is_dead and not _second_player.is_split_screen():
-				_camera_anchor.position = _keen.smooth_position() + KeenPhysics.SPRITE_SIZE / 2.0
-		Mode.MAP:
-			_camera_anchor.position = _map_keen_center()
-		Mode.REMOTE:
-			_camera_anchor.position = _remote.camera_target(_camera_anchor.position)
-		Mode.ENDING:
-			var flight := _ending.flight
-			if _ending.map_number() == GameFiles.ENDING_LEVEL and flight.scrolling:
-				_camera_anchor.position = _keen.smooth_position()
-			elif _ending.map_number() == GameFiles.WORLD_MAP_LEVEL and _map_session != null:
-				_camera_anchor.position = _map_keen_center()
-
-
-## The middle of Keen on the world map, where he is drawn now.
-func _map_keen_center() -> Vector2:
-	var map_keen := _map_session.keen
-	return _keen.smooth_position() + map_keen.center() - map_keen.position
 
 
 func _connect_online() -> void:
@@ -952,6 +954,7 @@ func _on_remote_scene(kind: OnlineMessages.Scene, number: int, tiles: PackedInt3
 			# Each player watches the ending at his own pace.
 			_progress.map_position = _remote.map_position
 			_progress.inventory.ship_parts.fill(true)
+			_progress.installed_parts.fill(true)
 			_enter_map(false)
 		_:
 			_show_title()

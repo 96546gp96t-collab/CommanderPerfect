@@ -2,19 +2,25 @@ class_name UserSettings
 extends RefCounted
 ## The settings the game remembers between sessions: full screen or a
 ## window, the shape and style of the picture ([DisplaySettings]), whether
-## sound is on, the keys ([KeyBindings]), and for playing online the
-## player's name and the last address he joined. Stored in a ConfigFile in the user
-## folder of Godot.
+## sound is on, whether the extra levels are on, the keys ([KeyBindings]),
+## and for playing online the player's name and the last address he joined.
+## Stored in a ConfigFile in the user folder of Godot.
 
 const DEFAULT_PATH := "user://settings.cfg"
 const DISPLAY := "display"
 const SOUND := "sound"
+const GAME := "game"
 const CONTROLS := "controls"
 const ONLINE := "online"
 
 var path := DEFAULT_PATH
 var display := DisplaySettings.new()
 var sound_enabled := true
+## The extras of the game itself, not in the original: the ship as a level
+## of its own, where Keen puts the parts back ([ShipLevels]), and playing the
+## level with the pogo stick again until he has it. On unless the player
+## switched them off (the user's choice).
+var extra_levels := true
 ## The game starts in full screen unless the player switched that off.
 var fullscreen := true
 ## The name shown to the other player when playing online by IP; empty
@@ -52,6 +58,7 @@ static func load_from(file_path := DEFAULT_PATH) -> UserSettings:
 	settings.display.smooth_motion = bool(config.get_value(DISPLAY, "smooth_motion", false))
 	settings.display.backgrounds = bool(config.get_value(DISPLAY, "backgrounds", true))
 	settings.sound_enabled = bool(config.get_value(SOUND, "enabled", true))
+	settings.extra_levels = bool(config.get_value(GAME, "extra_levels", true))
 	var stored_name := str(config.get_value(ONLINE, "name", "")).strip_edges()
 	settings.online_name = PlayerName.clean(stored_name) if not stored_name.is_empty() else ""
 	settings.online_address = str(config.get_value(ONLINE, "address", "")).left(
@@ -77,6 +84,7 @@ func save() -> bool:
 	config.set_value(DISPLAY, "smooth_motion", display.smooth_motion)
 	config.set_value(DISPLAY, "backgrounds", display.backgrounds)
 	config.set_value(SOUND, "enabled", sound_enabled)
+	config.set_value(GAME, "extra_levels", extra_levels)
 	config.set_value(CONTROLS, "keys", KeyBindings.to_dict())
 	config.set_value(ONLINE, "name", online_name)
 	config.set_value(ONLINE, "address", online_address)
