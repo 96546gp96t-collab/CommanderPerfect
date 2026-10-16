@@ -16,7 +16,8 @@ Wat elke mijlpaal precies inhoudt, staat in [docs/roadmap.md](docs/roadmap.md).
 | 5 | Wereldkaart, levelovergangen, scheepsonderdelen, einde | ✅ Getest door de gebruiker en gemerged naar `main` (PR #5) |
 | 6 | Geluid, menu's, opslaan | ✅ Getest door de gebruiker en gemerged naar `main` (PR #6) |
 | 7 | Hogere framerate (interpolatie), xBRZ met wisselknop, Real-ESRGAN-pipeline, Windows-build | ✅ Gemerged naar `main` (PR #7) |
-| 8 | Twee spelers op één toetsenbord, dynamisch split-screen; later eventueel online | 🔶 Gebouwd, speeltest door de gebruiker loopt (branch `milestone-8-coop`) |
+| 8 | Twee spelers op één toetsenbord, dynamisch split-screen | ✅ Gemerged naar `main` (PR #8) |
+| 9 | Online co-op: hosten en joinen via Steam of IP | 🔶 Gebouwd, speeltest door de gebruiker loopt (branch `milestone-9-online-coop`) |
 
 ## Mijlpaal 1: wat er nu is
 
@@ -180,6 +181,79 @@ dat het scherm splitst met de lijn. De gebruiker heeft het gespeeld en vindt
 het er goed uitzien (14-10-2026); alleen de pijltjes naar de andere speler
 moesten weg.
 
+## Mijlpaal 9: wat er nu is
+
+Afspraken met de gebruiker (15-10-2026), zoals in Together Around: hosten
+via Steam (alleen vrienden, App ID 480) of via IP met dezelfde poort (UDP
+24800). Online twee Keens (host + 1), F7 doet dan niets. Optioneel
+wachtwoord (via IP standaard aan, via Steam uit), basiscontrole op alle
+berichten, geen kick-knop of security-log. Hosten kan vanuit het
+hoofdmenu (nieuw spel) en vanuit het Escape-menu (huidig spel loopt door).
+Naam: de Steam-naam, of via IP één keer intypen. Bij joinen een nieuwe
+ping (eigen PC-speakergeluid) en "*Naam* joined" rechtsonder. Wie joint
+staat altijd naast de Keen van de host. Op de kaart loopt alleen de host;
+drukt de ander een pijltje of knop, dan "Only the host can walk on the
+world map". Online pauzeert niets (zolang er echt samen gespeeld wordt; hosten zonder
+dat iemand gejoind is gedraagt zich als alleen spelen). Pijltje naar de ander als hij uit beeld
+is (alleen online). De host controleert een checksum van de levels en
+weigert een andere versie. Uitleg van alles: `docs/online.md`.
+
+- **Menu** (`MenuController`, `OnlineMenuInfo`): "Online Game" in het
+  hoofdmenu met Host via Steam, Host via IP, Join via Steam (lijst van
+  spellen van vrienden, `*` = wachtwoord), Join via IP (adres wordt
+  onthouden) en Your Name. Tijdens hosten: de adressen (LAN, internet via
+  api.ipify.org, poort, wachtwoord), wie meespeelt, en Stop Hosting. Wie
+  joint heeft een eigen hoofdmenu: Return to Game, Leave Game, Story,
+  Controls, Options, Quit. Tekstinvoer voor naam, adres en wachtwoord.
+- **Netwerk** (`src/online/`): `OnlineSession` (eigen `SceneMultiplayer`,
+  zelf gepold, dus testbaar zonder scèneboom), `EnetTransport` en
+  `SteamTransport`, de handshake (`JoinHandshake`, `JoinGate`,
+  `JoinTicket`: nonce + SHA-256, het wachtwoord gaat nooit over de lijn,
+  5 keer fout = 1 minuut buiten), `LevelFingerprint`, `SteamService` en
+  `SteamLobby` (overgenomen van Together Around, aangepast), `HostAddresses`.
+- **Synchronisatie**: de host rekent alles. Elke tick een `Snapshot`
+  (Keens, actors met een vast id, zinkende deuren, voorraad, geluiden),
+  onbetrouwbaar verstuurd; scènes (kaart, level, game over, einde, wachten)
+  met alle tiles die afwijken van het levelbestand; tile-wijzigingen en
+  vensters (beeldje, Keens Left, scheepsonderdelen, "Level n completed!")
+  als events. Wie joint stuurt alleen zijn knoppen als ze veranderen
+  (`OnlineInput`, één wijziging per tick, dus een tikje blijft een tik) en
+  af en toe wat hij ziet (vijanden worden daar wakker). `SnapshotBuffer`
+  houdt 2 plaatjes reserve.
+- **Spelscherm**: `LevelView` werd te lang (gdlint max 1000 regels); wat er
+  op het scherm staat en hoe het getekend wordt (beeld, graphics, F1-F6,
+  statusregel, HUD, vensters) staat nu in de basisklasse `GameScreen`
+  (letterlijk verplaatst, niets aan veranderd). Online: `OnlinePlay`
+  (netwerk, menukeuzes, meldingen, ping), `RemoteGame` (wat wie joint ziet,
+  in de nieuwe mode `REMOTE`, en het pijltje), `OnlineNotice`,
+  `PartnerArrow`, `OnlineSpawn` (naast de host, eerst ervoor),
+  `PingSound`. `TwoPlayerView` kan nu ook zonder split-screen (online) en
+  tekent de eigen Keen van wie joint.
+- **Steam-plug-in**: GodotSteam GDExtension 4.23.1 in `addons/godotsteam/`,
+  meegecommit met alleen de macOS- en Windows-bibliotheken (zoals in
+  Together Around). Op Linux zegt Godot dat hij hem niet kan laden; dat is
+  verwacht.
+- `tools/scripted_play.gd` kan nu tekst typen (`type_127.0.0.1`).
+- Tests: `test_online_session.gd` (handshake: wachtwoord, buitensluiten,
+  andere versie/levels, vol, rommel; een echte host en joiner via ENet op
+  deze machine, verkeerd wachtwoord, geen antwoord), `test_online_sync.gd`
+  (snapshot heen en terug, kapotte berichten, kopieën van actors, knoppen,
+  tikje, flood, buffer, berichten, gewijzigde tiles, plek naast de host,
+  pijltje, Steam-lobbydata, adressen, ping), `test_online_menus.gd`
+  (hoofdmenu's, hosten via IP/Steam, joinen via IP/Steam, hostinfo), plus
+  naam en adres in `test_saving.gd` en de checksum op de echte data.
+
+Getest met Godot 4.7.2 en de shareware-versie 1.1: alle tests slagen, gdlint
+is schoon, en met twee instanties op deze machine (elk een eigen
+gebruikersmap) is via het menu gehost en gejoind via IP: de Keen van wie
+joint staat naast de host, beweegt bij de host mee, "GUEST joined" en
+"Joined HOST's game" verschijnen, Shift+N (ander level) en New Game (de
+kaart met Keens Left) komen bij wie joint aan, de kaartmelding verschijnt,
+de pijltjes wijzen naar de ander, en als de host stopt gaat wie joint terug
+naar zijn titel met "The host has left the game". Steam kon hier niet
+getest worden (geen Steam in de cloud) en is ook in Together Around nog
+niet met twee echte accounts geprobeerd. De ping is niet beluisterd.
+
 ## Bekende beperkingen
 
 - De natuurkunde-getallen zijn startwaarden (overgenomen van Commander Genius als documentatie, zie `docs/keen-physics.md`). Ze moeten nog naast het origineel (DOSBox) worden gelegd; de lijst met punten staat onderaan dat document.
@@ -203,6 +277,7 @@ moesten weg.
 - Of de wereldkaart ook precies een rand van 2 tiles verbergt, is aangenomen maar niet vergeleken met het origineel.
 - Twee spelers: de controller bestuurt alleen speler 1; twee controllers worden nog niet uit elkaar gehouden. Of speler 2 meespeelt, wordt niet in een opgeslagen spel bewaard. De toetsenregel (F1) noemt alleen de toetsen voor één speler.
 - Met 4:3-pixels is de scheidslijn liggend iets dikker dan staand (hij wordt in spelpixels getekend).
+- Online: geen voorspelling, de eigen Keen van wie joint reageert één rondreis later (thuisnetwerk of Steam in Nederland meestal 20-40 ms). Maximaal twee spelers; niet lokaal en online tegelijk. Wie joint ziet het einde in zijn eigen tempo, en op de kaart tijdens het einde ontbreken bij hem de DONE-borden. Of er online gespeeld wordt, gaat niet mee in een opgeslagen spel.
 
 ## Open beslissingen
 
@@ -211,6 +286,17 @@ moesten weg.
 
 ## Volgende stap
 
-1. **Voor de gebruiker:** speel verder met z'n tweeën (`build/CommanderPerfect.app`, nu zonder pijltjes) en kijk vooral naar doodgaan, de uitgang, de kaart en F7 om speler 2 weg te halen. Als alles goed is: mergen naar `main`.
-2. Mijlpaal 7 staat op `main`; de punten uit de vorige lijst (xBRZ/vloeiende beweging bekijken, Windows-build op een pc starten) staan nog open.
-3. Daarna: de openstaande punten (natuurkunde en vijanden naast DOSBox leggen, de intro, de hulpregel in 4:3), eventueel twee controllers voor twee spelers, en later misschien online.
+1. **Voor de gebruiker:** bouw de app (`tools/build_macos.sh`, en
+   `tools/build_windows.sh` voor een pc) en probeer online: eerst via IP op
+   het thuisnetwerk (Escape > Online Game > Host via IP op de ene computer,
+   Join via IP met het adres uit het venster op de andere), dan via Steam met
+   een vriend (Steam moet draaien). Let op: de vertraging van je eigen Keen
+   als je joint, de ping, de melding rechtsonder, de kaart, doodgaan en de
+   uitgang. Controleer ook of de Steam-bibliotheken goed in de `.app` en naast
+   de `.exe` komen (Godot zet ze er zelf bij). Als alles goed is: mergen naar
+   `main`.
+2. Mijlpaal 8 en 7: de open punten (xBRZ/vloeiende beweging bekijken,
+   Windows-build op een pc starten) staan nog.
+3. Daarna: de openstaande punten (natuurkunde en vijanden naast DOSBox
+   leggen, de intro, de hulpregel in 4:3), eventueel voorspelling voor wie
+   online joint, en twee controllers voor twee spelers.

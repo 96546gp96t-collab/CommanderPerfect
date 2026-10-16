@@ -7,9 +7,15 @@ extends SpriteView
 
 ## Shows [param body] as it is now.
 func show_body(body: KeenBody) -> void:
-	show_sprite(body.position, body.sprite_index())
-	# Walking through the exit door, Keen disappears behind it bit by bit.
-	var width := body.visible_width()
+	show_frame(body.position, body.sprite_index(), body.visible_width())
+
+
+## Shows sprite [param sprite_index] at [param at], with only the left
+## [param width] pixels of it: walking through the exit door, Keen
+## disappears behind it bit by bit. Online, the other player's Keen is
+## shown this way from what the host sends.
+func show_frame(at: Vector2, sprite_index: int, width: float) -> void:
+	show_sprite(at, sprite_index)
 	if width < KeenPhysics.SPRITE_SIZE.x:
 		clip_width(width, KeenPhysics.SPRITE_SIZE.y)
 

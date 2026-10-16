@@ -48,6 +48,10 @@ choice below is a guess and is marked so; check those against the original.
 | `GAMEOVERSND` | Game over |
 | `HISCORESND` | A new high score |
 
+Online, the host hears a "ping" when somebody joins: two short rising tones
+made with the same PC speaker synthesis (`PingSound`), not one of the sounds
+of `SOUNDS.CK1`. It plays on its own, next to the game's one channel.
+
 Not used yet: `CLICKSND`, `CRYSTALSND` and `GOINDOORSND`; it is not known
 what they are for in Keen 1.
 

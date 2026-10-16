@@ -2,19 +2,26 @@ class_name UserSettings
 extends RefCounted
 ## The settings the game remembers between sessions: full screen or a
 ## window, the shape and style of the picture ([DisplaySettings]), whether
-## sound is on, and the keys ([KeyBindings]). Stored in a ConfigFile in the user
+## sound is on, the keys ([KeyBindings]), and for playing online the
+## player's name and the last address he joined. Stored in a ConfigFile in the user
 ## folder of Godot.
 
 const DEFAULT_PATH := "user://settings.cfg"
 const DISPLAY := "display"
 const SOUND := "sound"
 const CONTROLS := "controls"
+const ONLINE := "online"
 
 var path := DEFAULT_PATH
 var display := DisplaySettings.new()
 var sound_enabled := true
 ## The game starts in full screen unless the player switched that off.
 var fullscreen := true
+## The name shown to the other player when playing online by IP; empty
+## until the player typed one. Over Steam his Steam name is used.
+var online_name := ""
+## The address the player last joined by IP.
+var online_address := ""
 
 
 ## The settings stored at [param file_path], with the defaults for whatever
@@ -41,6 +48,11 @@ static func load_from(file_path := DEFAULT_PATH) -> UserSettings:
 	)
 	settings.display.smooth_motion = bool(config.get_value(DISPLAY, "smooth_motion", false))
 	settings.sound_enabled = bool(config.get_value(SOUND, "enabled", true))
+	var stored_name := str(config.get_value(ONLINE, "name", "")).strip_edges()
+	settings.online_name = PlayerName.clean(stored_name) if not stored_name.is_empty() else ""
+	settings.online_address = str(config.get_value(ONLINE, "address", "")).left(
+		MenuController.ADDRESS_LENGTH
+	)
 	var keys: Variant = config.get_value(CONTROLS, "keys", {})
 	if keys is Dictionary:
 		KeyBindings.apply_dict(keys)
@@ -58,6 +70,8 @@ func save() -> bool:
 	config.set_value(DISPLAY, "smooth_motion", display.smooth_motion)
 	config.set_value(SOUND, "enabled", sound_enabled)
 	config.set_value(CONTROLS, "keys", KeyBindings.to_dict())
+	config.set_value(ONLINE, "name", online_name)
+	config.set_value(ONLINE, "address", online_address)
 	var error := config.save(path)
 	if error != OK:
 		push_error("Could not save %s: %s" % [path, error_string(error)])
