@@ -44,9 +44,10 @@ src/keen2/            Keen 2 only (all class names start with Keen2)
                       Keen2Platform, Keen2Spark, Keen2Shot, Keen2Bridge
   level/              Keen2LevelSession, Keen2Switches, Keen2Darkness, Keen2Tantalus
   map/                Keen2MapSession (no teleporters, no ship), Keen2MapInfo
-  game/               Keen2View (the scene; the Keen 2 counterpart of level_view.gd),
-                      Keen2Progress, Keen2Inventory, Keen2StatusScreen, Keen2Ending,
-                      Keen2EarthExplosion, Keen2Hud parts
+  game/               Keen2LevelPlay (the levels one after another, B3), Keen2GameData
+                      (loading), Keen2Icons (HUD icons), Keen2Progress, Keen2Inventory,
+                      Keen2StatusScreen, Keen2Ending, Keen2EarthExplosion, Keen2Hud parts
+  keen2_view.gd       Keen2View (the scene; the Keen 2 counterpart of level_view.gd)
   keen2_view.tscn     The game scene that the start screen opens
 tests/test_keen2_*.gd Keen 2 suites; the ones that need real data skip without it
 docs/keen2/           Keen 2 documents
@@ -66,19 +67,20 @@ Found in the code survey of B1; line numbers are from `main` at that time.
 | Find `game_data/keen2`, `KEEN2.EXE`, `*.CK2` | `GameFiles` has static constants: folder `game_data/keen1`, extension `.CK1`, the required files (`game_files.gd:14-30`, `95-110`) | Add an instance field `extension` (default `"CK1"`) used by `level_numbers()` and a new instance `level_file(number)`; add `static func locate_in(subfolder, required) -> GameFiles` that `locate()` calls with the Keen 1 values. `Keen2Files` wraps it with the Keen 2 values (`game_data/keen2`, `--data-dir-keen2=` option). *Built in B2 as:* `locate_in(subfolder, required, option, extension)`, plus `first_complete(candidates, ...)` (so tests can pass folders) and `candidate_directories_in(subfolder, option)`; `open()` got optional `extension` and `required` parameters and the instance a `required_files` field. All defaults are Keen 1's. |
 | Read `EGAHEAD.CK2` etc. | `EgaGraphics.load_from(files)` uses fixed `.CK1` names (`ega_graphics.gd:29-35`) | Optional parameter `extension := "CK1"`. *B2 also:* `FinaleImage.load_from(files, file_name := "FINALE.CK1")` for `FINALE.CK2`. `EgaHeader` needed no change. |
 | Tile properties of 689 tiles at another offset | `TileProperties.find_in_image(image, tile_count)` already scans; `KNOWN_OFFSETS` are Keen 1's | Use `find_in_image` with the Keen 2 offsets first (new optional parameter `known_offsets`), the scan as fallback. The `Behavior` enum stays Keen 1's; Keen 2 gets `Keen2Behavior` for values 22-26. |
-| Sounds from inside `KEEN2.EXE` | `SoundFile.parse(bytes)` exists | None: `Keen2Executable` cuts the `SND` block out of the image and calls `parse`. The `Sound.Id` table is Keen 1's; Keen 2 passes its own name table (new optional parameter where sounds are looked up). |
+| Sounds from inside `KEEN2.EXE` | `SoundFile.parse(bytes)` exists | None: `Keen2Executable` cuts the `SND` block out of the image and calls `parse`. The `Sound.Id` table is Keen 1's; Keen 2 passes its own name table (new optional parameter where sounds are looked up). *Built in B3:* no shared change: the embedded block has Keen 1's names, so `Keen2GameData` hands `executable.sounds()` to `SoundPlayer.load_sounds` as is. When the EXE has no sound block, a `SOUNDS.CK2` file is used if there is one (only the stand-in data has it). |
 | Texts from inside `KEEN2.EXE` | `TextDocument.layout(bytes, width)`, `ExeStrings.find/record_at` exist | None. |
 | Saves and high scores apart from Keen 1 | `SaveGames.in_directory(path)`, `HighScores.load_from(path, ...)` exist | None: Keen 2 uses `user://keen2/saves` and `user://keen2/high_scores.json`. Keen 1's paths stay as they are (no migration). High score entries for Keen 2 store cities instead of parts (Keen 2's own entry format, own file). |
 | Settings | `user://settings.cfg` | Shared: display, sound, keys and extras are the same choices for both games. Keen 1-only options (Extra levels) are hidden in Keen 2's menu. |
-| Pictures behind levels | `BackdropPictures` uses `res://assets/backgrounds` (`backdrop_pictures.gd:16`) | Optional folder parameter; Keen 2 uses `res://assets/backgrounds/keen2`. The player's own folder is already per game (next to the data). |
+| Pictures behind levels | `BackdropPictures` uses `res://assets/backgrounds` (`backdrop_pictures.gd:16`) | Optional folder parameter; Keen 2 uses `res://assets/backgrounds/keen2`. The player's own folder is already per game (next to the data). *B3:* not yet; `Keen2View` makes no `BackdropPictures`, so `GameScreen._apply_backdrop` shows none (and never Keen 1's). No shared change. |
 | Start screen icon | `GameCatalog.games()` returns only Keen 1 (`game_catalog.gd:20-25`) | Append a Keen 2 entry (title "Keen 2", scene `GameLaunch.KEEN_2_SCENE`, files `Keen2Files.locate()`). Keen 1 stays first. *B2 also:* `Game.data_folder` (default `game_data/keen1`), so the launcher's "files not found" text names the right folder; `MISSING_FILES_MESSAGE` takes the folder as a second `%s` and gives Keen 1 the same text as before. The existing launcher test that expected exactly one game now expects two (approved by the architect). |
 | Start Keen 2 from the command line | `--level=N` / `--ending` always start Keen 1 (`launcher.gd:35-36`) | New option `--game=2` that, together with `--level=`, starts Keen 2. Without it nothing changes. *B2:* `--game=2` alone also skips the start screen (`GameLaunch.scene_for`). As for Keen 1, "Choose Game" with these options on the command line comes straight back to the game. |
-| Keen's movement | `KeenBody` starts without the pogo, ice freezes him | Reuse as is; Keen 2 sets `has_pogo = true` at the start. The stun of the Vorticon youth: try `freeze()` first; if the frames or the friction differ (research §5), add an optional stun mode to `KeenBody` (Keen 1 default unchanged). Sprite numbers 0-27 are the same in both games. |
+| Keen's movement | `KeenBody` starts without the pogo, ice freezes him | Reuse as is; Keen 2 sets `has_pogo = true` at the start (*built in B3:* `Keen2Inventory` starts with it and `Keen2LevelSession.begin` sets it; `KeenBody` and the sprite numbers 0-27 unchanged). The stun of the Vorticon youth: try `freeze()` first; if the frames or the friction differ (research §5), add an optional stun mode to `KeenBody` (Keen 1 default unchanged). Sprite numbers 0-27 are the same in both games. |
 | Riding a platform or Scrub | `LevelCollision` only knows tiles | New hook: the session gives `KeenBody` a "carrier" (any actor with a top surface and a velocity); `KeenBody` stands on it and moves along. Keen 1 has no carriers, so its path does not change. Design this in B4, test it with fixtures. |
 | Tiles that change while playing (bridge, Tantalus wreck, switches, Elder lights) | Keen 1 already changes tiles (items, doors) through `tile_changed` | Reuse. Check that xBRZ and HD layers update per cell as well. |
 | Darkness | Nothing | Keen 2 only (`Keen2Darkness`), drawn as a layer or shader on top of `GameScreen`; it must also work with xBRZ, HD and widescreen. |
-| The level session | `LevelSession` mixes the generic core with Keen 1's enemies, statues and ship parts (`level_session.gd:46-79`, `311-337`, `420-432`) | Do **not** change its behaviour. Preferred: `Keen2LevelSession extends LevelSession` and overrides only what Keen 2 does differently. If a method that must be overridden is static or private (`_create_enemy` is static), add a new instance hook whose default calls the existing code, so Keen 1 runs the same lines as before. If that becomes awkward, `Keen2LevelSession` uses composition (owns the collision, the actors and Keen) and copies none of the Keen 1 rules. |
-| The game scene | `level_view.gd` (991 lines) is Keen 1's state machine on top of `GameScreen` (generic) | `Keen2View extends GameScreen`, built from small classes from the start (title and menu, map, level, ending, Earth explosion, texts). Keep every file under ~500 lines. |
+| The level session | `LevelSession` mixes the generic core with Keen 1's enemies, statues and ship parts (`level_session.gd:46-79`, `311-337`, `420-432`) | Do **not** change its behaviour. Preferred: `Keen2LevelSession extends LevelSession` and overrides only what Keen 2 does differently. If a method that must be overridden is static or private (`_create_enemy` is static), add a new instance hook whose default calls the existing code, so Keen 1 runs the same lines as before. If that becomes awkward, `Keen2LevelSession` uses composition (owns the collision, the actors and Keen) and copies none of the Keen 1 rules. *Built in B3:* subclassing. `LevelSession.create` now calls the new instance method `_set_up(...)`, which holds its old body in the same order; three hooks whose default is the old code: `_is_item(tile)` (was `properties.is_item(tile)`), `_touch_special_tile(cell, tile)` (the teleporter and statue branches of `_touch_tiles`, reached in the same `elif` order) and `_create_shot(start, direction)` (was `RaygunShot.create`). `Keen2LevelSession` (constructor `begin`, because a static `create` with another return type cannot override the parent's) overrides `_spawn_enemies` (already an instance method: no enemies until B4), `_is_item` (no ship parts), `_touch_special_tile` (22/24 do nothing) and `_create_shot` (`Keen2Shot`, Keen 2's shot sprites 122-125). |
+| The game scene | `level_view.gd` (991 lines) is Keen 1's state machine on top of `GameScreen` (generic) | `Keen2View extends GameScreen`, built from small classes from the start (title and menu, map, level, ending, Earth explosion, texts). Keep every file under ~500 lines. *Built in B3:* `Keen2View` (~250 lines; its scene has the same node layout as `level_view.tscn`, because `GameScreen` finds its nodes by unique name), `Keen2LevelPlay` (the B3 course: level after level, death, game over), `Keen2GameData` (graphics, tile properties, sounds, FINALE.CK2). `GameScreen` needed no change. |
+| HUD icons | `Hud` draws `StatusScreen.RAYGUN_TILE` and `KEYCARD_TILES`, Keen 1's tile numbers | *Built in B3:* `Hud` got the members `raygun_tile` and `keycard_icons` (defaults: those Keen 1 constants) and `Hud.keycard_tiles` an optional `icons` parameter (same default). `Keen2View` sets them to `Keen2Icons`: the first tile with the raygun/keycard behaviour. The ship parts are already optional (`with_parts`, off in levels 1-16). |
 | Online and co-op | `Snapshot` sends 4 keycards and 4 ship parts; `OnlineProtocol.GAME_ID` does not name the episode | In B9: add the episode to the handshake (a Keen 1 host must refuse a Keen 2 guest), and a Keen 2 snapshot with cities instead of parts. Keen 1's messages stay byte for byte the same. |
 | Tools | `export_graphics.gd`, `export_hd_sheets.gd`, `make_hd_graphics.sh`, `build_*.sh` assume `keen1` | Optional `GAME=keen2` (environment variable), default `keen1`. Builds copy `game_data/keen2` too when it exists. *B2 deviation:* `export_graphics.gd` and the data viewer take `-- --game=2` instead, the same option as the game itself (they are Godot scripts that already read user arguments); output `exported/keen2/`. The shell scripts can still use `GAME=keen2` when they get Keen 2 support. |
 
@@ -99,6 +101,11 @@ Launcher ──click "Keen 2"──▶ keen2_view.tscn (Keen2View)
                                 ─▶ high scores
 ```
 
+In milestone B3, before the map and the menus exist, the flow is shorter:
+level 1 (or `--level=N`) → exit → next level → … → level 16 → start screen;
+death restarts the level, game over and Escape go back to the start screen
+(see [gameplay.md](gameplay.md)).
+
 ## Testing
 
 - Most Keen 2 logic is tested with hand-made fixtures (`tests/fixtures.gd`
@@ -109,6 +116,15 @@ Launcher ──click "Keen 2"──▶ keen2_view.tscn (Keen2View)
   `test_keen1_data.gd`. Keen 2 is not shareware: in the cloud these suites
   skip unless the user uploads their own files to `game_data/keen2/` for that
   session. On the Mac they run.
+- *B3:* stand-in data: `tests/test_keen2_stand_in.gd` copies the Keen 1
+  shareware files under Keen 2's names and plays the levels through
+  `Keen2LevelPlay`. `Keen2View` itself needs a running scene tree (the test
+  runner has none: nodes added in `_initialize` only get `_ready` after it),
+  so it is checked with `tools/scripted_play.gd` screenshots.
+- *B3 deviation:* B2's test of the placeholder screen
+  (`test_keen_2_placeholder` in `tests/test_keen2_files.gd`) was removed,
+  because B3 replaces that screen; `tests/test_keen2_level.gd` checks the new
+  scene instead. It is a Keen 2 test; no Keen 1 test file was touched.
 - Numbers that come from Commander Genius are marked *estimate* in the code,
   as for Keen 1, and listed at the bottom of the Keen 2 docs to check
   against the original (DOSBox) in B10.

@@ -32,6 +32,8 @@ const SUITES: Array[Script] = [
 	preload("res://tests/test_keen2_files.gd"),
 	preload("res://tests/test_keen2_renamed_keen1.gd"),
 	preload("res://tests/test_keen2_data.gd"),
+	preload("res://tests/test_keen2_level.gd"),
+	preload("res://tests/test_keen2_stand_in.gd"),
 ]
 
 

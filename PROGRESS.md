@@ -34,7 +34,7 @@ Voor een volgend deel: [docs/new-episode-guide.md](docs/new-episode-guide.md).
 |---|---|---|
 | B1 | Onderzoek: code in kaart, Keen 2 uitgezocht, architectuur, mijlpalen, handleiding | ✅ Klaar (branch `milestone-b1-onderzoek`); vragen beantwoord op 16-10-2026 |
 | B2 | De bestanden van Keen 2 inlezen, data viewer, tweede icoon op het startscherm | ✅ Klaar en gecontroleerd door de architect (branch `milestone-b2-bestanden`) |
-| B3 | Een level spelen (Keen, items, deuren, uitgang) | ⬜ |
+| B3 | Een level spelen (Keen, items, deuren, uitgang) | ✅ Klaar en gecontroleerd door de architect (branch `milestone-b3-level`) |
 | B4 | Vijanden en meerijden (platforms, Scrubs) | ⬜ |
 | B5 | Schakelaars, bruggen, licht, de Tantalus-straal, de aarde ontploft | ⬜ |
 | B6 | Wereldkaart, steden, statusscherm, het einde | ⬜ |
@@ -125,6 +125,58 @@ getest met zelfgemaakte testdata en met de Keen 1-bestanden onder Keen
   en hun lengtes, de tile-eigenschappen, en de open vragen 1-12 uit
   `research.md`. De berichten van de Vorticon-oudste en de eindteksten
   worden nog niet gelezen (komt met `Keen2Texts`).
+
+## Mijlpaal B3: wat er nu is
+
+Gebouwd zonder echte Keen 2-bestanden: getest met zelfgemaakte levels en
+met de Keen 1-bestanden onder Keen 2-namen. De regels staan in
+`docs/keen2/gameplay.md`.
+
+- **Het spelscherm:** `Keen2View` (`src/keen2/keen2_view.gd`) bouwt nu op
+  `GameScreen`, net als Keen 1: widescreen met HUD, F1-F6 (ook xBRZ en HD),
+  de camera die Keen volgt, berichten. De scène heeft dezelfde opbouw als
+  `level_view.tscn`. Het laden zit in `Keen2GameData` (graphics,
+  tile-eigenschappen en geluid uit `KEEN2.EXE`; zonder geluidsblok een
+  `SOUNDS.CK2` als die er ligt, alleen handig voor de testdata).
+- **Voorlopig verloop** (`Keen2LevelPlay`, tot de kaart in B6): vanaf het
+  startscherm level 1, met `-- --game=2 --level=N` level N (1-16). De
+  uitgang gaat naar het volgende level, na level 16 terug naar het
+  startscherm. Dood: een leven minder en hetzelfde level opnieuw ("Keens
+  left: N"); geen levens meer: "Game over" en terug naar het startscherm.
+  Escape gaat altijd terug. Cheats zoals bij Keen 1: Shift+N/P, Shift+I,
+  Shift+G.
+- **Een level** (`Keen2LevelSession`, een subklasse van `LevelSession`):
+  punten (500/100/200/1000/5000), straalgeweer (+5), sleutelkaarten en
+  deuren (worden tile 143), uitgang, dodelijke tiles, extra leven per
+  20.000, item-tegels vanaf 305 laten 276 achter. Geen vijanden (B4), geen
+  scheepsonderdelen, het gedrag 22 (de Vorticon-oudste) en 24 doen nog
+  niets. Keen heeft de pogo vanaf het begin; schoten gebruiken de Keen
+  2-sprites 122-125 (`Keen2Shot`).
+- **Inventaris:** `Keen2Inventory`: 4 levens, pogo, 0 ladingen bij de start
+  (*schatting*, nog naast het origineel leggen).
+- **HUD:** levens, score, ladingen, sleutelkaarten; geen onderdelen. De
+  plaatjes van het straalgeweer en de kaarten zoekt `Keen2Icons` op in de
+  tile-eigenschappen (de eerste tile met dat gedrag).
+- **Plaatjes achter de levels:** nog niet (B8); de Keen 1-plaatjes komen
+  nooit achter een Keen 2-level.
+- **Gedeelde code, gedragsneutraal:** `LevelSession.create` roept nu
+  `_set_up` aan (dezelfde regels in dezelfde volgorde), plus drie haken
+  met de oude code als standaard: `_is_item`, `_touch_special_tile`
+  (teleporter en beelden) en `_create_shot`. `Hud` kreeg `raygun_tile` en
+  `keycard_icons` (standaard de Keen 1-tiles) en `Hud.keycard_tiles` een
+  optionele parameter. `GameScreen` hoefde niet te veranderen.
+- **Tests:** `test_keen2_level` (zelfgemaakte levels: punten, straalgeweer,
+  kaarten en deur, dodelijke tile, uitgang, pogo vanaf de eerste tick,
+  extra leven, 22/24/onderdelen doen niets, info-waarden maken niets aan,
+  schot-sprites, de scène) en `test_keen2_stand_in` (Keen 1-bestanden als
+  Keen 2: laden, level 1 spelen, uitgang, dood, game over, na level 16).
+  De B2-test van het voorlopige scherm is weggehaald (dat scherm bestaat
+  niet meer). Screenshots met de testdata: stilstaan, lopen, springen,
+  pogo, HUD met items, 4:3, xBRZ, level 2.
+- **Keen 1-controle:** alle tests slagen, gdlint schoon, de screenshots van
+  titel, level 1 (ook lopend) en kaart zijn byte voor byte gelijk aan
+  `main`; alleen `launcher.png` verschilt (het icoon van B2, gelijk aan de
+  B2-screenshots).
 
 ## Mijlpaal 1: wat er nu is
 
@@ -530,6 +582,7 @@ het origineel. Details in `docs/world-map.md` onder "Extra levels".
 - **HD met nieuwe details (generatieve AI)**, besproken op 14-10-2026, voor nu geparkeerd door de gebruiker. Oordeel van de gebruiker: de Real-ESRGAN-HD is "best lelijk", xBRZ ziet er mooier uit, maar hij mist nieuwe details. Real-ESRGAN kan geen details verzinnen; daarvoor is een generatief model nodig. Het plan staat in `docs/graphics.md` onder "Plan: HD with new details". Eerste stap als de gebruiker verder wil: toestemming vragen om Stable Diffusion 1.5 + ControlNet Tile te downloaden (~6 GB, Hugging Face, naar een map die git negeert) en een proef doen met ~10 plaatjes naast xBRZ.
 
 - **Keen 2: besluiten van de gebruiker (16-10-2026, B1).** Gedeelde code mag alleen toevoegingen krijgen met Keen 1 als standaard; Keen 1-code blijft onaangeroerd. Chocolate Keen mag als bron voor datatabellen (adressen, namen, groottes), nooit voor code met gedrag. De architect (deze sessie) stuurt een developer-subagent aan en controleert zijn werk.
+- **Keen 2: de knop op het startscherm** (besluit van de gebruiker, 16-10-2026): lettertype en Keen-mannetje komen altijd uit de Keen 2-data. Zonder die bestanden blijft de knop grijs met een gewoon lettertype (geen Keen 1-data als vervanging).
 - **Keen 2: speldata.** De gebruiker heeft Keen 2 op floppies maar geen floppylezer. Keen 2 is geen shareware en wordt nog verkocht, dus het wordt niet gedownload van onofficiële sites. Opties: de Complete Pack op Steam/GOG, of een USB-floppylezer. Tot dan: bouwen en testen met zelfgemaakte testdata; de suites met echte data slaan zich over, en de vragen die alleen de echte bestanden beantwoorden blijven open (research.md).
 - **Geluidssnelheid (ook Keen 1):** Commander Genius speelt de geluiden met 145,6 Hz, `docs/sounds.md` zegt 140 Hz. Niet aangepast (Keen 1 blijft zoals het is); naast het origineel leggen.
 
@@ -550,7 +603,10 @@ Keen 2:
 2. Met echte Keen 2-bestanden: `test_keen2_data` draaien, de data viewer
    met `-- --game=2` bekijken en de open punten in
    `docs/keen2/file-formats.md` afvinken.
-3. B3 (een level spelen) op `milestone-b3-level`, zie `docs/keen2/roadmap.md`.
+3. Met echte Keen 2-bestanden een paar levels spelen: kloppen de items, deuren,
+   HUD-plaatjes en geluiden, en hoeveel ladingen heeft Keen bij de start?
+4. B4 (vijanden en meerijden) op `milestone-b4-vijanden`, zie
+   `docs/keen2/roadmap.md`.
 
 Keen 1:
 

@@ -204,16 +204,6 @@ func test_game_option_starts_keen_2() -> void:
 	assert_true(not GameLaunch.skips_launcher(["--data-dir-keen2=/x"]), "other options")
 
 
-func test_keen_2_placeholder() -> void:
-	var view: Keen2View = load(GameLaunch.KEEN_2_SCENE).instantiate()
-	view._build()  # The tests run outside the scene tree.
-	assert_true(view.message().contains("coming soon"), "says Keen 2 is coming")
-	view.free()
-	assert_true(Keen2View.is_back_event(_key(KEY_ESCAPE)), "Escape goes back")
-	assert_true(Keen2View.is_back_event(_key(KEY_ENTER)), "Enter goes back")
-	assert_true(not Keen2View.is_back_event(_key(KEY_LEFT)), "other keys do not")
-
-
 ## A program image with a sound block, four text blocks, the city names,
 ## the ending record and a tile table (on a word boundary, as in the real
 ## executables), with filler in between.
@@ -300,14 +290,6 @@ func _filler(size: int) -> PackedByteArray:
 	bytes.resize(size)
 	bytes.fill(FILLER)
 	return bytes
-
-
-func _key(keycode: Key) -> InputEventKey:
-	var event := InputEventKey.new()
-	event.keycode = keycode
-	event.physical_keycode = keycode
-	event.pressed = true
-	return event
 
 
 func _folder(folder_name: String) -> String:
