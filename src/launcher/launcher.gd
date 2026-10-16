@@ -2,14 +2,15 @@ class_name Launcher
 extends Control
 ## The start screen: CommanderPerfect always begins here. The picture of
 ## CommanderPerfect fills the screen, whole; below it, in a dark gray bar,
-## an icon for each game ([GameCatalog]) from the left, for now only Keen
-## 1. Picking one
+## an icon for each game ([GameCatalog]) from the left: Keen 1, then Keen
+## 2. Picking one
 ## starts that game with its main menu open. See docs/menus.md.
 ##
 ## The mouse, the arrow keys and the controller pick an icon; a click,
 ## Enter or A starts it. Escape twice closes the program. With
 ## [code]-- --level=N[/code] or [code]-- --ending[/code] on the command
-## line Keen 1 starts at once, for testing ([GameLaunch]).
+## line Keen 1 starts at once, for testing ([GameLaunch]); with
+## [code]-- --game=2[/code] Keen 2 does.
 
 const BACKGROUND := preload("res://assets/launcher/background.png")
 const BAR_COLOR := Color("303030")
@@ -17,8 +18,9 @@ const MESSAGE_COLOR := Color("e0e0e0")
 ## Seconds within which a second Escape closes the program.
 const QUIT_SECONDS := 3.0
 const QUIT_MESSAGE := "Press Escape again to quit"
+## Filled in with the game's title and its data folder.
 const MISSING_FILES_MESSAGE := (
-	"The files of %s were not found. Put them in game_data/keen1 "
+	"The files of %s were not found. Put them in %s "
 	+ "(see game_data/README.md), next to the app."
 )
 ## The message is this part of the height of the bar.
@@ -33,7 +35,8 @@ var _quit_time_left := 0.0
 
 func _ready() -> void:
 	if GameLaunch.skips_launcher(OS.get_cmdline_user_args()):
-		get_tree().change_scene_to_file.call_deferred(GameLaunch.KEEN_1_SCENE)
+		var scene := GameLaunch.scene_for(OS.get_cmdline_user_args())
+		get_tree().change_scene_to_file.call_deferred(scene)
 		return
 	_apply_window_mode()
 	_build()
@@ -129,7 +132,7 @@ func _make_icon(game: GameCatalog.Game) -> GameIcon:
 	icon.title = game.title
 	icon.available = game.is_available()
 	if game.is_available():
-		var graphics := EgaGraphics.load_from(game.files)
+		var graphics := EgaGraphics.load_from(game.files, game.files.extension)
 		if graphics != null:
 			icon.textures = GraphicsTextures.create(graphics)
 			icon.sprite = icon.textures.sprite(KeenPhysics.SPRITE_WALK_RIGHT)
@@ -160,7 +163,7 @@ func _arrange() -> void:
 ## Starts [param game] with its main menu open, or says why it cannot.
 func _start(game: GameCatalog.Game) -> void:
 	if not game.is_available():
-		_message.text = MISSING_FILES_MESSAGE % game.title
+		_message.text = MISSING_FILES_MESSAGE % [game.title, game.data_folder]
 		_quit_time_left = 0.0
 		return
 	GameLaunch.request_menu()

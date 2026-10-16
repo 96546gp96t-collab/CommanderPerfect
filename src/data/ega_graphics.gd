@@ -23,16 +23,19 @@ var sprites: Array[Image] = []
 
 
 ## Loads and decodes all graphics. Returns null when a file is missing or
-## damaged; the reason is reported with push_error.
-static func load_from(files: GameFiles) -> EgaGraphics:
+## damaged; the reason is reported with push_error. [param extension] is the
+## episode's file extension: EGAHEAD.CK1 for Keen 1, EGAHEAD.CK2 for Keen 2.
+static func load_from(files: GameFiles, extension := GameFiles.DEFAULT_EXTENSION) -> EgaGraphics:
 	var graphics := EgaGraphics.new()
-	graphics.header = EgaHeader.parse(files.read("EGAHEAD.CK1"))
+	graphics.header = EgaHeader.parse(files.read("EGAHEAD." + extension))
 	if graphics.header == null:
 		return null
 
-	var latch := _read_planes(files, "EGALATCH.CK1", graphics.header.latch_plane_size, LATCH_PLANES)
+	var latch := _read_planes(
+		files, "EGALATCH." + extension, graphics.header.latch_plane_size, LATCH_PLANES
+	)
 	var sprite_data := _read_planes(
-		files, "EGASPRIT.CK1", graphics.header.sprite_plane_size, SPRITE_PLANES
+		files, "EGASPRIT." + extension, graphics.header.sprite_plane_size, SPRITE_PLANES
 	)
 	if latch.is_empty() or sprite_data.is_empty():
 		return null
