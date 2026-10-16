@@ -344,11 +344,19 @@ Gemeld door de gebruiker (16-10-2026) na het mergen van mijlpaal 10.
   plaats van het plaatje links/rechts/smal level, standaard aan en alleen
   in widescreen, onthouden, menu-optie, eigen map gaat voor, level 1 heeft
   een plaatje).
+- **Builds pakten te veel in.** `.gitignore` geldt niet voor Godot: de
+  export ("all_resources") nam ook de plaatjes uit `exported/` en `build/`
+  mee in het pakket (afgeleid van de originele bestanden). Beide presets
+  sluiten nu `build/*, exported/*, game_data/*` uit; het spel laadt daar
+  niets uit via `res://` (de speldata wordt naast de app gelezen). App
+  184 → 172 MB, .exe 119 → 106 MB.
 
 Getest: alle tests slagen, gdlint is schoon; met gescripte invoer is level 1
 met de achtergrond bekeken (lopen, origineel, xBRZ, 4:3 = origineel, optie
-uit = origineel). De builds zelf (en het icoon in de Dock en op de .exe)
-kon hier niet gemaakt worden (geen export-templates in de cloud).
+uit = origineel). Op de Mac (16-10-2026) beide builds gemaakt: geen
+meldingen over het icoon, `icon.icns` in de app is het "CP"-icoon, en de
+gebouwde app start level 1 met de achtergrond. De gebruiker heeft
+"Choose Game" in de gebouwde app geprobeerd: geen crash meer.
 
 ## Bekende beperkingen
 
