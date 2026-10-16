@@ -114,15 +114,27 @@ static func create(
 	level_number := 0,
 ) -> LevelSession:
 	var session := LevelSession.new()
-	session.rng.seed = RANDOM_SEED
-	session.level = level_data
-	session.properties = tile_properties
-	session.collision = LevelCollision.create(level_data, tile_properties)
-	session.inventory = keen_inventory
-	session.keen = session._create_keen(start)
-	keen_inventory.enter_level()
-	session._spawn_enemies(level_number == COMMANDER_LEVEL)
+	session._set_up(level_data, tile_properties, keen_inventory, start, level_number)
 	return session
+
+
+## What [method create] does to a new session. A session of another
+## episode (a subclass) calls it from its own constructor.
+func _set_up(
+	level_data: LevelData,
+	tile_properties: TileProperties,
+	keen_inventory: Inventory,
+	start: Vector2,
+	level_number := 0,
+) -> void:
+	rng.seed = RANDOM_SEED
+	level = level_data
+	properties = tile_properties
+	collision = LevelCollision.create(level_data, tile_properties)
+	inventory = keen_inventory
+	keen = _create_keen(start)
+	keen_inventory.enter_level()
+	_spawn_enemies(level_number == COMMANDER_LEVEL)
 
 
 ## A second player joins: a new Keen with his sprite at [param start],
@@ -384,7 +396,13 @@ func _fire(body: KeenBody) -> void:
 		return
 	play_sound(Sound.Id.KEEN_FIRE)
 	inventory.charges -= 1
-	add_actor(RaygunShot.create(body.shot_position(), body.facing))
+	add_actor(_create_shot(body.shot_position(), body.facing))
+
+
+## The shot that Keen fires from [param start] towards [param direction]. A
+## subclass for another episode overrides it to draw its own sprites.
+func _create_shot(start: Vector2, direction: int) -> RaygunShot:
+	return RaygunShot.create(start, direction)
 
 
 ## What [param body] touches. A Keen cannot walk out while the other one is
@@ -393,21 +411,34 @@ func _touch_tiles(body: KeenBody) -> void:
 	var box := body.hitbox()
 	for cell in LevelCollision.cells_under(box):
 		var tile := collision.tile_at(cell)
-		if properties.is_item(tile) and picks_up_items:
+		if _is_item(tile) and picks_up_items:
 			_pick_up(cell, tile)
 		elif _is_exit(cell, tile) and body.can_exit() and not has_dead_keen():
 			body.start_exit(cell.x)
 			play_sound(Sound.Id.LEVEL_DONE)
-		elif properties.is_teleporter(tile) and outcome == Outcome.PLAYING:
-			outcome = Outcome.TELEPORTED
-		elif properties.is_hint(tile):
-			var garg := tile >= FIRST_GARG_STATUE and tile <= LAST_GARG_STATUE
-			set_tile(cell, SILENT_GARG_STATUE if garg else SILENT_YORP_STATUE)
-			hint_touched.emit()
+		else:
+			_touch_special_tile(cell, tile)
 	for cell in LevelCollision.cells_under(box.grow_individual(DOOR_REACH, 0, DOOR_REACH, 0)):
 		var tile := collision.tile_at(cell)
 		if properties.is_door(tile) and inventory.has_keycard(properties.door_color(tile)):
 			_open_door(cell)
+
+
+## Whether Keen picks up [param tile]. A subclass for another episode
+## overrides it when that episode has fewer kinds of items.
+func _is_item(tile: int) -> bool:
+	return properties.is_item(tile)
+
+
+## What a touched tile that is no item and no exit does: Keen 1's
+## teleporter and statues. A subclass for another episode overrides it.
+func _touch_special_tile(cell: Vector2i, tile: int) -> void:
+	if properties.is_teleporter(tile) and outcome == Outcome.PLAYING:
+		outcome = Outcome.TELEPORTED
+	elif properties.is_hint(tile):
+		var garg := tile >= FIRST_GARG_STATUE and tile <= LAST_GARG_STATUE
+		set_tile(cell, SILENT_GARG_STATUE if garg else SILENT_YORP_STATUE)
+		hint_touched.emit()
 
 
 func _is_exit(cell: Vector2i, tile: int) -> bool:
