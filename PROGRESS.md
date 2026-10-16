@@ -22,6 +22,49 @@ Wat elke mijlpaal precies inhoudt, staat in [docs/roadmap.md](docs/roadmap.md).
 | 11 | Fixes: crash bij "Choose Game", nieuw app-icoon, achtergronden achter levels | 🔶 Gebouwd en getest door de gebruiker (branch `milestone-11-fixes`) |
 | 11.2 | Extra: het schip als eigen level (onderdelen monteren), pogo-level opnieuw, onderdelen op de kaart | 🔶 In test bij de gebruiker (branch `milestone-11.2-extra-mini-game`) |
 
+## Keen 2: mijlpalen B
+
+Het tweede deel komt naast Keen 1; Keen 1 blijft zoals het is. Wat elke
+mijlpaal inhoudt staat in [docs/keen2/roadmap.md](docs/keen2/roadmap.md), de
+opzet in [docs/keen2/architecture.md](docs/keen2/architecture.md), en wat er
+over Keen 2 bekend is in [docs/keen2/research.md](docs/keen2/research.md).
+Voor een volgend deel: [docs/new-episode-guide.md](docs/new-episode-guide.md).
+
+| # | Mijlpaal | Status |
+|---|---|---|
+| B1 | Onderzoek: code in kaart, Keen 2 uitgezocht, architectuur, mijlpalen, handleiding | 🔶 Documenten klaar (branch `milestone-b1-onderzoek`); wacht op antwoorden van de gebruiker |
+| B2 | De bestanden van Keen 2 inlezen, data viewer, tweede icoon op het startscherm | ⬜ |
+| B3 | Een level spelen (Keen, items, deuren, uitgang) | ⬜ |
+| B4 | Vijanden en meerijden (platforms, Scrubs) | ⬜ |
+| B5 | Schakelaars, bruggen, licht, de Tantalus-straal, de aarde ontploft | ⬜ |
+| B6 | Wereldkaart, steden, statusscherm, het einde | ⬜ |
+| B7 | Geluid, menu's, opslaan, highscores | ⬜ |
+| B8 | Mooier maken (framerate, xBRZ, HD, achtergronden, builds) | ⬜ |
+| B9 | Co-op lokaal en online | ⬜ |
+| B10 | Naast het origineel leggen (DOSBox) | ⬜ |
+
+## Mijlpaal B1: wat er nu is
+
+- De code is in kaart gebracht: decoders, graphics, schaling,
+  geluidssynthese, levels tekenen en botsen, menu's en het netwerk werken
+  voor beide delen. Keen 1 zit vast in `GameFiles` (map, `.CK1`,
+  levelnummers), `EgaGraphics` (bestandsnamen), de spritenummers van de
+  vijanden, de vijandenfabriek in `LevelSession` en `level_view.gd`.
+  Opslaan, highscores en de plaatjes achter levels zouden tussen de delen
+  botsen; daarvoor krijgt Keen 2 eigen mappen.
+- Keen 2 uitgezocht met Commander Genius (en de datatabellen van Chocolate
+  Keen) als documentatie: alles in `docs/keen2/research.md`, met per feit de
+  bron en of het zeker is. Belangrijkste verschillen: geen `SOUNDS`- en
+  tekstbestanden (alles zit in `KEEN2.EXE`), 689 tiles, andere vijanden
+  (grunt, youth, Elite, Scrub, Guard robot, platform, vonk), schakelaars met
+  de pogo-knop (bruggen, licht, Tantalus-straal), de aarde die ontploft,
+  acht steden in plaats van scheepsonderdelen, de pogo vanaf het begin.
+- Architectuur: Keen 1-code wordt niet aangeraakt; gedeelde code krijgt
+  alleen toevoegingen met Keen 1 als standaard; Keen 2 komt in
+  `src/keen2/` met klassen `Keen2...`. Elke mijlpaal eindigt met een
+  controle dat Keen 1 niet veranderd is.
+- Er is nog geen code geschreven.
+
 ## Mijlpaal 1: wat er nu is
 
 - `GameFiles`: vindt de spelbestanden (`--data-dir=`, `game_data/keen1/`, of naast de exe) en negeert hoofd/kleine letters.
@@ -425,6 +468,10 @@ het origineel. Details in `docs/world-map.md` onder "Extra levels".
 - **Licentie** voor de code (bijv. MIT of GPL-3.0): nog kiezen voordat de repo publiek wordt.
 - **HD met nieuwe details (generatieve AI)**, besproken op 14-10-2026, voor nu geparkeerd door de gebruiker. Oordeel van de gebruiker: de Real-ESRGAN-HD is "best lelijk", xBRZ ziet er mooier uit, maar hij mist nieuwe details. Real-ESRGAN kan geen details verzinnen; daarvoor is een generatief model nodig. Het plan staat in `docs/graphics.md` onder "Plan: HD with new details". Eerste stap als de gebruiker verder wil: toestemming vragen om Stable Diffusion 1.5 + ControlNet Tile te downloaden (~6 GB, Hugging Face, naar een map die git negeert) en een proef doen met ~10 plaatjes naast xBRZ.
 
+- **Keen 2: Chocolate Keen als bron?** (B1, 16-10-2026) Chocolate Keen is een reconstructie van de originele code van deel 1-3. In B1 zijn alleen de datatabellen gelezen (offsets, namen, groottes), nooit de code met gedrag. De gebruiker beslist of die bron mag; tot dan worden "(Choco)"-feiten eerst met de echte bestanden gecontroleerd.
+- **Keen 2: welke versie heeft de gebruiker** (Steam/GOG v1.31 verwacht), en kunnen de bestanden in een cloud-sessie worden geüpload om mee te testen?
+- **Geluidssnelheid (ook Keen 1):** Commander Genius speelt de geluiden met 145,6 Hz, `docs/sounds.md` zegt 140 Hz. Niet aangepast (Keen 1 blijft zoals het is); naast het origineel leggen.
+
 ### Toegevoegd op 15-10-2026 (op `milestone-10-menu`)
 
 Na de eerste eigen test van de gebruiker:
@@ -434,6 +481,16 @@ Na de eerste eigen test van de gebruiker:
 - Tests in `test_online_menus.gd`: adressen in de setup, het hosting-venster ververst, `address_lines`, eigen wachtwoord typen en onthouden.
 
 ## Volgende stap
+
+Keen 2:
+
+1. **Voor de gebruiker:** de vragen van B1 beantwoorden (zie open
+   beslissingen: versie en bestanden van Keen 2, Chocolate Keen als bron),
+   en de opzet in `docs/keen2/architecture.md` goedkeuren.
+2. Daarna B2 op branch `milestone-b2-bestanden`: de opdracht staat in
+   `docs/keen2/roadmap.md`.
+
+Keen 1:
 
 1. **Voor de gebruiker:** de scheepslevels proberen in
    `build/CommanderPerfect.app` (nieuwe binnenkant, onzichtbare ingang,

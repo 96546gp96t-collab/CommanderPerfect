@@ -8,6 +8,10 @@ Real-ESRGAN graphics. Singleplayer comes first; local co-op may follow later.
 ## Session routine
 
 - **Start:** read `PROGRESS.md` to see what is done and what comes next.
+- **Keen 2 and later episodes:** before working on another episode, read
+  `docs/new-episode-guide.md`, and for Keen 2 `docs/keen2/architecture.md`.
+  Keen 2 milestones are `milestone-b<n>-<topic>`; the Keen 1 code is never
+  changed for them.
 - **End:** update `PROGRESS.md`: tick off finished work, note open bugs and
   decisions, and write down the next concrete step.
 - **Always rebuild the app** after changing the game: run
@@ -53,6 +57,7 @@ src/online/    Playing online: ENet/Steam transports, the join handshake, snapsh
 src/game/      Game screen (main scene), LevelSession, Inventory, the ending, title and
                high scores, settings, saved games
 src/viewer/    Data viewer scene
+src/keen2/     Keen 2 only (classes Keen2...); see docs/keen2/architecture.md
 tests/         Headless test runner and test suites
 tools/         Command-line tools (graphics export, shareware diskette extraction,
                scripted play with screenshots, HD sheets, builds, the app icon)
