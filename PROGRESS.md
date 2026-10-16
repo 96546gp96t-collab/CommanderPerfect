@@ -33,7 +33,7 @@ Voor een volgend deel: [docs/new-episode-guide.md](docs/new-episode-guide.md).
 | # | Mijlpaal | Status |
 |---|---|---|
 | B1 | Onderzoek: code in kaart, Keen 2 uitgezocht, architectuur, mijlpalen, handleiding | ✅ Klaar (branch `milestone-b1-onderzoek`); vragen beantwoord op 16-10-2026 |
-| B2 | De bestanden van Keen 2 inlezen, data viewer, tweede icoon op het startscherm | ⬜ |
+| B2 | De bestanden van Keen 2 inlezen, data viewer, tweede icoon op het startscherm | 🔶 Gebouwd, wacht op review (branch `milestone-b2-bestanden`) |
 | B3 | Een level spelen (Keen, items, deuren, uitgang) | ⬜ |
 | B4 | Vijanden en meerijden (platforms, Scrubs) | ⬜ |
 | B5 | Schakelaars, bruggen, licht, de Tantalus-straal, de aarde ontploft | ⬜ |
@@ -64,6 +64,68 @@ Voor een volgend deel: [docs/new-episode-guide.md](docs/new-episode-guide.md).
   `src/keen2/` met klassen `Keen2...`. Elke mijlpaal eindigt met een
   controle dat Keen 1 niet veranderd is.
 - Er is nog geen code geschreven.
+
+## Mijlpaal B2: wat er nu is
+
+Gebouwd zonder echte Keen 2-bestanden (Keen 2 is geen shareware). Alles is
+getest met zelfgemaakte testdata en met de Keen 1-bestanden onder Keen
+2-namen. Details in `docs/keen2/file-formats.md`.
+
+- **Bestanden vinden:** `Keen2Files` (`src/keen2/data/`) zoekt
+  `game_data/keen2` op dezelfde plekken als Keen 1 (`--data-dir-keen2=PATH`,
+  de projectmap, naast het programma, naast de macOS-app) en geeft een gewone
+  `GameFiles` met extensie `CK2` terug. Vereist: `KEEN2.EXE`, `EGAHEAD.CK2`,
+  `EGALATCH.CK2`, `EGASPRIT.CK2`. Levelnummers 1-16, 80, 81 en 90 als
+  constanten.
+- **Gedeelde code, alleen toevoegingen (standaard = Keen 1):** `GameFiles`
+  kreeg `extension`, `required_files`, `level_file(n)`, `locate_in`,
+  `first_complete` en `candidate_directories_in`; `locate()` doet precies
+  hetzelfde als voorheen. `EgaGraphics.load_from(files, extension)`,
+  `TileProperties.find_in_image(image, count, known_offsets)` en
+  `FinaleImage.load_from(files, file_name)` kregen een optionele parameter.
+  `EgaHeader` hoefde niet te veranderen.
+- **KEEN2.EXE:** `Keen2Executable` pakt de EXE uit en vindt op inhoud (de
+  bekende adressen van 1.31 eerst, alleen als de inhoud klopt): het
+  geluidsblok (`SND\0`, gaat naar `SoundFile.parse`), de tile-eigenschappen
+  (aantal uit `EGAHEAD.CK2`), de vier tekstblokken (eindtekst, help,
+  previews, verhaal; klaar voor `TextDocument.layout`), de acht steden en
+  `TO BE CONTINUED....`. De versie komt uit de grootte (1.31, 1.00 of
+  "unknown"). Niets crasht als een stuk ontbreekt.
+- **Startscherm:** een tweede icoon "Keen 2" rechts van Keen 1. Zonder
+  bestanden grijs, met de uitleg dat ze in `game_data/keen2` horen (de tekst
+  voor Keen 1 is letterlijk dezelfde gebleven). Met bestanden staat Keen uit
+  de eigen Keen 2-graphics op het icoon, zoals bij Keen 1.
+- **Voorlopig scherm:** `src/keen2/keen2_view.tscn` (`Keen2View`) zegt "Keen
+  2 - coming soon"; Enter of Escape gaat terug naar het startscherm (via
+  `call_deferred`, zoals de fix van mijlpaal 11).
+- **Opdrachtregel:** `-- --game=2` (met of zonder `--level=N`) slaat het
+  startscherm over en opent Keen 2. Zonder `--game=2` verandert er niets.
+  Net als bij Keen 1 met `--level` komt "terug naar het startscherm" dan
+  meteen weer in het spel uit.
+- **Data viewer en export:** `-- --game=2` toont Keen 2 in de data viewer
+  (met in de statusregel de versie van `KEEN2.EXE` en wat erin gevonden
+  is) en exporteert met `tools/export_graphics.gd` naar `exported/keen2/`.
+- **Tests:** `test_keen2_files` (zonder data: map zoeken, hoofdletters,
+  vereiste bestanden, `.CK2`-levels, Keen 1-standaarden ongewijzigd, een
+  zelfgemaakt EXE-beeld met geluid, teksten, steden en tile-tabel, een beeld
+  zonder die stukken, versies, de catalogus met twee spellen, `--game=2`,
+  het voorlopige scherm), `test_keen2_renamed_keen1` (de Keen 1-shareware
+  onder Keen 2-namen laadt via het Keen 2-pad) en `test_keen2_data` (echte
+  Keen 2-bestanden; wordt hier overgeslagen). In `tests/test_launcher.gd`
+  is één regel aangepast (met toestemming van de architect): de catalogus
+  heeft nu twee spellen in plaats van "one game for now".
+- **Keen 1-controle:** alle bestaande tests slagen, gdlint is schoon. Van de
+  screenshots verschilt `launcher.png` (het tweede icoon, zoals verwacht);
+  `title.png` en `map.png` zijn gelijk. `level1.png` en `level1_walk.png`
+  wisselen ook op de ongewijzigde code van run tot run (timing: de plek van
+  Keen en een bewegende tile), dus die vergelijking is niet byte voor byte
+  bruikbaar.
+- **Nog niet gecontroleerd (wacht op echte bestanden):** 689 tiles en 134
+  sprites, de grootte en versie van `KEEN2.EXE`, de plek en de namen van het
+  geluidsblok (`EARTHPOW`), dat de teksten op 0x1A eindigen, de stadsnamen
+  en hun lengtes, de tile-eigenschappen, en de open vragen 1-12 uit
+  `research.md`. De berichten van de Vorticon-oudste en de eindteksten
+  worden nog niet gelezen (komt met `Keen2Texts`).
 
 ## Mijlpaal 1: wat er nu is
 
@@ -486,8 +548,11 @@ Keen 2:
 
 1. **Voor de gebruiker:** zo mogelijk de Keen 2-bestanden regelen (zie
    open beslissingen).
-2. B2 op branch `milestone-b2-bestanden`: de opdracht staat in
-   `docs/keen2/roadmap.md`.
+2. B2 reviewen en committen (branch `milestone-b2-bestanden`). Met echte
+   Keen 2-bestanden: `test_keen2_data` draaien, de data viewer met
+   `-- --game=2` bekijken en de open punten in
+   `docs/keen2/file-formats.md` afvinken.
+3. Daarna B3 (een level spelen), zie `docs/keen2/roadmap.md`.
 
 Keen 1:
 

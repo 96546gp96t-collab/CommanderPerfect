@@ -59,9 +59,7 @@ static func locate_in(
 	option := DATA_DIR_OPTION,
 	file_extension := DEFAULT_EXTENSION
 ) -> GameFiles:
-	return first_complete(
-		candidate_directories_in(subfolder, option), required, file_extension
-	)
+	return first_complete(candidate_directories_in(subfolder, option), required, file_extension)
 
 
 ## The first of [param candidates] that holds all [param required] files,
@@ -105,9 +103,7 @@ static func candidate_directories_in(subfolder: String, option: String) -> Packe
 ## Opens a folder; returns null when it does not exist. The episode's
 ## [param file_extension] and [param required] files default to Keen 1's.
 static func open(
-	path: String,
-	file_extension := DEFAULT_EXTENSION,
-	required: PackedStringArray = REQUIRED_FILES
+	path: String, file_extension := DEFAULT_EXTENSION, required: PackedStringArray = REQUIRED_FILES
 ) -> GameFiles:
 	if not DirAccess.dir_exists_absolute(path):
 		return null

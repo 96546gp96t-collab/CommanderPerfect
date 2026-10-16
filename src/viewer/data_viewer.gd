@@ -2,12 +2,18 @@ extends Control
 ## Browser for everything that is read from the original game files: levels,
 ## tiles, sprites, bitmaps and the font. Used to check that the data is
 ## decoded correctly before the game itself is built on top of it.
+## With [code]-- --game=2[/code] on the command line it shows Keen 2's
+## files instead of Keen 1's.
 
 const TILE_ATLAS_COLUMNS := 16
 const FONT_ATLAS_COLUMNS := 32
 const MISSING_DATA_MESSAGE := (
 	"Keen 1 data not found. Put the files in game_data/keen1 "
 	+ "(see game_data/README.md) or start with: -- --data-dir=PATH"
+)
+const KEEN_2_MISSING_DATA_MESSAGE := (
+	"Keen 2 data not found. Put the files in game_data/keen2 "
+	+ "(see game_data/README.md) or start with: -- --game=2 --data-dir-keen2=PATH"
 )
 
 var _files: GameFiles
@@ -30,17 +36,20 @@ var _zoom := 2
 
 
 func _ready() -> void:
-	_files = GameFiles.locate()
+	var keen_2 := GameLaunch.wants_keen_2(OS.get_cmdline_user_args())
+	_files = Keen2Files.locate() if keen_2 else GameFiles.locate()
 	if _files == null:
-		_show_error(MISSING_DATA_MESSAGE)
+		_show_error(KEEN_2_MISSING_DATA_MESSAGE if keen_2 else MISSING_DATA_MESSAGE)
 		return
 
-	_graphics = EgaGraphics.load_from(_files)
+	_graphics = EgaGraphics.load_from(_files, _files.extension)
 	if _graphics == null:
 		_show_error("The game files in %s could not be read." % _files.directory)
 		return
 
 	_status_label.text = "Loaded game data from %s" % _files.directory
+	if keen_2:
+		_status_label.text += _keen_2_executable_summary()
 	_zoom_spin_box.value = _zoom
 	_zoom_spin_box.value_changed.connect(_on_zoom_changed)
 	_level_select.item_selected.connect(_on_level_selected)
@@ -75,7 +84,7 @@ func _show_selected_level() -> void:
 	if _level_select.item_count == 0:
 		return
 	var number := _level_select.get_selected_id()
-	var file_name := GameFiles.level_file_name(number)
+	var file_name := _files.level_file(number)
 	var level := LevelData.parse(_files.read(file_name))
 	if level == null:
 		_level_details.text = "%s could not be read." % file_name
@@ -96,6 +105,28 @@ func _fill_image_lists() -> void:
 	for i in _graphics.bitmaps.size():
 		var entry := _graphics.header.bitmaps[i]
 		_bitmap_list.add_child(_create_named_image(_graphics.bitmaps[i], entry.name))
+
+
+## What was found inside KEEN2.EXE, for the status line.
+func _keen_2_executable_summary() -> String:
+	var executable := Keen2Executable.load_from(_files)
+	if executable == null:
+		return " (%s could not be read)" % Keen2Files.EXECUTABLE
+	var found := PackedStringArray()
+	if Keen2Executable.find_sound_block(executable.image) >= 0:
+		found.append("sounds")
+	for block in Keen2Executable.TextBlock.size():
+		if (
+			Keen2Executable.find_text_block(executable.image, block as Keen2Executable.TextBlock)
+			>= 0
+		):
+			found.append(Keen2Executable.TextBlock.keys()[block].to_lower())
+	if Keen2Executable.find_city_names(executable.image) >= 0:
+		found.append("cities")
+	return (
+		" (%s version %s; found: %s)"
+		% [Keen2Files.EXECUTABLE, executable.version, ", ".join(found)]
+	)
 
 
 func _create_named_image(image: Image, caption: String) -> Control:
