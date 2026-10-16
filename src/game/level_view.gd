@@ -51,8 +51,8 @@ extends GameScreen
 ## (80 is the world map) instead of at the title; [code]-- --ending[/code]
 ## shows the ending straight away.
 
-const LEVEL_OPTION := "--level="
-const ENDING_OPTION := "--ending"
+const LEVEL_OPTION := GameLaunch.LEVEL_OPTION
+const ENDING_OPTION := GameLaunch.ENDING_OPTION
 ## Seconds the title and the high scores each stay before the other one
 ## comes, while nobody presses a key.
 const ATTRACT_SECONDS := 8.0
@@ -160,6 +160,9 @@ func _ready() -> void:
 		_go_to(level)
 	else:
 		_show_title()
+		# Picked on the start screen: straight on to the main menu.
+		if GameLaunch.take_menu_request():
+			_open_main_menu(false, false)
 
 
 ## The texts of the game from KEEN1.EXE and the text files. Each one that
@@ -470,6 +473,8 @@ func _on_menu_chosen(id: StringName, slot: int) -> void:
 			_show_title()
 		MenuController.CHOICE_QUIT:
 			get_tree().quit()
+		MenuController.CHOICE_CHOOSE_GAME:
+			get_tree().change_scene_to_file(GameLaunch.LAUNCHER_SCENE)
 		MenuController.CHOICE_LEAVE_ONLINE:
 			_leave_online()
 		_:

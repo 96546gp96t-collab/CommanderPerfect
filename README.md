@@ -119,6 +119,12 @@ when one of them dies, and complete when one of them walks out.
 These keys have their own pages in Controls. See
 [docs/two-players.md](docs/two-players.md).
 
+### The start screen
+
+The game starts on the CommanderPerfect screen with an icon for each game
+in the bottom left, Keen 1 first; for now only Keen 1. Click it (or press Enter) to get to
+its main menu. "Choose Game" in the main menu leads back here.
+
 ### Playing online
 
 One player hosts, the other joins: Escape (or a key at the title) > Online

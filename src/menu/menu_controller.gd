@@ -36,6 +36,8 @@ const CHOICE_SAVE := &"save"
 const CHOICE_HIGH_SCORES := &"high_scores"
 const CHOICE_TITLE := &"title"
 const CHOICE_QUIT := &"quit"
+## Back to the start screen, to choose another game.
+const CHOICE_CHOOSE_GAME := &"choose_game"
 ## Online: host (value 0 by IP, 1 through Steam; see [member host_password]),
 ## join by IP ([member join_address], [member join_password]), join a
 ## friend's game on Steam (value: its place in the list), stop hosting or
@@ -147,6 +149,7 @@ func open_main(in_game: bool, can_save: bool, two_players := false) -> void:
 	menu.add("Options", OPTIONS)
 	if in_game:
 		menu.add("Quit to Title", CHOICE_TITLE)
+	menu.add("Choose Game", CHOICE_CHOOSE_GAME)
 	menu.add("Quit", CHOICE_QUIT)
 	_push(menu)
 
