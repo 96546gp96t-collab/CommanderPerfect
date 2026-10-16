@@ -119,6 +119,81 @@ func test_host_sees_how_to_join() -> void:
 	assert_equal(_chosen, [[MenuController.CHOICE_LEAVE_ONLINE, 0]], "stops")
 
 
+func test_host_setup_shows_the_addresses() -> void:
+	_create_menus()
+	_menus.settings.online_name = "Billy"
+	var asked := []
+	_menus.addresses_wanted.connect(func() -> void: asked.append(true))
+	_menus.online.local_addresses = ["192.168.1.20"]
+	_menus.open_main(false, false)
+	_choose("Online Game")
+	_choose("Host via IP")
+	assert_equal(asked.size(), 1, "asks for the addresses")
+	var header := _menus._top().header
+	assert_true(header.has("Network:  192.168.1.20"), "the own network")
+	assert_true(header.has("Internet: looking up..."), "the internet one is on its way")
+	_menus.online.public_address = "203.0.113.5"
+	_menus.online.public_lookup_done = true
+	_menus.refresh_online()
+	assert_true(_menus._top().header.has("Internet: 203.0.113.5"), "filled in when found")
+
+
+func test_hosting_window_follows_the_addresses() -> void:
+	_create_menus()
+	_menus.online.host_lines = ["Internet: looking up..."]
+	_menus.show_hosting()
+	assert_equal(_menus._top().kind, MenuController.HOSTING, "the hosting window")
+	_menus.online.host_lines = ["Internet: 203.0.113.5"]
+	_menus.refresh_online()
+	assert_true(_menus._top().header.has("Internet: 203.0.113.5"), "updated")
+	_press(KEY_SPACE)
+	assert_true(not _menus.is_open(), "any key closes it")
+
+
+func test_address_lines() -> void:
+	var info := OnlineMenuInfo.new()
+	assert_equal(
+		info.address_lines(),
+		PackedStringArray(["Network:  not found", "Internet: looking up..."]),
+		"nothing known yet"
+	)
+	info.local_addresses = ["10.0.0.2", "10.0.0.3", "192.168.1.4"]
+	info.public_lookup_done = true
+	var lines := info.address_lines()
+	assert_equal(lines.size(), 3, "at most two on the network")
+	assert_equal(lines[-1], "Internet: not found", "the look-up failed")
+
+
+func test_host_types_his_own_password() -> void:
+	_create_menus()
+	_menus.settings.online_name = "Billy"
+	_menus.open_main(false, false)
+	_choose("Online Game")
+	_choose("Host via IP")
+	_choose("Type Password")
+	assert_equal(_menus._top().kind, MenuController.TEXT, "asks for it")
+	_press(KEY_ENTER)
+	assert_equal(_menus._top().kind, MenuController.TEXT, "not empty")
+	_type_text("Yorp Pogo")
+	_press(KEY_ENTER)
+	assert_equal(_menus._top().kind, MenuController.HOST_SETUP, "back to the setup")
+	assert_equal(_menus.host_password, "Yorp Pogo", "the typed password")
+	assert_true(_menus._top().header.has("Password: Yorp Pogo"), "shown")
+	var stored := UserSettings.load_from(_settings_path())
+	assert_equal(stored.host_password, "Yorp Pogo", "remembered")
+	_choose("Password      ON")
+	_choose("Start Hosting")
+	_menus.open_main(false, false)
+	_choose("Online Game")
+	_choose("Host via IP")
+	assert_equal(_menus.host_password, "Yorp Pogo", "used again next time")
+	_choose("Random Password")
+	assert_true(_menus.host_password != "Yorp Pogo", "a random one")
+	assert_equal(_menus.host_password.length(), OnlineMenuInfo.PASSWORD_LENGTH, "made up")
+	assert_equal(_menus.settings.host_password, "", "the typed one is forgotten")
+	KeyBindings.reset()
+
+
 func _create_menus() -> void:
 	_free_nodes()
 	_window = GameWindow.new()

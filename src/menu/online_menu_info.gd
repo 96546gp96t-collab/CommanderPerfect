@@ -2,24 +2,47 @@ class_name OnlineMenuInfo
 extends RefCounted
 ## What the menus need to know about playing online: whether this player
 ## hosts or joined, who the other player is, what a friend needs to join,
-## and the friends' games found on Steam. The game screen fills it in; the
-## [MenuController] only shows it.
+## the addresses of this computer, and the friends' games found on Steam.
+## The game screen fills it in; the [MenuController] only shows it.
 
 enum Role { OFFLINE, HOST, CLIENT }
 
 ## Characters allowed in a password a host makes up: none that look alike.
 const PASSWORD_CHARACTERS := "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
 const PASSWORD_LENGTH := 6
+## Addresses on the own network shown at most.
+const MAX_LOCAL_ADDRESSES := 2
 
 var role := Role.OFFLINE
 ## The other player's name, once someone joined.
 var partner_name := ""
 ## Lines that tell how to join this host (addresses, port, password).
 var host_lines := PackedStringArray()
+## This computer's addresses on its own network ([HostAddresses]).
+var local_addresses := PackedStringArray()
+## The address the internet sees, once found; and whether looking it up is
+## over (when it stays empty, it could not be found).
+var public_address := ""
+var public_lookup_done := false
 ## The friends' games on Steam, one line each, and whether each wants a
 ## password.
 var steam_games := PackedStringArray()
 var steam_locked: Array[bool] = []
+
+
+## Where a friend finds this computer: on the same network, and over the
+## internet (that one needs the port forwarded in the router).
+func address_lines() -> PackedStringArray:
+	var lines := PackedStringArray()
+	for address in local_addresses.slice(0, MAX_LOCAL_ADDRESSES):
+		lines.append("Network:  " + address)
+	if local_addresses.is_empty():
+		lines.append("Network:  not found")
+	var public := public_address
+	if public.is_empty():
+		public = "not found" if public_lookup_done else "looking up..."
+	lines.append("Internet: " + public)
+	return lines
 
 
 ## A new password for a host.
