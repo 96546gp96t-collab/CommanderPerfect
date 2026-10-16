@@ -33,7 +33,7 @@ Voor een volgend deel: [docs/new-episode-guide.md](docs/new-episode-guide.md).
 | # | Mijlpaal | Status |
 |---|---|---|
 | B1 | Onderzoek: code in kaart, Keen 2 uitgezocht, architectuur, mijlpalen, handleiding | ✅ Klaar (branch `milestone-b1-onderzoek`); vragen beantwoord op 16-10-2026 |
-| B2 | De bestanden van Keen 2 inlezen, data viewer, tweede icoon op het startscherm | 🔶 Gebouwd, wacht op review (branch `milestone-b2-bestanden`) |
+| B2 | De bestanden van Keen 2 inlezen, data viewer, tweede icoon op het startscherm | ✅ Klaar en gecontroleerd door de architect (branch `milestone-b2-bestanden`) |
 | B3 | Een level spelen (Keen, items, deuren, uitgang) | ⬜ |
 | B4 | Vijanden en meerijden (platforms, Scrubs) | ⬜ |
 | B5 | Schakelaars, bruggen, licht, de Tantalus-straal, de aarde ontploft | ⬜ |
@@ -115,11 +115,10 @@ getest met zelfgemaakte testdata en met de Keen 1-bestanden onder Keen
   is één regel aangepast (met toestemming van de architect): de catalogus
   heeft nu twee spellen in plaats van "one game for now".
 - **Keen 1-controle:** alle bestaande tests slagen, gdlint is schoon. Van de
-  screenshots verschilt `launcher.png` (het tweede icoon, zoals verwacht);
-  `title.png` en `map.png` zijn gelijk. `level1.png` en `level1_walk.png`
-  wisselen ook op de ongewijzigde code van run tot run (timing: de plek van
-  Keen en een bewegende tile), dus die vergelijking is niet byte voor byte
-  bruikbaar.
+  screenshots verschilt alleen `launcher.png` (het tweede icoon, zoals
+  verwacht). `tools/keen1_regression.sh` draait Godot nu met
+  `--fixed-fps 60`; zonder dat wisselden de levelplaatjes van run tot run
+  (timing). De referentie komt van `main` in een aparte worktree.
 - **Nog niet gecontroleerd (wacht op echte bestanden):** 689 tiles en 134
   sprites, de grootte en versie van `KEEN2.EXE`, de plek en de namen van het
   geluidsblok (`EARTHPOW`), dat de teksten op 0x1A eindigen, de stadsnamen
@@ -548,11 +547,10 @@ Keen 2:
 
 1. **Voor de gebruiker:** zo mogelijk de Keen 2-bestanden regelen (zie
    open beslissingen).
-2. B2 reviewen en committen (branch `milestone-b2-bestanden`). Met echte
-   Keen 2-bestanden: `test_keen2_data` draaien, de data viewer met
-   `-- --game=2` bekijken en de open punten in
+2. Met echte Keen 2-bestanden: `test_keen2_data` draaien, de data viewer
+   met `-- --game=2` bekijken en de open punten in
    `docs/keen2/file-formats.md` afvinken.
-3. Daarna B3 (een level spelen), zie `docs/keen2/roadmap.md`.
+3. B3 (een level spelen) op `milestone-b3-level`, zie `docs/keen2/roadmap.md`.
 
 Keen 1:
 

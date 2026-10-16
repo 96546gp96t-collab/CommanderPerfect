@@ -19,11 +19,17 @@ for Keen 2. That splits the code into three groups.
 How we prove that Keen 1 did not change, at the end of every B milestone:
 
 1. Every existing test passes **without changes to the test files** (the
-   existing suites may not be edited; new suites may be added).
+   existing suites may not be edited; new suites may be added). The one
+   exception: assertions about the list of games (the start screen offers
+   one more game) grow with the catalog; Keen 1 must stay first and
+   unchanged. Approved by the user in B2.
 2. `gdlint` is clean.
-3. With the Keen 1 shareware data: scripted play of the title screen, level
-   1 and the world map gives the same screenshots before and after the
-   milestone (`tools/scripted_play.gd`, compare the PNGs byte for byte).
+3. With the Keen 1 shareware data: `tools/keen1_regression.sh` gives the
+   same screenshots of the title screen, level 1 and the world map before
+   (on `main`, in a `git worktree`) and after the milestone, byte for byte.
+   It runs Godot with `--fixed-fps 60`; without it the level screenshots
+   depend on timing. Only `launcher.png` may differ, and only by the icons
+   of the new games.
 4. `git diff main -- <Keen 1 only files>` is empty.
 
 If a shared change cannot be made behaviour-neutral, stop and ask the user

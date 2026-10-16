@@ -20,9 +20,9 @@ BASE=$2
 mkdir -p "$OUT"
 
 if command -v xvfb-run >/dev/null 2>&1; then
-	RUN="xvfb-run -a godot --rendering-driver opengl3"
+	RUN="xvfb-run -a godot --rendering-driver opengl3 --fixed-fps 60"
 else
-	RUN="godot"
+	RUN="godot --fixed-fps 60"
 fi
 
 shoot() {
