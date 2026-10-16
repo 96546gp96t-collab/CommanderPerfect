@@ -17,8 +17,9 @@ Wat elke mijlpaal precies inhoudt, staat in [docs/roadmap.md](docs/roadmap.md).
 | 6 | Geluid, menu's, opslaan | ✅ Getest door de gebruiker en gemerged naar `main` (PR #6) |
 | 7 | Hogere framerate (interpolatie), xBRZ met wisselknop, Real-ESRGAN-pipeline, Windows-build | ✅ Gemerged naar `main` (PR #7) |
 | 8 | Twee spelers op één toetsenbord, dynamisch split-screen | ✅ Gemerged naar `main` (PR #8) |
-| 9 | Online co-op: hosten en joinen via Steam of IP | 🔶 Gebouwd, speeltest door de gebruiker loopt (branch `milestone-9-online-coop`) |
-| 10 | Startscherm met een icoon per spel | 🔶 Gebouwd, bovenop mijlpaal 9 (branch `milestone-10-menu`) |
+| 9 | Online co-op: hosten en joinen via Steam of IP | ✅ Gemerged naar `main` (PR #9); speeltest online loopt nog |
+| 10 | Startscherm met een icoon per spel | ✅ Gemerged naar `main` (PR #10) |
+| 11 | Fixes: crash bij "Choose Game", nieuw app-icoon | 🔶 Gebouwd (branch `milestone-11-fixes`) |
 
 ## Mijlpaal 1: wat er nu is
 
@@ -294,6 +295,32 @@ is schoon, en met gescripte invoer zijn het startscherm (1280x800 en
 Game" terug naar het startscherm en de Escape-melding via screenshots
 gecontroleerd.
 
+## Mijlpaal 11: wat er nu is
+
+Gemeld door de gebruiker (16-10-2026) na het mergen van mijlpaal 10.
+
+- **Crash bij "Choose Game"** (macOS en Windows) opgelost. De scène wisselde
+  terwijl `LevelView` de toets nog afhandelde; Godot haalt de oude scène dan
+  meteen uit de boom, en de rest van de afhandeling liep op een node zonder
+  viewport (hier een scriptfout, in de builds een crash). Beide wissels die
+  vanuit invoer gebeuren (naar en van het startscherm) gaan nu met
+  `call_deferred`. Nagespeeld met gescripte invoer: "Choose Game" vanuit een
+  lopend spel en vanuit het titelmenu, en daarna weer Keen 1.
+- **Nieuw app-icoon** (Dock en taakbalk), op verzoek van de gebruiker: een
+  eigen getekende pixel-Keen (gele helm, paarse trui, blauwe broek) met de
+  letters "CP" ernaast (geel met rode schaduw, zoals het logo op het
+  startplaatje) op een grijze tegel. Niets uit de originele bestanden.
+  `tools/make_app_icon.py` (Python + Pillow) tekent het uit rasters in het
+  script en schrijft `assets/icon/app_icon.png` (macOS-build),
+  `assets/icon/app_icon.ico` (Windows-build) en `icon.svg` (venster en
+  editor). In `export_presets.cfg` staan de iconen nu ingesteld; voor
+  Windows staat `modify_resources` daarvoor aan (Godot zet het icoon dan zelf
+  in de .exe).
+
+Getest: alle tests slagen, gdlint is schoon. De builds zelf (en het icoon in
+de Dock en op de .exe) kon hier niet gemaakt worden (geen export-templates
+in de cloud).
+
 ## Bekende beperkingen
 
 - De natuurkunde-getallen zijn startwaarden (overgenomen van Commander Genius als documentatie, zie `docs/keen-physics.md`). Ze moeten nog naast het origineel (DOSBox) worden gelegd; de lijst met punten staat onderaan dat document.
@@ -326,16 +353,15 @@ gecontroleerd.
 
 ## Volgende stap
 
-1. **Voor de gebruiker:** bouw de app (`tools/build_macos.sh`) en bekijk
-   het startscherm op de Mac (volledig scherm, hover, klikken, Choose Game).
-   Daarna verder met de speeltest van mijlpaal 9 (online, zie hieronder).
-   Mijlpaal 10 staat bovenop 9: eerst 9 mergen, dan 10.
-2. Mijlpaal 9: bouw ook `tools/build_windows.sh` en probeer online via IP
-   op het thuisnetwerk en via Steam met een vriend. Let op de vertraging van
-   je eigen Keen als je joint, de ping, de melding rechtsonder, de kaart,
-   doodgaan en de uitgang, en of de Steam-bibliotheken in de `.app` en naast
-   de `.exe` komen.
-3. Daarna: de openstaande punten (natuurkunde en vijanden naast DOSBox
-   leggen, de intro, de hulpregel in 4:3, xBRZ/vloeiende beweging bekijken,
-   de Windows-build op een pc), eventueel voorspelling voor wie online
-   joint, en later de andere Keen-delen op het startscherm.
+1. **Voor de gebruiker:** bouw de app (`tools/build_macos.sh` en
+   `tools/build_windows.sh`) en controleer: "Choose Game" crasht niet meer,
+   en het nieuwe icoon staat in de Dock en op de .exe. Mocht de Windows-build
+   klagen over het aanpassen van de .exe, zet dan `modify_resources` weer
+   uit (dan zonder eigen icoon). Bevalt het icoon niet: de rasters staan
+   bovenin `tools/make_app_icon.py`.
+2. Mijlpaal 9 (online): probeer via IP op het thuisnetwerk en via Steam met
+   een vriend.
+3. Eventueel een eigen achtergrond voor level 1 (de gebruiker laat een
+   plaatje maken; als optie die standaard uit staat), en de openstaande
+   punten (natuurkunde en vijanden naast DOSBox leggen, de intro, de
+   hulpregel in 4:3, xBRZ/vloeiende beweging bekijken).

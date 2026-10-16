@@ -52,11 +52,11 @@ src/game/      Game screen (main scene), LevelSession, Inventory, the ending, ti
 src/viewer/    Data viewer scene
 tests/         Headless test runner and test suites
 tools/         Command-line tools (graphics export, shareware diskette extraction,
-               scripted play with screenshots, HD sheets, builds)
+               scripted play with screenshots, HD sheets, builds, the app icon)
 docs/          File formats, Keen's physics, enemies and items, the world map, sounds,
                menus, graphics (xBRZ, HD, smooth motion), two players, online
 addons/        GodotSteam (Steam for online play; macOS and Windows libraries only)
-assets/        Our own pictures (the start screen); never anything from the game files
+assets/        Our own pictures (start screen, app icon); never anything from the game files
 game_data/     The player's own game files (ignored by git)
 ```
 
