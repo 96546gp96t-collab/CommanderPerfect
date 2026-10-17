@@ -608,8 +608,24 @@ Measured (sure unless noted; positions in the raw 320x200 frame):
 - **Cheats:** C+T+Space (a 4-line box at x 48-271, y 72-119) and G+O+D (god
   mode, a one-line box at x 72-247, y 88-111) work.
 - **F1** opens a full-width help reader (frame y 8-183, gray bar at y 168).
-- Not seen yet: the ankh's halo, the enemies other than the Foob, level 16,
-  sound.
+- Not seen yet: the enemies other than the Foob, level 16, sound.
+
+Watched again in C4 (17-10-2026; js-dos 8.5.3, level 1 reached by script
+as described, then G+O+D):
+
+- **God mode shows the halo** (the ankh's bubble, GODHALO/BYEHALO) around
+  Keen; it is drawn behind foreground tiles (a pillar of level 1 covers it).
+- **The Foob:** the first Foob had already fled to the rocks right of the
+  plant and stood there facing them, its two running frames taking turns
+  (the "bob"), as in C1 and as our Foob does in the same place. When Keen
+  stepped off the rocks onto it, **the Foob died** (its flat last dying frame
+  stayed on the floor) and Keen did not: confirmed.
+- Not measured: the grunt, the youth and the mother. Keen died twice at the
+  pit after the waterfall (by hopping and on the pogo stick), so the house
+  with the mother and the youths (cells 48-59) was not reached. js-dos only
+  logs frames in which something changed, and the plant and the waterfall
+  animate, so the Foob's frame timing could not be read from these
+  recordings either. The Choco numbers stay (C11).
 
 ## Only the original can answer
 
@@ -621,7 +637,8 @@ Collect the answers here (js-dos) during C3-C10; C11 finishes the list.
 4. The mother turning round before she spits; the fireball's speed.
 5. The Meep's wave through walls; the Meep singing in the air at a ledge.
 6. The ninja's jumps.
-7. The Foob: when it gets scared, its speed, that it dies when Keen touches it.
+7. The Foob: when it gets scared, its speed (~~that it dies when Keen
+   touches it~~: seen in C4).
 8. Ball and jack: 121/32 per axis, start direction toward Keen.
 9. The wall guns: every 2.75 s, all in step, heard off screen.
 10. Platforms: the waits (31 ticks), the vertical one turning at once at the

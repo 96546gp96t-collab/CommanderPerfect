@@ -19,9 +19,18 @@ extends Keen2LevelSession
 ##             cell (Choco); it sinks as in Keen 1 ([OpeningDoor])
 ##   22        turns its tile into 143 and does nothing else (Choco); no
 ##             level uses it
-##   enemies   none yet: the info values 1-18 spawn nothing until
-##             milestones C4 and C5 ([method create_enemy])
-##   shots     Keen's shots use Keen 3's sprites ([Keen3Shot])
+##   enemies   info 1 and 11 grunt, 2 youth, 3 mother, 4 Meep, 5 ninja,
+##             6 Foob ([method create_enemy]); 7-18 spawn nothing until
+##             milestones C5 and C7. They wake and sleep by the original's
+##             rule ([Keen3ActiveArea]); enemies give no points
+##   hits      Keen 3's own rules ([method _resolve_hits], Choco): Keen's
+##             shot ([Keen3Shot]) splashes on every sprite but Keen and the
+##             corpses, also on a fireball (both splash) and a Meep's wave
+##             (which flies on); a fireball kills Keen, also a stunned one,
+##             and grunts and Foobs, and splashes on anything but a mother
+##             or a corpse; a wave kills Keen; touching an enemy does what
+##             the enemy says (die, stun, push, or the Foob dies). Shots,
+##             splashes and waves are deleted far from the view
 ##   pogo      Keen has the pogo stick from the start
 ## Keen 2's switches, lights and Tantalus Ray stay idle: Keen 3 has no
 ## behaviours 24-26, and its one light switch (tile 271, 23) is in no level.
@@ -37,6 +46,15 @@ const ITEM_ROW_TILES := 13
 ## Behaviour 22 leaves this tile (Choco).
 const BEHAVIOR_22 := 22
 const BEHAVIOR_22_TILE := 143
+## Info values of Keen 3's enemies (Choco); 1 (grunt) and 2 (youth) are
+## Keen 2's [constant Keen2LevelSession.INFO_GRUNT] and [constant
+## Keen2LevelSession.INFO_YOUTH]. 11 is a second grunt value that no level
+## uses.
+const INFO_MOM := 3
+const INFO_MEEP := 4
+const INFO_NINJA := 5
+const INFO_FOOB := 6
+const INFO_GRUNT_TOO := 11
 
 ## The Keen whose tiles are being checked.
 var _toucher: Keen3Body
@@ -78,9 +96,45 @@ static func is_keen3_item_behavior(behavior: int) -> bool:
 
 
 ## The enemy for info value [param info] at the cell whose top left is
-## [param start]. None yet: Keen 3's enemies come in milestones C4 and C5.
-func create_enemy(_info: int, _start: Vector2) -> Enemy:
-	return null
+## [param start], or null when the value is no enemy (yet). Each sets off
+## toward Keen's start, as in the original.
+func create_enemy(info: int, start: Vector2) -> Enemy:
+	var direction := Keen3Enemy.toward(start.x, keen.position.x)
+	var enemy: Enemy = null
+	match info:
+		INFO_GRUNT, INFO_GRUNT_TOO:
+			enemy = Keen3Grunt.spawned(start, direction)
+		INFO_YOUTH:
+			enemy = Keen3Youth.spawned(start, direction)
+		INFO_MOM:
+			enemy = Keen3Mom.spawned(start, direction)
+		INFO_MEEP:
+			enemy = Keen3Meep.spawned(start, direction)
+		INFO_NINJA:
+			enemy = Keen3Ninja.spawned(start, direction)
+		INFO_FOOB:
+			enemy = Keen3Foob.spawned(start, direction)
+	return enemy
+
+
+## Whether a sleeping sprite with its top left at [param point] wakes up.
+func wakes_at(point: Vector2) -> bool:
+	return Keen3ActiveArea.wakes(_views(), point)
+
+
+## Whether an awake sprite at [param point] stays awake.
+func keeps_awake_at(point: Vector2) -> bool:
+	return Keen3ActiveArea.keeps_awake(_views(), point)
+
+
+## Whether a sprite at [param point] is on the screen.
+func is_on_screen(point: Vector2) -> bool:
+	return Keen3ActiveArea.on_screen(_views(), point)
+
+
+## Plays one of Keen 3's own sounds ([Keen3Sounds]).
+func play_keen3_sound(sound_name: String) -> void:
+	keen3_sound_played.emit(sound_name)
 
 
 func _spawn_enemies(_has_commander: bool) -> void:
@@ -108,6 +162,133 @@ func _create_keen(start: Vector2) -> KeenBody:
 
 func _create_shot(start: Vector2, direction: int) -> RaygunShot:
 	return Keen3Shot.fired(start, direction)
+
+
+## The carriers move their riders first, as in Keen 2; then Keen 3's own
+## hits take the place of [LevelSession]'s (Choco). Only awake enemies touch
+## anything.
+func _resolve_hits() -> void:
+	_carry_riders()
+	_delete_far_shots()
+	var targets := _awake_enemies()
+	for actor in actors:
+		var shot := actor as Keen3Shot
+		if shot == null or not shot.is_flying():
+			continue
+		if shot.from_keen:
+			_hit_with_keen_shot(shot, targets)
+		else:
+			_hit_with_fireball(shot, targets)
+	for actor in actors:
+		if actor is Keen3SoundWave:
+			_hit_keens(actor.hitbox())
+	_touch_enemies(targets)
+
+
+## Keen's [param shot] splashes on the first living enemy, fireball or wave
+## it touches; an enemy loses a hit, a fireball splashes too.
+func _hit_with_keen_shot(shot: Keen3Shot, targets: Array[Enemy]) -> void:
+	var box := shot.hitbox()
+	for enemy in targets:
+		if enemy.stops_shots() and box.intersects(enemy.hitbox()):
+			_kill(enemy, enemy.hit_by_shot.bind(self))
+			_splash(shot)
+			return
+	for actor in actors:
+		if actor == shot or actor.removed or not box.intersects(actor.hitbox()):
+			continue
+		if actor is Keen3Fireball and actor.is_flying():
+			actor.splash()
+			_splash(shot)
+			return
+		if actor is Keen3SoundWave:
+			_splash(shot)
+			return
+
+
+## A [param fireball] kills the Keen it touches (the ankh still protects
+## him), and grunts and Foobs; it splashes on anything but a mother, a
+## corpse or another fireball's splash.
+func _hit_with_fireball(fireball: Keen3Shot, targets: Array[Enemy]) -> void:
+	var box := fireball.hitbox()
+	if _hit_keens(box):
+		_splash(fireball)
+		return
+	for enemy in targets:
+		if Keen3Fireball.passes(enemy) or not box.intersects(enemy.hitbox()):
+			continue
+		var kind := enemy as Keen3Enemy
+		if kind != null and kind.hurt_by_enemy_shots():
+			_kill(enemy, enemy.die)
+		_splash(fireball)
+		return
+	for actor in actors:
+		if actor is Keen3SoundWave and box.intersects(actor.hitbox()):
+			_splash(fireball)
+			return
+
+
+## Kills every living Keen in [param box], also a stunned one. Returns
+## whether one was there (dead or protected by the ankh or not).
+func _hit_keens(box: Rect2) -> bool:
+	var hit := false
+	for body in keens:
+		if not body.is_dead and box.intersects(body.hitbox()):
+			body.kill()
+			hit = true
+	return hit
+
+
+## Each awake enemy that touches a living Keen does what it does to him.
+func _touch_enemies(targets: Array[Enemy]) -> void:
+	for body in keens:
+		for enemy in targets:
+			if body.is_dead or not enemy.touches_keen():
+				continue
+			if enemy.hitbox().intersects(body.hitbox()):
+				_kill(enemy, enemy.touch_keen.bind(self, body))
+
+
+func _splash(shot: Keen3Shot) -> void:
+	play_sound(Sound.Id.SHOT_HIT)
+	shot.splash()
+
+
+## The enemies that are awake, dead or alive.
+func _awake_enemies() -> Array[Enemy]:
+	var awake: Array[Enemy] = []
+	for enemy in enemies():
+		if enemy.is_active:
+			awake.append(enemy)
+	return awake
+
+
+## Shots, splashes and waves far from the view are deleted (Choco). A wave
+## also goes as soon as it leaves the playable area: it flies through the
+## walls, and beyond them lie only the border (never shown) and, in a view
+## wider than a narrow level, the black bars.
+func _delete_far_shots() -> void:
+	var playable := Rect2(LevelMap.playable_pixels(level))
+	for actor in actors:
+		if (actor is Keen3Shot or actor is Keen3SoundWave) and not keeps_awake_at(actor.position):
+			actor.removed = true
+		var wave := actor as Keen3SoundWave
+		if wave != null and not playable.encloses(wave.sprite_rect()):
+			wave.removed = true
+
+
+## What the players see; without a view (in the tests) an original screen
+## around each Keen.
+func _views() -> Array[Rect2]:
+	var views: Array[Rect2] = []
+	for rect in view_rects:
+		if rect.has_area():
+			views.append(rect)
+	if views.is_empty():
+		for body in keens:
+			var center := body.hitbox().get_center()
+			views.append(Rect2(center - DEFAULT_VIEW_SIZE / 2.0, DEFAULT_VIEW_SIZE))
+	return views
 
 
 func _touch_tiles(body: KeenBody) -> void:
@@ -146,7 +327,7 @@ func _pick_up(cell: Vector2i, tile: int) -> void:
 ## The ankh: more protection for the Keen who touched it, with a halo when
 ## he had none yet.
 func _take_ankh() -> void:
-	keen3_sound_played.emit(Keen3Sounds.ANKH)
+	play_keen3_sound(Keen3Sounds.ANKH)
 	if _toucher == null:
 		return
 	var had_halo := _toucher.is_protected()

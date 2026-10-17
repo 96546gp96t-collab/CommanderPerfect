@@ -56,7 +56,7 @@ over Keen 3 bekend is in [docs/keen3/research.md](docs/keen3/research.md).
 | C1 | Onderzoek: code in kaart, Keen 3-bestanden, Chocolate Keen, Commander Genius, js-dos, architectuur, mijlpalen | ✅ Klaar (branch `milestone-c1-onderzoek`); vragen aan de gebruiker open |
 | C2 | De bestanden van Keen 3 inlezen, data viewer, derde icoon op het startscherm | ✅ Klaar en gecontroleerd door de architect (branch `milestone-c2-bestanden`) |
 | C3 | Een level spelen (Keen, items, de ankh, deuren, uitgangen) | ✅ Klaar en gecontroleerd door de architect (branch `milestone-c3-level`); in test bij de gebruiker |
-| C4 | Vijanden (grunt, youth, moeder, Meep, ninja, Foob) | ⬜ |
+| C4 | Vijanden (grunt, youth, moeder, Meep, ninja, Foob) | ✅ Gebouwd, wacht op controle architect (branch `milestone-c4-vijanden`) |
 | C5 | Bal, jack, platforms, wapens in de muur | ⬜ |
 | C6 | Wereldkaart: teleporters, Messie, het schip, statusscherm | ⬜ |
 | C7 | Mortimer, de Mangling Machine en het einde | ⬜ |
@@ -65,6 +65,64 @@ over Keen 3 bekend is in [docs/keen3/research.md](docs/keen3/research.md).
 | C10 | Co-op lokaal en online | ⬜ |
 | C11 | Naast het origineel (wat nog geschat is) | ⬜ |
 | C12 | Keen 1 en 2 bijwerken met de getallen uit Chocolate Keen (ook de sprongen) | ⬜ |
+
+## Mijlpaal C4: wat er nu is
+
+Gebouwd en getest met de echte Keen 3-bestanden van de gebruiker (1.00).
+Alle getallen komen uit Chocolate Keen (in de code `(Choco)`), omgerekend
+naar onze eenheden. De regels staan in `docs/keen3/gameplay.md` ("Enemies",
+"Waking and sleeping", "The stun"); afwijkingen van de architectuur in
+`docs/keen3/architecture.md`, "Deviations in C4".
+
+- **Zes vijanden** (`src/keen3/actors/`, op de nieuwe basis `Keen3Enemy`):
+  grunt (info 1 en 11; loopt, springt, wisselt van snelheid, kijkt rond na
+  elke landing en gaat dan op Keen af; aanraken is dodelijk), youth (2;
+  rent en huppelt, verdooft Keen), moeder (3; loopt niet van een richel,
+  draait zich om en spuwt een vuurbal; duwt Keen opzij; 5 schoten), Meep
+  (4; zingt een geluidsgolf die door muren gaat; zingt ook in de lucht aan
+  een richel, de bug van het origineel; duwt), ninja (5; springt op Keen af
+  als hij binnen 5 tiles hoogte is; 4 schoten) en Foob (6; schrikt, vlucht
+  naar een muur; gaat zelf dood als Keen hem raakt). Info 7-18 maken nog
+  niets (C5, C7). Vijanden geven geen punten.
+- **Schoten:** Keens schot (121/32) spat op elke sprite behalve Keen en
+  lijken, ook op een vuurbal (allebei weg) en een golf (die vliegt door).
+  De vuurbal doodt Keen (ook verdoofd), grunts en Foobs en vliegt door
+  moeders heen. De golf doodt Keen.
+- **Wakker en slapen** zoals het origineel (`Keen3ActiveArea`): een vijand
+  wordt wakker vlak bij het beeld en slaapt weer ver ervandaan; schoten,
+  golven en lijken verdwijnen daar. In widescreen groeit het gebied mee met
+  het beeld (besluit van C4). Een golf verdwijnt ook zodra hij het
+  speelbare deel verlaat (anders vloog hij in level 16 over de zwarte
+  balken).
+- **Keen 3's eigen verdoving** (`Keen3Body`): Keen krijgt de snelheid van
+  de youth, ligt 165 ticks (28/29), glijdt uit, staat 16,5 ticks op (30).
+  Een schot doodt een verdoofde Keen; de ankh voorkomt verdoving en dood.
+- **HUD:** de plaatjes van straalgeweer, sleutelkaarten en ankh laten de
+  achtergrondkleur van hun tile-rij weg (geen cyaan vlak meer).
+- **Gedeelde code:** niets veranderd.
+- **Tests:** `test_keen3_enemies`, `test_keen3_enemy_rules` (zelfgemaakte
+  levels) en `test_keen3_enemy_census` (echte bestanden: elk level 1-16
+  heeft de vijanden uit research.md §5). Twee C3-asserties ("nog geen
+  vijanden") zijn aangepast. Alle 48 suites slagen, geen `SCRIPT ERROR`,
+  gdlint schoon.
+- **Keen 1- en Keen 2-controle:** `keen1_regression.sh` en
+  `keen2_regression.sh` tegen `a9d04cc` in een venster: alles gelijk
+  behalve `launcher.png`. `git diff a9d04cc` op de gedeelde mappen toont
+  alleen de C2-wijzigingen.
+- **js-dos:** level 1 bereikt met G+O+D. Gezien: de Foob gaat dood als
+  Keen hem raakt (Keen niet), de gevluchte Foob staat tegen de rotsen te
+  "dribbelen" (bij ons ook), god mode toont de halo achter de
+  voorgrond-tiles. Niet gelukt: de grunt, youth en moeder bereiken (Keen
+  viel twee keer in de put na de waterval); de Choco-getallen blijven.
+- **Bekeken in de app** (schermafdrukken in de scratchpad): level 1 (Foob
+  tegen de rotsen, HUD zonder cyaan), level 4 en 6 (grunts, youths, Foobs),
+  14 (ninja springt), 16 (Meeps zingen golven), een verdoofde Keen
+  (level 6) en een vuurbal (level 1).
+- **Open punten:** de youth gebruikt één botsingsbox voor beide
+  richtingen (*estimate*); welke spat-sprite (origineel: willekeurig); het
+  widescreen-gebied; de vijanden zakken bij de start op de vloer zoals in
+  Keen 1 en 2. Nog te meten in js-dos (C11): snelheden en tijden van
+  grunt, youth, moeder, Meep en ninja.
 
 ## Mijlpaal C3: wat er nu is
 
@@ -1180,18 +1238,17 @@ Na de eerste eigen test van de gebruiker:
 
 Keen 3:
 
-1. **Voor de gebruiker:** Keen 3 proberen in `build/` (Mac en Windows):
-   level 1-16 spelen zonder vijanden, de ankh in level 3, 10 of 14.
-2. Daarna C4 (branch `milestone-c4-vijanden` vanaf `milestone-c3-level`),
-   pas als de gebruiker dat vraagt: de vijanden in
-   `Keen3LevelSession.create_enemy`, met `Keen3Body.is_protected()` voor de
-   ankh en Keen 3's eigen verdoving. Klein punt voor C4: de iconen in de
-   HUD (raygun, ankh, sleutelkaarten) houden de cyaan achtergrond van hun
-   tile-rij; in `Keen3Hud` de achtergrondkleur van de rij weglaten.
-3. Controle bij C4: de regressies (`keen1_regression.sh`,
-   `keen2_regression.sh`) in een venster draaien, niet schermvullend; met
-   `fullscreen=true` in de instellingen pakt de Keen 1-wandeling een ander
-   beeld (geen echte wijziging, zie C3).
+1. **Architect:** C4 controleren (branch `milestone-c4-vijanden`).
+2. **Voor de gebruiker:** Keen 3 proberen in `build/` (Mac en Windows):
+   levels 1-16 met vijanden (grunts, youths, moeders, Meeps, ninja's,
+   Foobs), de verdoving door een youth, de ankh tegen vijanden.
+3. Daarna C5 (branch `milestone-c5-mechaniek` vanaf
+   `milestone-c4-vijanden`): bal, jack, platforms (`Keen2RidingCollision`
+   en `Keen2Carrier`; platforms blijven altijd wakker), de wapens in de
+   muur (info 14/15; hun schot raakt Keen, grunts en Foobs: in
+   `Keen3LevelSession._hit_with_fireball` een gewone vijandelijk-schot-tak
+   maken, het schot vliegt door sprites heen). De regressies weer in een
+   venster draaien (zie C3).
 
 Keen 2:
 

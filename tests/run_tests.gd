@@ -49,6 +49,9 @@ const SUITES: Array[Script] = [
 	preload("res://tests/test_keen3_level.gd"),
 	preload("res://tests/test_keen3_keen.gd"),
 	preload("res://tests/test_keen3_play.gd"),
+	preload("res://tests/test_keen3_enemies.gd"),
+	preload("res://tests/test_keen3_enemy_rules.gd"),
+	preload("res://tests/test_keen3_enemy_census.gd"),
 ]
 
 

@@ -66,7 +66,7 @@ architect (who asks the user).
 src/keen3/            Keen 3 only (all class names start with Keen3)
   data/               Keen3Files, Keen3Executable (version, sounds, texts, tile table,
                       Mortimer and ship messages, ending pages)
-  actors/             Keen3Grunt, Keen3Youth (subclasses of Keen 2's), Keen3Mom,
+  actors/             Keen3Enemy, Keen3Grunt, Keen3Youth (own classes, C4), Keen3Mom,
                       Keen3Fireball, Keen3Meep, Keen3SoundWave, Keen3Ninja, Keen3Foob,
                       Keen3Ball (ball and jack), Keen3Platform (horizontal and
                       vertical), Keen3WallGun, Keen3Shot, Keen3AnkhShield
@@ -301,3 +301,64 @@ shared file changed** in C3 (`git diff 303ae1f` touches only `src/keen3/`,
   for the run, then restored), every Keen 1 picture except `launcher.png`
   and every Keen 2 picture is the same. Later milestones should run the
   regressions windowed.
+
+## Deviations in C4
+
+Written by the developer of C4. None of them changes Keen 1 or Keen 2; **no
+shared file changed** in C4 (`git diff a9d04cc` on the Keen 1, Keen 2 and
+shared folders shows only the changes of C2).
+
+- **No subclasses of `Keen2Grunt` and `Keen2Youth`.** The plan above made
+  `Keen3Grunt` and `Keen3Youth` subclasses of Keen 2's; but those follow
+  Commander Genius (look around at walls, the "trapped" jump, two hop
+  sizes, a sliding corpse, Keen 2's stun), and Chocolate Keen's behaviour
+  differs in every one of these. All six enemies are their own classes on a
+  new base `Keen3Enemy extends Keen2Enemy` (for `_is_blocked`, `_jump` and
+  `_random_speed`), which adds the Choco chance (`chance(session, k)`, 9.5·k
+  in 1000 per tick), Keen 3's gravity, the dying frames, the push and the
+  waking rule. Constructors are `spawned` (Keen3Meep: from its cell).
+- **Classes:** `Keen3Grunt`, `Keen3Youth`, `Keen3Mom`, `Keen3Fireball`
+  (a `Keen3Shot`), `Keen3Meep`, `Keen3SoundWave` (an `Actor`: it flies
+  through walls and never splashes), `Keen3Ninja`, `Keen3Foob` in
+  `src/keen3/actors/`; `Keen3ActiveArea` (waking and sleeping) in
+  `src/keen3/level/`.
+- **Keen 3's own hits.** `Keen3LevelSession._resolve_hits` carries the
+  riders as Keen 2 does (`_carry_riders`) and then replaces
+  `LevelSession`'s hits with Keen 3's (Choco's contact rules): only awake
+  enemies take part; Keen's shot hits enemies, fireballs and waves; a
+  fireball kills Keen even when stunned and passes mothers and corpses; a
+  wave kills Keen; touching calls the enemy's `touch_keen` through
+  `LevelSession._kill`, so a Foob that dies by touch screams. Keen 2's
+  `_shoot_keens` / `_shoot_enemies` and `enemy_shots_hurt_enemies` are not
+  used by Keen 3.
+- **Waking and sleeping** follow the original (`Keen3ActiveArea`), not the
+  shared "in view plus one tile, then awake forever" of `Enemy.step`: a
+  `Keen3Enemy` overrides `step`. The view rectangles come from
+  `LevelSession.view_rects` (set by `Keen3View` every frame); in widescreen
+  the limits grow with the view (gameplay.md). The session deletes Keen 3's
+  shots, splashes and waves far from the view, and a wave also when it
+  leaves the playable area (the black bars of level 16 in widescreen showed
+  waves flying on outside the level).
+- **Keen 3's stun** lives in `Keen3Body` (`stun_with(speed)`, `stun`
+  calls it): its own counter, its own movement while stunned (the youth's
+  speed, Choco's friction and gravity), `is_stunned`, `can_exit` (not while
+  stunned) and `shorten_stun` (does nothing). It still extends `Keen2Body`
+  (the session's riding and its `is_stunned` checks), but Keen 2's stun code
+  is no longer reached. New constants are named `STUN_LYING_TICKS` and
+  `DAZED_FRAME_TICKS`, because GDScript does not allow a subclass to
+  redefine `Keen2Body.STUN_TICKS`.
+- **`Keen3Shot`** flies at 121/32 (Choco) instead of the shared 124/32 and
+  its splash stays 8 ticks; it overrides `step` and `splash`, and plays
+  SHOTHIT without the "in view" check (every awake sprite is heard in the
+  original). `RaygunShot` is unchanged.
+- **The HUD's item pictures** (`Keen3Hud._draw_tile`) leave out their row's
+  background colour; made in `Keen3Hud` with its own small cache (also for
+  xBRZ/HD through the public `ScaledGraphics.derive`), so `GraphicsTextures`
+  and `Hud` are unchanged.
+- **Two C3 assertions changed** (the B3/B4 precedent): `test_keen3_level`'s
+  "info values spawn nothing yet" now checks 7-18 (not 11), and
+  `test_keen3_play` no longer asserts that the levels start without
+  enemies; `test_keen3_enemy_census` checks the real enemies instead.
+- **Tests** are split in three suites (gdlint's 20 public methods):
+  `test_keen3_enemies`, `test_keen3_enemy_rules`, `test_keen3_enemy_census`
+  (real files).

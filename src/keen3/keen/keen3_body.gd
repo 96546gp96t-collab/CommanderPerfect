@@ -1,13 +1,14 @@
 class_name Keen3Body
 extends Keen2Body
 ## Keen in a Keen 3 level. He moves exactly as in Keen 1 and 2 ([KeenBody],
-## the shared physics, unchanged) and can be stunned as in Keen 2
-## ([Keen2Body]); Keen 3 adds the ankh.
+## the shared physics, unchanged); Keen 3 adds the ankh and its own stun.
+## It extends [Keen2Body] for the session's sake (riding, [method
+## Keen2Body.is_stunned]), but replaces Keen 2's stun.
 ##
 ## The ankh (behaviour 27) protects Keen for [constant ANKH_TICKS] ticks;
 ## another ankh adds its time to what is left. While it runs
-## ([method is_protected]) nothing kills him (deadly tiles, and in C4 the
-## enemies and their shots, which all go through [method KeenBody.kill]) and
+## ([method is_protected]) nothing kills him (deadly tiles, the enemies and
+## their shots, which all go through [method KeenBody.kill]) and
 ## nothing stuns him. Falling out of the level still kills him: that does
 ## not go through [method KeenBody.kill]. The time only counts down in
 ## [method step], so only while the game runs (not behind a window or a
@@ -17,9 +18,15 @@ extends Keen2Body
 ## shown by [Keen3AnkhShield]): sprites 61 and 62 in turn; in the last
 ## [constant ANKH_BLINK_TICKS] ticks it blinks.
 ##
-## Keen 3's stun frames: the last one, getting up, is sprite 30 (KEENMELT;
-## Keen 3 has no KEENSBACK). How long a stun lasts is Keen 2's for now
-## (milestone C4 gives Keen 3 its own).
+## Keen 3's own stun (Choco; a youth runs into him, [method stun_with]):
+## he takes the youth's speed (sideways at most [constant STUN_SLIDE_SPEED]),
+## ignores every button, lies [constant STUN_LYING_TICKS] ticks (frames 28 and 29
+## in turn every [constant DAZED_FRAME_TICKS]) while he slides to a stop
+## ([constant STUN_FRICTION], also in the air) and falls, then gets up
+## (frame 30, KEENMELT; Keen 3 has no KEENSBACK) for
+## [constant STUN_GETTING_UP_TICKS]. It is not Keen 2's stun: no knock up,
+## and a shot does not cut it short but kills him ([Keen3LevelSession]). A
+## stunned Keen still dies to everything deadly; the ankh prevents the stun.
 
 ## How long one ankh protects: 1400 clock ticks of 145.65 Hz (Choco), 9.6
 ## seconds, 577 of our ticks.
@@ -37,11 +44,24 @@ const HALO_OFFSET := Vector2(-8, -8)
 const TICKS_PER_ANKH_SECOND := 59.3
 ## Keen 3's sprite for getting up after a stun (KEENMELT).
 const SPRITE_MELT := 30
+## The stun: 400 clock ticks lying, 40 getting up, frames every 32 (Choco).
+const STUN_LYING_TICKS := 165.0
+const STUN_GETTING_UP_TICKS := 16.5
+const DAZED_FRAME_TICKS := 13.2
+## The youth's speed is cut to 120 by the original's steering helper, and
+## falls by 3 per clock tick (Choco), both through that helper.
+const STUN_SLIDE_SPEED := 66.7 * KeenPhysics.SUBPIXEL
+const STUN_FRICTION := 4.05 * KeenPhysics.SUBPIXEL
+## Gravity while stunned, as for the enemies: 3 per clock tick (Choco).
+const STUN_GRAVITY := 4.05 * KeenPhysics.SUBPIXEL
+const STUN_MAX_FALL := 111 * KeenPhysics.SUBPIXEL
 
 ## Ticks of protection left; 0 without the ankh.
 var ankh_ticks := 0
 ## Ticks since the halo appeared, for its pictures.
 var _halo_ticks := 0
+## Ticks since the stun began; -1 when Keen is not stunned.
+var _stunned_for := -1
 
 
 ## Keen 3's Keen at [param start] (top left of the sprite), moving through
@@ -57,6 +77,7 @@ static func spawned(level_collision: LevelCollision, start: Vector2) -> Keen3Bod
 func reset(start: Vector2) -> void:
 	ankh_ticks = 0
 	_halo_ticks = 0
+	_stunned_for = -1
 	super.reset(start)
 
 
@@ -68,7 +89,7 @@ func add_ankh() -> void:
 
 
 ## Whether the ankh protects Keen now: nothing kills or stuns him then,
-## except falling out of the level. Enemies (milestone C4) can ask this too.
+## except falling out of the level.
 func is_protected() -> bool:
 	return ankh_ticks > 0 and not is_dead
 
@@ -85,17 +106,44 @@ func kill() -> void:
 	super.kill()
 
 
-## Stuns Keen, unless the ankh protects him.
+## Stuns Keen as a youth running toward [param direction] would.
 func stun(direction: int) -> void:
-	if is_protected():
+	stun_with(Vector2(direction * STUN_SLIDE_SPEED, 0.0))
+
+
+## Stuns Keen with [param speed], the speed of the youth that ran into him.
+## Nothing happens while the ankh protects him, while he is stunned already,
+## dead, walking out or in god mode.
+func stun_with(speed: Vector2) -> void:
+	if is_protected() or is_dead or invincible or state == State.EXITING or is_stunned():
 		return
-	super.stun(direction)
+	_stunned_for = 0
+	on_pogo = false
+	_shoot_timer = 0
+	velocity = Vector2(clampf(speed.x, -STUN_SLIDE_SPEED, STUN_SLIDE_SPEED), speed.y)
+
+
+func is_stunned() -> bool:
+	return _stunned_for >= 0 and not is_dead and state != State.EXITING
+
+
+## Keen 3's stun is not cut short by a shot; the shot kills him instead.
+func shorten_stun() -> void:
+	pass
+
+
+## A stunned Keen cannot walk out through the exit.
+func can_exit() -> bool:
+	return super.can_exit() and not is_stunned()
 
 
 func step(input: KeenInput) -> void:
 	if is_protected():
 		ankh_ticks -= 1
 		_halo_ticks += 1
+	if is_stunned():
+		_lie_stunned()
+		return
 	super.step(input)
 
 
@@ -112,7 +160,51 @@ func halo_sprite() -> int:
 
 
 func sprite_index() -> int:
-	var index := super.sprite_index()
-	if is_stunned() and index == Keen2Body.SPRITE_GETTING_UP:
+	if not is_stunned():
+		return super.sprite_index()
+	if _stunned_for >= STUN_LYING_TICKS:
 		return SPRITE_MELT
-	return index
+	return SPRITE_STUNNED + floori(_stunned_for / DAZED_FRAME_TICKS) % STUNNED_FRAMES
+
+
+## One tick of the stun: slide, fall, and get up at the end.
+func _lie_stunned() -> void:
+	fired = false
+	_stunned_for += 1
+	velocity.x = move_toward(velocity.x, 0.0, STUN_FRICTION)
+	var moved_x := collision.sweep_x(hitbox(), velocity.x)
+	position.x += moved_x
+	if moved_x != velocity.x:
+		velocity.x = 0.0
+	velocity.y = minf(velocity.y + STUN_GRAVITY, STUN_MAX_FALL)
+	var moved_y := collision.sweep_y(hitbox(), velocity.y)
+	position.y += moved_y
+	if moved_y != velocity.y:
+		velocity.y = 0.0
+	var standing := (
+		velocity.y >= 0.0 and collision.floor_under(hitbox()) != TileProperties.Floor.NONE
+	)
+	state = State.STANDING if standing else State.FALLING
+	if _stunned_for >= STUN_LYING_TICKS + STUN_GETTING_UP_TICKS:
+		_get_up(standing)
+	_check_fatal_tiles()
+
+
+func _get_up(standing: bool) -> void:
+	_stunned_for = -1
+	if standing:
+		_enter_ground_state(State.STANDING)
+	else:
+		_start_falling(velocity.y, KeenPhysics.LEDGE_FALL_ACCELERATION, false)
+
+
+## Falling out of the level and deadly tiles, as [method KeenBody.step]
+## checks them.
+func _check_fatal_tiles() -> void:
+	var box := hitbox()
+	if collision.is_below_level(box):
+		is_dead = true
+		death_finished = true
+		sound_played.emit(Sound.Id.PLUMMET)
+	elif collision.touches_deadly_tile(box):
+		kill()

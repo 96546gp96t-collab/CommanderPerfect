@@ -46,7 +46,6 @@ func test_every_level_starts() -> void:
 	for number in range(Keen3Files.FIRST_LEVEL, Keen3Files.LAST_LEVEL + 1):
 		assert_true(play.start(number), "level %d starts" % number)
 		assert_true(play.session.keen is Keen3Body, "Keen 3's Keen in level %d" % number)
-		assert_true(play.session.actors.is_empty(), "no enemies yet in level %d" % number)
 		var playable := Rect2(LevelMap.playable_pixels(play.level))
 		var box := play.session.keen.hitbox()
 		assert_true(playable.encloses(box), "Keen inside level %d" % number)

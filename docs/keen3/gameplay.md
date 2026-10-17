@@ -1,7 +1,8 @@
 # Keen 3: the rules of a level in our engine
 
 What playing Keen 3 does in CommanderPerfect so far, and which numbers are
-estimates. Written in milestone C3; later milestones add to it. The facts
+estimates. Written in milestone C3; C4 added the enemies; later milestones
+add to it. The facts
 and their sources are in [research.md](research.md), the code layout in
 [architecture.md](architecture.md). Numbers from Chocolate Keen are marked
 (Choco) and converted with the table at the top of research.md ("Units").
@@ -53,8 +54,8 @@ would give the first).
 Keen moves with the shared `KeenBody` physics, unchanged (the user decided
 that the jumps, a little too high in all three games, stay as they are for
 now). Sprites 0-27 have the same numbers as in Keen 1 and 2; dying shows
-22 and 23 (KEENISDEAD1/2, checked). The stun of a youth (C4) uses Keen 2's
-timing for now, with Keen 3's frames 28, 29 and 30 (KEENMELT).
+22 and 23 (KEENISDEAD1/2, checked). A youth stuns him with Keen 3's own
+stun (below, "The stun").
 
 ## What Keen touches
 
@@ -77,10 +78,81 @@ A picked up item leaves **the first tile of its row** in the tile table,
 own background. Keen 1's ship parts, teleporters and statues and Keen 2's
 switches and Elders do nothing.
 
-The info layer spawns nothing yet: enemies come in C4, the ball, jack,
-platforms and wall guns in C5. Keen's shots use KEENSHOT (102) and splash
-with SHOTSPLASHR (105) when flying right, SHOTSPLASHL (106) when flying
-left (*estimate*); what they hit comes in C4.
+The info layer spawns the enemies of C4 (below); the ball, jack, platforms
+and wall guns come in C5, the machine in C7. Keen's shots use KEENSHOT (102)
+and splash with SHOTSPLASHR (105) when flying right, SHOTSPLASHL (106) when
+flying left (*estimate*: the original picks one at random).
+
+## Enemies (C4)
+
+All numbers are Chocolate Keen's (Choco), converted with research.md
+"Units"; speeds in n/32 pixels per tick, times in our ticks (60 per second).
+Each enemy sets off toward Keen's start (the original compares the left
+sides of the sprites). Code: `src/keen3/actors/` (`Keen3Enemy` and one class
+per kind), the rules in `Keen3LevelSession`.
+
+| Info | Enemy | What it does | Touch | Hits |
+|---|---|---|---|---|
+| 1, 11 | Grunt (`Keen3Grunt`) | Walks 27.3; every tick a chance of 2 to jump (up-speed random 0-167) and, if not, a chance of 2 to switch between 27.3 and 36.4. Turns at a wall (back to 27.3), walks off ledges. After every landing it looks around 33 ticks (71-74, every 13.2) and then walks toward Keen, however far. Walking 63-66 / 67-70 every 6.6; in the air 73 moving right, 74 moving left | kills | 1; also enemy shots |
+| 2 | Youth (`Keen3Youth`) | Runs 76; chance 3 to hop (0-222). Turns at a wall, falls off ledges; 47-50 / 51-54 every 6.6, in the air 50 / 54 | stuns | 1 |
+| 3 | Mother (`Keen3Mom`) | Walks 15.2, 85-86 / 87-88; never off a ledge (once off, she is put back and steps back 2 × her speed the other way); turns at a wall. Chance 1 to spit: she turns round and stands with 89 (left) / 90 (right); after 12.4 ticks TANKFIRE and a fireball, after 20.6 she walks on the new way | pushes | 5 |
+| 4 | Meep (`Keen3Meep`) | Starts 8 px down in its cell. Walks 19.7, 118-119 / 120-121; turns at a wall. Chance 1 to sing, and it also sings whenever it is not on the ground after a step (the original's bug: at a ledge it hangs in the air, sings, drops a little, sings again). Singing 122 (right) / 123 (left): after 24.7 ticks MEEP and a wave, after 33 it walks on the same way | pushes | 1 |
+| 5 | Ninja (`Keen3Ninja`) | Stands facing Keen (77-78 / 79-80 every 13.2), does not fall. When Keen's sprite is at most 5 tiles above or below its own: chance 3 to jump, up 0-195, sideways 76 toward Keen (81 left / 82 right); stands when it lands | kills | 4 (the original's 3, counted before it checks) |
+| 6 | Foob (`Keen3Foob`) | Walks 15.2 (93-94 / 95-96 every 13.2), turns at a wall, walks off ledges. On the screen a chance of 2 to get scared: YORPSCREAM, yells 97-98 (every 4.1) for 9.9 ticks, then runs away from Keen at 76 (frames every 3.3); at a wall it stops facing it and keeps running on the spot. Woken again while it flees, it walks away from Keen | **the Foob dies**, Keen nothing | 1; also enemy shots (not waves) |
+
+- **Projectiles.** The fireball (`Keen3Fireball`): from the mother's left
+  side, 12 px below her top, 45.5, no gravity, 57-58 (left) / 59-60 (right)
+  every 3.3; splashes (SHOTHIT) on a wall, at once when it starts in one, and
+  on any sprite but a mother or a corpse: so Keen can shoot it down (both
+  splash); it kills Keen (also a stunned one), grunts and Foobs, and only
+  splashes on youths, Meeps and ninjas. The wave (`Keen3SoundWave`): from the
+  Meep's left side or 16 px right of it, 4 px down, 60.7, **through walls**,
+  126-127 (right) / 128-129 (left) every 3.3; kills Keen; Keen's shot
+  splashes on it and it flies on; it touches no enemy.
+- **Keen's shot** (`Keen3Shot`): 121 (Keen 1 and 2: 124), splashes on every
+  awake sprite but Keen and the corpses; a splash stays 8 ticks (20 clock
+  ticks). SHOTHIT whenever a shot splashes.
+- **Dying:** the first dying frame, the next after 16.5 ticks (alternately 17
+  and 16 of ours), the last stays as the corpse, which falls. Grunt 75-76,
+  youth 55-56, mother 91-92, Meep 124-125, ninja 83-84 (all vortscream),
+  Foob 99-100-101 (YORPSCREAM). **Enemies give no points.**
+- **Pushing** (mother, Meep): Keen is moved sideways out of the enemy's box
+  at once, at most 15 px, through the tiles; it never hurts him and the
+  ankh does not stop it.
+- **Chances:** "chance k" is a random byte below 6k once per original frame,
+  so 9.5·k in 1000 per tick of ours (`Keen3Enemy.chance`).
+- **Falling:** gravity 4.05 per tick, at most 111 (Choco: 3 per clock tick,
+  at most 200, through the falling helper). Not Keen's, which stays shared.
+
+## Waking and sleeping (C4)
+
+`Keen3ActiveArea` (Choco): a sleeping sprite wakes when the cell of its top
+left corner is more than 2 tiles left of / above the view's top left tile
+and less than 23 tiles right / 12 down of it; an awake one falls asleep
+outside -8 … +28 / -8 … +18 (inclusive). Shots, splashes, waves and corpses
+are deleted there instead. Asleep, an enemy neither moves nor touches
+anything. "On screen" for the Foob: more than 0 and less than 19 / 12.
+
+**Widescreen (decision of C4):** the limits on the right and at the bottom
+grow with the view (the margins around the visible area stay the
+original's): a view of 27 tiles across wakes up to 23 + 7, one of 15 rows
+down to 12 + 3. With two views a sprite counts in either. Without a view
+(tests) an original 320x200 view around each Keen. A wave is also deleted
+as soon as its picture leaves the playable area: beyond the walls lies only
+the border (never shown) and, in a view wider than level 16, the black bars.
+
+## The stun (C4)
+
+`Keen3Body` replaces Keen 2's stun (Choco): a youth gives Keen its speed,
+sideways cut to 66.7 (the original's 120 through its steering helper);
+he slides to a stop (4.05 per tick, also in the air) and falls with
+gravity 4.05; he ignores every button for 165 ticks lying (28 and 29 every
+13.2), then 16.5 ticks getting up (30, KEENMELT). He cannot walk out
+through an exit while stunned. Unlike Keen 2 he is not knocked up and a
+shot does not cut the stun short: **any enemy shot kills a stunned Keen**,
+and so do grunts, ninjas, waves and deadly tiles. The ankh prevents the
+stun (`is_protected()`), and every kill goes through `KeenBody.kill`, which
+`Keen3Body` stops while the ankh runs; god mode prevents both.
 
 ## The ankh
 
@@ -90,7 +162,7 @@ left (*estimate*); what they hit comes in C4.
 | Sound | ANKH (sound entry 41), played by `Keen3Sounds` on its own speaker | Choco |
 | At the start of every level | 0 (every attempt makes a new `Keen3Body`) | Choco |
 | Counts down | only while the game runs (one per tick in `Keen3Body.step`; not behind "Keens Left") | Choco |
-| Protects against | everything that kills through `KeenBody.kill` (deadly tiles now; enemies and shots in C4) and the stun (`Keen3Body.is_protected`) | Choco |
+| Protects against | everything that kills through `KeenBody.kill` (deadly tiles, enemies, fireballs, waves) and the stun (`Keen3Body.is_protected`); not against a push | Choco |
 | Does not protect against | falling out of the level | Choco |
 | Halo | sprites 61 (GODHALO) and 62 (BYEHALO) in turn every 6.6 ticks, at Keen −8, −8 px (`Keen3AnkhShield`, drawn by the ActorLayer behind Keen; its middle is transparent) | Choco |
 | Blink | in the last 103 ticks; every other picture is left out (*estimate* of the look) | Choco (when), estimate (how) |
@@ -107,9 +179,11 @@ Keen (sprite 35) and the score on the left; the raygun with its charges and
 the keycards on the right; while the ankh runs, a third panel under the
 right one with the ankh (the first tile with behaviour 27, tile 149) and
 its time in whole seconds. The raygun, keycard and ankh pictures are the
-first tiles with that behaviour (`Keen2Icons`): 151, 152-155, 149. They
-keep the cyan background of their row (the shared HUD only leaves out Keen
-1's gray).
+first tiles with that behaviour (`Keen2Icons`): 151, 152-155, 149. Since
+C4 they leave out the background colour of their row (the colour of the
+row's first tile, wherever it touches the tile's edge), so the panel shows
+through as in Keen 1 and 2 (`Keen3Hud.without_row_background`; the shared
+HUD only leaves out Keen 1's gray).
 
 ## The border
 
@@ -126,7 +200,7 @@ map (C6), map 81 (C7), map 90 (C8) and two players (C10).
 
 ## Not yet
 
-Enemies (C4), ball, jack, platforms and wall guns (C5), the world map and
+Ball, jack, platforms and wall guns (C5), the world map and
 the status screen (C6), level 16's machine (C7), title, menus, saving and
 high scores (C8), the pictures behind levels (C9; never Keen 1's or 2's),
 two players (C10).
@@ -143,6 +217,15 @@ than 200 pixels high, or its first view is placed differently. To check in
 C11.
 
 ## Estimates to check against the original
+
+- C4: the youth's one box for both directions (the right-running frames
+  carry a smaller box in EGAHEAD.CK3; Choco would use it); which splash
+  sprite (the original picks at random); the widescreen waking area; the
+  enemies drop onto the floor below them when the level starts, as in Keen
+  1 and 2 (the original lets them fall in their first frames); the wave
+  deleted at the edge of the playable area. Everything else of the enemies
+  is Choco's and only partly seen in js-dos (research.md, "Watching the
+  original").
 
 - The halo's blink (which pictures are left out) and whether it is drawn
   in front of Keen or behind him.
@@ -172,6 +255,14 @@ C11.
   starts at (63,17), exits per level, the item rows of the real table,
   the ankhs of levels 3, 10 and 14, the border is never drawn, the course
   (next level, death, game over, after level 16), the HUD icons.
+- C4: `tests/test_keen3_enemies.gd` (each enemy: spawning per info value,
+  walking, turning, ledges, touching Keen, hits, dying frames, the
+  fireball, the wave through a wall, the Meep at a ledge, the ninja's jump,
+  the Foob scared and fleeing), `tests/test_keen3_enemy_rules.gd` (the
+  stun, the ankh against enemies, no points, dying frames, waking and
+  sleeping also in widescreen, far shots, Keen's shot and the wave, the
+  chances, the HUD's row background) and `tests/test_keen3_enemy_census.gd`
+  (real files: every level spawns the enemies of research.md §5).
 - The screen: `tools/scripted_play.gd` with
   `SCENE=res://src/keen3/keen3_view.tscn -- --game=3 --level=N`. With
   `--fixed-fps 60` the frames run much faster than real time, so a
