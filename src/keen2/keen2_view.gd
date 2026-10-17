@@ -13,8 +13,17 @@ extends GameScreen
 ## [BackdropPictures] are made, so [method GameScreen._apply_backdrop] shows
 ## none, also not Keen 1's.
 ##
+## Milestone B5 adds what the switches do: the darkness ([Keen2Darkness]),
+## the Vorticon Elders' messages (in a [GameWindow], the game waits until
+## Enter closes it), and the Tantalus Ray: the screen shakes, then the
+## Earth explodes on map 81 ([Keen2EarthExplosion]), then GAME OVER, and
+## back to the start screen (milestones B6/B7 add the high scores).
+##
 ## Cheats for testing, as in Keen 1: Shift+N / Shift+P go to the next or
 ## previous level, Shift+I gives every item, Shift+G toggles god mode.
+
+## What happens after the Tantalus Ray fired.
+enum Doom { NONE, SHAKING, EXPLODING }
 
 const MISSING_DATA_MESSAGE := (
 	"Keen 2 data not found. Put the files in game_data/keen2 "
@@ -28,6 +37,18 @@ const FINISHED_MESSAGE := "That was the last level"
 ## Seconds after game over or the last level before the start screen comes
 ## back, unless a key is pressed.
 const LEAVE_SECONDS := 4.0
+## Shown under an Elder's message unless it says so itself.
+const ELDER_PROMPT := "Press ENTER:"
+const ELDER_PROMPT_WORD := "ENTER"
+## How long the screen shakes when the Tantalus Ray fires (Commander Genius:
+## 2 seconds), and how far, in game pixels.
+const SHAKE_SECONDS := 2.0  # estimate
+const SHAKE_PIXELS := 2.0  # estimate
+## The GAMEOVER bitmap is 112x24 pixels: 14x3 cells of the window. Without
+## it the window says [constant GAME_OVER_TEXT].
+const GAME_OVER_BITMAP := "GAMEOVER"
+const GAME_OVER_CELLS := Vector2i(14, 3)
+const GAME_OVER_TEXT := "GAME OVER"
 
 ## The Keen 2 files. Found with [method Keen2Files.locate] unless they are
 ## set before the view enters the tree (the tests use stand-in files).
@@ -36,6 +57,12 @@ var files: GameFiles
 var play: Keen2LevelPlay
 var _time_left := 0.0
 var _leave_time_left := 0.0
+var _darkness := Keen2Darkness.new()
+var _keen_2_sounds := Keen2Sounds.new()
+var _elder_messages: Array[PackedStringArray] = []
+var _doom := Doom.NONE
+var _shake_left := 0.0
+var _explosion: Keen2EarthExplosion
 
 
 func _ready() -> void:
@@ -61,8 +88,12 @@ func _process(delta: float) -> void:
 	_message_time_left -= delta
 	if _graphics_loader != null and _graphics_loader.poll():
 		_apply_graphics()
-	if _mode == Mode.LEVEL:
+	if _mode == Mode.LEVEL and not _window.visible:
 		_run_ticks(delta)
+	elif _doom == Doom.SHAKING:
+		_shake(delta)
+	elif _doom == Doom.EXPLODING:
+		_run_explosion(delta)
 	elif _mode == Mode.GAME_OVER:
 		_leave_time_left -= delta
 		if _leave_time_left <= 0.0:
@@ -79,6 +110,8 @@ func _unhandled_input(event: InputEvent) -> void:
 		_leave()
 	elif _mode == Mode.GAME_OVER and _is_any_press(event):
 		_leave()
+	elif _window.visible and _mode == Mode.LEVEL and event.is_action_pressed("status"):
+		_close_window()
 	elif _mode != Mode.LEVEL or not _handle_cheat_keys(event):
 		return
 	get_viewport().set_input_as_handled()
@@ -108,6 +141,9 @@ func _set_up_screen() -> void:
 	_settings = _user_settings.display
 	add_child(_sounds)
 	_sounds.enabled = _user_settings.sound_enabled
+	add_child(_keen_2_sounds)
+	_keen_2_sounds.enabled = _user_settings.sound_enabled
+	_world.add_child(_darkness)
 	_menus.window = _window
 	_menus.settings = _user_settings
 	add_child(_menus)
@@ -152,12 +188,15 @@ func _load_data() -> bool:
 	_menus.hd_available = HdPack.exists(files)
 	_apply_graphics()
 	_sounds.load_sounds(data.sounds)
+	_keen_2_sounds.load_sounds(data.sounds)
+	_elder_messages = data.elder_messages
 	_progress.inventory = Keen2Inventory.new()
 	play = Keen2LevelPlay.create(files, _properties, _progress.inventory)
 	play.level_started.connect(_on_level_started)
 	play.life_lost.connect(_on_life_lost)
 	play.game_over.connect(_on_game_over)
 	play.finished.connect(_leave_after.bind(FINISHED_MESSAGE))
+	play.earth_exploded.connect(_on_earth_exploded)
 	return true
 
 
@@ -176,7 +215,10 @@ func _on_level_started(number: int) -> void:
 	_session = play.session
 	_session.tile_changed.connect(_level_map.set_tile)
 	_session.sound_played.connect(_sounds.play)
+	_session.lights_changed.connect(_darkness.set_dark)
+	_session.elder_message_touched.connect(_on_elder_message)
 	_session.set_invincible(_god_mode)
+	_darkness.set_dark(_session.is_dark())
 	_level_map.show_level(_level, _properties)
 	_mode = Mode.LEVEL
 	_frame_camera()
@@ -193,6 +235,96 @@ func _on_life_lost(lives: int) -> void:
 func _on_game_over() -> void:
 	_sounds.play(Sound.Id.GAME_OVER)
 	_leave_after(GAME_OVER_MESSAGE)
+
+
+## A Vorticon Elder speaks: its message, until Enter closes it. An Elder
+## whose message was not found in KEEN2.EXE stays silent.
+func _on_elder_message() -> void:
+	var index := Keen2LevelPlay.elder_message_index(_level_number)
+	if index >= _elder_messages.size() or _elder_messages[index].is_empty():
+		return
+	var lines := _elder_messages[index].duplicate()
+	if not "\n".join(lines).to_upper().contains(ELDER_PROMPT_WORD):
+		lines.append_array(["", ELDER_PROMPT])
+	_window.show_lines(lines)
+
+
+## The Tantalus Ray fired: the level stands still, Keen is gone, the lights
+## are on, and the screen shakes.
+func _on_earth_exploded() -> void:
+	_mode = Mode.NONE
+	_doom = Doom.SHAKING
+	_shake_left = SHAKE_SECONDS
+	_close_window()
+	_darkness.set_dark(false)
+	_keen.visible = false
+
+
+func _shake(delta: float) -> void:
+	_shake_left -= delta
+	if _shake_left > 0.0:
+		var pixel := _screen.size.y / _settings.game_size().y
+		var jitter := Vector2(randf_range(-1.0, 1.0), randf_range(-1.0, 1.0))
+		_screen.position = _settings.fit_rect(size).position + jitter * SHAKE_PIXELS * pixel
+		return
+	_fit_screen()
+	_start_explosion()
+
+
+## Map 81: the beam flies to the Earth and it explodes.
+func _start_explosion() -> void:
+	var space := LevelData.parse(files.read(files.level_file(Keen2Files.SPACE_LEVEL)))
+	if space == null:
+		_show_game_over()
+		return
+	_doom = Doom.EXPLODING
+	_time_left = 0.0
+	_explosion = Keen2EarthExplosion.create(space)
+	_explosion.tile_changed.connect(_level_map.set_tile)
+	_explosion.sound_played.connect(_sounds.play)
+	_explosion.earth_hit.connect(_on_earth_hit)
+	_session = null
+	_level = space
+	_level_number = Keen2Files.SPACE_LEVEL
+	_actor_layer.clear()
+	_level_map.show_level(space, _properties)
+	_frame_camera()
+	_camera_anchor.position = _explosion.view_center()
+	_follow(_camera_anchor)
+
+
+func _run_explosion(delta: float) -> void:
+	_time_left = minf(_time_left + delta, KeenPhysics.MAX_TICKS_PER_FRAME * KeenPhysics.TICK)
+	while _time_left >= KeenPhysics.TICK and not _explosion.finished:
+		_time_left -= KeenPhysics.TICK
+		_explosion.step()
+		_actor_layer.show_actors(_explosion.actors)
+	_place_sprites(_time_left / KeenPhysics.TICK)
+	_camera_anchor.position = _explosion.view_center()
+	if _explosion.finished:
+		_show_game_over()
+
+
+## EARTHPOW, alone on the speaker.
+func _on_earth_hit() -> void:
+	if _keen_2_sounds.has_earth_pow():
+		_sounds.stop()
+		_keen_2_sounds.play_earth_pow()
+
+
+## GAME OVER after the Earth exploded, whatever the lives; then the start
+## screen.
+func _show_game_over() -> void:
+	_doom = Doom.NONE
+	_actor_layer.clear()
+	_sounds.play(Sound.Id.GAME_OVER)
+	if _textures.bitmap(GAME_OVER_BITMAP) != null:
+		_window.open(GAME_OVER_CELLS)
+		_window.put_bitmap(Vector2i.ZERO, GAME_OVER_BITMAP)
+	else:
+		_window.show_lines(PackedStringArray([GAME_OVER_TEXT]))
+	_mode = Mode.GAME_OVER
+	_leave_time_left = LEAVE_SECONDS
 
 
 ## Shows [param message] for a while, then goes back to the start screen.

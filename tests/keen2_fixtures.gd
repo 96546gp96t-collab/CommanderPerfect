@@ -2,12 +2,14 @@ extends RefCounted
 ## Small hand-made tiles, tile properties and levels for the Keen 2 tests,
 ## so that they run without Keen 2's files (see tests/fixtures.gd for Keen
 ## 1's). The table is long enough for an item from tile 305 on, which leaves
-## a different background behind. Also: a session with Keen at a cell and
+## a different background behind, and for the tiles that Keen 2 changes by
+## number (the bridge, the levers, the Elder's light, the Tantalus Ray
+## machine, the Earth). Also: a session with Keen at a cell and
 ## where things stand in it (the enemy tests), and copying the Keen 1 files
 ## under Keen 2's names, the stand-in data for the tests that need real
 ## files.
 
-const TILE_COUNT := 320
+const TILE_COUNT := 600
 
 const AIR := 0
 const WALL := 1
@@ -32,6 +34,13 @@ const LIGHT_SWITCH := 18
 const LEDGE := 19
 ## An item from [constant LevelSession.HIGH_TILES_START] on.
 const HIGH_LOLLIPOP := 310
+## The gray background; nothing happens there.
+const GRAY := LevelSession.BACKGROUND_TILE
+## Keen 2's tiles with fixed numbers (solid on top: the bridge).
+const BRIDGE := Keen2Bridge.BRIDGE_TILE
+const LEVER_UP := Keen2Switches.LEVER_UP
+const LEVER_DOWN := Keen2Switches.LEVER_DOWN
+const ELDER_LIGHT := Keen2LevelSession.ELDER_LIGHT
 
 ## An empty field of 30 x 15 cells with a floor in the bottom row.
 const FIELD: PackedStringArray = [
@@ -75,6 +84,11 @@ const LEGEND := {
 	"L": LIGHT_SWITCH,
 	"H": HIGH_LOLLIPOP,
 	"=": LEDGE,
+	"-": GRAY,
+	"_": BRIDGE,
+	"u": LEVER_UP,
+	"d": LEVER_DOWN,
+	"o": ELDER_LIGHT,
 }
 const BEHAVIORS: Dictionary[int, TileProperties.Behavior] = {
 	FIRE: TileProperties.Behavior.DEADLY,
@@ -96,6 +110,11 @@ const BEHAVIORS: Dictionary[int, TileProperties.Behavior] = {
 	LIGHT_SWITCH: TileProperties.Behavior.SWITCH,
 	HIGH_LOLLIPOP: TileProperties.Behavior.POINTS_100,
 }
+## Keen 2's own behaviours, which Keen 1's enum does not name.
+const KEEN_2_BEHAVIORS: Dictionary[int, int] = {
+	LEVER_UP: Keen2Switches.BEHAVIOR_SWITCH_UP,
+	LEVER_DOWN: Keen2Switches.BEHAVIOR_SWITCH_DOWN,
+}
 
 
 ## The tile property table as it would be stored in KEEN2.EXE.
@@ -107,9 +126,12 @@ static func create_properties() -> TileProperties:
 		planes[side][WALL] = 1
 	planes[TileProperties.Field.TOP][RED_DOOR] = 1
 	planes[TileProperties.Field.TOP][LEDGE] = 1
+	planes[TileProperties.Field.TOP][BRIDGE] = 1
 	planes[TileProperties.Field.BOTTOM][RED_DOOR] = 1
 	for tile in BEHAVIORS:
 		planes[TileProperties.Field.BEHAVIOR][tile] = BEHAVIORS[tile]
+	for tile in KEEN_2_BEHAVIORS:
+		planes[TileProperties.Field.BEHAVIOR][tile] = KEEN_2_BEHAVIORS[tile]
 	var table := PackedByteArray()
 	for plane in planes:
 		for value in plane:

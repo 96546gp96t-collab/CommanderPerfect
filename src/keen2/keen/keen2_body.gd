@@ -1,7 +1,9 @@
 class_name Keen2Body
 extends KeenBody
-## Keen in a Keen 2 level. He moves exactly as in Keen 1 ([KeenBody]); the
-## one thing Keen 2 adds is the stun of a Vorticon youth ([Keen2Youth]).
+## Keen in a Keen 2 level. He moves exactly as in Keen 1 ([KeenBody]); Keen
+## 2 adds the stun of a Vorticon youth ([Keen2Youth]) and the switches: the
+## pogo button presses a switch near Keen instead of taking out the pogo
+## stick ([member switch_user]).
 ##
 ## A stunned Keen is knocked up as high as a full jump, puts the pogo stick
 ## away and faces the way the youth ran. For [constant STUN_TICKS] ticks he
@@ -30,6 +32,10 @@ const SPRITE_STUNNED := 28
 const STUNNED_FRAMES := 2
 const SPRITE_GETTING_UP := 31
 
+## Presses a switch near this Keen, if there is one, and returns whether it
+## did ([method Keen2Switches.use_near]). The session sets it; without it
+## the pogo button only works the pogo stick.
+var switch_user := Callable()
 var _stun_ticks := 0
 
 
@@ -73,6 +79,20 @@ func step(input: KeenInput) -> void:
 		_stun_ticks -= 1
 		input = KeenInput.create(0)
 	super.step(input)
+
+
+## The pogo button presses a switch when there is one near Keen. The pogo
+## stick is put away then, and the held button does nothing more until it
+## is let go (docs/keen2/research.md section 10, item 13).
+func _handle_pogo_button(input: KeenInput) -> void:
+	var pressed := input.pogo and not _pogo_was_held
+	if not pressed or not switch_user.is_valid() or not switch_user.call(self):
+		super._handle_pogo_button(input)
+		return
+	_pogo_was_held = true
+	on_pogo = false
+	if state == State.CROUCHING or state == State.POGO_COMPRESSED:
+		state = State.STANDING
 
 
 func sprite_index() -> int:

@@ -22,8 +22,8 @@ static func roll(session: LevelSession, chance: int) -> bool:
 	return session.rng.randi_range(0, CHANCE_RANGE - 1) <= chance
 
 
-## Whether the lights are off in [param session]. Vorticons do not jump in
-## the dark. The lights come in milestone B5.
+## Whether the lights are off in [param session] (a light switch,
+## [Keen2Switches]). Vorticons do not jump in the dark.
 static func is_dark(session: LevelSession) -> bool:
 	var keen_2 := session as Keen2LevelSession
 	return keen_2 != null and keen_2.is_dark()

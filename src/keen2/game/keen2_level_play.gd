@@ -7,6 +7,8 @@ extends RefCounted
 ##              ([signal finished])
 ##   death      one life less and the same level again; without lives left,
 ##              [signal game_over]
+##   Tantalus   the switch of an intact machine fires the Tantalus Ray:
+##              [signal earth_exploded], game over whatever the lives
 ## Every level starts fresh from its file, so that its items are back. Only
 ## the logic is here, so that the tests can play it; [Keen2View] draws it.
 
@@ -18,10 +20,17 @@ signal life_lost(lives: int)
 signal game_over
 ## Keen walked out of the last level, or the next level could not be read.
 signal finished
+## The Tantalus Ray fired: the Earth explodes and the game is over.
+signal earth_exploded
 
-enum State { PLAYING, GAME_OVER, FINISHED }
+enum State { PLAYING, GAME_OVER, FINISHED, EARTH_EXPLODED }
 
 const LEVEL_OPTION := GameLaunch.LEVEL_OPTION
+## The level whose Vorticon Elder has the first of the two messages; every
+## other Elder has the second. Commander Genius's game code puts them in
+## levels 8 and 10, its patcher in 8 and 12 (docs/keen2/research.md
+## section 3): to check in the level files.
+const FIRST_ELDER_MESSAGE_LEVEL := 8  # estimate
 
 var files: GameFiles
 var properties: TileProperties
@@ -66,6 +75,12 @@ static func start_cell(level_data: LevelData) -> Vector2i:
 	return cell if cell.x >= 0 else level_data.playable_rect().position
 
 
+## Which of the two Elder messages (0 or 1) the Elder in level
+## [param number] has.
+static func elder_message_index(number: int) -> int:
+	return 0 if number == FIRST_ELDER_MESSAGE_LEVEL else 1
+
+
 ## Starts an attempt at level [param number]. Returns false (and says why)
 ## when it is not played yet or cannot be read.
 func start(number: int) -> bool:
@@ -92,7 +107,10 @@ func step(input: KeenInput) -> void:
 	if state != State.PLAYING or session == null:
 		return
 	session.step(input)
-	if session.outcome != LevelSession.Outcome.PLAYING:
+	if session.tantalus_fired:
+		state = State.EARTH_EXPLODED
+		earth_exploded.emit()
+	elif session.outcome != LevelSession.Outcome.PLAYING:
 		_on_level_over(session.outcome)
 
 

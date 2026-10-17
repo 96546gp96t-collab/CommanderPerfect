@@ -36,7 +36,7 @@ Voor een volgend deel: [docs/new-episode-guide.md](docs/new-episode-guide.md).
 | B2 | De bestanden van Keen 2 inlezen, data viewer, tweede icoon op het startscherm | ✅ Klaar en gecontroleerd door de architect (branch `milestone-b2-bestanden`) |
 | B3 | Een level spelen (Keen, items, deuren, uitgang) | ✅ Klaar en gecontroleerd door de architect (branch `milestone-b3-level`) |
 | B4 | Vijanden en meerijden (platforms, Scrubs) | ✅ Klaar en gecontroleerd door de architect (branch `milestone-b4-vijanden`) |
-| B5 | Schakelaars, bruggen, licht, de Tantalus-straal, de aarde ontploft | ⬜ |
+| B5 | Schakelaars, bruggen, licht, de Tantalus-straal, de aarde ontploft | ✅ Klaar en gecontroleerd door de architect (branch `milestone-b5-tantalus`) |
 | B6 | Wereldkaart, steden, statusscherm, het einde | ⬜ |
 | B7 | Geluid, menu's, opslaan, highscores | ⬜ |
 | B8 | Mooier maken (framerate, xBRZ, HD, achtergronden, builds) | ⬜ |
@@ -250,6 +250,80 @@ staan in `docs/keen2/gameplay.md`; elk getal uit Commander Genius heeft
   `EGAHEAD.CK2` te lezen); de hoekregels van de Scrub zijn eigen werk; of
   vijandschoten in het origineel andere vijanden raken; de sprites 84/85
   (springen links/rechts).
+
+## Mijlpaal B5: wat er nu is
+
+Gebouwd zonder echte Keen 2-bestanden: getest met zelfgemaakte levels, een
+zelfgemaakte map 81 en de Keen 1-bestanden onder Keen 2-namen. De regels
+en de schattingen staan in `docs/keen2/gameplay.md`.
+
+- **Schakelaars met de pogo-knop** (`Keen2Switches`, via `Keen2Body`):
+  staat er een tile met gedrag 23, 25 of 26 in de kolom door Keens midden
+  (van zijn voeten omhoog, stappen van 8 pixels), dan drukt de knop de
+  schakelaar in en komt de pogo niet tevoorschijn (hij wordt weggezet).
+  Elke druk klikt (CLICKSND); een hendel wisselt 493 ↔ 480.
+- **Bruggen** (`Keen2Bridge`): info-waarde ≠ 0 = afstand naar het begin
+  (lage byte kolom, hoge byte rij, met teken). Elke 4 ticks een tile 270,
+  naar rechts tenzij daar een muur staat, tot de eerste blokkerende tile;
+  nog eens drukken haalt hem tile voor tile terug vanaf het verre eind en
+  zet de onthouden achtergrond terug. Keen kan erop staan, ook terwijl hij
+  groeit.
+- **Licht** (gedrag 23, info 0): `is_dark()` is nu echt; grunts en Elites
+  springen niet in het donker; een level begint altijd met licht. Het
+  donker is `Keen2Darkness` (een `CanvasModulate` in de World-viewport, 30 %
+  helderheid, één constante): werkt met origineel, xBRZ, HD en widescreen,
+  de HUD en vensters blijven helder.
+- **Vorticon-oudste**: gedrag 22 spreekt alleen met tile 429 er direct
+  onder, die daarna 182 wordt (dus maar één keer). Het bericht komt in
+  het gedeelde venster (`GameWindow`), het spel wacht tot Enter.
+  `Keen2Executable` zoekt de twee berichten op hun bekende plek (0x19FCC,
+  0x1A08C) en accepteert ze alleen als leesbare tekst; anders geen venster.
+  Level 8 heeft het eerste bericht, de andere het tweede (*schatting*).
+- **De Tantalus-straalmachine**: de vonk (`Keen2Spark`, info 7, 128-131),
+  ongevaarlijk, één schot van Keen (niet van vijanden) en de machine valt
+  stap voor stap uit elkaar (`Keen2Tantalus`, elke 26 ticks: glas, koepel,
+  schakelaar → 506, drie keer paars → 505 met 10.000 punten, vier
+  gloeikolommen → 549, het scherm → 533). De sessie telt de machines
+  (`machine_count`, `machines_destroyed`, `all_machines_destroyed()`) voor
+  B6.
+- **De verkeerde schakelaar**: gedrag 25/26 met info 0 naast een hele
+  machine → licht aan, alles staat stil, Keen weg, het scherm schudt 2
+  seconden, dan op map 81 `Keen2EarthExplosion`: de straal vliegt van (4,9)
+  naar kolom 47, explosies rond de aarde, kleine en grote brokken alle
+  kanten op (niet zoals CG allemaal één kant), de aarde wordt 561, na stap
+  32 klaar; EARTHPOW bij de inslag (eigen keuze, `Keen2Sounds`). Dan GAME
+  OVER (het plaatje of tekst) en terug naar het startscherm, hoeveel levens
+  Keen ook had (`Keen2LevelPlay.State.EARTH_EXPLODED`).
+- **Gedeelde code: niets veranderd.** Alles zit in `src/keen2/` en de Keen
+  2-tests; alleen `tests/run_tests.gd` kreeg twee regels voor de nieuwe
+  suites. Alle tile-wijzigingen gaan via `set_tile` → `tile_changed`, ook
+  op map 81 (eigen signaal met dezelfde betekenis).
+- **Tests:** `test_keen2_switches` (pogo op en naast een schakelaar,
+  bruggen naar rechts en links, stoppen bij een muur, terughalen met
+  achtergrond, erop staan, signed offsets, niets op een schakelaar, licht
+  aan/uit, Vorticons in het donker, de oudste één keer, de zoekers van de
+  berichten in een zelfgemaakte EXE) en `test_keen2_tantalus` (de vonk
+  neerschieten: alle tiles en 30.000 punten, stappen van 26 ticks,
+  schakelaar bij een kapotte machine doet niets, bij een hele machine
+  ontploft de aarde ongeacht de levens, vijandschoten gaan door de vonk,
+  de scène op een kleine map 81 eindigt met de aarde 561, de straal).
+  `test_keen2_stand_in` drukt nu ook af en toe op de pogo-knop en speelt de
+  explosie op Keen 1's map 81. In `test_keen2_level` en
+  `test_keen2_enemies` maakt info 7 nu een vonk.
+- **Screenshots met de testdata** (een tijdelijk script zette Keen 1's
+  tile 271 met gedrag 23 naast Keen): een brug die uitschuift (Keen 1's
+  tile 270), dezelfde brug met xBRZ (F5), donker met xBRZ en origineel,
+  het venster van de oudste in het donker (leesbaar), het schudden, de
+  straal, explosies en brokken op map 81, de aarde weg, GAME OVER.
+- **Keen 1-controle:** alle tests slagen, gdformat en gdlint schoon,
+  titel, level 1 (ook lopend) en kaart byte voor byte gelijk aan `main`;
+  alleen `launcher.png` verschilt (gelijk aan de B2-screenshot).
+- **Open:** hoe het donker er in het origineel uitziet; of de berichten
+  van de oudste echt als één record met regeleinden in de EXE staan en in
+  welke levels; hoe het origineel voorkomt dat Keen een stad verlaat
+  zonder de machine te vernietigen (nu houdt niets hem tegen); 10.000 of
+  30.000 punten; met de CG-snelheden eindigt de straal zo'n zes tiles
+  onder de aarde (de explosies zitten daarom rond het midden van de aarde).
 
 ## Mijlpaal 1: wat er nu is
 
@@ -682,9 +756,13 @@ Keen 2:
 4. Met echte Keen 2-bestanden: de botsingsvakken van de vijanden uit de
    spritetabel van `EGAHEAD.CK2` halen, en kijken of de Scrub netjes om
    hoeken kruipt en de platforms op de goede hoogte zweven.
-5. B5 (schakelaars, bruggen, licht, de vonk, de Tantalus-straal) op
-   `milestone-b5-tantalus`; `Keen2LevelSession.is_dark()` krijgt dan echte
-   betekenis.
+5. Met echte Keen 2-bestanden: de tilenummers van brug, hendels, licht van
+   de oudste, de machine en de aarde nakijken, en de berichten van de
+   oudste in de data viewer zoeken.
+6. **Voor de gebruiker:** B2-B5 bekijken en zeggen of B6 mag beginnen.
+   B6 (wereldkaart, steden, statusscherm, het einde) komt op
+   `milestone-b6-kaart-einde`, vanaf `milestone-b5-tantalus`: een stad is gered
+   als het level klaar is; `all_machines_destroyed()` kan daarbij helpen.
 
 Keen 1:
 

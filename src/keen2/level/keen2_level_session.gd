@@ -9,9 +9,9 @@ extends LevelSession
 ##
 ## What Keen 2 does differently (docs/keen2/gameplay.md):
 ##   enemies    the info layer: 1 grunt, 2 youth, 3 Elite, 4 Scrub, 5 Guard
-##              robot, 6 moving platform ([method create_enemy]). 7 (the
-##              spark) comes in milestone B5. Values from 0x100 on are never
-##              enemies: at a switch they point to the bridge it moves.
+##              robot, 6 moving platform, 7 the spark of a Tantalus Ray
+##              machine ([method create_enemy]). Nothing spawns at a switch:
+##              its info value points to the bridge it moves.
 ##   riding     Keen stands on platforms and Scrubs and moves along with
 ##              them ([Keen2Carrier], [Keen2RidingCollision]); he cannot
 ##              walk out through the exit while he rides.
@@ -22,11 +22,24 @@ extends LevelSession
 ##              ([member enemy_shots_hurt_enemies]).
 ##   items      Keen 1's ship parts (behaviours 11-14) are no items: Keen 2
 ##              has none.
-##   specials   behaviour 22 is the Vorticon Elder's message, not a statue;
-##              23, 25 and 26 are switches; 24 is no teleporter. Touching
-##              them does nothing yet (milestones B5 and B6).
+##   switches   23, 25 and 26 are switches, used with the pogo button
+##              ([Keen2Switches]): bridges, the lights ([method is_dark]) and
+##              the Tantalus Ray ([signal tantalus_ray_fired]).
+##   machines   shooting a spark wrecks its machine ([Keen2Tantalus]); the
+##              session counts them ([method all_machines_destroyed]).
+##   Elder      behaviour 22 is the Vorticon Elder's message, not a statue:
+##              only with tile 429 right below it, which then becomes 182
+##              ([signal elder_message_touched]). 24 is no teleporter.
 ##   shots      Keen's shots use Keen 2's sprites ([Keen2Shot]).
 ##   pogo       Keen has the pogo stick from the start.
+
+## The lights went off ([param dark] true) or on.
+signal lights_changed(dark: bool)
+## Keen touched a Vorticon Elder that has a message for him.
+signal elder_message_touched
+## Keen pressed the switch of a machine that was not destroyed: the
+## Tantalus Ray fires and the Earth explodes. The level stops at once.
+signal tantalus_ray_fired
 
 ## Info layer values of the enemies in Keen 2.
 const INFO_GRUNT := 1
@@ -35,8 +48,12 @@ const INFO_ELITE := 3
 const INFO_SCRUB := 4
 const INFO_GUARD_ROBOT := 5
 const INFO_PLATFORM := 6
-## The spark of the Tantalus Ray machine: milestone B5.
+## The spark of a Tantalus Ray machine.
 const INFO_SPARK := 7
+## An Elder speaks only with this tile (its light) right below the touched
+## tile; afterwards the light goes out.
+const ELDER_LIGHT := 429  # from Commander Genius, check with the real files
+const ELDER_LIGHT_OFF := 182  # from Commander Genius, check with the real files
 ## Commander Genius lets the enemies' shots hit other enemies; whether the
 ## original does is not known (docs/keen2/research.md section 5).
 const ENEMY_SHOTS_HURT_ENEMIES := true  # estimate
@@ -48,10 +65,20 @@ const STANDING_STATES: Array[KeenBody.State] = [
 ## Whether an enemy shot hurts enemies of another kind. Starts as
 ## [constant ENEMY_SHOTS_HURT_ENEMIES]; a test can turn it off.
 var enemy_shots_hurt_enemies := ENEMY_SHOTS_HURT_ENEMIES
+## The switches and bridges of the level.
+var switches: Keen2Switches
+## Whether the Tantalus Ray has fired; nothing moves any more then.
+var tantalus_fired := false
+## The Tantalus Ray machines (sparks) in the level, and how many of them
+## Keen destroyed.
+var machine_count := 0
+var machines_destroyed := 0
 ## Keen's collision: the tiles and the tops of the carriers.
 var _keen_collision: Keen2RidingCollision
 ## Whether the Keen whose tiles are being checked rides a carrier.
 var _toucher_rides := false
+## Every level starts with the lights on.
+var _dark := false
 
 
 ## Starts an attempt at [param level_data] with Keen's sprite at
@@ -70,10 +97,46 @@ static func begin(
 	return session
 
 
-## Whether the lights are off. Always false until the light switches come
-## (milestone B5); then the Vorticons stop jumping in the dark.
+## Whether the lights are off. The Vorticons do not jump in the dark.
 func is_dark() -> bool:
-	return false
+	return _dark
+
+
+## Turns the lights off ([param dark] true) or on.
+func set_dark(dark: bool) -> void:
+	if dark == _dark:
+		return
+	_dark = dark
+	lights_changed.emit(dark)
+
+
+## The Tantalus Ray fires (the switch of an intact machine): the lights come
+## on and the level stops. It is game over, whatever the lives.
+func fire_tantalus_ray() -> void:
+	if tantalus_fired:
+		return
+	tantalus_fired = true
+	set_dark(false)
+	tantalus_ray_fired.emit()
+
+
+## Keen shot the spark of a machine.
+func machine_destroyed() -> void:
+	machines_destroyed += 1
+
+
+## Whether the level had machines and Keen destroyed them all.
+func all_machines_destroyed() -> bool:
+	return machine_count > 0 and machines_destroyed >= machine_count
+
+
+## Advances one tick; nothing moves after the Tantalus Ray fired.
+func step_players(inputs: Array[KeenInput]) -> void:
+	if tantalus_fired or outcome != Outcome.PLAYING:
+		return
+	super.step_players(inputs)
+	if not tantalus_fired:
+		switches.step()
 
 
 ## The enemy for info value [param info] at the cell whose top left is
@@ -93,6 +156,8 @@ func create_enemy(info: int, start: Vector2) -> Enemy:
 			enemy = Keen2GuardRobot.create(start)
 		INFO_PLATFORM:
 			enemy = Keen2Platform.create(start)
+		INFO_SPARK:
+			enemy = Keen2Spark.create(start)
 	return enemy
 
 
@@ -119,18 +184,27 @@ func is_riding(body: KeenBody) -> bool:
 func _spawn_enemies(_has_commander: bool) -> void:
 	for y in level.height:
 		for x in level.width:
-			var start := Vector2(x, y) * EgaGraphics.TILE_SIZE
-			var enemy := create_enemy(level.info_at(Vector2i(x, y)), start)
-			if enemy != null:
-				add_actor(enemy)
-				enemy.settle(self)
+			var cell := Vector2i(x, y)
+			if Keen2Switches.is_switch(properties, level.tile_at(cell)):
+				continue
+			var enemy := create_enemy(level.info_at(cell), Vector2(cell) * EgaGraphics.TILE_SIZE)
+			if enemy == null:
+				continue
+			add_actor(enemy)
+			enemy.settle(self)
+			if enemy is Keen2Spark:
+				machine_count += 1
 
 
-## Keen 2's Keen: a [Keen2Body] that also stands on carriers.
+## Keen 2's Keen: a [Keen2Body] that also stands on carriers and uses the
+## switches.
 func _create_keen(start: Vector2) -> KeenBody:
 	if _keen_collision == null:
 		_keen_collision = Keen2RidingCollision.with_carriers(level, properties, carriers)
+	if switches == null:
+		switches = Keen2Switches.create(self)
 	var body := Keen2Body.placed(_keen_collision, start)
+	body.switch_user = switches.use_near
 	body.sound_played.connect(play_sound)
 	keens.append(body)
 	return body
@@ -176,12 +250,15 @@ func _shoot_keens(shot: RaygunShot) -> void:
 
 
 ## [param shot] hits the first enemy in its way that is not of the
-## shooter's kind. An Elite stops a Guard robot's shot unharmed.
+## shooter's kind. An Elite stops a Guard robot's shot unharmed. Only Keen
+## destroys a spark.
 func _shoot_enemies(shot: RaygunShot) -> void:
 	var enemy_shot := shot as Keen2EnemyShot
 	var shooter: Script = enemy_shot.shooter if enemy_shot != null else null
 	for enemy in enemies():
 		if not enemy.stops_shots() or not shot.hitbox().intersects(enemy.hitbox()):
+			continue
+		if enemy is Keen2Spark:
 			continue
 		if enemy_shot != null and enemy_shot.passes_through(enemy):
 			continue
@@ -207,10 +284,18 @@ func _is_item(tile: int) -> bool:
 	return properties.is_item(tile) and not is_ship_part(properties.behavior(tile))
 
 
-## The Elder's message, the switches and Keen 1's teleporter and statues do
-## nothing in Keen 2 yet.
-func _touch_special_tile(_cell: Vector2i, _tile: int) -> void:
-	pass
+## A Vorticon Elder (behaviour 22) speaks once, and only with its light
+## (tile 429) right below the touched tile; Commander Genius notes that the
+## original has behaviour 22 elsewhere too, where nothing should happen.
+## Keen 1's teleporter and statues do nothing in Keen 2.
+func _touch_special_tile(cell: Vector2i, tile: int) -> void:
+	if properties.behavior(tile) != Keen2Switches.BEHAVIOR_ELDER:
+		return
+	var below := cell + Vector2i.DOWN
+	if collision.tile_at(below) != ELDER_LIGHT:
+		return
+	set_tile(below, ELDER_LIGHT_OFF)
+	elder_message_touched.emit()
 
 
 func _create_shot(start: Vector2, direction: int) -> RaygunShot:

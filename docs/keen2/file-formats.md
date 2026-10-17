@@ -63,6 +63,7 @@ read from the program code.
 | Story | 0x16AC0 | A text block | `text(TextBlock.STORY)` |
 | City names | 0x199AB | Eight zero-terminated strings of letters and spaces. At the known position any such names are accepted; the search wants the lengths 6, 5, 6, 8, 5, 4, 6, 9 (Commander Genius) after a zero byte | `city_names()` |
 | `TO BE CONTINUED....` | 0x1A434 | The text `TO BE CONTINUED` | `to_be_continued()` |
+| Vorticon Elder messages (B5) | 0x19FCC, 0x1A08C | Only at the known position: a zero-terminated record of at least 32 bytes, all printable ASCII, LF or CR, with no printable byte right before it. There is no search: not found means the Elder stays silent (no error) | `elder_message(index)` → lines; `find_elder_message(data, index)` |
 
 **Text blocks.** A text block is a run of text bytes (printable ASCII, CR,
 LF, tab, the break mark 0x1F, and font pictures from 0x80 on) of at least 64
@@ -79,6 +80,16 @@ not found.
 the 512-byte EXE header (its story offsets also need −512), so 0x15DC0 −
 0x200 = 0x15BC0: both sources agree, and the help ends at 0x1639F, right
 before the previews (0x163A0).
+
+**Elder messages.** research.md §1 places the first message at 0x19FCC (191
+bytes, right after the five words of the points table) and the second right
+after it at 0x1A08C (275 bytes). Each is taken as one record with line
+breaks inside; `elder_message` splits it at LF, drops CR, trailing spaces
+and empty lines at the end. Whether the records really hold LF line breaks
+(rather than one record per line, as Keen 1's statue messages do) is not
+known without the files; a message made of several records would fail the
+check and show no window. Which level shows which message is in
+gameplay.md.
 
 **Version.** `version` is "1.31" when the packed file is 58,335 bytes, or when
 the unpacked image is 118,672 bytes or 118,672 − 512; "1.00" for 118,626 or
@@ -116,8 +127,11 @@ missing; the accessors (`sounds()`, `text()`, …) also say so with
   question 6), and their lengths.
 - The tile properties at 0x17828: behaviour values 22-26, floor types, the
   tile numbers of items and switches (open question 4).
-- The Vorticon Elder messages and the three ending texts (positions in
-  research.md §1) are not read yet; they follow in a later milestone
-  (`Keen2Texts`).
+- The Vorticon Elder messages (B5): that they are at 0x19FCC and 0x1A08C,
+  one record each with LF line breaks, and which levels show them. The
+  three ending texts (positions in research.md §1) are not read yet; they
+  follow in a later milestone (`Keen2Texts`).
+- The sound block's name for the Earth exploding (`EARTHPOW`, compared
+  without case and with any suffix by `Keen2Sounds`).
 - The level contents: info values, bridges, the Elder levels (open questions
   5, 7, 8, 10).

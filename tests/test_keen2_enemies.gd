@@ -54,9 +54,9 @@ func test_info_values_spawn_keen_2_enemies() -> void:
 	for enemy in session.enemies():
 		kinds.append(enemy.get_script())
 	var expected: Array[Script] = [
-		Keen2Grunt, Keen2Youth, Keen2Elite, Keen2Scrub, Keen2GuardRobot, Keen2Platform
+		Keen2Grunt, Keen2Youth, Keen2Elite, Keen2Scrub, Keen2GuardRobot, Keen2Platform, Keen2Spark
 	]
-	assert_equal(kinds, expected, "values 1-6, in order; 7, 8 and bridges spawn nothing")
+	assert_equal(kinds, expected, "values 1-7, in order; 8 and bridges spawn nothing")
 	if kinds != expected:
 		return
 	var enemies := session.enemies()

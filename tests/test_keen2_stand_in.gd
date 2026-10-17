@@ -3,11 +3,14 @@ extends "res://tests/test_case.gd"
 ## copied to a folder in the user folder under Keen 2's names (see
 ## tests/keen2_fixtures.gd). Checks the loading ([Keen2GameData]), the
 ## course of the levels ([Keen2LevelPlay]: exit, death, game over, the last
-## level), and Keen 2's enemies spawned from Keen 1's info values, played
-## for a while in every level. The game screen itself ([Keen2View]) needs a running scene tree,
-## which the test runner does not have; it is checked with
-## tools/scripted_play.gd (see docs/keen2/gameplay.md). The copy is removed
-## afterwards. Skipped when the Keen 1 data is not there.
+## level), and Keen 2's enemies spawned from Keen 1's info values (the
+## shareware levels have no info 7, so no sparks), played for a while in
+## every level with the pogo button pressed now and then (Keen 1's levels
+## have no Keen 2 switches), and the Earth exploding on Keen 1's map 81. The
+## game screen itself ([Keen2View]) needs a running scene tree, which the
+## test runner does not have; it is checked with tools/scripted_play.gd (see
+## docs/keen2/gameplay.md). The copy is removed afterwards. Skipped when the
+## Keen 1 data is not there.
 
 const Fixtures := preload("res://tests/keen2_fixtures.gd")
 const TEST_DIRECTORY := "user://test_keen2_stand_in"
@@ -81,8 +84,10 @@ func test_enemies_spawn_and_play_in_every_level() -> void:
 		for tick in ENEMY_TICKS:
 			var input := KeenInput.create(1 if (tick / 100) % 2 == 0 else -1, tick % 50 == 0)
 			input.fire = tick % 30 == 0
+			input.pogo = tick % 40 < 2
 			play.session.step(input)
 		assert_equal(play.session.outcome, LevelSession.Outcome.PLAYING, "level %d" % number)
+		assert_true(not play.session.tantalus_fired, "no Tantalus Ray in level %d" % number)
 	var expected: Array[Script] = [
 		Keen2Grunt, Keen2Youth, Keen2Elite, Keen2Scrub, Keen2GuardRobot, Keen2Platform
 	]
@@ -142,6 +147,23 @@ func test_last_life_ends_the_game() -> void:
 	_die(play)
 	assert_true(over[0], "game over")
 	assert_equal(play.state, Keen2LevelPlay.State.GAME_OVER, "stopped")
+
+
+func test_the_earth_explodes_on_map_81() -> void:
+	if _files == null:
+		return
+	var space := LevelData.parse(_files.read(_files.level_file(Keen2Files.SPACE_LEVEL)))
+	assert_true(space != null, "map 81")
+	if space == null:
+		return
+	var scene := Keen2EarthExplosion.create(space)
+	for tick in MAX_DEATH_TICKS:
+		if scene.finished:
+			break
+		scene.step()
+	assert_true(scene.finished, "the scene ends")
+	var earth := Keen2EarthExplosion.EARTH_CELL
+	assert_equal(space.tile_at(earth), Keen2EarthExplosion.WRECKED_EARTH, "the Earth is wrecked")
 
 
 func _play() -> Keen2LevelPlay:

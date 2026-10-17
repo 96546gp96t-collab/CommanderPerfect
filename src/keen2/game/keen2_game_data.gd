@@ -2,8 +2,8 @@ class_name Keen2GameData
 extends RefCounted
 ## What Keen 2's game screen reads from the player's files before it can
 ## show a level: the graphics (EGAHEAD.CK2 and the others), the tile
-## properties and the sounds from KEEN2.EXE, and FINALE.CK2 for the scaled
-## graphics.
+## properties, the sounds and the Vorticon Elders' messages from KEEN2.EXE,
+## and FINALE.CK2 for the scaled graphics.
 ##
 ## Keen 2 keeps its sounds inside KEEN2.EXE. When that has no sound block
 ## and a SOUNDS.CK2 file lies next to it, that file is used instead: the
@@ -20,6 +20,8 @@ var properties: TileProperties
 var sounds: SoundFile
 ## The picture of FINALE.CK2; null when it is missing.
 var finale: Image
+## The two Elder messages as lines; a message that was not found is empty.
+var elder_messages: Array[PackedStringArray] = []
 
 
 ## Reads everything from [param game_files]. Returns null (and says why)
@@ -39,6 +41,8 @@ static func load_from(game_files: GameFiles) -> Keen2GameData:
 	if data.properties == null:
 		return null
 	data.sounds = _sounds_from(executable, game_files)
+	for index in Keen2Executable.ELDER_MESSAGE_OFFSETS.size():
+		data.elder_messages.append(executable.elder_message(index))
 	if game_files.has_file(Keen2Files.FINALE):
 		data.finale = FinaleImage.load_from(game_files, Keen2Files.FINALE)
 	return data

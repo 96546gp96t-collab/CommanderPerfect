@@ -20,6 +20,11 @@ const SOUND_OFFSET := 0x12730
 const TEXT_OFFSETS: PackedInt32Array = [0x15840, 0x15BC0, 0x163A0, 0x16AC0]
 const CITY_NAMES_OFFSET := 0x199AB
 const TO_BE_CONTINUED_OFFSET := 0x1A434
+## The two messages of the Vorticon Elders (version 1.31).
+const ELDER_MESSAGE_OFFSETS: PackedInt32Array = [0x19FCC, 0x1A08C]
+## An Elder message is one zero-terminated record of printable text and
+## line ends, at least this long.
+const MIN_ELDER_MESSAGE_SIZE := 32
 ## The tile property table in version 1.31 and 1.00.
 const TILE_TABLE_OFFSETS: PackedInt32Array = [0x17828, 0x17938]
 
@@ -147,6 +152,37 @@ func to_be_continued() -> String:
 	return ExeStrings.record_at(image, start)
 
 
+## The lines of Elder message [param index] (0 or 1); empty when it is not
+## found. Not finding it is no error: only version 1.31's positions are
+## known, and without the message the Elder stays silent.
+func elder_message(index: int) -> PackedStringArray:
+	var start := find_elder_message(image, index)
+	if start < 0:
+		return PackedStringArray()
+	return message_lines(ExeStrings.record_at(image, start))
+
+
+## Where Elder message [param index] starts in [param data], or -1. Only the
+## known position is tried, and only used when a whole printable record
+## starts there.
+static func find_elder_message(data: PackedByteArray, index: int) -> int:
+	if index < 0 or index >= ELDER_MESSAGE_OFFSETS.size():
+		return -1
+	var start := ELDER_MESSAGE_OFFSETS[index]
+	return start if _is_message_record(data, start) else -1
+
+
+## The lines of [param text]: split at the line ends, without carriage
+## returns, trailing spaces and empty lines at the end.
+static func message_lines(text: String) -> PackedStringArray:
+	var lines := PackedStringArray()
+	for line in text.replace("\r", "").split("\n"):
+		lines.append(line.strip_edges(false, true))
+	while not lines.is_empty() and lines[-1].is_empty():
+		lines.remove_at(lines.size() - 1)
+	return lines
+
+
 ## Where the sound block starts in [param data], or -1.
 static func find_sound_block(data: PackedByteArray) -> int:
 	if _is_sound_block(data, SOUND_OFFSET):
@@ -228,6 +264,22 @@ static func _is_sound_block(data: PackedByteArray, start: int) -> bool:
 		and start + size <= data.size()
 		and SoundFile.HEADER_SIZE + count * SoundFile.ENTRY_SIZE <= size
 	)
+
+
+## Whether a zero-terminated record of printable text and line ends, at
+## least [constant MIN_ELDER_MESSAGE_SIZE] long, starts at [param start],
+## with no text running into it from before.
+static func _is_message_record(data: PackedByteArray, start: int) -> bool:
+	if start <= 0 or start >= data.size() or ExeStrings.is_printable(data[start - 1]):
+		return false
+	var end := data.find(0, start)
+	if end - start < MIN_ELDER_MESSAGE_SIZE:
+		return false
+	for position in range(start, end):
+		var byte := data[position]
+		if not ExeStrings.is_printable(byte) and byte not in [CARRIAGE_RETURN, ExeStrings.NEWLINE]:
+			return false
+	return true
 
 
 ## Whether a text block can start at [param start]: nothing that is text

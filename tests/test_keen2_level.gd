@@ -34,7 +34,7 @@ const FEET_ROW := 13
 ## Info values that are enemies in Keen 1, and bridge offsets of Keen 2's
 ## switches. In Keen 2, 1-6 are enemies (tests/test_keen2_enemies.gd).
 const ENEMY_INFOS: PackedInt32Array = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-const KEEN_2_ENEMY_INFOS := 6
+const KEEN_2_ENEMY_INFOS := 7
 const BRIDGE_INFOS: PackedInt32Array = [0x0102, 0xFF03, 0x01FE]
 
 
@@ -179,7 +179,7 @@ func test_only_enemy_info_values_spawn_something() -> void:
 	var session := Keen2LevelSession.begin(
 		level, Fixtures.create_properties(), Keen2Inventory.new(), _start()
 	)
-	assert_equal(session.actors.size(), KEEN_2_ENEMY_INFOS, "1-6 only (B4; 7 comes in B5)")
+	assert_equal(session.actors.size(), KEEN_2_ENEMY_INFOS, "1-7 only (7 is the spark, B5)")
 
 
 func test_shots_use_keen_2_sprites() -> void:

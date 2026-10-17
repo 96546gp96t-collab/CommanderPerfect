@@ -41,15 +41,18 @@ before making it.
 src/keen2/            Keen 2 only (all class names start with Keen2)
   data/               Keen2Files, Keen2Executable (texts, sounds, version), Keen2Texts
   actors/             Keen2Grunt, Keen2Youth, Keen2Elite, Keen2Scrub, Keen2GuardRobot,
-                      Keen2Platform, Keen2Spark, Keen2Shot, Keen2Bridge; B4 added the
+                      Keen2Platform, Keen2Spark, Keen2Shot; B4 added the
                       bases Keen2Enemy and Keen2Carrier, and Keen2EnemyShot
-  keen/               Keen2Body (Keen in a Keen 2 level: Keen 1's KeenBody plus the stun, B4)
+  keen/               Keen2Body (Keen in a Keen 2 level: Keen 1's KeenBody plus the stun, B4,
+                      and the pogo button on switches, B5)
   level/              Keen2LevelSession, Keen2RidingCollision (B4), Keen2Switches,
+                      Keen2Bridge (B5: here, not in actors/, because it is no actor),
                       Keen2Darkness, Keen2Tantalus
   map/                Keen2MapSession (no teleporters, no ship), Keen2MapInfo
   game/               Keen2LevelPlay (the levels one after another, B3), Keen2GameData
                       (loading), Keen2Icons (HUD icons), Keen2Progress, Keen2Inventory,
-                      Keen2StatusScreen, Keen2Ending, Keen2EarthExplosion, Keen2Hud parts
+                      Keen2StatusScreen, Keen2Ending, Keen2EarthExplosion with
+                      Keen2SpaceSprite (B5), Keen2Sounds (EARTHPOW, B5), Keen2Hud parts
   keen2_view.gd       Keen2View (the scene; the Keen 2 counterpart of level_view.gd)
   keen2_view.tscn     The game scene that the start screen opens
 tests/test_keen2_*.gd Keen 2 suites; the ones that need real data skip without it
@@ -79,9 +82,10 @@ Found in the code survey of B1; line numbers are from `main` at that time.
 | Start Keen 2 from the command line | `--level=N` / `--ending` always start Keen 1 (`launcher.gd:35-36`) | New option `--game=2` that, together with `--level=`, starts Keen 2. Without it nothing changes. *B2:* `--game=2` alone also skips the start screen (`GameLaunch.scene_for`). As for Keen 1, "Choose Game" with these options on the command line comes straight back to the game. |
 | Keen's movement | `KeenBody` starts without the pogo, ice freezes him | Reuse as is; Keen 2 sets `has_pogo = true` at the start (*built in B3:* `Keen2Inventory` starts with it and `Keen2LevelSession.begin` sets it; `KeenBody` and the sprite numbers 0-27 unchanged). The stun of the Vorticon youth: try `freeze()` first; if the frames or the friction differ (research §5), add an optional stun mode to `KeenBody` (Keen 1 default unchanged). Sprite numbers 0-27 are the same in both games. *Built in B4, without a shared change:* `freeze()` does not fit (its frames change every 25 ticks instead of 26, it plays Keen 1's frozen sound and pushes Keen, and it has no "shorten"), so the stun lives in `Keen2Body extends KeenBody` (`src/keen2/keen/`): `stun(direction)`, `is_stunned()`, `shorten_stun()`, and overrides of `reset`, `step` (buttons ignored while stunned; falling and friction stay `KeenBody`'s) and `sprite_index` (28/29, then 31). `Keen2LevelSession` overrides `_create_keen` so that its Keens are `Keen2Body`s (constructor `placed`, because a static `create` with another return type cannot override the parent's). `KeenBody` is not changed at all. |
 | Riding a platform or Scrub | `LevelCollision` only knows tiles | New hook: the session gives `KeenBody` a "carrier" (any actor with a top surface and a velocity); `KeenBody` stands on it and moves along. Keen 1 has no carriers, so its path does not change. Design this in B4, test it with fixtures. *Built in B4, without a shared change:* the hook already exists: `KeenBody` asks its `collision` for every floor (`floor_under`) and every downward move (`sweep_y`). `Keen2LevelSession` gives its Keens a `Keen2RidingCollision extends LevelCollision` whose two overrides add the tops of the carriers (`Keen2Carrier`: `Keen2Platform`, `Keen2Scrub`) as one-way floors; the enemies and shots keep the session's plain `LevelCollision`. Each carrier records `last_move`; `Keen2LevelSession._resolve_hits` first moves every Keen who stands on a carrier (its top before the move) by that much, through the tiles, and then runs `LevelSession`'s hits. A carrier pushes Keen out sideways when he runs into it (`Keen2Carrier.touch_keen`). No exit while riding: `_touch_tiles` notes whether Keen rides and `_is_exit` then says no. Keen 1 never makes a `Keen2RidingCollision`, so `KeenBody`, `LevelCollision` and `LevelSession` are byte for byte the same as on `main` (B4 changed no file outside `src/keen2/`). The riding collision does not follow `LevelSession.open_sides` (Keen 2 has no open sides). |
-| Tiles that change while playing (bridge, Tantalus wreck, switches, Elder lights) | Keen 1 already changes tiles (items, doors) through `tile_changed` | Reuse. Check that xBRZ and HD layers update per cell as well. |
-| Darkness | Nothing | Keen 2 only (`Keen2Darkness`), drawn as a layer or shader on top of `GameScreen`; it must also work with xBRZ, HD and widescreen. |
+| Tiles that change while playing (bridge, Tantalus wreck, switches, Elder lights) | Keen 1 already changes tiles (items, doors) through `tile_changed` | Reuse. Check that xBRZ and HD layers update per cell as well. *Built in B5, without a shared change:* every change in a level goes through `LevelSession.set_tile` (`Keen2Bridge`, `Keen2Switches`, `Keen2Tantalus`, the Elder's light), so `tile_changed` reaches `LevelMap.set_tile`, which redraws that one cell with the tile set in use; xBRZ and HD are only other tile sets (`use_tile_set`), so they change per cell too (checked with a screenshot after F5). Map 81 is no `LevelSession`: `Keen2EarthExplosion` has its own `tile_changed` signal with the same meaning (it changes its `LevelData` and announces the cell), which `Keen2View` connects to the same `LevelMap.set_tile`. |
+| Darkness | Nothing | Keen 2 only (`Keen2Darkness`), drawn as a layer or shader on top of `GameScreen`; it must also work with xBRZ, HD and widescreen. *Built in B5, without a shared change:* `Keen2Darkness extends CanvasModulate`, which `Keen2View` adds to the World viewport. It tints the level's own canvas (tiles in any graphics style, Keen, the actors) to `DARK_BRIGHTNESS` (0.3, an estimate, one constant); the HUD and the windows are on the `Ui` CanvasLayer and stay as they are, also in widescreen. Not darkened: the backdrop pictures (their own CanvasLayer; Keen 2 has none until B8, which must decide) and the second player's viewport (B9). `Keen2LevelSession.is_dark()` is real now and announces changes with `lights_changed`. |
 | The level session | `LevelSession` mixes the generic core with Keen 1's enemies, statues and ship parts (`level_session.gd:46-79`, `311-337`, `420-432`) | Do **not** change its behaviour. Preferred: `Keen2LevelSession extends LevelSession` and overrides only what Keen 2 does differently. If a method that must be overridden is static or private (`_create_enemy` is static), add a new instance hook whose default calls the existing code, so Keen 1 runs the same lines as before. If that becomes awkward, `Keen2LevelSession` uses composition (owns the collision, the actors and Keen) and copies none of the Keen 1 rules. *Built in B3:* subclassing. `LevelSession.create` now calls the new instance method `_set_up(...)`, which holds its old body in the same order; three hooks whose default is the old code: `_is_item(tile)` (was `properties.is_item(tile)`), `_touch_special_tile(cell, tile)` (the teleporter and statue branches of `_touch_tiles`, reached in the same `elif` order) and `_create_shot(start, direction)` (was `RaygunShot.create`). `Keen2LevelSession` (constructor `begin`, because a static `create` with another return type cannot override the parent's) overrides `_spawn_enemies` (already an instance method: no enemies until B4), `_is_item` (no ship parts), `_touch_special_tile` (22/24 do nothing) and `_create_shot` (`Keen2Shot`, Keen 2's shot sprites 122-125). *B4:* `_spawn_enemies` now spawns info values 1-6 (`create_enemy`), and it also overrides `_create_keen` (`Keen2Body` with the riding collision), `_resolve_hits` (carry the riders first), `_shoot_keens` (an enemy shot only shortens a stun, and may hit other enemies), `_touch_tiles` and `_is_exit` (no exit while riding). All of them already existed as instance methods, so `LevelSession` needed no new hook. The enemies extend the shared `Enemy` (through `Keen2Enemy`) and the enemy shot `Keen2Shot`/`RaygunShot`, without changing them. |
+| The Tantalus Ray, the Earth exploding, the Elder's messages (B5) | Keen 1's hint window: `LevelSession.hint_touched` and `GameWindow.show_lines` in `level_view.gd` | *Built in B5, without a shared change:* the pogo button reaches the switches through `Keen2Body`, which overrides `KeenBody._handle_pogo_button` (an instance method, so no hook was needed) and asks `switch_user` (set by the session to `Keen2Switches.use_near`) first. `Keen2LevelSession` overrides `step_players` (nothing moves after the Tantalus Ray, the bridges step), `_touch_special_tile` (the Elder) and `_spawn_enemies` (the spark, nothing at a switch). The game over by the Tantalus Ray is `Keen2LevelPlay.State.EARTH_EXPLODED` and its signal `earth_exploded`, not a new `LevelSession.Outcome` (that enum is shared). The scene on map 81 is `Keen2EarthExplosion` (logic, testable headless) with `Keen2SpaceSprite` actors, drawn by the shared `ActorLayer`; `Keen2View` only shakes the screen, switches to map 81, steps the scene and shows GAME OVER. The Elder's message uses the shared `GameWindow`; EARTHPOW, which `Sound.Id` does not name, is played by `Keen2Sounds` on its own speaker, so `Sound` and `SoundPlayer` stay unchanged. |
 | The game scene | `level_view.gd` (991 lines) is Keen 1's state machine on top of `GameScreen` (generic) | `Keen2View extends GameScreen`, built from small classes from the start (title and menu, map, level, ending, Earth explosion, texts). Keep every file under ~500 lines. *Built in B3:* `Keen2View` (~250 lines; its scene has the same node layout as `level_view.tscn`, because `GameScreen` finds its nodes by unique name), `Keen2LevelPlay` (the B3 course: level after level, death, game over), `Keen2GameData` (graphics, tile properties, sounds, FINALE.CK2). `GameScreen` needed no change. |
 | HUD icons | `Hud` draws `StatusScreen.RAYGUN_TILE` and `KEYCARD_TILES`, Keen 1's tile numbers | *Built in B3:* `Hud` got the members `raygun_tile` and `keycard_icons` (defaults: those Keen 1 constants) and `Hud.keycard_tiles` an optional `icons` parameter (same default). `Keen2View` sets them to `Keen2Icons`: the first tile with the raygun/keycard behaviour. The ship parts are already optional (`with_parts`, off in levels 1-16). |
 | Online and co-op | `Snapshot` sends 4 keycards and 4 ship parts; `OnlineProtocol.GAME_ID` does not name the episode | In B9: add the episode to the handshake (a Keen 1 host must refuse a Keen 2 guest), and a Keen 2 snapshot with cities instead of parts. Keen 1's messages stay byte for byte the same. |
@@ -109,6 +113,19 @@ level 1 (or `--level=N`) → exit → next level → … → level 16 → start 
 death restarts the level, game over and Escape go back to the start screen
 (see [gameplay.md](gameplay.md)).
 
+## Deviations in B5
+
+- `Keen2Bridge` lives in `level/`, not in `actors/` as planned: it changes
+  tiles and is never drawn, so it is no `Actor`.
+- The Tantalus game over is a state of `Keen2LevelPlay`, not a new
+  `LevelSession.Outcome`: that enum is shared, and the session only has to
+  stop (`tantalus_fired`).
+- EARTHPOW is played by `Keen2Sounds` on its own speaker instead of a new
+  `Sound.Id`, which would have been a change to a shared file.
+- The gameplay choices (spark only hit by Keen, nothing spawns at a switch,
+  explosions around the Earth's middle, the wreck stays whole, the chunks
+  spread out) are listed in [gameplay.md](gameplay.md) with their reasons.
+
 ## Testing
 
 - Most Keen 2 logic is tested with hand-made fixtures (`tests/fixtures.gd`
@@ -134,6 +151,17 @@ death restarts the level, game over and Escape go back to the start screen
   stand-in suite plays every level with the enemies that Keen 1's info
   values become. Both new suites are listed in `tests/run_tests.gd`, the
   only line added to a file outside the Keen 2 suites.
+- *B5:* `tests/test_keen2_switches.gd` (pogo button on and off a switch,
+  bridges both ways, stopping, taking in, standing on one, the lights and
+  the Vorticons in the dark, the Elder, the Elder message finders on a
+  hand-made image) and `tests/test_keen2_tantalus.gd` (the machine's wreck
+  and points, the switches of a wrecked and an intact machine, the scene on
+  a small hand-made map 81). The B3/B4 tests that said "7 spawns nothing"
+  now expect the spark (`test_keen2_level`, `test_keen2_enemies`); the
+  stand-in suite presses the pogo button now and then and runs the Earth
+  explosion on Keen 1's map 81. The two suites are two more lines in
+  `tests/run_tests.gd`; nothing else outside `src/keen2/` and the Keen 2
+  tests changed.
 - Numbers that come from Commander Genius are marked *estimate* in the code,
   as for Keen 1, and listed at the bottom of the Keen 2 docs to check
   against the original (DOSBox) in B10.
