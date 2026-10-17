@@ -24,6 +24,8 @@ class Verdict:
 
 
 var host_name := "Keen"
+## The game hosted ([constant OnlineProtocol.GAME_ID] for Keen 1).
+var game_id := OnlineProtocol.GAME_ID
 var password := ""
 ## Fingerprint of the host's levels; a player with other levels cannot join.
 var fingerprint := ""
@@ -44,7 +46,7 @@ func advance(seconds: float) -> void:
 func begin(peer_id: int) -> PackedByteArray:
 	var nonce := JoinHandshake.make_nonce()
 	_nonces[peer_id] = nonce
-	return JoinHandshake.challenge(nonce, not password.is_empty())
+	return JoinHandshake.challenge(nonce, not password.is_empty(), game_id)
 
 
 ## Judges the answer [param data] of [param peer_id], known to the transport
@@ -75,8 +77,10 @@ func forget(peer_id: int) -> void:
 ## or empty when it can.
 func _problem(answer: Array, nonce: PackedByteArray, identity: String) -> String:
 	var problem := ""
-	if nonce.is_empty() or answer.is_empty() or str(answer[0]) != OnlineProtocol.GAME_ID:
+	if nonce.is_empty() or answer.is_empty():
 		problem = JoinHandshake.NOT_OURS
+	elif str(answer[0]) != game_id:
+		problem = JoinHandshake.game_problem(str(answer[0]))
 	elif not answer[1] is int or answer[1] != OnlineProtocol.VERSION:
 		problem = JoinHandshake.OTHER_VERSION
 	elif _locked_until.get(identity, -1.0) > _clock:
@@ -94,7 +98,7 @@ func _problem(answer: Array, nonce: PackedByteArray, identity: String) -> String
 func _knows_password(given: Variant, nonce: PackedByteArray) -> bool:
 	if not given is PackedByteArray:
 		return false
-	return JoinHandshake.same_proof(given, JoinHandshake.proof(nonce, password))
+	return JoinHandshake.same_proof(given, JoinHandshake.proof(nonce, password, game_id))
 
 
 func _count_wrong(identity: String) -> void:

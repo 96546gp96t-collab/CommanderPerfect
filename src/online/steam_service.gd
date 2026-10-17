@@ -35,6 +35,8 @@ static var _started := false
 static var _tried := false
 static var _why := NO_PLUGIN
 
+## The game whose lobbies are opened and listed (Keen 1's by default).
+var game_id := OnlineProtocol.GAME_ID
 var _lobby := 0
 var _pending_lock := false
 var _asked: Dictionary[int, bool] = {}
@@ -133,7 +135,7 @@ func _on_lobby_created(result: int, lobby_id: int) -> void:
 		return
 	_lobby = lobby_id
 	var steam := Engine.get_singleton(SINGLETON)
-	var data := SteamLobby.data_for(player_name(), _pending_lock)
+	var data := SteamLobby.data_for(player_name(), _pending_lock, game_id)
 	for key: String in data:
 		steam.setLobbyData(lobby_id, key, str(data[key]))
 	lobby_opened.emit(lobby_id)
@@ -149,7 +151,7 @@ func _on_lobby_data(success: int, lobby_id: int, _member_id: int) -> void:
 		SteamLobby.GAME_KEY, SteamLobby.VERSION_KEY, SteamLobby.HOST_KEY, SteamLobby.PASSWORD_KEY
 	]:
 		data[key] = str(steam.getLobbyData(lobby_id, key))
-	if not SteamLobby.is_ours(data):
+	if not SteamLobby.is_any_ours(data):
 		return
 	_found.append([lobby_id, data, int(steam.getNumLobbyMembers(lobby_id))])
 	games_listed.emit(_found)

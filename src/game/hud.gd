@@ -35,6 +35,11 @@ const OUTLINE_COLOR := Color("8fb6e6")
 
 ## Size of the view in game pixels; the right panel sits against its edge.
 var view_size := Vector2i(426, 200)
+## The tiles drawn for the raygun and for the keycards (in the order of
+## [enum TileProperties.KeyColor]); Keen 1's unless another episode sets
+## its own.
+var raygun_tile := StatusScreen.RAYGUN_TILE
+var keycard_icons: PackedInt32Array = StatusScreen.KEYCARD_TILES
 var _textures: GraphicsTextures
 var _lives := 0
 var _score := 0
@@ -72,12 +77,14 @@ func show_inventory(inventory: Inventory, with_parts := false) -> void:
 
 
 ## The tiles in the right panel after the raygun: the keycards Keen has, in
-## the order of [enum TileProperties.KeyColor].
-static func keycard_tiles(keycards: Array[bool]) -> PackedInt32Array:
+## the order of [enum TileProperties.KeyColor], drawn with [param icons].
+static func keycard_tiles(
+	keycards: Array[bool], icons: PackedInt32Array = StatusScreen.KEYCARD_TILES
+) -> PackedInt32Array:
 	var tiles := PackedInt32Array()
 	for color in keycards.size():
 		if keycards[color]:
-			tiles.append(StatusScreen.KEYCARD_TILES[color])
+			tiles.append(icons[color])
 	return tiles
 
 
@@ -114,13 +121,13 @@ func _draw_left_panel() -> void:
 
 func _draw_right_panel() -> void:
 	var charges := str(_charges)
-	var cards := keycard_tiles(_keycards) + part_tiles(_parts)
+	var cards := keycard_tiles(_keycards, keycard_icons) + part_tiles(_parts)
 	var width := ICON + charges.length() * CHAR
 	if not cards.is_empty():
 		width += GAP + cards.size() * ICON
 	var left := view_size.x - MARGIN - width - 2 * PADDING
 	var inside := _panel(Vector2(left, MARGIN), width)
-	_draw_tile(inside, StatusScreen.RAYGUN_TILE)
+	_draw_tile(inside, raygun_tile)
 	_textures.draw_text(self, Vector2(inside.x + ICON, inside.y + TEXT_OFFSET), charges, true)
 	var x := inside.x + ICON + charges.length() * CHAR + GAP
 	for tile in cards:

@@ -36,6 +36,12 @@ const MAX_MESSAGES_PER_SECOND := 400
 
 var api := SceneMultiplayer.new()
 var role := Role.OFFLINE
+## The game played ([constant OnlineProtocol.GAME_ID] for Keen 1): only a
+## player of the same game can join.
+var game_id := OnlineProtocol.GAME_ID
+## (Joiner) the game the host plays, when joining failed because it is
+## another game of ours ([constant JoinHandshake.OTHER_GAME]).
+var host_game_id := ""
 ## The other player's name: the joiner's for the host, the host's for the
 ## joiner.
 var partner_name := ""
@@ -113,6 +119,7 @@ func host(
 		return error
 	_transport = transport
 	_gate = JoinGate.new()
+	_gate.game_id = game_id
 	_gate.host_name = PlayerName.clean(host_name)
 	_gate.password = password
 	_gate.fingerprint = fingerprint
@@ -138,6 +145,8 @@ func join(
 		return error
 	_transport = transport
 	_ticket = JoinTicket.new()
+	_ticket.game_id = game_id
+	host_game_id = ""
 	_ticket.player_name = PlayerName.clean(player_name)
 	_ticket.password = password
 	_ticket.fingerprint = fingerprint
@@ -236,6 +245,7 @@ func _on_client_auth(peer_id: int, data: PackedByteArray) -> void:
 	if not _answered:
 		var step := _ticket.answer(data)
 		if not step.problem.is_empty():
+			host_game_id = _ticket.host_game_id
 			_fail(step.problem)
 			return
 		_answered = true

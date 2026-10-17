@@ -17,7 +17,7 @@ static func of(files: GameFiles) -> String:
 	var context := HashingContext.new()
 	context.start(HashingContext.HASH_SHA256)
 	for number in files.level_numbers():
-		var data := files.read(GameFiles.level_file_name(number))
+		var data := files.read(files.level_file(number))
 		context.update(("%d:%d;" % [number, data.size()]).to_utf8_buffer())
 		context.update(data)
 	return context.finish().hex_encode().left(LENGTH)

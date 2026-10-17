@@ -20,23 +20,37 @@ const MOST_TEXT := 64
 
 ## What a host writes into his lobby. Never the password, only whether
 ## there is one.
-static func data_for(host_name: String, locked: bool) -> Dictionary:
+static func data_for(
+	host_name: String, locked: bool, game_id := OnlineProtocol.GAME_ID
+) -> Dictionary:
 	return {
-		GAME_KEY: OnlineProtocol.GAME_ID,
+		GAME_KEY: game_id,
 		VERSION_KEY: str(OnlineProtocol.VERSION),
 		HOST_KEY: host_name.left(MOST_TEXT),
 		PASSWORD_KEY: "yes" if locked else "no",
 	}
 
 
-## True for a lobby of this game and this version. App ID 480 (Spacewar)
-## is shared by every developer without an App ID of his own, so a friend
-## may well be in somebody else's game.
-static func is_ours(data: Dictionary) -> bool:
+## True for a lobby of this game ([param game_id]) and this version. App ID
+## 480 (Spacewar) is shared by every developer without an App ID of his own,
+## so a friend may well be in somebody else's game.
+static func is_ours(data: Dictionary, game_id := OnlineProtocol.GAME_ID) -> bool:
 	return (
-		str(data.get(GAME_KEY, "")) == OnlineProtocol.GAME_ID
+		str(data.get(GAME_KEY, "")) == game_id
 		and str(data.get(VERSION_KEY, "")) == str(OnlineProtocol.VERSION)
 	)
+
+
+## True for a lobby of any of our games, of this version: a friend who
+## hosts another Keen is listed too (joining him switches games).
+static func is_any_ours(data: Dictionary) -> bool:
+	return is_ours(data, game_of(data))
+
+
+## The game a lobby is of, as it says.
+static func game_of(data: Dictionary) -> String:
+	var game := str(data.get(GAME_KEY, ""))
+	return game if game in OnlineProtocol.GAME_IDS else ""
 
 
 static func is_locked(data: Dictionary) -> bool:

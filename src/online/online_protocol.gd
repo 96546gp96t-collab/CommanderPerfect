@@ -23,8 +23,12 @@ enum Message {
 	VIEW,
 }
 
-## Marks a session as one of ours, in the handshake and in Steam lobbies.
+## Marks a session as one of ours, in the handshake and in Steam lobbies:
+## Keen 1's. Each game has its own, so that a Keen 1 host and a Keen 2
+## player cannot play together (milestone B9).
 const GAME_ID := "commanderperfect"
+const GAME_ID_KEEN_2 := "commanderperfect-keen2"
+const GAME_IDS: Array[String] = [GAME_ID, GAME_ID_KEEN_2]
 ## Raised whenever a message changes: a host and a player with another
 ## version cannot play together.
 const VERSION := 1

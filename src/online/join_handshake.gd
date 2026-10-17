@@ -15,6 +15,8 @@ extends RefCounted
 
 ## Why a player is not let in (shown by [OnlineText]).
 const NOT_OURS := "not_ours"
+## One of ours, but another game (Keen 1 against Keen 2).
+const OTHER_GAME := "other_game"
 const OTHER_VERSION := "other_version"
 const OTHER_DATA := "other_data"
 const WRONG_PASSWORD := "wrong_password"
@@ -27,16 +29,20 @@ const NONCE_SIZE := 16
 const MIN_VARIANT_SIZE := 4
 
 
-## The challenge the host sends to a player who knocks.
-static func challenge(nonce: PackedByteArray, locked: bool) -> PackedByteArray:
-	return var_to_bytes([OnlineProtocol.GAME_ID, OnlineProtocol.VERSION, nonce, locked])
+## The challenge the host of [param game_id] sends to a player who knocks.
+static func challenge(
+	nonce: PackedByteArray, locked: bool, game_id := OnlineProtocol.GAME_ID
+) -> PackedByteArray:
+	return var_to_bytes([game_id, OnlineProtocol.VERSION, nonce, locked])
 
 
 ## The proof that whoever made it knows [param password].
-static func proof(nonce: PackedByteArray, password: String) -> PackedByteArray:
+static func proof(
+	nonce: PackedByteArray, password: String, game_id := OnlineProtocol.GAME_ID
+) -> PackedByteArray:
 	var context := HashingContext.new()
 	context.start(HashingContext.HASH_SHA256)
-	context.update(OnlineProtocol.GAME_ID.to_utf8_buffer())
+	context.update(game_id.to_utf8_buffer())
 	context.update(nonce)
 	context.update(password.to_utf8_buffer())
 	return context.finish()
@@ -62,6 +68,12 @@ static func unpack(data: PackedByteArray, least: int) -> Array:
 	if not value is Array or (value as Array).size() < least:
 		return []
 	return value
+
+
+## Why a message of [param their_game] cannot be answered by a player of
+## another game: another game of ours, or not ours at all.
+static func game_problem(their_game: String) -> String:
+	return OTHER_GAME if their_game in OnlineProtocol.GAME_IDS else NOT_OURS
 
 
 ## A new random nonce.

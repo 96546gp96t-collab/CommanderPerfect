@@ -35,3 +35,12 @@ You can also keep the files elsewhere and start the game with
 `tools/make_hd_graphics.sh` writes the HD graphics you make with Real-ESRGAN
 into `keen1/hd/` (see `docs/graphics.md`). They are made from your own files,
 so like them they stay here and are never shared.
+
+## Keen 2
+
+Keen 2 (episode 2) is not shareware, so you need your own copy. Put its files
+in a folder called `keen2` next to `keen1`: at least `KEEN2.EXE`,
+`EGAHEAD.CK2`, `EGALATCH.CK2` and `EGASPRIT.CK2`, plus `LEVEL01.CK2` …
+`LEVEL16.CK2`, `LEVEL80.CK2`, `LEVEL81.CK2`, `LEVEL90.CK2` and `FINALE.CK2`.
+There is no `SOUNDS.CK2` or text file: those are inside `KEEN2.EXE`. You can
+also start with `-- --data-dir-keen2=/path/to/keen2`.

@@ -26,6 +26,10 @@ const DIMMED := Color(1, 1, 1, 0.2)
 var view_size := Vector2i(320, 200)
 ## Puts the window at the bottom of the view instead of in the middle.
 var at_bottom := false
+## Draws the white window with its border; without, only the content shows
+## (Keen 2's GAME OVER is a bare bitmap). Each [method open] frames it
+## again.
+var framed := true
 var _textures: GraphicsTextures
 ## Inside of the window in cells, without the border.
 var _size := Vector2i.ONE
@@ -51,6 +55,7 @@ func open(size: Vector2i) -> void:
 	_tile_items.clear()
 	_sprite_items.clear()
 	_bitmap_items.clear()
+	framed = true
 	visible = true
 	queue_redraw()
 
@@ -110,8 +115,9 @@ func _draw() -> void:
 	var origin := Vector2(((view_size - outer) / 2 / CELL) * CELL)
 	if at_bottom:
 		origin.y = view_size.y - outer.y
-	draw_rect(Rect2(origin, outer), Color.WHITE)
-	_draw_border(origin)
+	if framed:
+		draw_rect(Rect2(origin, outer), Color.WHITE)
+		_draw_border(origin)
 	var inside := origin + Vector2(CELL, CELL)
 	for item in _bitmap_items:
 		var bitmap := _textures.bitmap(item.name)

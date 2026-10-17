@@ -18,6 +18,9 @@ extends SceneTree
 ##   click_X_Y  move the mouse there and click the left button
 ## SCENE picks another scene than the game screen, such as the start screen
 ## (res://src/launcher/launcher.tscn).
+## WAIT_FOR_WINDOW=1 loads the scene and starts counting frames only once
+## the window shows a picture. On macOS a new window can stay blank (white)
+## for a varying number of frames, which made the frame numbers useless.
 ## Key events are handled one frame after they are sent. Note that the game
 ## remembers settings, saved games and high scores in the user folder.
 
@@ -36,10 +39,14 @@ const SIDES: Dictionary[String, KeyLocation] = {
 }
 ## Frames to wait after the last step, so that it takes effect.
 const FRAMES_AFTER := 2
+## What the window gives before it has drawn anything.
+const BLANK_COLOR := Color.WHITE
 
 var _frame := 0
 var _steps: Array[Array] = []
 var _out := ""
+var _scene_path := ""
+var _waiting_for_window := false
 
 
 func _initialize() -> void:
@@ -52,8 +59,14 @@ func _initialize() -> void:
 		push_error("Set STEPS and OUT, see the comment at the top of this script.")
 		quit(1)
 		return
-	var scene_path := OS.get_environment("SCENE")
-	var scene: PackedScene = load(scene_path if not scene_path.is_empty() else MAIN_SCENE)
+	_scene_path = OS.get_environment("SCENE")
+	_waiting_for_window = OS.get_environment("WAIT_FOR_WINDOW") == "1"
+	if not _waiting_for_window:
+		_start_scene()
+
+
+func _start_scene() -> void:
+	var scene: PackedScene = load(_scene_path if not _scene_path.is_empty() else MAIN_SCENE)
 	var node := scene.instantiate()
 	root.add_child(node)
 	# As the game itself does, so that changing scenes replaces this one.
@@ -61,6 +74,12 @@ func _initialize() -> void:
 
 
 func _process(_delta: float) -> bool:
+	if _waiting_for_window:
+		if _window_is_blank():
+			return false
+		_waiting_for_window = false
+		_start_scene()
+		return false
 	_frame += 1
 	for step in _steps:
 		if step[0] == _frame:
@@ -100,6 +119,12 @@ func _do(action: String) -> void:
 		var release: InputEventKey = event.duplicate()
 		release.pressed = false
 		Input.parse_input_event(release)
+
+
+## Whether the window has not drawn anything yet.
+func _window_is_blank() -> bool:
+	var image := root.get_texture().get_image()
+	return image.get_pixel(image.get_width() / 2, image.get_height() / 2) == BLANK_COLOR
 
 
 ## Presses and releases the key for [param character], with its text.

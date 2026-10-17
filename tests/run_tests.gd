@@ -29,6 +29,21 @@ const SUITES: Array[Script] = [
 	preload("res://tests/test_keen1_data.gd"),
 	preload("res://tests/test_keen1_extras.gd"),
 	preload("res://tests/test_keen1_ship.gd"),
+	preload("res://tests/test_keen2_files.gd"),
+	preload("res://tests/test_keen2_renamed_keen1.gd"),
+	preload("res://tests/test_keen2_data.gd"),
+	preload("res://tests/test_keen2_level.gd"),
+	preload("res://tests/test_keen2_stand_in.gd"),
+	preload("res://tests/test_keen2_enemies.gd"),
+	preload("res://tests/test_keen2_riding.gd"),
+	preload("res://tests/test_keen2_switches.gd"),
+	preload("res://tests/test_keen2_tantalus.gd"),
+	preload("res://tests/test_keen2_ending.gd"),
+	preload("res://tests/test_keen2_menus.gd"),
+	preload("res://tests/test_keen2_extras.gd"),
+	preload("res://tests/test_keen2_coop.gd"),
+	preload("res://tests/test_keen2_online.gd"),
+	preload("res://tests/test_keen2_original.gd"),
 ]
 
 

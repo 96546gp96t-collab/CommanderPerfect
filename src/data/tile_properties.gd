@@ -73,10 +73,13 @@ var _animation_start := PackedInt32Array()
 
 ## Reads the table for [param tile_count] tiles from the program image
 ## [param image] (see [method DosExecutable.load_image]). Returns null when no
-## table is found.
-static func find_in_image(image: PackedByteArray, tile_count: int) -> TileProperties:
+## table is found. [param known_offsets] are tried first (Keen 1's by
+## default); then the whole image is searched.
+static func find_in_image(
+	image: PackedByteArray, tile_count: int, known_offsets: PackedInt32Array = KNOWN_OFFSETS
+) -> TileProperties:
 	var table_size := tile_count * PLANE_COUNT * BYTES_PER_ENTRY
-	var candidates := Array(KNOWN_OFFSETS)
+	var candidates := Array(known_offsets)
 	for offset in range(0, image.size() - table_size + 1, BYTES_PER_ENTRY):
 		candidates.append(offset)
 	for offset: int in candidates:

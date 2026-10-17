@@ -1,0 +1,160 @@
+# Adding another episode: a guide for Claude
+
+For a future Claude Code session that is asked to add another episode of the
+series (Keen 3, Keen 4, ...) to CommanderPerfect. It sums up what milestone
+B1 (the start of Keen 2) found out, so the research is not done twice. Read
+it before you plan anything. Keep it up to date: when a later milestone
+teaches something general, add it under "Lessons learned".
+
+Read first, in this order:
+
+1. `CLAUDE.md` (hard rules, session routine) and `PROGRESS.md`.
+2. This guide.
+3. `docs/keen2/architecture.md`: the pattern used for Keen 2. Copy it for
+   the new episode (`src/keen<n>/`, `docs/keen<n>/`, milestones
+   `milestone-<letter><n>-<topic>`; Keen 2 used the letter `b`, so Keen 3
+   would use `c`, and so on, unless the user picks something else).
+4. `docs/keen2/research.md`: everything about episode 2, with a list of where
+   in Commander Genius each topic lives. Much of it also holds for episode 3.
+
+## 1. The three families
+
+The six classic episodes are two different engines. Know which family the
+new episode is in before you estimate anything.
+
+| Family | Episodes | Engine | What CommanderPerfect can reuse |
+|---|---|---|---|
+| **Vorticons** | 1, 2, 3 | Same file formats, same physics, same tile property table in the EXE | Almost everything shared: decoders, EGA graphics, levels, `KeenBody`, collision, scaling, menus, sound synth, online. Each episode adds its own enemies, map rules, items and ending. |
+| **Galaxy** | 4, 5, 6 | Completely different: Huffman-compressed `EGAGRAPH`, `GAMEMAPS`/`MAPHEAD` with Carmack + RLEW compression, three map planes, sloped floors, AdLib music and sound (`AUDIO.CK4`), new physics, actions/states, a 2.5D world map | Only the outer layer: launcher, menus, settings, saves, scaling shaders, xBRZ/HD pipeline, online transport, test runner. Plan it as a new engine: new decoders, new physics, new collision (slopes), an OPL (AdLib) emulator. Roughly as much work as Keen 1 was. |
+| **Keen Dreams** | (between 3 and 4) | Its own engine, close to Galaxy | As Galaxy. Its source code was published under the GPL: our "no copied code" rule still applies; use it as documentation only. |
+
+Things known about **episode 3** from the Keen 2 research (verify them;
+some are from memory): files `*.CK3` and `KEEN3.EXE`; sounds and texts are
+inside the EXE as in episode 2; the tile table needs a forced stride of 715
+tiles (Commander Genius `fileio/CTileLoader.cpp`); behaviours 27 (ankh,
+shield) and 28 (single raygun shot) exist; the world map has teleporters
+again; enemies include Meeps, Foobs, the Vorticon mother, Vorticon ninjas,
+balls/jacks and the final boss with the mangling machine; Messie can be
+ridden on the map.
+
+## 2. Getting the game files
+
+- **Shareware** (freely distributable): episode 1 (v1.1, already fetched by
+  `tools/get_shareware.sh` from the PCjs diskette repository) and episode 4
+  (v1.4; check whether `jeffpar/pcjs-gamedisks` has it before writing a
+  fetch script).
+- **Registered only**: episodes 2, 3, 5, 6. The user must supply their own
+  files (Steam/GOG ship the episodes 1-3 in v1.31, and 4-6 in v1.4, which is
+  likely but must be checked). In a cloud session there is no way to get them;
+  ask the user to upload them for that session, or work with hand-made
+  fixtures and let the user run the real-data tests on the Mac.
+- Game files go to `game_data/keen<n>/` (ignored by git). Never commit them
+  or anything derived from them. Real-data test suites skip without them.
+
+## 3. Sources and the rules for using them
+
+- **Commander Genius** (GPL): documentation only, never copied code. Clone it
+  sparsely into the scratchpad, never into the repository:
+
+  ```sh
+  git clone -q --depth 1 --filter=blob:none --sparse \
+      https://github.com/gerstrong/Commander-Genius.git <scratchpad>/cg
+  git -C <scratchpad>/cg sparse-checkout set src/engine/keen/vorticon src/fileio
+  ```
+
+  Where things are (paths under `src/`):
+
+  | Topic | Vorticons (1-3) | Galaxy (4-6) |
+  |---|---|---|
+  | EXE versions, unpacking, size table | `fileio/CExeFile.cpp` | same |
+  | Tile property table offsets, tile count, pickup leftovers | `fileio/CTileLoader.cpp` | `engine/keen/galaxy/res/` |
+  | Graphics headers, bitmap names | `engine/keen/vorticon/CEGAGraphicsVort.cpp`, `CEGALatch.cpp`, `CEGASprit.cpp` | `engine/keen/galaxy/res/` |
+  | Sounds (file or inside the EXE) | `engine/keen/vorticon/CAudioVorticon.cpp` | `engine/keen/galaxy/res/` |
+  | Level info values → enemies, per episode | `engine/keen/vorticon/CVorticonMapLoader.cpp` | `engine/keen/galaxy/ep4/`, `ep5/`, `ep6/` |
+  | Enemies and objects | `engine/keen/vorticon/ai/` | `engine/keen/galaxy/ep<n>/ai/` |
+  | Keen (player) | `engine/keen/vorticon/ai/CPlayer*.cpp`, `engine/core/CPhysicsSettings.cpp` | `engine/keen/galaxy/common/ai/CPlayer*.cpp` |
+  | Items, switches, doors | `engine/keen/vorticon/CPlayerItems.cpp`, `ai/CPlayerLevel.cpp` | `galaxy/common/ai/` |
+  | World map | `engine/keen/vorticon/playgame/CPlayGameWorldMap.cpp` | `galaxy/common/ai/CPlayerWM.cpp` |
+  | Ending, special scenes | `engine/keen/vorticon/finale/` | `galaxy/ep<n>/` |
+  | Strings in the EXE (offsets per version) | `fileio/CMessages.cpp`, `fileio/CPatcher.cpp` | same |
+  | Sprite numbers | `engine/core/spritedefines.h` | the `EGAHEAD` names |
+  | Status screen, high scores, story | `engine/keen/vorticon/CStatusScreen.cpp`, `CHighScores.cpp`, `CStory.cpp` | `galaxy/menu/` |
+
+  Commander Genius has bugs and guesses. "CG does X" is not "the original
+  does X". Mark such numbers *estimate* in the code.
+- **Chocolate Keen** (`jamesfmackenzie/chocolatekeen`) is a reconstruction of
+  the original code of episodes 1-3. In B1 only its data tables (offsets,
+  names, sizes in `src/episodes/episode<n>.h`, `src/engine/engine_loader.c`)
+  were read, never its behaviour code. Whether it may be used at all is a
+  decision of the user (see `PROGRESS.md`, open decisions); follow that.
+- **ModdingWiki and KeenWiki** (shikadi.net) are the best format
+  documentation, but the cloud proxy blocks them (403). GitHub (clone, raw)
+  works. On the Mac they can be read.
+- **The original game in DOSBox** is the final judge for behaviour. Collect
+  the questions that only the original can answer in one list, and check
+  them in one milestone at the end.
+- **Never decompile the EXE.** Reading data tables (tile properties, strings,
+  sound blocks) out of it is fine.
+
+## 4. The pattern: a new episode beside the old ones
+
+The full version is `docs/keen2/architecture.md`. In short:
+
+- Code that belongs to one episode is never changed for another one. Shared
+  code only gets additive, behaviour-neutral changes (new optional
+  parameters whose default is the old value). Prove it at the end of every
+  milestone: the old tests pass unchanged, `gdlint` is clean, scripted play
+  of the old episodes gives the same screenshots, and
+  `git diff main -- <old episode files>` is empty.
+- New code in `src/keen<n>/`, every class name starts with `Keen<n>` (class
+  names are global in GDScript).
+- Its own `user://keen<n>/` folder for saves and high scores; settings and
+  keys are shared.
+- Its own icon on the start screen (`GameCatalog`), its own scene (the
+  counterpart of `level_view.gd`; build it from small classes from the
+  start, `level_view.gd` grew to ~1000 lines).
+- `--game=<n>` on the command line to start it directly.
+- Online: the handshake must name the episode.
+
+## 5. Things that will trip you up (from B1)
+
+1. **Files that are not there.** Episodes 2 and 3 have no `SOUNDS`,
+   `ENDTEXT`, `STORYTXT` or `HELPTEXT` file: all of it is inside the
+   unpacked EXE. Do not make the file check require them.
+2. **Find by content, not by offset.** Offsets differ per version (1.00,
+   1.31, 1.34). Search for `SND\0`, known strings, and the plausible tile
+   table (`TileProperties.find_in_image` already does a scan).
+3. **The EXE is LZEXE-packed** in common versions; `DosExecutable` unpacks
+   it. Offsets in our docs are "raw": in the image after the MZ header.
+   Commander Genius sometimes gives file offsets (+512) or odd corrections.
+4. **Tile counts differ** (611, 689, 715). Never hard-code them; take the
+   count from `EGAHEAD`.
+5. **The same info value means a different enemy** in each episode, and
+   values ≥ 0x100 can be data (bridge offsets in episode 2).
+6. **Tile and sprite numbers differ.** Use the behaviour from the tile table
+   wherever possible; name the remaining hard-coded tiles as constants with a
+   comment that says where the number comes from.
+7. **New mechanics touch shared code**: moving floors (riding platforms),
+   darkness, tiles that change while playing (they must also update in the
+   xBRZ and HD layers), a game over that does not depend on lives.
+8. **Collisions in `user://`**: saves, high scores and the bundled pictures
+   behind levels are per episode.
+9. **No shareware means no data in the cloud.** Plan tests with fixtures and
+   let real-data suites skip.
+10. **Name**: the icon says "Keen <n>", never "Commander Keen".
+
+## 6. How the work is split
+
+The user works with an architect and a developer. The architect (B1-style
+milestone) researches, writes `docs/keen<n>/research.md`,
+`architecture.md` and `roadmap.md` (in Dutch, with a concrete assignment and
+"done when" per milestone), and reviews each milestone's diff against the
+rules above. The developer builds one milestone per branch, with tests, and
+updates `PROGRESS.md`.
+
+## Lessons learned
+
+Add one line per lesson, with the milestone where it was learned.
+
+- B1: the cloud proxy blocks shikadi.net; a sparse clone of Commander Genius
+  from GitHub works and is enough for most questions.

@@ -41,11 +41,12 @@ static func decode(data: PackedByteArray) -> Image:
 
 
 ## Loads the picture from the game files; null when it is missing or damaged.
-static func load_from(files: GameFiles) -> Image:
-	if not files.has_file(FILE_NAME):
-		push_error("%s is missing in %s." % [FILE_NAME, files.directory])
+## [param file_name] is the episode's file (FINALE.CK2 for Keen 2).
+static func load_from(files: GameFiles, file_name := FILE_NAME) -> Image:
+	if not files.has_file(file_name):
+		push_error("%s is missing in %s." % [file_name, files.directory])
 		return null
-	return decode(files.read(FILE_NAME))
+	return decode(files.read(file_name))
 
 
 ## Unpacks the run-length code into at most [param total] bytes.

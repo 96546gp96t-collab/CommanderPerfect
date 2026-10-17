@@ -22,6 +22,556 @@ Wat elke mijlpaal precies inhoudt, staat in [docs/roadmap.md](docs/roadmap.md).
 | 11 | Fixes: crash bij "Choose Game", nieuw app-icoon, achtergronden achter levels | 🔶 Gebouwd en getest door de gebruiker (branch `milestone-11-fixes`) |
 | 11.2 | Extra: het schip als eigen level (onderdelen monteren), pogo-level opnieuw, onderdelen op de kaart | 🔶 In test bij de gebruiker (branch `milestone-11.2-extra-mini-game`) |
 
+## Keen 2: mijlpalen B
+
+Het tweede deel komt naast Keen 1; Keen 1 blijft zoals het is. Wat elke
+mijlpaal inhoudt staat in [docs/keen2/roadmap.md](docs/keen2/roadmap.md), de
+opzet in [docs/keen2/architecture.md](docs/keen2/architecture.md), en wat er
+over Keen 2 bekend is in [docs/keen2/research.md](docs/keen2/research.md).
+Voor een volgend deel: [docs/new-episode-guide.md](docs/new-episode-guide.md).
+
+| # | Mijlpaal | Status |
+|---|---|---|
+| B1 | Onderzoek: code in kaart, Keen 2 uitgezocht, architectuur, mijlpalen, handleiding | ✅ Klaar (branch `milestone-b1-onderzoek`); vragen beantwoord op 16-10-2026 |
+| B2 | De bestanden van Keen 2 inlezen, data viewer, tweede icoon op het startscherm | ✅ Klaar en gecontroleerd door de architect (branch `milestone-b2-bestanden`) |
+| B3 | Een level spelen (Keen, items, deuren, uitgang) | ✅ Klaar en gecontroleerd door de architect (branch `milestone-b3-level`) |
+| B4 | Vijanden en meerijden (platforms, Scrubs) | ✅ Klaar en gecontroleerd door de architect (branch `milestone-b4-vijanden`) |
+| B5 | Schakelaars, bruggen, licht, de Tantalus-straal, de aarde ontploft | ✅ Klaar en gecontroleerd door de architect (branch `milestone-b5-tantalus`) |
+| B5.1 | B1-B5 controleren en repareren met de echte Keen 2-bestanden (v1.31) | ✅ Getest door de gebruiker, "geen issues" (branch `milestone-b5.1-echte-data`) |
+| B6 | Wereldkaart, steden, statusscherm, het einde | ✅ Getest door de gebruiker, "ziet er goed uit" (branch `milestone-b6-kaart-einde`) |
+| B7 | Geluid, menu's, opslaan, highscores | ✅ Gebouwd (branch `milestone-b7-geluid-menus`) |
+| B8 | Mooier maken (framerate, xBRZ, HD, achtergronden, builds) | ✅ Gebouwd; Real-ESRGAN bewust overgeslagen (branch `milestone-b8-extras`) |
+| B9 | Co-op lokaal en online | 🔶 Gebouwd, in test bij de gebruiker (branch `milestone-b9-coop`) |
+| B10 | Naast het origineel leggen (js-dos) | 🔶 Deels: schermen gemeten en aangepast; vijanden/levels niet te meten (branch `milestone-b10-origineel`) |
+
+## Mijlpaal B1: wat er nu is
+
+- De code is in kaart gebracht: decoders, graphics, schaling,
+  geluidssynthese, levels tekenen en botsen, menu's en het netwerk werken
+  voor beide delen. Keen 1 zit vast in `GameFiles` (map, `.CK1`,
+  levelnummers), `EgaGraphics` (bestandsnamen), de spritenummers van de
+  vijanden, de vijandenfabriek in `LevelSession` en `level_view.gd`.
+  Opslaan, highscores en de plaatjes achter levels zouden tussen de delen
+  botsen; daarvoor krijgt Keen 2 eigen mappen.
+- Keen 2 uitgezocht met Commander Genius (en de datatabellen van Chocolate
+  Keen) als documentatie: alles in `docs/keen2/research.md`, met per feit de
+  bron en of het zeker is. Belangrijkste verschillen: geen `SOUNDS`- en
+  tekstbestanden (alles zit in `KEEN2.EXE`), 689 tiles, andere vijanden
+  (grunt, youth, Elite, Scrub, Guard robot, platform, vonk), schakelaars met
+  de pogo-knop (bruggen, licht, Tantalus-straal), de aarde die ontploft,
+  acht steden in plaats van scheepsonderdelen, de pogo vanaf het begin.
+- Architectuur: Keen 1-code wordt niet aangeraakt; gedeelde code krijgt
+  alleen toevoegingen met Keen 1 als standaard; Keen 2 komt in
+  `src/keen2/` met klassen `Keen2...`. Elke mijlpaal eindigt met een
+  controle dat Keen 1 niet veranderd is.
+- Er is nog geen code geschreven.
+
+## Mijlpaal B2: wat er nu is
+
+Gebouwd zonder echte Keen 2-bestanden (Keen 2 is geen shareware). Alles is
+getest met zelfgemaakte testdata en met de Keen 1-bestanden onder Keen
+2-namen. Details in `docs/keen2/file-formats.md`.
+
+- **Bestanden vinden:** `Keen2Files` (`src/keen2/data/`) zoekt
+  `game_data/keen2` op dezelfde plekken als Keen 1 (`--data-dir-keen2=PATH`,
+  de projectmap, naast het programma, naast de macOS-app) en geeft een gewone
+  `GameFiles` met extensie `CK2` terug. Vereist: `KEEN2.EXE`, `EGAHEAD.CK2`,
+  `EGALATCH.CK2`, `EGASPRIT.CK2`. Levelnummers 1-16, 80, 81 en 90 als
+  constanten.
+- **Gedeelde code, alleen toevoegingen (standaard = Keen 1):** `GameFiles`
+  kreeg `extension`, `required_files`, `level_file(n)`, `locate_in`,
+  `first_complete` en `candidate_directories_in`; `locate()` doet precies
+  hetzelfde als voorheen. `EgaGraphics.load_from(files, extension)`,
+  `TileProperties.find_in_image(image, count, known_offsets)` en
+  `FinaleImage.load_from(files, file_name)` kregen een optionele parameter.
+  `EgaHeader` hoefde niet te veranderen.
+- **KEEN2.EXE:** `Keen2Executable` pakt de EXE uit en vindt op inhoud (de
+  bekende adressen van 1.31 eerst, alleen als de inhoud klopt): het
+  geluidsblok (`SND\0`, gaat naar `SoundFile.parse`), de tile-eigenschappen
+  (aantal uit `EGAHEAD.CK2`), de vier tekstblokken (eindtekst, help,
+  previews, verhaal; klaar voor `TextDocument.layout`), de acht steden en
+  `TO BE CONTINUED....`. De versie komt uit de grootte (1.31, 1.00 of
+  "unknown"). Niets crasht als een stuk ontbreekt.
+- **Startscherm:** een tweede icoon "Keen 2" rechts van Keen 1. Zonder
+  bestanden grijs, met de uitleg dat ze in `game_data/keen2` horen (de tekst
+  voor Keen 1 is letterlijk dezelfde gebleven). Met bestanden staat Keen uit
+  de eigen Keen 2-graphics op het icoon, zoals bij Keen 1.
+- **Voorlopig scherm:** `src/keen2/keen2_view.tscn` (`Keen2View`) zegt "Keen
+  2 - coming soon"; Enter of Escape gaat terug naar het startscherm (via
+  `call_deferred`, zoals de fix van mijlpaal 11).
+- **Opdrachtregel:** `-- --game=2` (met of zonder `--level=N`) slaat het
+  startscherm over en opent Keen 2. Zonder `--game=2` verandert er niets.
+  Net als bij Keen 1 met `--level` komt "terug naar het startscherm" dan
+  meteen weer in het spel uit.
+- **Data viewer en export:** `-- --game=2` toont Keen 2 in de data viewer
+  (met in de statusregel de versie van `KEEN2.EXE` en wat erin gevonden
+  is) en exporteert met `tools/export_graphics.gd` naar `exported/keen2/`.
+- **Tests:** `test_keen2_files` (zonder data: map zoeken, hoofdletters,
+  vereiste bestanden, `.CK2`-levels, Keen 1-standaarden ongewijzigd, een
+  zelfgemaakt EXE-beeld met geluid, teksten, steden en tile-tabel, een beeld
+  zonder die stukken, versies, de catalogus met twee spellen, `--game=2`,
+  het voorlopige scherm), `test_keen2_renamed_keen1` (de Keen 1-shareware
+  onder Keen 2-namen laadt via het Keen 2-pad) en `test_keen2_data` (echte
+  Keen 2-bestanden; wordt hier overgeslagen). In `tests/test_launcher.gd`
+  is één regel aangepast (met toestemming van de architect): de catalogus
+  heeft nu twee spellen in plaats van "one game for now".
+- **Keen 1-controle:** alle bestaande tests slagen, gdlint is schoon. Van de
+  screenshots verschilt alleen `launcher.png` (het tweede icoon, zoals
+  verwacht). `tools/keen1_regression.sh` draait Godot nu met
+  `--fixed-fps 60`; zonder dat wisselden de levelplaatjes van run tot run
+  (timing). De referentie komt van `main` in een aparte worktree.
+- **Nog niet gecontroleerd (wacht op echte bestanden):** 689 tiles en 134
+  sprites, de grootte en versie van `KEEN2.EXE`, de plek en de namen van het
+  geluidsblok (`EARTHPOW`), dat de teksten op 0x1A eindigen, de stadsnamen
+  en hun lengtes, de tile-eigenschappen, en de open vragen 1-12 uit
+  `research.md`. De berichten van de Vorticon-oudste en de eindteksten
+  worden nog niet gelezen (komt met `Keen2Texts`).
+
+## Mijlpaal B3: wat er nu is
+
+Gebouwd zonder echte Keen 2-bestanden: getest met zelfgemaakte levels en
+met de Keen 1-bestanden onder Keen 2-namen. De regels staan in
+`docs/keen2/gameplay.md`.
+
+- **Het spelscherm:** `Keen2View` (`src/keen2/keen2_view.gd`) bouwt nu op
+  `GameScreen`, net als Keen 1: widescreen met HUD, F1-F6 (ook xBRZ en HD),
+  de camera die Keen volgt, berichten. De scène heeft dezelfde opbouw als
+  `level_view.tscn`. Het laden zit in `Keen2GameData` (graphics,
+  tile-eigenschappen en geluid uit `KEEN2.EXE`; zonder geluidsblok een
+  `SOUNDS.CK2` als die er ligt, alleen handig voor de testdata).
+- **Voorlopig verloop** (`Keen2LevelPlay`, tot de kaart in B6): vanaf het
+  startscherm level 1, met `-- --game=2 --level=N` level N (1-16). De
+  uitgang gaat naar het volgende level, na level 16 terug naar het
+  startscherm. Dood: een leven minder en hetzelfde level opnieuw ("Keens
+  left: N"); geen levens meer: "Game over" en terug naar het startscherm.
+  Escape gaat altijd terug. Cheats zoals bij Keen 1: Shift+N/P, Shift+I,
+  Shift+G.
+- **Een level** (`Keen2LevelSession`, een subklasse van `LevelSession`):
+  punten (500/100/200/1000/5000), straalgeweer (+5), sleutelkaarten en
+  deuren (worden tile 143), uitgang, dodelijke tiles, extra leven per
+  20.000, item-tegels vanaf 305 laten 276 achter. Geen vijanden (B4), geen
+  scheepsonderdelen, het gedrag 22 (de Vorticon-oudste) en 24 doen nog
+  niets. Keen heeft de pogo vanaf het begin; schoten gebruiken de Keen
+  2-sprites 122-125 (`Keen2Shot`).
+- **Inventaris:** `Keen2Inventory`: 4 levens, pogo, 0 ladingen bij de start
+  (*schatting*, nog naast het origineel leggen).
+- **HUD:** levens, score, ladingen, sleutelkaarten; geen onderdelen. De
+  plaatjes van het straalgeweer en de kaarten zoekt `Keen2Icons` op in de
+  tile-eigenschappen (de eerste tile met dat gedrag).
+- **Plaatjes achter de levels:** nog niet (B8); de Keen 1-plaatjes komen
+  nooit achter een Keen 2-level.
+- **Gedeelde code, gedragsneutraal:** `LevelSession.create` roept nu
+  `_set_up` aan (dezelfde regels in dezelfde volgorde), plus drie haken
+  met de oude code als standaard: `_is_item`, `_touch_special_tile`
+  (teleporter en beelden) en `_create_shot`. `Hud` kreeg `raygun_tile` en
+  `keycard_icons` (standaard de Keen 1-tiles) en `Hud.keycard_tiles` een
+  optionele parameter. `GameScreen` hoefde niet te veranderen.
+- **Tests:** `test_keen2_level` (zelfgemaakte levels: punten, straalgeweer,
+  kaarten en deur, dodelijke tile, uitgang, pogo vanaf de eerste tick,
+  extra leven, 22/24/onderdelen doen niets, info-waarden maken niets aan,
+  schot-sprites, de scène) en `test_keen2_stand_in` (Keen 1-bestanden als
+  Keen 2: laden, level 1 spelen, uitgang, dood, game over, na level 16).
+  De B2-test van het voorlopige scherm is weggehaald (dat scherm bestaat
+  niet meer). Screenshots met de testdata: stilstaan, lopen, springen,
+  pogo, HUD met items, 4:3, xBRZ, level 2.
+- **Keen 1-controle:** alle tests slagen, gdlint schoon, de screenshots van
+  titel, level 1 (ook lopend) en kaart zijn byte voor byte gelijk aan
+  `main`; alleen `launcher.png` verschilt (het icoon van B2, gelijk aan de
+  B2-screenshots).
+
+## Mijlpaal B4: wat er nu is
+
+Gebouwd zonder echte Keen 2-bestanden: getest met zelfgemaakte levels en
+met de Keen 1-bestanden onder Keen 2-namen. De regels en alle getallen
+staan in `docs/keen2/gameplay.md`; elk getal uit Commander Genius heeft
+`# estimate` in de code en staat in de lijst onderaan dat document.
+
+- **Vijanden uit de info-laag** (`Keen2LevelSession.create_enemy`): 1
+  grunt, 2 youth, 3 Elite, 4 Scrub, 5 Guard robot, 6 bewegend platform (4
+  pixels boven zijn cel). 7 (de vonk) komt in B5; waarden van 0x100 en
+  hoger zijn nooit vijanden. Ze worden wakker als ze in beeld komen, het
+  platform is altijd wakker. Kansen gaan zoals in Commander Genius (n + 1
+  op 1000 per tick) met de vaste seed van de sessie.
+- **De vijanden** (`src/keen2/actors/`, op de gedeelde `Enemy` via
+  `Keen2Enemy`): de grunt (kijkt rond, loopt, springt, springt uit een
+  kuil; 1 schot; frame 86 en dan 87, geen witte flits; springt niet in het
+  donker via `Keen2LevelSession.is_dark()`, nu altijd false), de youth
+  (snel, huppelt; **verdooft** Keen), de Elite (4 schoten, stormt op Keen
+  af als hij dichtbij op zijn hoogte staat, schiet met KEENFIRESND), de
+  Scrub (kruipt langs vloer, muur en plafond, valt van een dunne richel,
+  ongevaarlijk, SHOTHIT bij doodgaan), de Guard robot (zweeft, onkwetsbaar,
+  houdt Keens schoten tegen, salvo's van 4 met TANKFIRE) en het platform
+  (heen en weer, wacht 51 ticks bij een muur, slikt schoten).
+- **Vijandschoten** (`Keen2EnemyShot`, sprite 123, 108/32): doden Keen,
+  maar korten bij een verdoofde Keen alleen de verdoving in tot 20 ticks.
+  Ze raken andere vijanden zoals in Commander Genius, achter één constante
+  `ENEMY_SHOTS_HURT_ENEMIES := true  # estimate` (B10 kan hem omzetten);
+  niet hun eigen soort, en een Elite blijft heel bij een schot van een
+  Guard robot.
+- **Verdoving** (`Keen2Body extends KeenBody`, `src/keen2/keen/`): omhoog
+  met een volle sprong, pogo weg, kijkt de kant van de youth op, 250 ticks
+  geen knoppen (vallen en wrijving gaan door), frames 28/29 om de 26 ticks
+  en de laatste 20 ticks frame 31. Keen 1's `freeze()` past niet (andere
+  frametijd, geluid, duw) en is niet aangeraakt.
+- **Meerijden** op platform en Scrub (`Keen2Carrier`): Keen krijgt een
+  eigen botsing (`Keen2RidingCollision extends LevelCollision`) waarin de
+  bovenkant van zo'n drager een vloer is; de sessie schuift hem elke tick
+  mee met de drager. Loopt hij tegen de zijkant, dan wordt hij opzij
+  geduwd. Zolang hij meerijdt kan hij niet door de uitgang.
+- **Gedeelde code: niets veranderd.** Alles zit in `src/keen2/` en in de
+  Keen 2-tests; `git diff` buiten `src/keen2/` is leeg. De haken die er
+  al waren (`KeenBody.collision`, de instance-methodes van `LevelSession`:
+  `_spawn_enemies`, `_create_keen`, `_resolve_hits`, `_shoot_keens`,
+  `_touch_tiles`, `_is_exit`) waren genoeg. Alle geluiden hadden al een
+  `Sound.Id`.
+- **Tests:** `test_keen2_enemies` (welke info-waarde wat maakt, wakker
+  worden, grunt loopt/keert/springt en niet in het donker, één schot,
+  dodelijk, youth verdooft 250 ticks met de juiste frames en Keen staat
+  weer op, schot op verdoofde Keen, vijandschot doodt Keen, Elite stormt
+  en schiet en kan 4 schoten hebben, Guard robot zweeft, salvo van 4 om de
+  13 ticks, onkwetsbaar, dodelijk, friendly fire aan en uit, Elite heel bij
+  Guard robot-schoten en eigen soort) en `test_keen2_riding` (Scrub rond
+  een kamer en rond een blok, valt van een dunne richel, Keen rijdt mee op
+  een Scrub, Scrub duwt Keen, platform neemt Keen mee en wacht 51 ticks,
+  platform altijd actief, geen uitgang tijdens meerijden, platform houdt
+  schoten tegen, Scrub sterft). `test_keen2_stand_in` speelt nu elk level
+  600 ticks met de vijanden die uit de Keen 1-info komen (alle zes soorten
+  komen voor). In `test_keen2_level` werd de B3-test "info-waarden maken
+  niets" aangepast. De twee nieuwe suites staan in `tests/run_tests.gd`.
+- **Screenshots met de testdata** (Keen 1-plaatjes onder Keen
+  2-spritenummers, dus een grunt ziet eruit als een Vorticon en een youth
+  als een Yorp; het platform en sprites vanaf 119 zijn onzichtbaar):
+  grunts lopen, springen op een richel en gaan dood van schoten (level 3),
+  een youth rent en maakt grote sprongen (level 13), level 8 met Scrubs en
+  een Guard robot.
+- **Keen 1-controle:** alle tests slagen, gdlint schoon, titel, level 1
+  (ook lopend) en kaart byte voor byte gelijk aan `main`; alleen
+  `launcher.png` verschilt (gelijk aan de B2-screenshot).
+- **Open:** de botsingsvakken van de vijanden zijn schattingen (pas met
+  `EGAHEAD.CK2` te lezen); de hoekregels van de Scrub zijn eigen werk; of
+  vijandschoten in het origineel andere vijanden raken; de sprites 84/85
+  (springen links/rechts).
+
+## Mijlpaal B5: wat er nu is
+
+Gebouwd zonder echte Keen 2-bestanden: getest met zelfgemaakte levels, een
+zelfgemaakte map 81 en de Keen 1-bestanden onder Keen 2-namen. De regels
+en de schattingen staan in `docs/keen2/gameplay.md`.
+
+- **Schakelaars met de pogo-knop** (`Keen2Switches`, via `Keen2Body`):
+  staat er een tile met gedrag 23, 25 of 26 in de kolom door Keens midden
+  (van zijn voeten omhoog, stappen van 8 pixels), dan drukt de knop de
+  schakelaar in en komt de pogo niet tevoorschijn (hij wordt weggezet).
+  Elke druk klikt (CLICKSND); een hendel wisselt 493 ↔ 480.
+- **Bruggen** (`Keen2Bridge`): info-waarde ≠ 0 = afstand naar het begin
+  (lage byte kolom, hoge byte rij, met teken). Elke 4 ticks een tile 270,
+  naar rechts tenzij daar een muur staat, tot de eerste blokkerende tile;
+  nog eens drukken haalt hem tile voor tile terug vanaf het verre eind en
+  zet de onthouden achtergrond terug. Keen kan erop staan, ook terwijl hij
+  groeit.
+- **Licht** (gedrag 23, info 0): `is_dark()` is nu echt; grunts en Elites
+  springen niet in het donker; een level begint altijd met licht. Het
+  donker is `Keen2Darkness` (een `CanvasModulate` in de World-viewport, 30 %
+  helderheid, één constante): werkt met origineel, xBRZ, HD en widescreen,
+  de HUD en vensters blijven helder.
+- **Vorticon-oudste**: gedrag 22 spreekt alleen met tile 429 er direct
+  onder, die daarna 182 wordt (dus maar één keer). Het bericht komt in
+  het gedeelde venster (`GameWindow`), het spel wacht tot Enter.
+  `Keen2Executable` zoekt de twee berichten op hun bekende plek (0x19FCC,
+  0x1A08C) en accepteert ze alleen als leesbare tekst; anders geen venster.
+  Level 8 heeft het eerste bericht, de andere het tweede (*schatting*).
+- **De Tantalus-straalmachine**: de vonk (`Keen2Spark`, info 7, 128-131),
+  ongevaarlijk, één schot van Keen (niet van vijanden) en de machine valt
+  stap voor stap uit elkaar (`Keen2Tantalus`, elke 26 ticks: glas, koepel,
+  schakelaar → 506, drie keer paars → 505 met 10.000 punten, vier
+  gloeikolommen → 549, het scherm → 533). De sessie telt de machines
+  (`machine_count`, `machines_destroyed`, `all_machines_destroyed()`) voor
+  B6.
+- **De verkeerde schakelaar**: gedrag 25/26 met info 0 naast een hele
+  machine → licht aan, alles staat stil, Keen weg, het scherm schudt 2
+  seconden, dan op map 81 `Keen2EarthExplosion`: de straal vliegt van (4,9)
+  naar kolom 47, explosies rond de aarde, kleine en grote brokken alle
+  kanten op (niet zoals CG allemaal één kant), de aarde wordt 561, na stap
+  32 klaar; EARTHPOW bij de inslag (eigen keuze, `Keen2Sounds`). Dan GAME
+  OVER (het plaatje of tekst) en terug naar het startscherm, hoeveel levens
+  Keen ook had (`Keen2LevelPlay.State.EARTH_EXPLODED`).
+- **Gedeelde code: niets veranderd.** Alles zit in `src/keen2/` en de Keen
+  2-tests; alleen `tests/run_tests.gd` kreeg twee regels voor de nieuwe
+  suites. Alle tile-wijzigingen gaan via `set_tile` → `tile_changed`, ook
+  op map 81 (eigen signaal met dezelfde betekenis).
+- **Tests:** `test_keen2_switches` (pogo op en naast een schakelaar,
+  bruggen naar rechts en links, stoppen bij een muur, terughalen met
+  achtergrond, erop staan, signed offsets, niets op een schakelaar, licht
+  aan/uit, Vorticons in het donker, de oudste één keer, de zoekers van de
+  berichten in een zelfgemaakte EXE) en `test_keen2_tantalus` (de vonk
+  neerschieten: alle tiles en 30.000 punten, stappen van 26 ticks,
+  schakelaar bij een kapotte machine doet niets, bij een hele machine
+  ontploft de aarde ongeacht de levens, vijandschoten gaan door de vonk,
+  de scène op een kleine map 81 eindigt met de aarde 561, de straal).
+  `test_keen2_stand_in` drukt nu ook af en toe op de pogo-knop en speelt de
+  explosie op Keen 1's map 81. In `test_keen2_level` en
+  `test_keen2_enemies` maakt info 7 nu een vonk.
+- **Screenshots met de testdata** (een tijdelijk script zette Keen 1's
+  tile 271 met gedrag 23 naast Keen): een brug die uitschuift (Keen 1's
+  tile 270), dezelfde brug met xBRZ (F5), donker met xBRZ en origineel,
+  het venster van de oudste in het donker (leesbaar), het schudden, de
+  straal, explosies en brokken op map 81, de aarde weg, GAME OVER.
+- **Keen 1-controle:** alle tests slagen, gdformat en gdlint schoon,
+  titel, level 1 (ook lopend) en kaart byte voor byte gelijk aan `main`;
+  alleen `launcher.png` verschilt (gelijk aan de B2-screenshot).
+- **Open:** hoe het donker er in het origineel uitziet; of de berichten
+  van de oudste echt als één record met regeleinden in de EXE staan en in
+  welke levels; hoe het origineel voorkomt dat Keen een stad verlaat
+  zonder de machine te vernietigen (nu houdt niets hem tegen); 10.000 of
+  30.000 punten; met de CG-snelheden eindigt de straal zo'n zes tiles
+  onder de aarde (de explosies zitten daarom rond het midden van de aarde).
+
+## Mijlpaal B5.1: wat er nu is
+
+Op 17-10-2026 voor het eerst met echte Keen 2-bestanden (de eigen
+bestanden van de gebruiker, versie 1.31, in `game_data/keen2` en naast de
+app in `build/game_data/keen2`). Details in `docs/keen2/research.md`
+("Checked with the real files") en `docs/keen2/file-formats.md`.
+
+- **Klopte al:** versie 1.31 (58.335 bytes, beeld 118.160), 689 tiles, 134
+  sprites, 18 bitmaps, alle levels (1-16, 80, 81, 90), de vier teksten op
+  hun plek met 0x1A, het geluidsblok met `EARTHPOW`, de tile-tabel
+  (hendels 480/493 met gedrag 25/26, geen ijs), de regel 276/143 achter
+  items, de plek van de machine rond elke vonk (alle 8 steden), de
+  bruggen (offsets in levels 5, 13 en 16), map 81 met tile 593, de HUD
+  (175 en 190-193, dezelfde nummers als Keen 1), de botsingsvakken van
+  grunt, Elite, Scrub en Guard robot.
+- **Gerepareerd:**
+  - De stadsnamen werden niet gevonden: de achtste heet `Wash D.C.` (punt
+    toegestaan).
+  - De berichten van de oudste werden niet gevonden: in de EXE is elke
+    regel een eigen record (zoals bij de beelden van Keen 1), daarna
+    `Press ENTER:`. Nu worden de regels samengevoegd; de test gebruikt het
+    echte formaat.
+  - Guard robot: 112-115 is links en 116-119 rechts (CG had het
+    omgekeerd). Elite springen: 98 links, 99 rechts (was omgedraaid).
+  - Botsingsvakken uit `EGAHEAD.CK2`: platform 32x16 (was 32x8), vonk
+    (2,2,12,12) (was 16x16), youth (1,6,14,18) (was een gok). De
+    rechterframes van de youth hebben het Yorp-vak van Keen 1, vermoedelijk
+    een overblijfsel; we gebruiken het linkervak voor beide kanten
+    (*schatting*, anders loopt hij bij het omdraaien een muur in).
+  - De aarde op map 81 is 3x3 op (47,22), niet 4x4 op (47,21).
+  - Commentaren en `# estimate` bijgewerkt: wat de bestanden vastleggen
+    heeft geen `estimate` meer (spritenummers, vakken, 429, 480/493, 155,
+    de aarde); tiles die erin gezet worden (270, 182, het wrak, 561) houden
+    `estimate`, hun plaatjes passen wel.
+- **Vastgesteld:** de oudsten staan alleen in **levels 8 en 10** (tile 559
+  met 429 eronder); 375/376 hebben ook gedrag 22 maar zwijgen. 429-432 is
+  een gloeiende blauwe vloer (dodelijk volgens de tabel), 182 dezelfde
+  vloer zonder gloed. Wereldkaart: ingangen 1-16, 0x8001 en 0x8005, geen
+  teleporters en geen 20.
+- **Gespeeld** (met een wegwerp-stuurscript in de scratchpad): level 1, 4
+  (Londen: vonk kapotgeschoten, het wrak met de juiste tiles, 30.000
+  punten, de hendel doet daarna niets; de verkeerde hendel: schudden, de
+  straal, de aarde ontploft; licht uit/aan), 5 (de brug over het vuur), 8
+  (het bericht van de oudste, 8 regels) en 12 (platforms).
+- **Gereedschap (additief):** `tools/scripted_play.gd` kreeg
+  `WAIT_FOR_WINDOW=1`, omdat een nieuw macOS-venster een wisselend aantal
+  frames wit blijft; `tools/keen1_regression.sh` zet het aan zonder xvfb.
+  De buildscripts kopiëren `game_data/keen2` mee als die er is.
+- **Tests:** `test_keen2_data` slaagt nu en controleert ook stadsnamen,
+  berichten, spritenamen, vakken, hendels, iconen, de oudste-levels, de
+  machines en map 81.
+- **Keen 1-controle:** alle tests slagen, gdlint schoon, titel, level 1
+  (ook lopend) en kaart byte voor byte gelijk aan `main` (bf394ed, met de
+  nieuwe wachtstand); alleen `launcher.png` verschilt (het Keen 2-icoon, nu
+  met de echte data). Opgemerkt: `level1.png` en `level1_walk.png` zijn in
+  beide sets gelijk, dus het "lopen" in het regressiescript beweegt Keen 1
+  niet; dat was op `main` al zo.
+- **Nog open:** startlading van het straalgeweer (0, *schatting*; staat
+  alleen in de code van de EXE, dus naast het origineel leggen), versie
+  1.00, en alles wat alleen het origineel kan laten zien (research.md,
+  vragen 13-20).
+
+## Mijlpaal B6: wat er nu is
+
+Gebouwd en gespeeld met de echte Keen 2-bestanden (v1.31). Keen 2 is nu van
+begin tot eind uit te spelen. De regels staan in `docs/keen2/gameplay.md`
+("The course of the game", "The status screen", "The ending").
+
+- **Wereldkaart (map 80):** een nieuw spel begint op de kaart bij het
+  schip, met "Keens Left". Lopen, met springen/pogo een level in, na de
+  uitgang terug op de plek van de ingang met het "DONE"-bord (77 of
+  78-81); een klaar level kan niet opnieuw. Ingangen met 0x8000 (levels 1
+  en 5) houden de weg dicht tot dat level klaar is. Dood: een leven minder
+  en terug op de kaart met "Keens Left". `--level=N` speelt eerst level N
+  en gaat daarna naar de kaart.
+- **Hergebruik zonder wijziging:** Keen 1's `MapSession`, `MapCollision`,
+  `MapKeen` en `MapMessages` werken ongewijzigd voor Keen 2's kaart (geen
+  schip, geen teleporters); er is dus geen `Keen2MapSession`. Afwijking
+  van het plan, uitgelegd in `docs/keen2/architecture.md`.
+- **Steden:** `Keen2Progress` (op `GameProgress`): een stad is gered als
+  zijn level klaar is (levels 4, 6, 7, 9, 11, 13, 15, 16). Alle acht gered:
+  het einde.
+- **Statusscherm (Enter):** het vak met de teksten uit `KEEN2.EXE` (SCORE,
+  EXTRA KEEN AT, KEENS, PISTOL, TARGETS SAVED, KEYS, PLEASE PRESS A KEY),
+  score, volgende extra Keen, een Keentje per leven, het pistool (414) met
+  ladingen, de geredde steden en de sleutelkaarten (424-427). Plekken uit
+  Commander Genius (*schatting*).
+- **Het einde** (`Keen2Ending`, `Keen2Flight`): Keens schip vliegt op map 81
+  van het moederschip naar de aarde (met de getallen van CG landt het
+  precies op de aarde), daarna het moederschip met de tweede tekst,
+  `FINALE.CK2` met de vier pagina's en `TO BE CONTINUED....`, dan de
+  eindtekst (scrollen), dan het startscherm. Alle teksten uit de EXE.
+- **Scherm:** `Keen2View` werd te groot en is gesplitst: map 81 (aarde
+  ontploft, het einde) zit nu in `Keen2SpaceScreen`. Drie methodes van
+  `GameScreen` die Keen 1's einde of scheepsonderdelen kennen worden in
+  Keen 2 overschreven; `GameScreen` zelf is niet veranderd.
+- **Tests:** nieuwe suite `test_keen2_ending` (steden, statusscherm,
+  vluchten, het einde, teksten in een zelfgemaakte EXE);
+  `test_keen2_stand_in` speelt nu de kaart (start, level in, uitgang en
+  dood terug naar de kaart, DONE, winnen); `test_keen2_data` controleert
+  het statusvak, de eindteksten en de ingangen van map 80. De B3-tests
+  "uitgang → volgend level" en "na level 16 klaar" zijn vervangen (Keen
+  2-tests).
+- **Gespeeld met screenshots:** de kaart met "Keens Left", het statusscherm
+  met London en Cairo, Londen in via de ingang en terug met DONE, het hele
+  einde (schip, moederschip, plaatje met pagina's, eindtekst).
+- **Keen 1-controle:** alle tests slagen, gdlint schoon, titel, level 1
+  (ook lopend) en kaart byte voor byte gelijk aan `main`; `launcher.png`
+  gelijk aan die van B5.1. Buiten `src/keen2/` en de Keen 2-tests is niets
+  veranderd.
+- **Open:** of een stad in het origineel pas gered is als de machine kapot
+  is (en hoe het origineel Keen tegenhoudt); de plekken op het
+  statusscherm; of het origineel `TO BE CONTINUED....` en de eindtekst na
+  de pagina's toont; de high scores na het einde (B7).
+
+## Mijlpaal B7: wat er nu is
+
+Gebouwd en gespeeld met de echte Keen 2-bestanden. Regels in
+`docs/keen2/gameplay.md` ("Title, menus, saving and high scores").
+
+- **Titelscherm:** map 90 met het `TITLE`-plaatje (ruimte, moederschip,
+  aarde). Titel en high scores wisselen elke 8 seconden; een toets opent
+  het hoofdmenu. Vanaf het startscherm gaat het menu meteen open.
+- **High scores:** eigen tabel (`Keen2HighScores`) met naam, score en
+  aantal geredde steden, onder het `SAVED`-plaatje ("Cities saved").
+  Standaardnamen Yorpy, Gargile, Zzapp! uit `KEEN2.EXE`. Na GAME OVER of
+  het einde: de high scores, en bij een goede score een naam invullen.
+- **Hoofdmenu (gedeeld):** New Game, Continue Game, Save Game (alleen op
+  de kaart), Story (uit de EXE), High Scores, Controls, Options, Quit to
+  Title, Choose Game, Quit. Zonder Online Game, Player 2 en Extra levels.
+- **Opslaan:** 9 plekken in `user://keen2/saves`, apart van Keen 1;
+  high scores in `user://keen2/high_scores.json`. Toetsen en
+  beeldinstellingen zijn gedeeld.
+- **Gedeelde code:** één toevoeging: `MenuController` kreeg
+  `offers_online`, `offers_second_player` en `offers_extra_levels`
+  (standaard aan, dus Keen 1 blijft gelijk; getest). Keen 1's
+  `Backdrops`, `ScoreTexts` en `SaveGames` worden ongewijzigd gebruikt.
+- **Code:** nieuw `Keen2MenuScreen` (titel, high scores, menu, opslaan)
+  tussen `Keen2SpaceScreen` en `Keen2View`; alle bestanden onder 500
+  regels. Gerepareerd tijdens het testen: na "New Game"/"Continue" keek de
+  HUD nog naar de oude voortgang.
+- **Tests:** nieuwe suite `test_keen2_menus` (tabel, scherm, opslaan en
+  laden, nieuw spel, menu's van Keen 2 en Keen 1); `test_keen2_data`
+  controleert verhaal en high score-teksten.
+- **Gespeeld met screenshots:** titel, high scores, hoofdmenu, verhaal,
+  menu in het spel, opslaan in plek 1 en weer laden, GAME OVER → naam →
+  high scores.
+- **Keen 1-controle:** alle tests slagen, gdlint schoon; titel, level 1
+  (ook lopend) en kaart byte voor byte gelijk aan `main`; `launcher.png`
+  verschilt alleen op de plek van het Keen 2-icoon.
+- **Open:** de plekken in de high score-tabel (schatting); het origineel
+  toont na een spel waarschijnlijk "You saved N cities!" (de teksten staan
+  in de EXE, nog niet gebruikt); de intro, "About ID", "Ordering Info" en
+  "Previews!" zijn niet nagebouwd (net als bij Keen 1).
+
+## Mijlpaal B8: wat er nu is
+
+- **Besluit van de gebruiker (17-10-2026):** geen Real-ESRGAN/HD voor Keen
+  2 (ook bij Keen 1 niet mooi genoeg; misschien gaat het daar ooit uit).
+  xBRZ zat er al in.
+- **xBRZ (F5), vloeiende beweging (F6), widescreen:** werken voor Keen 2
+  via de gedeelde code; alle Keen 2-figuren, Keen op de kaart en de
+  schepen van het einde bewegen vloeiend.
+- **Plaatjes achter levels:** eigen map `assets/backgrounds/keen2/` (nog
+  leeg) of die van de speler `game_data/keen2/backgrounds/levelNN.png`;
+  nooit die van Keen 1. Omdat de meeste Keen 2-levels een ruitpatroon als
+  achtergrond hebben (het plaatje zou door de stipjes heen schijnen), krijgt
+  een level alleen een plaatje als zijn effen achtergrond ook de meest
+  gebruikte tile is; in v1.31 is dat alleen level 12. Getest met een
+  tijdelijk plaatje (weer verwijderd). In het donker wordt het plaatje mee
+  donker.
+- **Gedeelde code:** één toevoeging: `BackdropPictures.create` kreeg een
+  optionele map (standaard die van Keen 1).
+- **Builds:** macOS en Windows nemen `game_data/keen2` mee (sinds B5.1);
+  vanaf nu worden na elke mijlpaal beide gebouwd.
+- **Tests:** nieuwe suite `test_keen2_extras`. Keen 1-controle: alle tests
+  slagen, gdlint schoon, screenshots gelijk aan `main` (alleen het icoon
+  op het startscherm verschilt).
+- **Voor de gebruiker:** wil je plaatjes achter Keen 2-levels, zet ze in
+  `game_data/keen2/backgrounds/`. Voor levels met het ruitpatroon zou een
+  andere aanpak nodig zijn (het patroon vervangen); dat kan later.
+
+## Mijlpaal B9: wat er nu is
+
+- **Twee spelers op één toetsenbord:** F7 of "Add Player 2" in het menu,
+  zoals bij Keen 1: speler 2 (blauwe helm) in het level, split screen als
+  ze uit elkaar gaan, gedeelde inventaris, één dood geldt voor beiden. Alles
+  van Keen 2 werkt voor beide Keens: verdoofd door een youth, meerijden,
+  schakelaars (ook de Tantalus-hendel), de oudste; het donker op beide
+  helften. Geen gedeelde code veranderd.
+- **Online:** hosten en meedoen via IP of Steam, zoals bij Keen 1. Keen 2
+  heeft een eigen spel-id: een Keen 1-host en een Keen 2-speler komen niet
+  bij elkaar ("The host plays another game: another Keen"); Steam toont
+  alleen lobby's van hetzelfde spel; de vingerafdruk gebruikt de
+  `.CK2`-levels. De snapshot stuurt de geredde steden mee (statusscherm
+  van de meespeler), en als gebeurtenis: de oudste, "Keens Left", licht
+  uit/aan. De ontploffing van de aarde is een eigen scène. Na game over of
+  het einde wacht de meespeler bij zijn titel.
+- **Gedeelde code (toevoegingen, Keen 1 byte voor byte gelijk):** de
+  spel-id door handshake/sessie/Steam, de reden `OTHER_GAME`, een scène en
+  een gebeurtenis achteraan de enums, `progress_bits` in de snapshot (0
+  bij Keen 1), en de vingerafdruk via `files.level_file()` (zelfde
+  bestanden voor Keen 1; getest).
+- **Code:** nieuw `Keen2OnlineScreen` in de keten van schermklassen.
+- **Getest:** nieuwe suites `test_keen2_coop` en `test_keen2_online`; de
+  Keen 1-onlinetests slagen ongewijzigd. Gespeeld: split screen; online met
+  een headless host en een meespeler in een venster (binnenkomen, de kaart,
+  Londen met twee Keens, het statusscherm).
+- **Meedoen met het andere deel (wens van de gebruiker):** via IP of uit de
+  Steam-lijst (die nu de hosts van beide delen toont, met de naam van het
+  deel erachter) kun je meedoen met een host van het andere deel: je spel
+  schakelt dan vanzelf over naar dat deel en doet daar mee. Zonder de
+  bestanden van dat deel krijg je een melding. Getest via IP in beide
+  richtingen (Keen 2-speler → Keen 1-host en andersom); Steam kon hier niet
+  getest worden (logica met tests gedekt). Keen 1's scherm is daarvoor niet
+  veranderd: het zit in de gedeelde online-code en het startscherm.
+- **Let op bij testen op één Mac:** met twee vensters tegelijk remt macOS
+  het achterste venster af, waardoor de host de handshake te laat
+  beantwoordt ("The host did not let you in"). Op twee computers, of met
+  een headless host, werkt het (zie `docs/online.md`).
+
+## Mijlpaal B10: wat er nu is
+
+Het originele `KEEN2.EXE` (v1.31) gedraaid in js-dos (DOSBox in de browser,
+lokaal geserveerd uit de scratchpad, niets in git) en de ruwe 320x200-beelden
+gemeten. Aangepast naar wat het origineel laat zien:
+
+- Een nieuw spel begint met **3 ladingen** voor de raygun (was 0).
+- **Statusscherm:** score eindigt voor kolom 10, volgend extra leven voor
+  kolom 26, raygun op kolom 21 en de ladingen vanaf kolom 24 (links
+  uitgelijnd). Het origineel heeft grijze balken en witte vakjes; wij een
+  gewoon venster.
+- **Titel** over het eerste scherm van map 90 (muur met vuurtjes) in plaats
+  van het ruimtescherm, met ook het bordje "PRESS F1 FOR HELP".
+- **Highscores** op het juiste scherm van map 90 (cellen 84-103) en alle
+  plekken gemeten. Verschil: het origineel schrijft in rood, wij in zwart.
+- **GAME OVER** zonder wit venster eromheen (`GameWindow.framed`, een
+  toevoeging met Keen 1 als standaard).
+- Nieuwe testsuite `test_keen2_original.gd`.
+
+Niet gemeten: Keen door levels sturen met een script lukte niet
+betrouwbaar (de beelden van de emulator lopen achter op de toetsen, Keen
+ging dood). Vijanden, verdoving, donker, de machine, de Tantalus-straal,
+het einde en de geluidssnelheid houden hun `# estimate`. Gevonden: het
+origineel heeft de cheat C+T+Space (alle keycards en veel ladingen).
+
 ## Mijlpaal 1: wat er nu is
 
 - `GameFiles`: vindt de spelbestanden (`--data-dir=`, `game_data/keen1/`, of naast de exe) en negeert hoofd/kleine letters.
@@ -425,6 +975,12 @@ het origineel. Details in `docs/world-map.md` onder "Extra levels".
 - **Licentie** voor de code (bijv. MIT of GPL-3.0): nog kiezen voordat de repo publiek wordt.
 - **HD met nieuwe details (generatieve AI)**, besproken op 14-10-2026, voor nu geparkeerd door de gebruiker. Oordeel van de gebruiker: de Real-ESRGAN-HD is "best lelijk", xBRZ ziet er mooier uit, maar hij mist nieuwe details. Real-ESRGAN kan geen details verzinnen; daarvoor is een generatief model nodig. Het plan staat in `docs/graphics.md` onder "Plan: HD with new details". Eerste stap als de gebruiker verder wil: toestemming vragen om Stable Diffusion 1.5 + ControlNet Tile te downloaden (~6 GB, Hugging Face, naar een map die git negeert) en een proef doen met ~10 plaatjes naast xBRZ.
 
+- **Keen 2: besluiten van de gebruiker (16-10-2026, B1).** Gedeelde code mag alleen toevoegingen krijgen met Keen 1 als standaard; Keen 1-code blijft onaangeroerd. Chocolate Keen mag als bron voor datatabellen (adressen, namen, groottes), nooit voor code met gedrag. De architect (deze sessie) stuurt een developer-subagent aan en controleert zijn werk.
+- **Keen 2: de knop op het startscherm** (besluit van de gebruiker, 16-10-2026): lettertype en Keen-mannetje komen altijd uit de Keen 2-data. Zonder die bestanden blijft de knop grijs met een gewoon lettertype (geen Keen 1-data als vervanging).
+- **Keen 2: speldata.** De gebruiker heeft Keen 2 op floppies maar geen floppylezer. Keen 2 is geen shareware en wordt nog verkocht, dus het wordt niet gedownload van onofficiële sites. Opties: de Complete Pack op Steam/GOG, of een USB-floppylezer. Tot dan: bouwen en testen met zelfgemaakte testdata; de suites met echte data slaan zich over, en de vragen die alleen de echte bestanden beantwoorden blijven open (research.md).
+- **Keen 2: sprong van de youth** (B4, architect): met de getallen uit Commander Genius (200/32 omhoog, zwaartekracht 4/32) springt hij ruim 10 tiles hoog. Dat lijkt te veel; vermoedelijk heeft de youth in het origineel een eigen zwaartekracht. Naast het origineel leggen in B10.
+- **Geluidssnelheid (ook Keen 1):** Commander Genius speelt de geluiden met 145,6 Hz, `docs/sounds.md` zegt 140 Hz. Niet aangepast (Keen 1 blijft zoals het is); naast het origineel leggen.
+
 ### Toegevoegd op 15-10-2026 (op `milestone-10-menu`)
 
 Na de eerste eigen test van de gebruiker:
@@ -434,6 +990,20 @@ Na de eerste eigen test van de gebruiker:
 - Tests in `test_online_menus.gd`: adressen in de setup, het hosting-venster ververst, `address_lines`, eigen wachtwoord typen en onthouden.
 
 ## Volgende stap
+
+Keen 2:
+
+1. **Voor de gebruiker:** B7, B8 en B9 proberen in `build/` (Mac en
+   Windows): menu's, opslaan, high scores, F7 voor twee spelers, online
+   met een vriend (via Steam, of IP op twee computers).
+2. B10 proberen: titel, highscores, statusscherm (3 ladingen), GAME OVER.
+3. B10 afmaken (optioneel): de punten die nog `# estimate` zijn (lijst in
+   `docs/keen2/gameplay.md`) kan de gebruiker zelf in het origineel
+   bekijken; zeg wat afwijkt en het wordt aangepast.
+4. `milestone-b10-origineel` bevat alle eerdere B-branches en kan in één
+   keer naar `main`.
+
+Keen 1:
 
 1. **Voor de gebruiker:** de scheepslevels proberen in
    `build/CommanderPerfect.app` (nieuwe binnenkant, onzichtbare ingang,

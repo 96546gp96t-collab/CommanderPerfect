@@ -7,7 +7,8 @@ extends RefCounted
 
 ## What the host's screen shows, for [constant OnlineProtocol.Message.SCENE].
 ## WAITING: the host is not in a game (title, high scores, menus).
-enum Scene { WAITING, MAP, LEVEL, GAME_OVER, ENDING }
+## EARTH_EXPLODES: Keen 2's Tantalus Ray hit the Earth (map 81), game over.
+enum Scene { WAITING, MAP, LEVEL, GAME_OVER, ENDING, EARTH_EXPLODES }
 
 ## Things the host shows that the joiner shows too, for
 ## [constant OnlineProtocol.Message.EVENT].
@@ -21,6 +22,8 @@ enum Event {
 	SHIP_MISSING,
 	## A short message such as "Battery in place!"; the value is the text.
 	MESSAGE,
+	## Keen 2: the lights of the level went off (value 1) or on (0).
+	LIGHTS,
 }
 
 ## Characters of a message that are shown at most.
