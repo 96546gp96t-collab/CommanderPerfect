@@ -18,6 +18,30 @@ const GAME_OPTION := "--game="
 const KEEN_2_GAME := "2"
 
 static var _menu_requested := false
+static var _join_requested: OnlineJoin
+
+
+## A game to join online that the next game picks up when it starts: the
+## player chose a host who plays another game, so the game switched over
+## (see [OnlinePlay]). By IP [member address], through Steam [member
+## lobby_id].
+class OnlineJoin:
+	extends RefCounted
+	var address := ""
+	var lobby_id := 0
+	var password := ""
+
+
+## The next game should join [param join] as soon as it is shown.
+static func request_join(join: OnlineJoin) -> void:
+	_join_requested = join
+
+
+## The game to join, or null; asks only once.
+static func take_join_request() -> OnlineJoin:
+	var join := _join_requested
+	_join_requested = null
+	return join
 
 
 ## The game should open its main menu as soon as it is shown.

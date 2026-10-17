@@ -4,6 +4,11 @@ extends RefCounted
 ## as lines for a window of the game (short enough for its font).
 
 
+## The host plays [param title], whose files this player does not have.
+static func missing_game(title: String) -> PackedStringArray:
+	return _with_prompt(["The host plays %s." % title, "Its game files are missing", "here."])
+
+
 ## Why joining did not work, for [param reason] from [JoinHandshake] or
 ## [OnlineSession].
 static func join_failed(reason: String) -> PackedStringArray:

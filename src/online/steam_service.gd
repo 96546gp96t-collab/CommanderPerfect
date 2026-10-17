@@ -151,7 +151,7 @@ func _on_lobby_data(success: int, lobby_id: int, _member_id: int) -> void:
 		SteamLobby.GAME_KEY, SteamLobby.VERSION_KEY, SteamLobby.HOST_KEY, SteamLobby.PASSWORD_KEY
 	]:
 		data[key] = str(steam.getLobbyData(lobby_id, key))
-	if not SteamLobby.is_ours(data, game_id):
+	if not SteamLobby.is_any_ours(data):
 		return
 	_found.append([lobby_id, data, int(steam.getNumLobbyMembers(lobby_id))])
 	games_listed.emit(_found)

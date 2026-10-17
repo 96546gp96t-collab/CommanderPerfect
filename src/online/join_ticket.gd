@@ -30,6 +30,8 @@ var password := ""
 var fingerprint := ""
 ## The host's name, once he let us in.
 var host_name := ""
+## The game the host plays, when it is another game of ours.
+var host_game_id := ""
 
 
 ## The answer to [param data], the host's challenge.
@@ -41,6 +43,8 @@ func answer(data: PackedByteArray) -> Step:
 		return step
 	if str(challenge[0]) != game_id:
 		step.problem = JoinHandshake.game_problem(str(challenge[0]))
+		if step.problem == JoinHandshake.OTHER_GAME:
+			host_game_id = str(challenge[0])
 		return step
 	if not challenge[1] is int or challenge[1] != OnlineProtocol.VERSION:
 		step.problem = JoinHandshake.OTHER_VERSION

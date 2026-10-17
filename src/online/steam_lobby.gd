@@ -41,6 +41,18 @@ static func is_ours(data: Dictionary, game_id := OnlineProtocol.GAME_ID) -> bool
 	)
 
 
+## True for a lobby of any of our games, of this version: a friend who
+## hosts another Keen is listed too (joining him switches games).
+static func is_any_ours(data: Dictionary) -> bool:
+	return is_ours(data, game_of(data))
+
+
+## The game a lobby is of, as it says.
+static func game_of(data: Dictionary) -> String:
+	var game := str(data.get(GAME_KEY, ""))
+	return game if game in OnlineProtocol.GAME_IDS else ""
+
+
 static func is_locked(data: Dictionary) -> bool:
 	return str(data.get(PASSWORD_KEY, "")) == "yes"
 

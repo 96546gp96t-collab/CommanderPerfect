@@ -534,6 +534,14 @@ Gebouwd en gespeeld met de echte Keen 2-bestanden. Regels in
   Keen 1-onlinetests slagen ongewijzigd. Gespeeld: split screen; online met
   een headless host en een meespeler in een venster (binnenkomen, de kaart,
   Londen met twee Keens, het statusscherm).
+- **Meedoen met het andere deel (wens van de gebruiker):** via IP of uit de
+  Steam-lijst (die nu de hosts van beide delen toont, met de naam van het
+  deel erachter) kun je meedoen met een host van het andere deel: je spel
+  schakelt dan vanzelf over naar dat deel en doet daar mee. Zonder de
+  bestanden van dat deel krijg je een melding. Getest via IP in beide
+  richtingen (Keen 2-speler → Keen 1-host en andersom); Steam kon hier niet
+  getest worden (logica met tests gedekt). Keen 1's scherm is daarvoor niet
+  veranderd: het zit in de gedeelde online-code en het startscherm.
 - **Let op bij testen op één Mac:** met twee vensters tegelijk remt macOS
   het achterste venster af, waardoor de host de handshake te laat
   beantwoordt ("The host did not let you in"). Op twee computers, of met

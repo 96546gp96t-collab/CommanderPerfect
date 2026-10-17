@@ -47,6 +47,36 @@ func test_keen_1_handshake_is_unchanged() -> void:
 	)
 
 
+func test_player_learns_which_game_the_host_plays() -> void:
+	var ticket := _ticket(KEEN_2)
+	ticket.answer(_gate(OnlineProtocol.GAME_ID).begin(1))
+	assert_equal(ticket.host_game_id, OnlineProtocol.GAME_ID, "Keen 1, to switch to")
+	var keen_1 := GameCatalog.for_game_id(OnlineProtocol.GAME_ID)
+	var keen_2 := GameCatalog.for_game_id(KEEN_2)
+	assert_equal(keen_1.scene, GameLaunch.KEEN_1_SCENE, "Keen 1's scene")
+	assert_equal(keen_2.scene, GameLaunch.KEEN_2_SCENE, "Keen 2's scene")
+	assert_true(GameCatalog.for_game_id("other") == null, "no such game")
+
+
+func test_a_join_is_handed_to_the_next_game_once() -> void:
+	var join := GameLaunch.OnlineJoin.new()
+	join.address = "127.0.0.1"
+	GameLaunch.request_join(join)
+	assert_true(GameLaunch.take_join_request() == join, "handed over")
+	assert_true(GameLaunch.take_join_request() == null, "only once")
+
+
+func test_steam_lists_lobbies_of_every_game_of_ours() -> void:
+	var keen_1 := SteamLobby.data_for("Billy", false)
+	var keen_2 := SteamLobby.data_for("Billy", false, KEEN_2)
+	assert_true(SteamLobby.is_any_ours(keen_1) and SteamLobby.is_any_ours(keen_2), "both")
+	assert_equal(SteamLobby.game_of(keen_1), OnlineProtocol.GAME_ID, "Keen 1's lobby")
+	var stranger := {SteamLobby.GAME_KEY: "spacewar", SteamLobby.VERSION_KEY: "1"}
+	assert_true(not SteamLobby.is_any_ours(stranger), "not somebody else's")
+	keen_2[SteamLobby.VERSION_KEY] = "999"
+	assert_true(not SteamLobby.is_any_ours(keen_2), "not another version")
+
+
 func test_snapshot_carries_the_cities_and_keen_1_stays_the_same() -> void:
 	var snapshot := Snapshot.new()
 	snapshot.inventory.has_pogo = true

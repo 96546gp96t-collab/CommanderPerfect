@@ -431,10 +431,12 @@ next to the host's in a level, only the host walking on the world map,
 nothing pausing while two play, an arrow to the other player. What Keen 2
 adds:
 
-- **Its own game id** (`commanderperfect-keen2`): a Keen 1 host and a Keen 2
-  player do not meet; the player reads "The host plays another game:
-  another Keen". Steam lists only lobbies of the same game. The fingerprint
-  is made of Keen 2's own `LEVELxx.CK2`.
+- **Its own game id** (`commanderperfect-keen2`), and switching games: a
+  player who joins a host of the other Keen (by IP, or picked from the
+  Steam list, where every game of ours is listed with its name) switches
+  to that game and joins there (docs/online.md, "Joining another game").
+  Without the other game's files he is told so. The fingerprint is made
+  of Keen 2's own `LEVELxx.CK2`.
 - **The saved cities** travel in every snapshot (8 bits in the inventory's
   flags, which are 0 in Keen 1), so the joined player's status screen
   shows them.

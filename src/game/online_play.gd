@@ -74,6 +74,10 @@ var _sent_bits := -1
 var _ticks_since_view := 0
 var _over_steam := false
 var _password := ""
+## The address and password of the last join by IP, handed over when the
+## host turns out to play another game.
+var _join_address := ""
+var _join_password := ""
 ## A wish waiting for Steam: [host?, password], or empty.
 var _steam_wish: Array = []
 var _steam_games: Array = []
@@ -100,6 +104,8 @@ func _ready() -> void:
 	steam.games_listed.connect(_on_games_listed)
 	steam.failed.connect(func(reason: String) -> void: _stop(OnlineText.steam(reason)))
 	addresses.public_lookup_finished.connect(func(_found: String) -> void: _refresh_menu())
+	# Picks up a join that another game handed over when it switched here.
+	_resume_join.call_deferred()
 
 
 ## Uses [param menu_controller] to ask and tell the player things, and the
@@ -279,6 +285,8 @@ func _host_through_steam(password: String) -> void:
 
 func _join_by_ip(address: String, player_name: String, password: String) -> void:
 	_over_steam = false
+	_join_address = address
+	_join_password = password
 	var error := session.join(EnetTransport.new(), address, player_name, password, fingerprint)
 	if error != OK:
 		_stop(OnlineText.join_failed(OnlineSession.NO_ANSWER))
@@ -289,6 +297,13 @@ func _join_by_ip(address: String, player_name: String, password: String) -> void
 ## Joins the friend's game at [param index] of the last list.
 func _join_through_steam(index: int, password: String) -> void:
 	if index < 0 or index >= _steam_games.size():
+		return
+	var lobby_game := SteamLobby.game_of(_steam_games[index][1])
+	if lobby_game != game_id:
+		var join := GameLaunch.OnlineJoin.new()
+		join.lobby_id = int(_steam_games[index][0])
+		join.password = password
+		_switch_game(lobby_game, join)
 		return
 	_steam_wish = [false, password]
 	_tell(["Joining through Steam..."])
@@ -435,7 +450,48 @@ func _on_joined(host_name: String) -> void:
 
 
 func _on_join_failed(reason: String) -> void:
+	if reason == JoinHandshake.OTHER_GAME and not _over_steam:
+		var join := GameLaunch.OnlineJoin.new()
+		join.address = _join_address
+		join.password = _join_password
+		_switch_game(session.host_game_id, join)
+		return
 	_stop(OnlineText.join_failed(reason))
+
+
+## The host plays another of our games ([param other_game]): this game
+## makes way for it, and the other game joins with [param join] as soon as
+## it is shown. When its files are missing, the player is told so.
+func _switch_game(other_game: String, join: GameLaunch.OnlineJoin) -> void:
+	var game := GameCatalog.for_game_id(other_game)
+	if game == null:
+		_stop(OnlineText.join_failed(JoinHandshake.OTHER_GAME))
+		return
+	if not game.is_available():
+		_stop(OnlineText.missing_game(game.title))
+		return
+	_steam_wish.clear()
+	if session.is_active():
+		session.leave_soon()
+	steam.leave()
+	_reset()
+	menus.close_all()
+	GameLaunch.request_join(join)
+	get_tree().change_scene_to_file.call_deferred(game.scene)
+
+
+## (In a game that was switched to) joins the host that the other game
+## handed over, if any.
+func _resume_join() -> void:
+	var join := GameLaunch.take_join_request()
+	if join == null or settings == null:
+		return
+	if join.lobby_id != 0:
+		_steam_wish = [false, join.password]
+		_tell(["Joining through Steam..."])
+		steam.enter_lobby(join.lobby_id)
+	else:
+		_join_by_ip(join.address, settings.online_name, join.password)
 
 
 func _on_host_left() -> void:
@@ -500,7 +556,11 @@ func _on_games_listed(games: Array) -> void:
 	var lines := PackedStringArray()
 	var locked: Array[bool] = []
 	for game: Array in games:
-		lines.append(SteamLobby.described(game[1], int(game[2])))
+		var line := SteamLobby.described(game[1], int(game[2]))
+		var other := GameCatalog.for_game_id(SteamLobby.game_of(game[1]))
+		if other != null and other.game_id != game_id:
+			line += " " + other.title
+		lines.append(line)
 		locked.append(SteamLobby.is_locked(game[1]))
 	menus.show_steam_games(lines, locked)
 

@@ -143,7 +143,24 @@ the host headless (`godot --headless --max-fps 60 ...` with a script that
 hosts), or play on two computers.
 
 Keen 2 plays online too (milestone B9, [keen2/gameplay.md](keen2/gameplay.md)),
-with its own game id: a Keen 1 host and a Keen 2 player do not meet.
+with its own game id.
+
+## Joining another game
+
+A player can join a host who plays the other Keen: his game switches over.
+
+- **By IP:** the host's challenge names his game. When it is another of
+  ours, the player's game remembers the address and password
+  (`GameLaunch.request_join`), opens the other game's scene, and that one
+  joins at once (`OnlinePlay` picks the join up when it starts). Nothing
+  of the Keen 1 screen changed for it: all of it is in the shared
+  `OnlinePlay`, `OnlineSession`, `JoinTicket` and `GameLaunch`.
+- **Through Steam:** the list shows the lobbies of every game of ours, with
+  the game's name after a host who plays the other one (`Dennis (1/2) Keen
+  1`). Picking such a host switches games the same way and enters his
+  lobby.
+- When the player does not have the other game's files, he reads "The host
+  plays Keen N. Its game files are missing here."
 
 ## Not yet
 

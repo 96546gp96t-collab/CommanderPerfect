@@ -214,6 +214,16 @@ death restarts the level, game over and Escape go back to the start screen
   `LevelFingerprint` and `OnlinePlay._original` read `files.level_file(n)`
   instead of the static Keen 1 name, which is the same file for Keen 1 (a
   test checks Keen 1's fingerprint against the old way).
+- **Joining the other game switches games** (the user's wish): shared,
+  additive: `GameLaunch.OnlineJoin`/`request_join`/`take_join_request`,
+  `GameCatalog.Game.game_id` and `for_game_id`, `JoinTicket.host_game_id`,
+  `OnlineSession.host_game_id`, `SteamLobby.is_any_ours`/`game_of`, and in
+  `OnlinePlay` the switch (`_switch_game`) and picking the join up when a
+  game starts (`_resume_join`, deferred from `_ready`; it does nothing
+  without a handed-over join). Keen 1's Steam list now also shows Keen 2's
+  hosts, and a Keen 1 player who joins a Keen 2 host switches to Keen 2;
+  Keen 1 with Keen 1 is unchanged. Keen 1's screen (`level_view.gd`) did
+  not change.
 - **A fourth screen class:** `Keen2OnlineScreen` (between
   `Keen2MenuScreen` and `Keen2View`) holds the online part, so that no
   file passes 500 lines.
