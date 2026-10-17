@@ -12,8 +12,9 @@ extends RefCounted
 ## the collision (Keen stands on a bridge tile as on any floor) and every
 ## picture (original, xBRZ, HD) change cell by cell.
 
-## Commander Genius's bridge tile (solid on top); check with the real files.
-const BRIDGE_TILE := 270  # from Commander Genius, check with the real files
+## Commander Genius's bridge tile: a gray girder, solid on every side. No
+## level holds it before a bridge is laid. estimate: the picture fits.
+const BRIDGE_TILE := 270  # estimate
 ## Ticks between two tiles, laying and taking in alike.
 const TICKS_PER_TILE := 4  # estimate
 ## The longest bridge, so that a level without a wall cannot run forever.

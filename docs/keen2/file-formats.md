@@ -1,10 +1,9 @@
 # Keen 2 file formats
 
 How CommanderPerfect reads the files of episode 2. Written in milestone B2
-**without the real Keen 2 files** (Keen 2 is not shareware): everything here
-is built on [research.md](research.md) and checked only with hand-made test
-data and with the Keen 1 files under Keen 2 names. What still has to be
-checked against real files is listed at the end. Most formats are the same
+without the real Keen 2 files (Keen 2 is not shareware), on
+[research.md](research.md); checked against the player's own files
+(version 1.31) in B5.1. What that showed is listed at the end. Most formats are the same
 as Keen 1's; those are described once, in [../file-formats.md](../file-formats.md).
 
 ## Finding the files
@@ -31,7 +30,7 @@ The game has no `SOUNDS.CK2`, `STORYTXT.CK2`, `HELPTEXT.CK2` or
 
 | File | Contents | Decoder |
 |---|---|---|
-| `EGAHEAD.CK2`, `EGALATCH.CK2`, `EGASPRIT.CK2` | Graphics: 689 tiles, 134 sprites (expected) | `EgaHeader`, `EgaGraphics.load_from(files, "CK2")` |
+| `EGAHEAD.CK2`, `EGALATCH.CK2`, `EGASPRIT.CK2` | Graphics: 689 tiles, 134 sprites, 18 bitmaps (standard header layout) | `EgaHeader`, `EgaGraphics.load_from(files, "CK2")` |
 | `LEVEL01.CK2` … `LEVEL16.CK2` | The levels | `LevelData` |
 | `LEVEL80.CK2` | The world map | `LevelData` |
 | `LEVEL81.CK2` | Space: the ending and the Earth exploding | `LevelData` |
@@ -61,9 +60,9 @@ read from the program code.
 | Help | 0x15BC0 | A text block | `text(TextBlock.HELP)` |
 | Previews | 0x163A0 | A text block | `text(TextBlock.PREVIEWS)` |
 | Story | 0x16AC0 | A text block | `text(TextBlock.STORY)` |
-| City names | 0x199AB | Eight zero-terminated strings of letters and spaces. At the known position any such names are accepted; the search wants the lengths 6, 5, 6, 8, 5, 4, 6, 9 (Commander Genius) after a zero byte | `city_names()` |
+| City names | 0x199AB | Eight zero-terminated strings of letters, spaces and dots ("Wash D.C."). At the known position any such names are accepted; the search wants the lengths 6, 5, 6, 8, 5, 4, 6, 9 (Commander Genius) after a zero byte | `city_names()` |
 | `TO BE CONTINUED....` | 0x1A434 | The text `TO BE CONTINUED` | `to_be_continued()` |
-| Vorticon Elder messages (B5) | 0x19FCC, 0x1A08C | Only at the known position: a zero-terminated record of at least 32 bytes, all printable ASCII, LF or CR, with no printable byte right before it. There is no search: not found means the Elder stays silent (no error) | `elder_message(index)` → lines; `find_elder_message(data, index)` |
+| Vorticon Elder messages (B5) | 0x19FCC, 0x1A08C | Only at the known position: zero-terminated records of printable ASCII (and CR), one per line, each ending in LF, at least 32 bytes in all, with no printable byte right before the first. There is no search: not found means the Elder stays silent (no error) | `elder_message(index)` → lines; `find_elder_message(data, index)` |
 
 **Text blocks.** A text block is a run of text bytes (printable ASCII, CR,
 LF, tab, the break mark 0x1F, and font pictures from 0x80 on) of at least 64
@@ -81,21 +80,23 @@ the 512-byte EXE header (its story offsets also need −512), so 0x15DC0 −
 0x200 = 0x15BC0: both sources agree, and the help ends at 0x1639F, right
 before the previews (0x163A0).
 
-**Elder messages.** research.md §1 places the first message at 0x19FCC (191
-bytes, right after the five words of the points table) and the second right
-after it at 0x1A08C (275 bytes). Each is taken as one record with line
-breaks inside; `elder_message` splits it at LF, drops CR, trailing spaces
-and empty lines at the end. Whether the records really hold LF line breaks
-(rather than one record per line, as Keen 1's statue messages do) is not
-known without the files; a message made of several records would fail the
-check and show no window. Which level shows which message is in
-gameplay.md.
+**Elder messages.** The first message starts at 0x19FCC, right after the
+five words of the points table (500, 100, 200, 1000, 5000 at 0x19FC2), the
+second at 0x1A08C. As Keen 1's statue messages, every line is its own
+zero-terminated record, padded with spaces and ending in LF: 8 lines for
+the first message, 11 for the second. After the second comes `Press
+ENTER:` (no LF), the prompt, which is not part of a message.
+`elder_message_text` joins the line records from a message's start and
+stops before a record without LF, a record that is not printable text, or
+the other message's start; `elder_message` then splits at LF and drops CR,
+trailing spaces and empty lines at the end. Which level shows which
+message is in gameplay.md.
 
 **Version.** `version` is "1.31" when the packed file is 58,335 bytes, or when
 the unpacked image is 118,672 bytes or 118,672 − 512; "1.00" for 118,626 or
-118,626 − 512; otherwise "unknown". Commander Genius's sizes include a header
-(for Keen 1 v1.1 its 100,274 is our 99,762 + 512), so the second reading is
-the likely one. Nothing depends on the version: the content search works for
+118,626 − 512; otherwise "unknown". Commander Genius's sizes include a
+512-byte header: version 1.31's file is 58,335 bytes and its unpacked image
+118,160 bytes. Nothing depends on the version: the content search works for
 any.
 
 **Failures.** Every finder returns −1 or an empty value when a piece is
@@ -112,26 +113,30 @@ missing; the accessors (`sounds()`, `text()`, …) also say so with
 - `godot --path . -- --game=2` (with or without `--level=N`) skips the start
   screen and opens the Keen 2 scene.
 
-## Not yet checked (needs the real files)
+## Checked with the real files (B5.1, version 1.31)
 
-- The tile count (689) and sprite count (134), and that `EGAHEAD.CK2` uses
-  the standard layout.
-- The size of `KEEN2.EXE` and of its unpacked image, so the version table can
-  be fixed (research.md open question 1), and whether version 1.00 is
-  LZEXE-packed too.
-- That the sound block is at 0x12730, holds 42 entries, and that `EARTHPOW`
-  is the only new name (open question 3).
-- That the four text blocks end in 0x1A and are at the positions above, what
-  the previews text is for (open question 9).
-- The city names, especially the 9-character one for level 16 (open
-  question 6), and their lengths.
-- The tile properties at 0x17828: behaviour values 22-26, floor types, the
-  tile numbers of items and switches (open question 4).
-- The Vorticon Elder messages (B5): that they are at 0x19FCC and 0x1A08C,
-  one record each with LF line breaks, and which levels show them. The
-  three ending texts (positions in research.md §1) are not read yet; they
-  follow in a later milestone (`Keen2Texts`).
-- The sound block's name for the Earth exploding (`EARTHPOW`, compared
-  without case and with any suffix by `Keen2Sounds`).
-- The level contents: info values, bridges, the Elder levels (open questions
-  5, 7, 8, 10).
+- `KEEN2.EXE`: 58,335 bytes, LZEXE-packed; the unpacked image is 118,160
+  bytes (118,672 − 512). Version 1.00 was not available.
+- `EGAHEAD.CK2`: standard layout, 689 tiles, 134 sprites, 18 bitmaps (the
+  third high score bitmap is called `SAVED`). The sprite names and
+  collision boxes are in research.md §5.
+- Sound block at 0x12730: 12,554 bytes (it ends at 0x1583A, just before
+  the end text), 63 entries, 42 with a name: Keen 1's 41 and `EARTHPOW`.
+- The four text blocks are at their known positions and end in 0x1A. The
+  end text starts with `TO BE CONTINUED...` and ends `THE END (for
+  now...)`; the previews text is the "PREVIEWS!" page; the story starts
+  `COMMANDER KEEN in`.
+- City names at 0x199AB: London, Cairo, Sydney, New York, Paris, Rome,
+  Moscow, Wash D.C. (the lengths agree with Commander Genius).
+- The status box text (0x1991C) is several records, one per line, like the
+  Elder messages: `SCORE` / `EXTRA KEEN AT`, `KEENS` / `PISTOL`, `TARGETS
+  SAVED` / `KEYS`, `PLEASE PRESS A KEY`.
+- The ending texts follow the Elder messages as line records (ending part 1
+  at 0x1A1A1, part 2, `finale.ck2`, part 3's pages), then `TO BE
+  CONTINUED....` at 0x1A434.
+- Tile properties at 0x17828: no floor types (no ice), behaviours 22-26 as
+  in research.md §3; the tile numbers are listed there.
+- The levels: research.md, "Checked with the real files".
+
+Not checked: version 1.00 (its sizes and offsets), and the exact layout of
+the status box and ending records (B6 reads them).

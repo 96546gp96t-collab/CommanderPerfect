@@ -50,10 +50,11 @@ const INFO_GUARD_ROBOT := 5
 const INFO_PLATFORM := 6
 ## The spark of a Tantalus Ray machine.
 const INFO_SPARK := 7
-## An Elder speaks only with this tile (its light) right below the touched
-## tile; afterwards the light goes out.
-const ELDER_LIGHT := 429  # from Commander Genius, check with the real files
-const ELDER_LIGHT_OFF := 182  # from Commander Genius, check with the real files
+## An Elder speaks only with this tile (its light: the glowing blue floor,
+## 429-432) right below the touched tile, as under tile 559 in levels 8 and
+## 10; afterwards the light goes out and the floor is plain blue (182).
+const ELDER_LIGHT := 429
+const ELDER_LIGHT_OFF := 182  # estimate: Commander Genius's choice; the picture fits
 ## Commander Genius lets the enemies' shots hit other enemies; whether the
 ## original does is not known (docs/keen2/research.md section 5).
 const ENEMY_SHOTS_HURT_ENEMIES := true  # estimate

@@ -20,9 +20,11 @@ const BEHAVIOR_SWITCH_DOWN := 26
 const SWITCH_BEHAVIORS: PackedInt32Array = [
 	BEHAVIOR_LIGHT_SWITCH, BEHAVIOR_SWITCH_UP, BEHAVIOR_SWITCH_DOWN
 ]
-## The lever, up and down; a press turns one into the other.
-const LEVER_UP := 480  # from Commander Genius, check with the real files
-const LEVER_DOWN := 493  # from Commander Genius, check with the real files
+## The lever, up and down; a press turns one into the other. In KEEN2.EXE
+## 480 has behaviour 25 and 493 behaviour 26; every lever in the levels
+## starts as 480.
+const LEVER_UP := 480
+const LEVER_DOWN := 493
 ## Pixels between the points that are checked for a switch.
 const SEARCH_STEP := 8.0
 ## The two bytes of a bridge's info value: the low one is the column

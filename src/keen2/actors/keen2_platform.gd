@@ -7,9 +7,9 @@ extends Keen2Carrier
 
 const SPRITE_FIRST := 126
 const FRAMES := 2
-## The collision box inside the sprite. estimate: to be read from the sprite
-## table of EGAHEAD.CK2.
-const BODY_BOX := Rect2(0, 0, 32, 8)  # estimate
+## The collision box inside the sprite, from the sprite table of
+## EGAHEAD.CK2.
+const BODY_BOX := Rect2(0, 0, 32, 16)
 ## The level places it this far above the top of its cell.
 const RAISE := 4.0
 

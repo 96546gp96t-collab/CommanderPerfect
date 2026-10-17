@@ -11,13 +11,15 @@ extends RefCounted
 ##              leaves empty space (tile 155) behind, but not on the Earth; step 5 throws ten small
 ##              chunks (68/70) every way, steps 6-8 one more each; step 10
 ##              four big chunks (64/66) fly off diagonally and the Earth's
-##              4x4 tiles at (47, 21) become the wreck (tile 561); after
+##              3x3 tiles at (47, 22) become the wreck (tile 561); after
 ##              step 32 the scene is over ([member finished])
 ## The numbers come from Commander Genius; check them in the original.
 ## Where we differ: Commander Genius sends all ten chunks of step 5 the
 ## same way (a slip); here they fly apart. The explosions burst around the
 ## middle of the Earth, not around the end of the beam: with Commander
-## Genius's speeds the beam ends about six tiles below the Earth.
+## Genius's speeds the beam ends about four tiles below the Earth's middle.
+## Commander Genius also blanks 4x4 tiles from (47, 21); the Earth in
+## LEVEL81.CK2 is 3x3 tiles, the rest is black space anyway.
 
 ## A tile of the map changed; every change goes through here, so that the
 ## pictures (original, xBRZ, HD) change per cell.
@@ -36,12 +38,14 @@ const BEAM_SPRITES: PackedInt32Array = [58, 59]
 const BEAM_FRAME_TICKS := 1
 ## The beam stops when it reaches this column.
 const TARGET_COLUMN := 47  # estimate
-## The Earth: 4x4 tiles, and what is left of it.
-const EARTH_CELL := Vector2i(47, 21)  # from Commander Genius, check with the real files
-const EARTH_SIZE := 4
-const WRECKED_EARTH := 561  # from Commander Genius, check with the real files
-## What an explosion leaves behind.
-const SPACE_TILE := 155  # from Commander Genius, check with the real files
+## The Earth in LEVEL81.CK2: 3x3 tiles (572-574, 585-587, 598-600).
+const EARTH_CELL := Vector2i(47, 22)
+const EARTH_SIZE := 3
+## What is left of the Earth: a black tile. estimate: Commander Genius's
+## choice; the picture fits.
+const WRECKED_EARTH := 561  # estimate
+## What an explosion leaves behind: the empty space of map 81.
+const SPACE_TILE := 155
 const STEP_TICKS := 6  # estimate
 const LAST_STEP := 32  # estimate
 const EXPLOSION_STEPS := 16  # estimate
@@ -50,7 +54,7 @@ const EXPLOSION_FRAME_TICKS := 6  # estimate
 ## How far from the middle of the Earth an explosion bursts, in pixels.
 const EXPLOSION_SPREAD := 32  # estimate
 ## Half the size of an explosion's picture: it bursts around its middle.
-const EXPLOSION_HALF_SIZE := Vector2(8, 8)  # estimate
+const EXPLOSION_HALF_SIZE := Vector2(8, 8)
 const SMALL_BURST_STEP := 5
 const SMALL_BURST_COUNT := 10
 const SINGLE_CHUNK_STEPS: PackedInt32Array = [6, 7, 8]

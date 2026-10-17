@@ -26,9 +26,9 @@ const SPRITE_JUMP_LEFT := 84
 const SPRITE_JUMP_RIGHT := 85
 const SPRITE_DYING := 86
 const SPRITE_DEAD := 87
-## The collision box inside the sprite. estimate: Keen 1's Vorticon; to be
-## read from the sprite table of EGAHEAD.CK2.
-const BODY_BOX := Rect2(2, 1, 20, 31)  # estimate
+## The collision box inside the sprite, from the sprite table of
+## EGAHEAD.CK2.
+const BODY_BOX := Rect2(2, 1, 20, 31)
 
 const HEALTH := 1  # estimate
 const WALK_SPEED := 28 * Keen2Enemy.SUBPIXEL  # estimate

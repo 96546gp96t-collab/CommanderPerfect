@@ -12,29 +12,33 @@ extends RefCounted
 ##   4 steps      the glowing columns mx+3 .. mx+6 (rows my+3 .. my+5) go dark,
 ##                with splashes
 ##   last         the targeting display (mx-7 .. mx-5, my+2 .. my+4) stops
-## All tile numbers come from Commander Genius; check them with the real
-## files. All points of the machine are here, in one place.
+## The positions fit every machine in the levels (the spark's cell is (66,
+## 14), (126, 14) or (46, 14), the switch always at (mx-3, my+4)). The new
+## tile numbers come from Commander Genius; their pictures fit (broken
+## glass, a broken lever, a burnt tube, a dark lamp, a gray display), but
+## whether the original uses exactly these is still to be seen. All points
+## of the machine are here, in one place.
 
-## Tiles of the broken glass, from mx-2 to mx+2. From Commander Genius,
-## check with the real files.
-const BROKEN_GLASS: PackedInt32Array = [492, 546, 547, 548, 492]
+## Tiles of the broken glass, from mx-2 to mx+2. estimate: Commander
+## Genius's numbers.
+const BROKEN_GLASS: PackedInt32Array = [492, 546, 547, 548, 492]  # estimate
 const GLASS_LEFT := -2
 const DOME_ROW := -1
 const DOME_HALF_WIDTH := 1
 ## The dome leaves the gray background.
 const EMPTY_TILE := LevelSession.BACKGROUND_TILE
 const SWITCH_OFFSET := Vector2i(-3, 4)
-const BROKEN_SWITCH := 506  # from Commander Genius, check with the real files
+const BROKEN_SWITCH := 506  # estimate
 const PURPLE_OFFSET := Vector2i(0, 3)
 const PURPLE_STEPS := 3
-const BURNT_PURPLE := 505  # from Commander Genius, check with the real files
+const BURNT_PURPLE := 505  # estimate
 const GLOW_OFFSET := Vector2i(3, 3)
 const GLOW_STEPS := 4
 const GLOW_ROWS := 3
-const DARK_GLOW := 549  # from Commander Genius, check with the real files
+const DARK_GLOW := 549  # estimate
 const DISPLAY_OFFSET := Vector2i(-7, 2)
 const DISPLAY_SIZE := 3
-const STILL_DISPLAY := 533  # from Commander Genius, check with the real files
+const STILL_DISPLAY := 533  # estimate
 const STEP_TICKS := 26  # estimate
 ## Points for each purple part. Commander Genius gives them three times
 ## (30,000 in all); the original may give 10,000 once.

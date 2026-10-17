@@ -13,9 +13,12 @@ const SPRITE_RUN_RIGHT := 52
 const RUN_FRAMES := 4
 const SPRITE_FRYING := 56
 const SPRITE_DEAD := 57
-## The collision box inside the sprite. estimate: to be read from the sprite
-## table of EGAHEAD.CK2.
-const BODY_BOX := Rect2(2, 2, 12, 14)  # estimate
+## The collision box inside the sprite: the box of the left-running frames
+## in EGAHEAD.CK2's sprite table. The right-running frames carry Keen 1's
+## Yorp box (4, 4, 8, 20), most likely left over; one box for both ways
+## also keeps a youth that turns at a wall out of it. estimate: whether the
+## original uses the other box when it runs right.
+const BODY_BOX := Rect2(1, 6, 14, 18)  # estimate
 
 const HEALTH := 1  # estimate
 const RUN_SPEED := 77 * Keen2Enemy.SUBPIXEL  # estimate

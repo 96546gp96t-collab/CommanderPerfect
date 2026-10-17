@@ -23,6 +23,8 @@ if command -v xvfb-run >/dev/null 2>&1; then
 	RUN="xvfb-run -a godot --rendering-driver opengl3 --fixed-fps 60"
 else
 	RUN="godot --fixed-fps 60"
+	# A new macOS window stays blank for a varying number of frames.
+	export WAIT_FOR_WINDOW=1
 fi
 
 shoot() {

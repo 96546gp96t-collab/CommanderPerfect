@@ -22,8 +22,10 @@ const CITY_NAMES_OFFSET := 0x199AB
 const TO_BE_CONTINUED_OFFSET := 0x1A434
 ## The two messages of the Vorticon Elders (version 1.31).
 const ELDER_MESSAGE_OFFSETS: PackedInt32Array = [0x19FCC, 0x1A08C]
-## An Elder message is one zero-terminated record of printable text and
-## line ends, at least this long.
+## An Elder message is a run of zero-terminated records of printable text,
+## one per line, each ending in a line feed (like Keen 1's statue messages),
+## at least this long in all. The record after the last line ("Press
+## ENTER:") has no line feed and is not part of the message.
 const MIN_ELDER_MESSAGE_SIZE := 32
 ## The tile property table in version 1.31 and 1.00.
 const TILE_TABLE_OFFSETS: PackedInt32Array = [0x17828, 0x17938]
@@ -43,15 +45,19 @@ const FONT_PICTURES_START := 0x80
 
 ## The cities, one zero-terminated string each, in the order of their
 ## levels (4, 6, 7, 9, 11, 13, 15, 16). The lengths come from Commander
-## Genius's string table; the names themselves are only in the file.
+## Genius's string table; the names themselves are only in the file
+## (version 1.31: London, Cairo, Sydney, New York, Paris, Rome, Moscow,
+## Wash D.C.).
 const CITY_COUNT := 8
 const CITY_NAME_LENGTHS: PackedInt32Array = [6, 5, 6, 8, 5, 4, 6, 9]
 const MAX_CITY_NAME_LENGTH := 16
+## Besides letters, a city name may hold these ("New York", "Wash D.C.").
+const CITY_NAME_MARKS := " ."
 const TO_BE_CONTINUED := "TO BE CONTINUED"
 
 ## Sizes that tell the version. Commander Genius gives the size of the
-## unpacked EXE; whether that includes a 512-byte header is not known
-## without the files, so both readings are accepted.
+## unpacked EXE including a 512-byte header (version 1.31's image is
+## 118,160 bytes); both readings are accepted.
 const UNPACKED_SIZES: Dictionary[String, int] = {"1.31": 118672, "1.00": 118626}
 const POSSIBLE_HEADER_SIZE := 512
 ## The size of the LZEXE-packed KEEN2.EXE 1.31 on disk.
@@ -159,17 +165,39 @@ func elder_message(index: int) -> PackedStringArray:
 	var start := find_elder_message(image, index)
 	if start < 0:
 		return PackedStringArray()
-	return message_lines(ExeStrings.record_at(image, start))
+	return message_lines(elder_message_text(image, start))
 
 
 ## Where Elder message [param index] starts in [param data], or -1. Only the
-## known position is tried, and only used when a whole printable record
+## known position is tried, and only used when a message of printable lines
 ## starts there.
 static func find_elder_message(data: PackedByteArray, index: int) -> int:
 	if index < 0 or index >= ELDER_MESSAGE_OFFSETS.size():
 		return -1
 	var start := ELDER_MESSAGE_OFFSETS[index]
-	return start if _is_message_record(data, start) else -1
+	if start <= 0 or start >= data.size() or ExeStrings.is_printable(data[start - 1]):
+		return -1
+	return start if elder_message_text(data, start).length() >= MIN_ELDER_MESSAGE_SIZE else -1
+
+
+## The text of the Elder message from [param start]: its line records one
+## after the other. It ends before a record without a line feed, a record
+## that is not printable text, or the start of the other message.
+static func elder_message_text(data: PackedByteArray, start: int) -> String:
+	var text := ""
+	var position := start
+	while position < data.size():
+		var end := data.find(0, position)
+		if end < 0 or not _is_message_record(data, position, end):
+			break
+		var record := data.slice(position, end).get_string_from_ascii()
+		if not record.ends_with("\n"):
+			break
+		text += record
+		position = end + 1
+		if position in ELDER_MESSAGE_OFFSETS:
+			break
+	return text
 
 
 ## The lines of [param text]: split at the line ends, without carriage
@@ -266,15 +294,9 @@ static func _is_sound_block(data: PackedByteArray, start: int) -> bool:
 	)
 
 
-## Whether a zero-terminated record of printable text and line ends, at
-## least [constant MIN_ELDER_MESSAGE_SIZE] long, starts at [param start],
-## with no text running into it from before.
-static func _is_message_record(data: PackedByteArray, start: int) -> bool:
-	if start <= 0 or start >= data.size() or ExeStrings.is_printable(data[start - 1]):
-		return false
-	var end := data.find(0, start)
-	if end - start < MIN_ELDER_MESSAGE_SIZE:
-		return false
+## Whether the bytes from [param start] up to [param end] are printable
+## text and line ends.
+static func _is_message_record(data: PackedByteArray, start: int, end: int) -> bool:
 	for position in range(start, end):
 		var byte := data[position]
 		if not ExeStrings.is_printable(byte) and byte not in [CARRIAGE_RETURN, ExeStrings.NEWLINE]:
@@ -335,7 +357,7 @@ static func _looks_like_city(name: String) -> bool:
 		return false
 	for index in name.length():
 		var code := name.unicode_at(index)
-		if not _is_letter(code) and code != " ".unicode_at(0):
+		if not _is_letter(code) and not CITY_NAME_MARKS.contains(String.chr(code)):
 			return false
 	return true
 

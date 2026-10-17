@@ -25,9 +25,9 @@ const SPRITE_FIRST := 102
 const FRAMES := 2
 const SPRITE_SHOT := 110
 const SPRITE_DEAD := 111
-## The collision box inside the sprite. estimate: to be read from the sprite
-## table of EGAHEAD.CK2.
-const BODY_BOX := Rect2(0, 0, 16, 16)  # estimate
+## The collision box inside the sprite, from the sprite table of
+## EGAHEAD.CK2.
+const BODY_BOX := Rect2(0, 0, 16, 16)
 
 const SPEED := 25 * Keen2Enemy.SUBPIXEL  # estimate
 const FRAME_TICKS := 12  # estimate

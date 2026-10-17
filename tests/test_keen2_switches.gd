@@ -80,8 +80,15 @@ const ELDER_LEVEL: PackedStringArray = [
 ]
 const ELDER_CELL := Vector2i(4, 12)
 const SILENT_ELDER_CELL := Vector2i(10, 12)
-const ELDER_MESSAGE_1 := "You hear in your mind:\n\nIn the dark the Vorticons\ncannot jump!\n"
-const ELDER_MESSAGE_2 := "Hear:\r\n\r\nBeware the evil belts   \r\nof the Vorticons."
+## The Elder messages as KEEN2.EXE 1.31 holds them: one record per line,
+## each ending in a line feed; the prompt after them has none.
+const ELDER_MESSAGE_1: PackedStringArray = [
+	"You hear in your mind:\n", "\n", "In the dark the Vorticons\n", "cannot jump!   \n"
+]
+const ELDER_MESSAGE_2: PackedStringArray = [
+	"Hear:\r\n", "\r\n", "Beware the evil belts   \r\n", "of the Vorticons.\n"
+]
+const ELDER_PROMPT_RECORD := "Press ENTER:"
 const IMAGE_SIZE := 0x1A400
 const FILLER := 0x01
 
@@ -256,11 +263,24 @@ func test_elder_messages_are_found_at_their_known_places() -> void:
 		assert_equal(Keen2Executable.find_elder_message(image, index), expected, "%d" % index)
 	var first := executable.elder_message(0)
 	assert_equal(first[0], "You hear in your mind:", "first line")
-	assert_equal(first.size(), 4, "ending line breaks dropped")
+	assert_equal(first[3], "cannot jump!", "trailing spaces dropped")
+	assert_equal(first.size(), 4, "one line per record")
 	var second := executable.elder_message(1)
 	assert_equal(second[2], "Beware the evil belts", "carriage returns and spaces dropped")
+	assert_equal(second.size(), 4, "the prompt is not part of the message")
 	assert_equal(Keen2LevelPlay.elder_message_index(8), 0, "level 8 has the first")
 	assert_equal(Keen2LevelPlay.elder_message_index(10), 1, "another has the second")
+
+
+func test_first_elder_message_stops_where_the_second_starts() -> void:
+	var image := _image_with_messages()
+	var start := Keen2Executable.ELDER_MESSAGE_OFFSETS[0]
+	var padding := "".join(ELDER_MESSAGE_1).length() + ELDER_MESSAGE_1.size()
+	var gap := Keen2Executable.ELDER_MESSAGE_OFFSETS[1] - start - padding
+	_put_records(image, start + padding, ["x".repeat(gap - 2) + "\n"])
+	var first := Keen2Executable.from_image(image).elder_message(0)
+	assert_equal(first.size(), ELDER_MESSAGE_1.size() + 1, "the lines up to the second")
+	assert_equal(Keen2Executable.from_image(image).elder_message(1)[0], "Hear:", "second")
 
 
 func test_elder_messages_missing_or_damaged_are_not_found() -> void:
@@ -318,15 +338,27 @@ func _on_floor(box: Rect2, column: int) -> Vector2:
 
 func _image_with_messages() -> PackedByteArray:
 	var image := _filler(IMAGE_SIZE)
-	var messages: PackedStringArray = [ELDER_MESSAGE_1, ELDER_MESSAGE_2]
+	var messages: Array[PackedStringArray] = [ELDER_MESSAGE_1, ELDER_MESSAGE_2]
 	for index in messages.size():
 		var start := Keen2Executable.ELDER_MESSAGE_OFFSETS[index]
-		var bytes := messages[index].to_ascii_buffer()
+		image[start - 1] = 0
+		var records := messages[index].duplicate()
+		if index == messages.size() - 1:
+			records.append(ELDER_PROMPT_RECORD)
+		_put_records(image, start, records)
+	return image
+
+
+## Writes [param records] into [param image] from [param start], each
+## followed by a zero byte.
+func _put_records(image: PackedByteArray, start: int, records: PackedStringArray) -> void:
+	var position := start
+	for record in records:
+		var bytes := record.to_ascii_buffer()
 		bytes.append(0)
 		for offset in bytes.size():
-			image[start + offset] = bytes[offset]
-		image[start - 1] = 0
-	return image
+			image[position + offset] = bytes[offset]
+		position += bytes.size()
 
 
 func _filler(size: int) -> PackedByteArray:

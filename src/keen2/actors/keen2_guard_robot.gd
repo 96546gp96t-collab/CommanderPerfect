@@ -12,14 +12,16 @@ extends Keen2Enemy
 
 enum Mode { HOVERING, LOOKING }
 
-const SPRITE_HOVER_RIGHT := 112
-const SPRITE_HOVER_LEFT := 116
+## GUARDLEFT1-4 and GUARDRIGHT1-4 in EGAHEAD.CK2 (Commander Genius has
+## them the other way round).
+const SPRITE_HOVER_LEFT := 112
+const SPRITE_HOVER_RIGHT := 116
 const HOVER_FRAMES := 4
 const SPRITE_LOOK := 120
 const LOOK_FRAMES := 2
-## The collision box inside the sprite. estimate: Keen 1's tank robot; to
-## be read from the sprite table of EGAHEAD.CK2.
-const BODY_BOX := Rect2(0, 0, 16, 24)  # estimate
+## The collision box inside the sprite, from the sprite table of
+## EGAHEAD.CK2.
+const BODY_BOX := Rect2(0, 0, 16, 24)
 
 const SPEED := 31 * Keen2Enemy.SUBPIXEL  # estimate
 const HOVER_FRAME_TICKS := 7  # estimate

@@ -16,4 +16,8 @@ if [ -d game_data/keen1 ]; then
 	mkdir -p build/windows/game_data
 	cp -R game_data/keen1 build/windows/game_data/
 fi
+if [ -d game_data/keen2 ]; then
+	mkdir -p build/windows/game_data
+	cp -R game_data/keen2 build/windows/game_data/
+fi
 echo "Built build/windows/CommanderPerfect.exe"

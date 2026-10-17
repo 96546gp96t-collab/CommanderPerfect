@@ -10,9 +10,9 @@ extends Keen2Enemy
 const SPRITE_FIRST := 128
 const FRAMES := 4
 const FRAME_TICKS := 6  # estimate
-## The collision box inside the sprite. estimate: to be read from the sprite
-## table of EGAHEAD.CK2.
-const BODY_BOX := Rect2(0, 0, 16, 16)  # estimate
+## The collision box inside the sprite, from the sprite table of
+## EGAHEAD.CK2.
+const BODY_BOX := Rect2(2, 2, 12, 12)
 
 ## The machine falling apart, once the spark is shot; null before.
 var wreck: Keen2Tantalus

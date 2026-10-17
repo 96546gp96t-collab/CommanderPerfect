@@ -37,6 +37,7 @@ Voor een volgend deel: [docs/new-episode-guide.md](docs/new-episode-guide.md).
 | B3 | Een level spelen (Keen, items, deuren, uitgang) | ✅ Klaar en gecontroleerd door de architect (branch `milestone-b3-level`) |
 | B4 | Vijanden en meerijden (platforms, Scrubs) | ✅ Klaar en gecontroleerd door de architect (branch `milestone-b4-vijanden`) |
 | B5 | Schakelaars, bruggen, licht, de Tantalus-straal, de aarde ontploft | ✅ Klaar en gecontroleerd door de architect (branch `milestone-b5-tantalus`) |
+| B5.1 | B1-B5 controleren en repareren met de echte Keen 2-bestanden (v1.31) | 🔶 Gebouwd, in test bij de gebruiker (branch `milestone-b5.1-echte-data`) |
 | B6 | Wereldkaart, steden, statusscherm, het einde | ⬜ |
 | B7 | Geluid, menu's, opslaan, highscores | ⬜ |
 | B8 | Mooier maken (framerate, xBRZ, HD, achtergronden, builds) | ⬜ |
@@ -324,6 +325,68 @@ en de schattingen staan in `docs/keen2/gameplay.md`.
   zonder de machine te vernietigen (nu houdt niets hem tegen); 10.000 of
   30.000 punten; met de CG-snelheden eindigt de straal zo'n zes tiles
   onder de aarde (de explosies zitten daarom rond het midden van de aarde).
+
+## Mijlpaal B5.1: wat er nu is
+
+Op 17-10-2026 voor het eerst met echte Keen 2-bestanden (de eigen
+bestanden van de gebruiker, versie 1.31, in `game_data/keen2` en naast de
+app in `build/game_data/keen2`). Details in `docs/keen2/research.md`
+("Checked with the real files") en `docs/keen2/file-formats.md`.
+
+- **Klopte al:** versie 1.31 (58.335 bytes, beeld 118.160), 689 tiles, 134
+  sprites, 18 bitmaps, alle levels (1-16, 80, 81, 90), de vier teksten op
+  hun plek met 0x1A, het geluidsblok met `EARTHPOW`, de tile-tabel
+  (hendels 480/493 met gedrag 25/26, geen ijs), de regel 276/143 achter
+  items, de plek van de machine rond elke vonk (alle 8 steden), de
+  bruggen (offsets in levels 5, 13 en 16), map 81 met tile 593, de HUD
+  (175 en 190-193, dezelfde nummers als Keen 1), de botsingsvakken van
+  grunt, Elite, Scrub en Guard robot.
+- **Gerepareerd:**
+  - De stadsnamen werden niet gevonden: de achtste heet `Wash D.C.` (punt
+    toegestaan).
+  - De berichten van de oudste werden niet gevonden: in de EXE is elke
+    regel een eigen record (zoals bij de beelden van Keen 1), daarna
+    `Press ENTER:`. Nu worden de regels samengevoegd; de test gebruikt het
+    echte formaat.
+  - Guard robot: 112-115 is links en 116-119 rechts (CG had het
+    omgekeerd). Elite springen: 98 links, 99 rechts (was omgedraaid).
+  - Botsingsvakken uit `EGAHEAD.CK2`: platform 32x16 (was 32x8), vonk
+    (2,2,12,12) (was 16x16), youth (1,6,14,18) (was een gok). De
+    rechterframes van de youth hebben het Yorp-vak van Keen 1, vermoedelijk
+    een overblijfsel; we gebruiken het linkervak voor beide kanten
+    (*schatting*, anders loopt hij bij het omdraaien een muur in).
+  - De aarde op map 81 is 3x3 op (47,22), niet 4x4 op (47,21).
+  - Commentaren en `# estimate` bijgewerkt: wat de bestanden vastleggen
+    heeft geen `estimate` meer (spritenummers, vakken, 429, 480/493, 155,
+    de aarde); tiles die erin gezet worden (270, 182, het wrak, 561) houden
+    `estimate`, hun plaatjes passen wel.
+- **Vastgesteld:** de oudsten staan alleen in **levels 8 en 10** (tile 559
+  met 429 eronder); 375/376 hebben ook gedrag 22 maar zwijgen. 429-432 is
+  een gloeiende blauwe vloer (dodelijk volgens de tabel), 182 dezelfde
+  vloer zonder gloed. Wereldkaart: ingangen 1-16, 0x8001 en 0x8005, geen
+  teleporters en geen 20.
+- **Gespeeld** (met een wegwerp-stuurscript in de scratchpad): level 1, 4
+  (Londen: vonk kapotgeschoten, het wrak met de juiste tiles, 30.000
+  punten, de hendel doet daarna niets; de verkeerde hendel: schudden, de
+  straal, de aarde ontploft; licht uit/aan), 5 (de brug over het vuur), 8
+  (het bericht van de oudste, 8 regels) en 12 (platforms).
+- **Gereedschap (additief):** `tools/scripted_play.gd` kreeg
+  `WAIT_FOR_WINDOW=1`, omdat een nieuw macOS-venster een wisselend aantal
+  frames wit blijft; `tools/keen1_regression.sh` zet het aan zonder xvfb.
+  De buildscripts kopiëren `game_data/keen2` mee als die er is.
+- **Tests:** `test_keen2_data` slaagt nu en controleert ook stadsnamen,
+  berichten, spritenamen, vakken, hendels, iconen, de oudste-levels, de
+  machines en map 81.
+- **Keen 1-controle:** alle tests slagen, gdlint schoon, titel, level 1
+  (ook lopend) en kaart byte voor byte gelijk aan `main` (bf394ed, met de
+  nieuwe wachtstand); alleen `launcher.png` verschilt (het Keen 2-icoon, nu
+  met de echte data). Opgemerkt: `level1.png` en `level1_walk.png` zijn in
+  beide sets gelijk, dus het "lopen" in het regressiescript beweegt Keen 1
+  niet; dat was op `main` al zo.
+- **Nog open:** startlading van het straalgeweer (0, *schatting*; staat
+  alleen in de code van de EXE, dus naast het origineel leggen), versie
+  1.00, en alles wat alleen het origineel kan laten zien (research.md,
+  vragen 13-20).
 
 ## Mijlpaal 1: wat er nu is
 
@@ -746,23 +809,18 @@ Na de eerste eigen test van de gebruiker:
 
 Keen 2:
 
-1. **Voor de gebruiker:** zo mogelijk de Keen 2-bestanden regelen (zie
-   open beslissingen).
-2. Met echte Keen 2-bestanden: `test_keen2_data` draaien, de data viewer
-   met `-- --game=2` bekijken en de open punten in
-   `docs/keen2/file-formats.md` afvinken.
-3. Met echte Keen 2-bestanden een paar levels spelen: kloppen de items, deuren,
-   HUD-plaatjes en geluiden, en hoeveel ladingen heeft Keen bij de start?
-4. Met echte Keen 2-bestanden: de botsingsvakken van de vijanden uit de
-   spritetabel van `EGAHEAD.CK2` halen, en kijken of de Scrub netjes om
-   hoeken kruipt en de platforms op de goede hoogte zweven.
-5. Met echte Keen 2-bestanden: de tilenummers van brug, hendels, licht van
-   de oudste, de machine en de aarde nakijken, en de berichten van de
-   oudste in de data viewer zoeken.
-6. **Voor de gebruiker:** B2-B5 bekijken en zeggen of B6 mag beginnen.
-   B6 (wereldkaart, steden, statusscherm, het einde) komt op
-   `milestone-b6-kaart-einde`, vanaf `milestone-b5-tantalus`: een stad is gered
-   als het level klaar is; `all_machines_destroyed()` kan daarbij helpen.
+1. **Voor de gebruiker:** `build/CommanderPerfect.app` proberen met Keen 2
+   (B5.1): plaatjes, vijanden, schakelaars, bruggen, licht, de machine
+   kapotschieten, de verkeerde hendel. Daarna eventueel
+   `milestone-b5.1-echte-data` mergen.
+2. **Overleg over B6** (wereldkaart, steden, statusscherm, einde) en **B7**
+   (geluid, menu's, opslaan), zie `docs/keen2/roadmap.md`. B6 komt op
+   `milestone-b6-kaart-einde`, vanaf `milestone-b5.1-echte-data`. Wat de
+   bestanden er al over zeggen: ingangen 1-16 op de kaart, 0x8001/0x8005
+   blokkeren tot level 1/5 klaar is, de statusschermteksten zijn records
+   per regel, de iconen 414/424-427, de eindteksten op 0x1A1A1-0x1A447.
+3. De startlading van het straalgeweer en de punten van de machine (10.000
+   of 30.000) naast het origineel leggen (B10).
 
 Keen 1:
 

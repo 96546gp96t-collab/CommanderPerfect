@@ -162,6 +162,15 @@ death restarts the level, game over and Escape go back to the start screen
   explosion on Keen 1's map 81. The two suites are two more lines in
   `tests/run_tests.gd`; nothing else outside `src/keen2/` and the Keen 2
   tests changed.
+- *B5.1 (the real files):* `tests/test_keen2_data.gd` grew checks of the
+  facts the files settle (city names, Elder messages and levels, sprite
+  names and collision boxes, levers, icons, machines, map 81); the Elder
+  message tests in `test_keen2_switches` now use the real layout (one
+  record per line). Shared tools, additive only: `tools/scripted_play.gd`
+  got `WAIT_FOR_WINDOW=1` (off by default) because a new macOS window stays
+  white for a varying number of frames, `tools/keen1_regression.sh` sets it
+  when it runs without xvfb, and the build scripts copy `game_data/keen2`
+  next to the build when it exists (Keen 1's copy is unchanged).
 - Numbers that come from Commander Genius are marked *estimate* in the code,
   as for Keen 1, and listed at the bottom of the Keen 2 docs to check
   against the original (DOSBox) in B10.

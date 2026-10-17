@@ -21,13 +21,14 @@ const SPRITE_WALK_RIGHT := 92
 const WALK_FRAMES := 4
 const SPRITE_FIRE_LEFT := 96
 const SPRITE_FIRE_RIGHT := 97
-const SPRITE_JUMP_RIGHT := 98
-const SPRITE_JUMP_LEFT := 99
+## ELITEJUMPL and ELITEJUMPR in EGAHEAD.CK2.
+const SPRITE_JUMP_LEFT := 98
+const SPRITE_JUMP_RIGHT := 99
 const SPRITE_DYING := 100
 const SPRITE_DEAD := 101
-## The collision box inside the sprite. estimate: Keen 1's Vorticon; to be
-## read from the sprite table of EGAHEAD.CK2.
-const BODY_BOX := Rect2(2, 1, 20, 31)  # estimate
+## The collision box inside the sprite, from the sprite table of
+## EGAHEAD.CK2.
+const BODY_BOX := Rect2(2, 1, 20, 31)
 
 ## Commander Genius has 4 on normal, and an unused constant of 3.
 const HEALTH := 4  # estimate

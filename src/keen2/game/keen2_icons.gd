@@ -1,11 +1,12 @@
 class_name Keen2Icons
 extends RefCounted
 ## The tiles that the [Hud] draws for the raygun and the keycards in Keen 2.
-## Keen 1 has their numbers fixed ([StatusScreen]); Keen 2's are not known
-## for certain (Commander Genius draws 414 and 424-427 on its status screen,
-## docs/keen2/research.md section 6). So they are looked up in the tile
-## properties: the first tile that behaves as that item, which is the
-## picture Keen picks up in the levels.
+## Keen 1 has their numbers fixed ([StatusScreen]); here they are looked up
+## in the tile properties: the first tile that behaves as that item, which
+## is the picture Keen picks up in the levels, as Keen 1's HUD shows. In
+## version 1.31 these are 175 (raygun) and 190-193 (keycards), the same
+## numbers as Keen 1. The status screen has its own icons (414 and 424-427,
+## docs/keen2/research.md section 6).
 
 
 ## The raygun's tile, or -1 when no tile is a raygun.

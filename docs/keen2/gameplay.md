@@ -60,8 +60,8 @@ Everything goes by the tile's behaviour in the tile properties of
 | 24 | Keen 1's teleporter: nothing in Keen 2 |
 
 A picked-up item leaves tile 276 when its tile number is 305 or more,
-otherwise tile 143, as in Keen 1. Whether 276 is right for every Keen 2 item
-is uncertain (research.md §3).
+otherwise tile 143, as in Keen 1. The levels agree: the items 306-311 lie
+between 276 tiles, the others between 143 tiles.
 
 ## Enemies and the info layer
 
@@ -96,15 +96,21 @@ tick per tick, at most 104/32. Speeds are in pixels per tick.
 |---|---|---|---|---|
 | Grunt | Looks around (frames 82-83, 16 ticks each), then walks at 28/32 (74-77 left, 78-81 right, 5 ticks a frame), towards Keen if he is within 8 tiles sideways, away from a wall it stands against. Jumps at random (chance 20; 90-149/32 up; frames 84 left, 85 right) and looks around when it lands. At a wall it looks around; if it hit the last wall less than 160 ticks ago it is trapped and jumps (90/32 or 150/32). Walks off ledges. No jumping in the dark (`Keen2LevelSession.is_dark()`, false until B5). | deadly | 1 | frame 86 for 26 ticks, then 87; VORTSCREAM |
 | Youth | Runs at 77/32 (48-51 left, 52-55 right, 7 ticks a frame), starting left or right at random; turns at walls; runs off ledges. On the ground it hops (chance 100; at a wall chance 200), 80/32 or 200/32 up at random. | **stuns** Keen | 1 | frame 56 for 21 ticks, then 57; slides on at 20/32, 1/32 slower every 11 ticks; VORTSCREAM |
-| Elite | Walks at 31/32 (88-91 left, 92-95 right, 7 ticks a frame), turns at walls, walks off ledges. When Keen's feet are less than 2 tiles above or below its own it turns to him (9 times out of 10), and when he is also less than 6 tiles away sideways it charges at 62/32. On the ground, with the lights on: jumps (chance 15; 90-149/32; 98 right, 99 left), or, at least 26 ticks after its last shot, aims (chance 8): faces Keen 4 times out of 5, holds the raygun out (96 left, 97 right) for 23 ticks, fires (KEENFIRESND), holds it 21 more ticks. Trapped (a wall less than 150 ticks after the last) it jumps. | deadly | 4; the Guard robots' shots do not hurt it | frame 100 for 46 ticks, then 101; VORTSCREAM |
+| Elite | Walks at 31/32 (88-91 left, 92-95 right, 7 ticks a frame), turns at walls, walks off ledges. When Keen's feet are less than 2 tiles above or below its own it turns to him (9 times out of 10), and when he is also less than 6 tiles away sideways it charges at 62/32. On the ground, with the lights on: jumps (chance 15; 90-149/32; 98 left, 99 right), or, at least 26 ticks after its last shot, aims (chance 8): faces Keen 4 times out of 5, holds the raygun out (96 left, 97 right) for 23 ticks, fires (KEENFIRESND), holds it 21 more ticks. Trapped (a wall less than 150 ticks after the last) it jumps. | deadly | 4; the Guard robots' shots do not hurt it | frame 100 for 46 ticks, then 101; VORTSCREAM |
 | Scrub | Crawls at 25/32 along floors, walls and ceilings (two frames each, 12 ticks a frame: 102-103 left on a floor, 104-105 up a wall on its left, 106-107 right along a ceiling, 108-109 down a wall on its right). An inside corner turns it to the next way, an outside corner takes it round the edge; when that edge is not solid (a floor that is only solid on top) it falls (frame 102), and crawls left again where it lands. | harmless: Keen rides it; it pushes him aside | 1 | pops up (10/32) as frame 110, lies as 111; SHOTHIT |
-| Guard robot | Floats (never falls) at 31/32, starting to the right (112-115 right, 116-119 left, 7 ticks a frame). At a wall it looks around for 26 ticks (120-121, 5 ticks each) and goes back. Volleys: the first after 200 ticks, then after 31-199 ticks (counted from the last volley or look). It stops for 25 ticks, fires 4 shots 13 ticks apart while it floats on (TANKFIRE; it holds a shot back while it touches a wall), and stops 25 ticks again. Looking around ends a volley. Shots leave 5 pixels below its top, 4 pixels in front. | deadly | invincible; it stops Keen's shots | never |
+| Guard robot | Floats (never falls) at 31/32, starting to the right (112-115 left, 116-119 right, as `EGAHEAD.CK2` names them; 7 ticks a frame). At a wall it looks around for 26 ticks (120-121, 5 ticks each) and goes back. Volleys: the first after 200 ticks, then after 31-199 ticks (counted from the last volley or look). It stops for 25 ticks, fires 4 shots 13 ticks apart while it floats on (TANKFIRE; it holds a shot back while it touches a wall), and stops 25 ticks again. Looking around ends a volley. Shots leave 5 pixels below its top, 4 pixels in front. | deadly | invincible; it stops Keen's shots | never |
 | Platform | Floats sideways at 23/32, starting to the right (126-127, 16 ticks a frame). At a wall or the map edge it waits 51 ticks and goes back. Always awake. | harmless: Keen rides it | swallows every shot | never |
 
-The collision boxes inside the sprites are estimates until we can read
-`EGAHEAD.CK2`'s sprite table: Keen 1's Vorticon for the grunt and the
-Elite, 12x14 for the youth, 16x16 for the Scrub, Keen 1's tank for the
-Guard robot, 32x8 for the platform.
+The collision boxes inside the sprites come from `EGAHEAD.CK2`'s sprite
+table (it holds the last pixel inside the box, so a box is one pixel wider
+and higher than right − left and bottom − top): (2, 1, 20, 31) for the
+grunt and the Elite, (0, 0, 16, 16) for the Scrub, (0, 0, 16, 24) for the
+Guard robot, (0, 0, 32, 16) for the platform and (2, 2, 12, 12) for the
+spark. The youth's left-running frames have (1, 6, 14, 18), its
+right-running frames (4, 4, 8, 20), which is exactly Keen 1's Yorp box and
+most likely left over. We give the youth the left box both ways (an
+estimate): a box that changes with the direction would push a youth that
+turns at a wall into it.
 
 ### The stun (Vorticon youth)
 
@@ -223,11 +229,16 @@ again. Commander Genius notes that the original has behaviour 22 elsewhere,
 where nothing should happen. The session announces it
 (`elder_message_touched`), and `Keen2View` shows the message in a window
 like Keen 1's statues, with "Press ENTER:" below it unless the message says
-ENTER itself; the game waits until Enter closes it. Level 8 has the first
-message, every other level the second
-(`Keen2LevelPlay.FIRST_ELDER_MESSAGE_LEVEL`; Commander Genius has 8 and 10
-in its game code but 8 and 12 in its patcher). A message that is not found
-in `KEEN2.EXE` (file-formats.md) shows no window.
+ENTER itself; the game waits until Enter closes it. Only levels 8 and 10
+have an Elder: tile 559 (behaviour 22) with the light, tile 429, below it
+(checked in the level files; Commander Genius's game code agrees, its
+patcher's 8 and 12 does not). Tiles 375 and 376 also have behaviour 22,
+in many levels, but never with 429 below: those are the ones that must stay
+silent. Level 8 has the first message ("never jumps in the dark"), level 10
+the second (`Keen2LevelPlay.FIRST_ELDER_MESSAGE_LEVEL`; which is which is
+an estimate). The light 429-432 is a glowing blue floor (animated, and
+deadly by its behaviour); 182 is the same floor without the glow. A message
+that is not found in `KEEN2.EXE` (file-formats.md) shows no window.
 
 ## The Tantalus Ray machine
 
@@ -271,8 +282,8 @@ the pogo stick again. `Keen2View` then:
    Earth itself; step 5 throws ten small chunks (68 or 70, with the next
    sprite as second frame) in eight directions (20/32 and 10/32 pixels per
    tick), steps 6-8 one more each in a random direction; step 10 sends four
-   big chunks (64 or 66) off diagonally at 16/32 and turns the Earth's 4x4
-   tiles at (47, 21) into tile 561. After step 32 the scene ends. EARTHPOW
+   big chunks (64 or 66) off diagonally at 16/32 and turns the Earth's 3x3
+   tiles at (47, 22) into tile 561 (black). After step 32 the scene ends. EARTHPOW
    plays when the beam hits (our choice; Commander Genius plays none);
 3. shows GAME OVER (the `GAMEOVER` bitmap, or the text when there is none)
    with GAMEOVERSND, and after 4 seconds or a key the start screen (the
@@ -281,15 +292,20 @@ the pogo stick again. `Keen2View` then:
 Where we differ from Commander Genius: it shows a box "Uh-Oh" (its own
 text) and sends all ten chunks of step 5 the same way; ours shows no box
 and spreads them. Its explosions burst around the end of the beam, which
-with its speeds ends about six tiles below the Earth; ours burst around the
-middle of the Earth, and the view moves there once the beam has arrived.
+with its speeds ends about four tiles below the Earth's middle; ours burst
+around the middle of the Earth, and the view moves there once the beam has
+arrived. It also blanks 4x4 tiles from (47, 21); in `LEVEL81.CK2` the Earth
+is the 3x3 tiles at (47, 22) (572-574, 585-587, 598-600), the rest is black
+space anyway.
 
 ## The HUD (widescreen)
 
 Lives, score, raygun charges and keycards; no ship parts. The raygun and
 keycard icons are the first tile with that behaviour in the tile
-properties (`Keen2Icons`), because Keen 2's status screen tile numbers
-(414, 424-427 in Commander Genius) are not certain.
+properties (`Keen2Icons`): the pictures Keen picks up, as in Keen 1's HUD.
+In version 1.31 these are 175 and 190-193, the same numbers as Keen 1.
+The status screen's own icons, 414 (raygun) and 424-427 (keycards), are
+in the tile set too (B6).
 
 ## Not yet
 
@@ -299,7 +315,6 @@ Keen 1's pictures are never shown behind Keen 2's levels); two players (B9).
 ## Estimates to check against the original (B10)
 
 - Starting raygun charges: 0.
-- The background tile 276 for items from tile 305 on.
 - Enemies (B4), all from Commander Genius (research.md §5):
   - Chances: n + 1 in 1000 per tick for a chance of n.
   - Grunt: 1 HP; walk 28/32, 5 ticks a frame; look 2 x 16 ticks; jump
@@ -327,19 +342,18 @@ Keen 1's pictures are never shown behind Keen 2's levels); two players (B9).
   - Riding: feet up to 8 pixels below a carrier's top count as on it.
   - Enemy shots: 108/32; they hurt other enemies
     (`ENEMY_SHOTS_HURT_ENEMIES`).
-  - The collision boxes of all enemies (`EGAHEAD.CK2`'s sprite table).
-  - Sprites 84/85: VORTJUMPL/VORTJUMPR as Chocolate Keen names them (CG has
-    them the other way round).
+  - The youth's collision box: the left frames' box both ways.
 - Switches and the Tantalus Ray (B5), from Commander Genius unless noted:
-  - The tile numbers 270 (bridge), 480/493 (lever), 429/182 (Elder's light),
-    492, 505, 506, 533, 546-549 (the machine's wreck), 155 and 561 (map 81)
-    and the Earth at (47, 21).
+  - The tile numbers that are put in: 270 (bridge), 182 (Elder's light
+    off), 492, 505, 506, 533, 546-549 (the machine's wreck) and 561 (the
+    Earth gone). Their pictures fit; that the original uses exactly these
+    is Commander Genius's word.
   - Switch search: 8-pixel steps from the lowest row inside Keen's box.
   - Bridge: a tile every 4 ticks, the first after 4 ticks.
   - Darkness: the picture at 30 % (`DARK_BRIGHTNESS`); how the original
     looks is unknown.
-  - Elder messages: level 8 the first, other levels the second.
-  - Spark: 6 ticks a frame; a 16x16 box. Only Keen's shots destroy it.
+  - Elder messages: level 8 the first, level 10 the second.
+  - Spark: 6 ticks a frame. Only Keen's shots destroy it.
   - Machine wreck: 26 ticks a step; 10,000 points three times (CG; maybe
     10,000 once in the original).
   - Shake: 2 seconds, 2 pixels.
@@ -382,3 +396,20 @@ Keen 1's pictures are never shown behind Keen 2's levels); two players (B9).
   `fire_tantalus_ray()`. With the stand-in data the bridge is Keen 1's tile
   270 (a gray girder), and the beam, explosions and chunks show Keen 1's
   pictures for those sprite numbers.
+
+## Testing with Keen 2's files (B5.1)
+
+With the player's own files in `game_data/keen2`, `tests/test_keen2_data.gd`
+also checks the city names, the Elder messages, the sprite names of the
+enemies, the collision boxes against the sprite table, the levers' and
+icons' tiles, that only levels 8 and 10 have an Elder, that every city has
+one machine with its lever at (mx-3, my+4), and the Earth and the ship's
+tile on map 81. Played by hand (with a throwaway driver script that puts
+Keen next to things): level 1, 4 (London: the spark shot, the machine
+falling apart, 30,000 points, the dead lever, the wrong lever and the
+Earth exploding, the lights), 5 (the bridge over the fire), 8 (the Elder's
+message) and 12 (platforms).
+
+On macOS a new window can stay white for a varying number of frames, so
+`tools/scripted_play.gd` has `WAIT_FOR_WINDOW=1`: it loads the scene and
+counts frames only once the window shows a picture.

@@ -92,7 +92,7 @@ noted). The layout is consistent: each block ends where the next begins.
 | Raw offset | Contents |
 |---|---|
 | 0x11780 | ANSI quit screen (80x25x2 = 4000 bytes → ends 0x12720) |
-| 0x12730 – 0x14BDA | Sound block, 9,386 bytes (CG `CAudioVorticon.cpp:49-50`) |
+| 0x12730 – 0x15839 | Sound block, 12,554 bytes (checked; CG `CAudioVorticon.cpp:49-50` says 9,386) |
 | 0x15840 | End text |
 | 0x15BC0 | Help text (CG says 0x15DC0) |
 | 0x163A0 | Previews text |
@@ -213,8 +213,8 @@ See the table in section 1. Notes:
   statues): two messages, keys `EP2_VE_NOJUMPINDARK` and `EP2_VE_EVILBELTS`.
   CG's game code puts them in **levels 8 and 10** (`CPlayerItems.cpp:299-306`),
   but CG's patcher says **levels 8 and 12** (`fileio/CPatcher.cpp:347-353`).
-  **uncertain, check in the level files** (find the tile 429 under a
-  behaviour-22 tile).
+  **Checked (B5.1): levels 8 and 10** (tile 559 with 429 below, only
+  there).
 - The ending texts are three parts. Part 3 has four pages. There is a `TO BE
   CONTINUED....` record, but CG's ep2 ending does not show it.
 - **Status box**: one record of 110 bytes, plus the eight city names as
@@ -224,8 +224,10 @@ See the table in section 1. Notes:
   after the levels (`EP2_LVL4/6/7/9/11/13/15/16_TargetName`). The string
   lengths 6,5,6,8,5,4,6,9 fit those names, so the city ↔ level mapping is
   **4 London, 6 Cairo, 7 Sydney, 9 New York, 11 Paris, 13 Rome, 15 Moscow,
-  16 Washington**. The order and lengths are certain (CG); the city names
-  themselves are uncertain (memory plus lengths), so read them from the EXE.
+  16 Washington**. The order and lengths are certain (CG). **Checked
+  (B5.1):** the strings are `London`, `Cairo`, `Sydney`, `New York`,
+  `Paris`, `Rome`, `Moscow`, `Wash D.C.`, and exactly levels 4, 6, 7, 9,
+  11, 13, 15 and 16 have a spark.
 - **High score texts**: the bitmap for the third column is `SAVED` in CG's
   fallback names (`CEGALatch.cpp:79-85`) and `CITIESSA` in Choco's enum.
   Either way, the name comes from `EGAHEAD.CK2`. The default names and
@@ -296,8 +298,12 @@ Sprite numbers: Choco's enum (the `EGAHEAD.CK2` names, **134 sprites,
 
 Discrepancy: CG uses 84 = Vorticon jump **right**, 85 = jump **left**
 (`ai/CVorticon.h` `VORT2_JUMP_RIGHT_FRAME 84`), but Choco's names are
-`VORTJUMPL` (84), `VORTJUMPR` (85). Use the names from `EGAHEAD.CK2`.
-uncertain.
+`VORTJUMPL` (84), `VORTJUMPR` (85). **Checked (B5.1):** `EGAHEAD.CK2` names
+them `GRUNTJUMPL` (84) and `GRUNTJUMPR` (85), as Choco. More from the real
+sprite table: the Guard robot is `GUARDLEFT1-4` at **112-115** and
+`GUARDRIGHT1-4` at **116-119** (the table above, from CG, has them the
+other way round); 98/99 are `ELITEJUMPL`/`ELITEJUMPR`; 31 is `KEENMELT`;
+the rest of the table above is right.
 
 The general rules match Keen 1: enemies wake up when seen (CG
 `CVorticonSpriteObject.cpp:101-157`); platforms are always active; enemies in
@@ -632,9 +638,102 @@ parts, ankh, and the Vorticon commander (ep2's info 3 is the Elite).
 
 ---
 
+## Checked with the real files (B5.1)
+
+The player's own files, version 1.31 (`KEEN2.EXE` 58,335 bytes). Details of
+the EXE pieces are in [file-formats.md](file-formats.md).
+
+**Tiles** (behaviour from the table at 0x17828, picture from `EGALATCH.CK2`):
+
+| Tiles | What |
+|---|---|
+| 143, 276 | The two backgrounds that items leave behind (items 306-311 lie on 276, the others on 143) |
+| 155 | Empty space on map 81 |
+| 159 | Exit (17) |
+| 173-174, 195-196, 197-198, 199-200 | Doors yellow, red, green, blue (2-5) |
+| 175, 311 | Raygun (15); 176 pogo (16), placed in no level |
+| 182 | A plain blue floor block, solid (common in many levels) |
+| 190-193 | Keycards (18-21); 201-205 and 306-310 points (6-10) |
+| 270 | A gray girder, solid on every side (the bridge in CG); in no level |
+| 271 | Light switch panel (23) |
+| 375, 376 | Behaviour 22 without anything below that speaks: the silent ones |
+| 414, 424-427 | Status screen icons: raygun and keycards |
+| 429-432 | The glowing blue floor (4 frames, behaviour 1 = deadly), under the Elder |
+| 464 | The tile under every spark (the dome's middle) |
+| 480 / 493 | Lever, behaviours 25 / 26; every lever in the levels is 480 |
+| 481-484, 494-497 | Animated, behaviour 24 (Keen 1's teleporter value; nothing in Keen 2) |
+| 492, 505, 506, 533, 546-549 | Broken sparkers, burnt tube, broken lever, display static, broken dome, dark lamp: CG's wreck tiles; the pictures fit |
+| 559 | Behaviour 22, the Elder's tile (levels 8 and 10 only) |
+| 561 | Black: what is left of the Earth |
+| 572-574, 585-587, 598-600 | The Earth on map 81 |
+| 575-581, 589-594 | The Vorticon mothership on map 81; 593 is one of its tiles |
+
+No tile has a floor type (no ice or slippery floors). Tiles 371-373 are
+masked foreground (−2) and solid on every side, the kind CG's "tile bug"
+workaround turns into plain tiles; sprites cannot overlap them anyway.
+
+**Levels:**
+
+- Info values 1-7 as in section 4. Level 1: 4 Scrubs. Platforms (6) in
+  levels 2, 11, 12 (six), 13, 15 and 16. The bottom border row of level 2
+  holds stray values from 0x8F up; they make no enemy.
+- Sparks: (66, 14) in levels 4, 6, 7, 11, 15 and 16, (126, 14) in level 9,
+  (46, 14) in level 13; the lever is always at (mx−3, my+4), and the dome,
+  glass, tubes, lamps and display are where CG's tile sequence expects
+  them.
+- Bridges: level 5 (15, 41) 0xFE04 (4 right, 2 up: over the fire pit),
+  level 13 (76, 17) 0x01FC (4 left, 1 down), level 16 (7, 34) 0xFA04 and
+  (58, 34) 0x00FA (6 left, same row: a value under 0x100 at a switch).
+- Light switches: level 4 (3, 8), 13 (67, 21), 15 (47, 8), 16 (35, 4),
+  (44, 12), (6, 31), (6, 40).
+- The Elders: level 8 (58, 52) and level 10 (57, 55), tile 559 with 429
+  below.
+- World map 80: entrances 1-16 (four cells each), 0x8001 and 0x8005 (two
+  cells each), Keen's start 255; no 20 and no teleporter values.
+- Map 81: the Earth is 3x3 at (47, 22); tile 593 is at (6, 5); the
+  mothership's tiles at (1-7, 4-5).
+
+**Sprites** (`EGAHEAD.CK2`): the names agree with section 5 except the
+Guard robot (112-115 left, 116-119 right) and 31 (`KEENMELT`). Collision
+boxes (left, top, right, bottom; the table holds the last pixel inside):
+
+| Sprites | Box |
+|---|---|
+| Keen 0-31 | 4, 1, 11, 23 (pogo 4, 0, 11, 23; dead 4, 4, 11, 15), as Keen 1 |
+| Youth left 48-51 | 1, 6, 14, 23 |
+| Youth right 52-57 | 4, 4, 11, 23: Keen 1's Yorp box, most likely left over |
+| Grunt, Elite 74-101 | 2, 1, 21, 31 (Keen 1's Vorticon) |
+| Scrub 102-111 | 0, 0, 15, 15 |
+| Guard robot 112-121 | 0, 0, 15, 23 |
+| Platform 126-127 | 0, 0, 31, 15 |
+| Spark 128-131 | 2, 2, 13, 13 |
+| Shots 122-123 | 0, 0, 15, 7 |
+
 ## Open questions (need real KEEN2 files or the original game)
 
-**Answerable from the files** (`KEEN2.EXE`, `*.CK2`):
+**Answered in B5.1 with the player's own files (version 1.31):**
+
+1. v1.31: 58,335 bytes LZEXE-packed, image 118,160 bytes (CG's 118,672
+   includes the 512-byte header). **v1.00: still open** (not available).
+2. The player's files are v1.31. Which version Steam and GOG ship: still
+   open.
+3. Sound block at 0x12730, 12,554 bytes, 63 entries, 42 names; `EARTHPOW`
+   is the only new one. v1.00's offset: still open.
+4. See the tile table above. No floor types.
+5. Levels 8 and 10.
+6. London, Cairo, Sydney, New York, Paris, Rome, Moscow, `Wash D.C.`
+7. See "World map 80" above. The done-sign tiles (77-81?) are left for B6.
+8. See "Bridges" above; the offsets fit the encoding.
+9. All four blocks end in 0x1A at the 1.31 positions (help at 0x15BC0).
+   The previews text is the "PREVIEWS!" page; where the original shows it
+   (a menu item) is left for B7.
+10. Tile 593 at (6, 5), part of the mothership; the Earth is 3x3 at
+    (47, 22), not 4x4 at (47, 21); 561 is black.
+11. **Still open**: CG reads it from code, which we do not read; watch the
+    original.
+12. 84 `GRUNTJUMPL`, 85 `GRUNTJUMPR`.
+
+**Answerable from the files** (the original list, kept for reference):
 
 1. Exact size of KEEN2.EXE v1.00 and whether it is LZEXE-packed; the image
    size after unpacking (is CG's 118,672 = 512 + image?).

@@ -27,9 +27,9 @@ enum State { PLAYING, GAME_OVER, FINISHED, EARTH_EXPLODED }
 
 const LEVEL_OPTION := GameLaunch.LEVEL_OPTION
 ## The level whose Vorticon Elder has the first of the two messages; every
-## other Elder has the second. Commander Genius's game code puts them in
-## levels 8 and 10, its patcher in 8 and 12 (docs/keen2/research.md
-## section 3): to check in the level files.
+## other Elder has the second. Only levels 8 and 10 have an Elder (tile 559
+## with its light below), as in Commander Genius's game code. estimate:
+## that level 8 has the first message ("never jumps in the dark").
 const FIRST_ELDER_MESSAGE_LEVEL := 8  # estimate
 
 var files: GameFiles
