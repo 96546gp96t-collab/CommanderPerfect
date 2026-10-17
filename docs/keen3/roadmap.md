@@ -36,7 +36,7 @@ Afspraken:
 
 Na C7 is Keen 3 van begin tot eind uit te spelen. C8 en C9 maken het af en
 mooi, C10 voegt co-op toe en C11 werkt de laatste punten naast het origineel
-af.
+af. C12 werkt daarna Keen 1 en 2 bij met wat we over het origineel leerden.
 
 ## C1. Onderzoek (`milestone-c1-onderzoek`)
 
@@ -162,7 +162,9 @@ Klaar als: je elk level zonder vijanden kunt uitspelen en de ankh werkt.
 - Level 16: de berichten van Mortimer bij binnenkomst (met het geluid
   MORTIMER), de **Mangling Machine** (zes vonken, armen, benen met
   FOOTSLAM, het hart), de golven, het trillen van het scherm, de tiles die
-  veranderen (ook in xBRZ en HD), en het einde van het level.
+  veranderen (ook in xBRZ en HD), en het einde van het level. De randflits
+  van het origineel bij een geraakte vonk of het hart wordt een korte flits
+  van de rand rond het 4:3-beeld (besluit van de gebruiker).
 - Het einde: map 81 met de vier pagina's, de flitsen, `FINALE.CK3` met "The
   End... For now!", de eindtekst, de highscores.
 - Na deze mijlpaal kun je Keen 3 van begin tot eind uitspelen.
@@ -170,6 +172,11 @@ Klaar als: je elk level zonder vijanden kunt uitspelen en de ankh werkt.
 ## C8. Geluid, menu's en opslaan (`milestone-c8-geluid-menus`)
 
 - De geluiden uit `KEEN3.EXE`, ook ANKH, MEEP, MORTIMER en FOOTSLAM.
+- De geluidssnelheid van de gedeelde `SpeakerSynth` gaat van 140 Hz naar
+  **145,65 Hz** (1.193.182 / 8192), voor alle drie de delen (besluit van de
+  gebruiker, 17-10-2026; de enige bewuste wijziging aan Keen 1 en 2 in de
+  C-reeks). De Keen 1- en Keen 2-tests die op 140 Hz rekenen mogen
+  daarvoor mee veranderen; noem ze in de afwijkingen.
 - Titelscherm (map 90), hoofdmenu (de gedeelde menu-klassen), het verhaal,
   de highscores (alleen naam en score).
 - Opslaan en laden in `user://keen3/` (los van Keen 1 en 2); toetsen en
@@ -181,8 +188,8 @@ Klaar als: je elk level zonder vijanden kunt uitspelen en de ankh werkt.
 - Hogere framerate en xBRZ (gedeeld; nakijken), plaatjes achter levels in
   `assets/backgrounds/keen3/` (alleen eigen plaatjes), de builds voor macOS
   en Windows.
-- Real-ESRGAN: zoals bij Keen 2 overslaan, tenzij de gebruiker het anders
-  wil (open vraag).
+- Real-ESRGAN: overgeslagen, zoals bij Keen 2 (besluit van de gebruiker,
+  17-10-2026).
 
 ## C10. Co-op (`milestone-c10-coop`)
 
@@ -198,3 +205,17 @@ Klaar als: je elk level zonder vijanden kunt uitspelen en de ankh werkt.
   research.md, "Only the original can answer").
 - Het einde, de titel, de highscores en het statusscherm op de pixel
   nameten, zoals B10.
+
+## C12. Keen 1 en 2 bijwerken (`milestone-c12-keen1-keen2`)
+
+Na Keen 3, op verzoek van de gebruiker (17-10-2026). Hier mogen Keen 1 en
+Keen 2 wél veranderen.
+
+- De getallen uit [choco-keen1-keen2.md](choco-keen1-keen2.md) in Keen 1 en
+  Keen 2 verwerken: de natuurkunde (de te hoge sprongen, voor alle drie de
+  delen tegelijk), de verdoving, de Elite, de Guard robot, de vluchten en
+  teksten van het einde van Keen 2, "Keens Left", GAME OVER, de
+  titelschermen.
+- Per punt in js-dos nakijken (`tools/original/`).
+- De regressie-screenshots van Keen 1 en 2 krijgen dan een nieuwe
+  referentie.

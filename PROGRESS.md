@@ -64,6 +64,7 @@ over Keen 3 bekend is in [docs/keen3/research.md](docs/keen3/research.md).
 | C9 | Mooier maken (framerate, xBRZ, achtergronden, builds) | ⬜ |
 | C10 | Co-op lokaal en online | ⬜ |
 | C11 | Naast het origineel (wat nog geschat is) | ⬜ |
+| C12 | Keen 1 en 2 bijwerken met de getallen uit Chocolate Keen (ook de sprongen) | ⬜ |
 
 ## Mijlpaal C3: wat er nu is
 
@@ -1160,7 +1161,7 @@ het origineel. Details in `docs/world-map.md` onder "Extra levels".
 - **Keen 2: besluiten van de gebruiker (16-10-2026, B1).** Gedeelde code mag alleen toevoegingen krijgen met Keen 1 als standaard; Keen 1-code blijft onaangeroerd. Chocolate Keen mag als bron voor datatabellen (adressen, namen, groottes), nooit voor code met gedrag. De architect (deze sessie) stuurt een developer-subagent aan en controleert zijn werk.
 - **Keen 3: besluiten van de gebruiker (17-10-2026, C1).** Keen 1- en Keen 2-code blijven onaangeroerd; Keen 3 mag hun klassen gebruiken en er subklassen van maken. Branches `milestone-c<n>-<onderwerp>`. Uit Chocolate Keen mogen nu ook de feiten en getallen uit de gedragscode komen (gemarkeerd `(Choco)`), nooit de code zelf (`CLAUDE.md`). Versie 1.00 is goed genoeg; geen nieuwere versie nodig.
 - **Keen 3: besluiten van de architect (C1), te melden aan de gebruiker.** De lijst-van-spellen-asserties in `tests/test_launcher.gd` en `tests/test_keen2_files.gd` gaan van twee naar drie (zoals in B2); `GameLaunch.skips_launcher`/`scene_for`, de data viewer en `export_graphics.gd` kiezen uit drie spellen, met hetzelfde antwoord voor alles wat vroeger werkte. De bugs van versie 1.00 (level 10, level 13) blijven zoals ze zijn.
-- **Keen 3: open vragen aan de gebruiker (C1).** (1) Real-ESRGAN voor Keen 3: overslaan zoals bij Keen 2? (2) De geluidssnelheid: Chocolate Keen bevestigt 145,65 Hz voor alle delen; Keen 3 gebruikt de gedeelde speler (nu 140 Hz). Mag de gedeelde snelheid later voor alle drie omgezet worden (dat verandert Keen 1 en 2)? (3) Willen we later een aparte mijlpaal om Keen 1 en 2 bij te werken met de getallen uit Chocolate Keen (`docs/keen3/choco-keen1-keen2.md`)? (4) De randflits van het origineel bij een geraakte vonk/hart: nabootsen als flits van de rand rond het 4:3-beeld, of weglaten?
+- **Keen 3: antwoorden van de gebruiker op de vragen van C1 (17-10-2026).** (1) Real-ESRGAN voor Keen 3: overslaan, zoals bij Keen 2. (2) Geluidssnelheid: alle drie de delen naar 145,65 Hz (de gedeelde `SpeakerSynth`; verandert Keen 1 en 2 een klein beetje, goedgekeurd); gebeurt in C8. (3) Keen 1 en 2 bijwerken met de getallen uit Chocolate Keen: later, na Keen 3, in een eigen mijlpaal (C12), samen met de te hoge sprongen voor alle drie. (4) De randflits bij een geraakte vonk of het hart in level 16: als korte flits van de rand rond het 4:3-beeld (C7).
 - **Sprongen te hoog in Keen 1 en 2 (en dus ook Keen 3)** (gemeten door de gebruiker in een ander venster, 17-10-2026; nog niets aangepast). In het originele Keen 2 is de gewone sprong ~54-55 px (wij 58), de pogo zonder springknop 50 px (wij 58, een halve tile te hoog) en met springknop ~104 px (wij 109); de tijd van een stuit klopt. Chocolate Keen geeft dezelfde hoogtes (48 en 104 px, sprong 55,7 px), dus de oorzaak zit in onze natuurkunde-getallen (overgenomen van Commander Genius). Details: [docs/keen3/choco-keen1-keen2.md](docs/keen3/choco-keen1-keen2.md). Keuzes: (a) de gedeelde `src/keen/keen_physics.gd` aanpassen naar de getallen van Chocolate Keen, voor alle drie de delen (verandert Keen 1 en 2, mag alleen met toestemming); (b) eerst nog nauwkeuriger meten (de eerste hoge stuit, Keen 1 op een vrije plek); (c) alleen voor Keen 3 lager (`Keen3Body`), Keen 1 en 2 laten zoals ze zijn. **Beslissen vóór C3**, want daar gaat Keen 3 springen. *Besluit van de gebruiker (C3): de sprongen blijven voorlopig zoals ze zijn, later beslissen voor alle delen samen; Keen 3 gebruikt de gedeelde natuurkunde ongewijzigd.*
 - **Keen 2: de knop op het startscherm** (besluit van de gebruiker, 16-10-2026): lettertype en Keen-mannetje komen altijd uit de Keen 2-data. Zonder die bestanden blijft de knop grijs met een gewoon lettertype (geen Keen 1-data als vervanging).
 - **Keen 2: speldata.** De gebruiker heeft Keen 2 op floppies maar geen floppylezer. Keen 2 is geen shareware en wordt nog verkocht, dus het wordt niet gedownload van onofficiële sites. Opties: de Complete Pack op Steam/GOG, of een USB-floppylezer. Tot dan: bouwen en testen met zelfgemaakte testdata; de suites met echte data slaan zich over, en de vragen die alleen de echte bestanden beantwoorden blijven open (research.md).
@@ -1181,14 +1182,13 @@ Keen 3:
 
 1. **Voor de gebruiker:** Keen 3 proberen in `build/` (Mac en Windows):
    level 1-16 spelen zonder vijanden, de ankh in level 3, 10 of 14.
-2. **Voor de gebruiker:** de open vragen van C1 (Open beslissingen).
-3. Daarna C4 (branch `milestone-c4-vijanden` vanaf `milestone-c3-level`),
+2. Daarna C4 (branch `milestone-c4-vijanden` vanaf `milestone-c3-level`),
    pas als de gebruiker dat vraagt: de vijanden in
    `Keen3LevelSession.create_enemy`, met `Keen3Body.is_protected()` voor de
    ankh en Keen 3's eigen verdoving. Klein punt voor C4: de iconen in de
    HUD (raygun, ankh, sleutelkaarten) houden de cyaan achtergrond van hun
    tile-rij; in `Keen3Hud` de achtergrondkleur van de rij weglaten.
-4. Controle bij C4: de regressies (`keen1_regression.sh`,
+3. Controle bij C4: de regressies (`keen1_regression.sh`,
    `keen2_regression.sh`) in een venster draaien, niet schermvullend; met
    `fullscreen=true` in de instellingen pakt de Keen 1-wandeling een ander
    beeld (geen echte wijziging, zie C3).
