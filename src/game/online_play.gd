@@ -40,6 +40,13 @@ const VIEW_EVERY_TICKS := 10
 
 ## The fingerprint of this player's levels ([LevelFingerprint]).
 var fingerprint := ""
+## The game played online ([constant OnlineProtocol.GAME_ID] for Keen 1):
+## only players and Steam lobbies of the same game meet.
+var game_id := OnlineProtocol.GAME_ID:
+	set = _set_game_id
+## (Host) the progress bits sent with every snapshot ([member
+## Snapshot.progress_bits]): Keen 2's saved cities; 0 for Keen 1.
+var progress_bits := 0
 ## The level files, to tell which tiles of a map differ from its file.
 var files: GameFiles
 ## Whether the ping may sound.
@@ -245,6 +252,12 @@ func client_tick(input: KeenInput, view: Rect2) -> Snapshot:
 	return _buffer.take()
 
 
+func _set_game_id(id: String) -> void:
+	game_id = id
+	session.game_id = id
+	steam.game_id = id
+
+
 ## Hosts by IP as [param player_name].
 func _host_by_ip(player_name: String, password: String) -> void:
 	_over_steam = false
@@ -339,10 +352,11 @@ func _original(number: int) -> LevelData:
 		return ShipLevels.build(number)
 	if files == null:
 		return null
-	return LevelData.parse(files.read(GameFiles.level_file_name(number)))
+	return LevelData.parse(files.read(files.level_file(number)))
 
 
 func _send_snapshot(snapshot: Snapshot) -> void:
+	snapshot.progress_bits = progress_bits
 	session.send(snapshot.to_message(), false)
 
 

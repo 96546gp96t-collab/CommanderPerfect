@@ -10,7 +10,8 @@ extends Keen2SpaceScreen
 ## name when the score is good enough. Saved games and the high scores live in
 ## Keen 2's own folder ([constant SAVES_DIRECTORY]); the keys and the display
 ## settings are shared with Keen 1. The menus offer adding or removing
-## player 2 during a game (milestone B9), but not Keen 1's extra levels.
+## player 2 during a game and playing online (milestone B9,
+## [Keen2OnlineScreen]), but not Keen 1's extra levels.
 ##
 ## [Keen2View], which extends this, plays the game; it starts one in
 ## [method _start_game].
@@ -46,7 +47,6 @@ func _toggle_second_player() -> void:
 ## Connects the menus; call before the screen is shown.
 func _set_up_menus() -> void:
 	_menus.saves = _saves
-	_menus.offers_online = false
 	_menus.offers_extra_levels = false
 	_menus.chosen.connect(_on_menu_chosen)
 	_menus.settings_changed.connect(_on_settings_changed)
@@ -91,6 +91,7 @@ func _show_screen(mode: Mode, area: Rect2i) -> bool:
 	_level_map.show_level(_level, _properties)
 	_mode = mode
 	_screen_time_left = ATTRACT_SECONDS
+	_announce_scene()
 	_frame_camera()
 	_apply_backdrop()
 	_follow(_camera_anchor)
@@ -197,6 +198,10 @@ func _load_game(slot: int) -> void:
 ## The game is over (GAME OVER or the ending): the high scores, and a good
 ## score asks for a name first.
 func _finish_game() -> void:
+	if _joined_online:
+		# The high score table is the host's: wait for his next game.
+		_show_title()
+		return
 	_show_high_scores()
 	_pending_place = _high_scores.place_for(play.inventory.score)
 	if _pending_place < 0:

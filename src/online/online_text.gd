@@ -25,6 +25,8 @@ static func join_failed(reason: String) -> PackedStringArray:
 			lines = ["Somebody already plays", "along with the host."]
 		JoinHandshake.TOO_MANY_TRIES:
 			lines = ["Too many wrong passwords.", "Wait a minute."]
+		JoinHandshake.OTHER_GAME:
+			lines = ["The host plays another", "game: another Keen."]
 		JoinHandshake.NOT_OURS:
 			lines = ["That is not a", "CommanderPerfect game."]
 		_:

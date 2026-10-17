@@ -423,9 +423,32 @@ stunned by a youth, ride a platform or a Scrub, press a switch (also the
 Tantalus Ray's) or wake an Elder; the darkness covers both halves of the
 screen. The Earth exploding and the ending end player 2's part.
 
+## Playing online (B9)
+
+As in Keen 1 ([../online.md](../online.md)): "Online Game" in the main
+menu, hosting and joining by IP or through Steam, the joined player's Keen
+next to the host's in a level, only the host walking on the world map,
+nothing pausing while two play, an arrow to the other player. What Keen 2
+adds:
+
+- **Its own game id** (`commanderperfect-keen2`): a Keen 1 host and a Keen 2
+  player do not meet; the player reads "The host plays another game:
+  another Keen". Steam lists only lobbies of the same game. The fingerprint
+  is made of Keen 2's own `LEVELxx.CK2`.
+- **The saved cities** travel in every snapshot (8 bits in the inventory's
+  flags, which are 0 in Keen 1), so the joined player's status screen
+  shows them.
+- **Events:** an Elder's message (as Keen 1's statues), "Keens Left", and
+  the lights going off or on (also sent when the level starts dark).
+- **The Earth exploding** is a scene of its own: the joined player sees the
+  shaking, the beam and the explosion on his own screen, then GAME OVER.
+- GAME OVER and the ending: as Keen 1; the joined player watches the ending
+  at his own pace and then waits at his title. The high scores are the
+  host's.
+
 ## Not yet
 
-Playing online (B9, next). Not built, as for Keen 1: the intro
+Comparing everything with the original (B10). Not built, as for Keen 1: the intro
 (the Apogee and id screens), the demo, "About ID...", "Ordering Info",
 "Previews!" and the help text.
 

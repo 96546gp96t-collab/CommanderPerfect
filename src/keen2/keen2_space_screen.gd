@@ -58,6 +58,7 @@ func _on_earth_exploded() -> void:
 	_close_window()
 	_set_dark(false)
 	_keen.visible = false
+	_announce_scene()
 
 
 func _shake(delta: float) -> void:
@@ -125,6 +126,7 @@ func _show_game_over() -> void:
 		_window.show_lines(PackedStringArray([GAME_OVER_TEXT]))
 	_mode = Mode.GAME_OVER
 	_game_over_time_left = GAME_OVER_SECONDS
+	_announce_scene()
 
 
 ## All eight cities are saved: the ending, on map 81 first.
@@ -139,6 +141,7 @@ func _start_ending() -> void:
 	_map_session = null
 	_mode = Mode.ENDING
 	_time_left = 0.0
+	_announce_scene()
 	_on_ending_changed()
 
 
@@ -222,6 +225,12 @@ func _move_camera_anchor() -> void:
 func _set_dark(dark: bool) -> void:
 	for darkness in [_darkness, _backdrop_darkness, _backdrop_darkness_2]:
 		darkness.set_dark(dark)
+
+
+## (Host) tells the player who joined online what the screen shows now;
+## [Keen2OnlineScreen] does it.
+func _announce_scene() -> void:
+	pass
 
 
 ## The game is over (GAME OVER or the ending). [Keen2View] shows the high

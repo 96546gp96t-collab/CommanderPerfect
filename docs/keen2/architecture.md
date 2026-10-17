@@ -197,6 +197,27 @@ death restarts the level, game over and Escape go back to the start screen
   `Keen2SpaceScreen` puts a second and third `Keen2Darkness` into the two
   backdrop layers (`_set_dark` sets all three).
 
+## Deviations in B9
+
+- **Local co-op needed no shared change:** `Keen2LevelPlay.step_players`
+  hands each player's buttons to `LevelSession.step_players`, and
+  `Keen2View` drives the shared `TwoPlayerView` as Keen 1's screen does.
+- **Online, shared changes (all additive, Keen 1 byte for byte the same):**
+  `OnlineProtocol.GAME_ID_KEEN_2` and `GAME_IDS`; a `game_id` in
+  `JoinGate`, `JoinTicket`, `OnlineSession`, `SteamService` and
+  `OnlinePlay` (a property whose setter passes it on), and as an optional
+  parameter of `JoinHandshake.challenge`/`proof` and `SteamLobby.data_for`/
+  `is_ours` (default Keen 1's); a new reason `OTHER_GAME` (another game of
+  ours) with its text; `Scene.EARTH_EXPLODES` and `Event.LIGHTS` at the end
+  of their enums; `Snapshot.progress_bits` (8 bits above the ship parts in
+  the inventory flags, 0 for Keen 1) and `OnlinePlay.progress_bits`.
+  `LevelFingerprint` and `OnlinePlay._original` read `files.level_file(n)`
+  instead of the static Keen 1 name, which is the same file for Keen 1 (a
+  test checks Keen 1's fingerprint against the old way).
+- **A fourth screen class:** `Keen2OnlineScreen` (between
+  `Keen2MenuScreen` and `Keen2View`) holds the online part, so that no
+  file passes 500 lines.
+
 ## Testing
 
 - Most Keen 2 logic is tested with hand-made fixtures (`tests/fixtures.gd`
@@ -253,6 +274,12 @@ death restarts the level, game over and Escape go back to the start screen
   levels); `test_keen2_data` checks the story and the high score texts.
 - *B8:* `tests/test_keen2_extras.gd` (which levels suit a picture, Keen 2's
   folder only, Keen 1 keeps its own; with the real files only level 12).
+- *B9:* `tests/test_keen2_coop.gd` (two Keens, stun, switches, the map)
+  and `tests/test_keen2_online.gd` (the handshakes between the games,
+  Keen 1's handshake, snapshot and fingerprint unchanged, the cities in the
+  snapshot, Steam lobbies per game, the new scene and event). Played: two
+  players with the split screen; online with a headless host and a joined
+  player in a window.
 - Numbers that come from Commander Genius are marked *estimate* in the code,
   as for Keen 1, and listed at the bottom of the Keen 2 docs to check
   against the original (DOSBox) in B10.

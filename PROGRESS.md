@@ -41,7 +41,7 @@ Voor een volgend deel: [docs/new-episode-guide.md](docs/new-episode-guide.md).
 | B6 | Wereldkaart, steden, statusscherm, het einde | ✅ Getest door de gebruiker, "ziet er goed uit" (branch `milestone-b6-kaart-einde`) |
 | B7 | Geluid, menu's, opslaan, highscores | ✅ Gebouwd (branch `milestone-b7-geluid-menus`) |
 | B8 | Mooier maken (framerate, xBRZ, HD, achtergronden, builds) | ✅ Gebouwd; Real-ESRGAN bewust overgeslagen (branch `milestone-b8-extras`) |
-| B9 | Co-op lokaal en online | 🔶 Lokaal gebouwd; online volgt (branch `milestone-b9-coop`) |
+| B9 | Co-op lokaal en online | 🔶 Gebouwd, in test bij de gebruiker (branch `milestone-b9-coop`) |
 | B10 | Naast het origineel leggen (DOSBox) | ⬜ |
 
 ## Mijlpaal B1: wat er nu is
@@ -508,6 +508,37 @@ Gebouwd en gespeeld met de echte Keen 2-bestanden. Regels in
   `game_data/keen2/backgrounds/`. Voor levels met het ruitpatroon zou een
   andere aanpak nodig zijn (het patroon vervangen); dat kan later.
 
+## Mijlpaal B9: wat er nu is
+
+- **Twee spelers op één toetsenbord:** F7 of "Add Player 2" in het menu,
+  zoals bij Keen 1: speler 2 (blauwe helm) in het level, split screen als
+  ze uit elkaar gaan, gedeelde inventaris, één dood geldt voor beiden. Alles
+  van Keen 2 werkt voor beide Keens: verdoofd door een youth, meerijden,
+  schakelaars (ook de Tantalus-hendel), de oudste; het donker op beide
+  helften. Geen gedeelde code veranderd.
+- **Online:** hosten en meedoen via IP of Steam, zoals bij Keen 1. Keen 2
+  heeft een eigen spel-id: een Keen 1-host en een Keen 2-speler komen niet
+  bij elkaar ("The host plays another game: another Keen"); Steam toont
+  alleen lobby's van hetzelfde spel; de vingerafdruk gebruikt de
+  `.CK2`-levels. De snapshot stuurt de geredde steden mee (statusscherm
+  van de meespeler), en als gebeurtenis: de oudste, "Keens Left", licht
+  uit/aan. De ontploffing van de aarde is een eigen scène. Na game over of
+  het einde wacht de meespeler bij zijn titel.
+- **Gedeelde code (toevoegingen, Keen 1 byte voor byte gelijk):** de
+  spel-id door handshake/sessie/Steam, de reden `OTHER_GAME`, een scène en
+  een gebeurtenis achteraan de enums, `progress_bits` in de snapshot (0
+  bij Keen 1), en de vingerafdruk via `files.level_file()` (zelfde
+  bestanden voor Keen 1; getest).
+- **Code:** nieuw `Keen2OnlineScreen` in de keten van schermklassen.
+- **Getest:** nieuwe suites `test_keen2_coop` en `test_keen2_online`; de
+  Keen 1-onlinetests slagen ongewijzigd. Gespeeld: split screen; online met
+  een headless host en een meespeler in een venster (binnenkomen, de kaart,
+  Londen met twee Keens, het statusscherm).
+- **Let op bij testen op één Mac:** met twee vensters tegelijk remt macOS
+  het achterste venster af, waardoor de host de handshake te laat
+  beantwoordt ("The host did not let you in"). Op twee computers, of met
+  een headless host, werkt het (zie `docs/online.md`).
+
 ## Mijlpaal 1: wat er nu is
 
 - `GameFiles`: vindt de spelbestanden (`--data-dir=`, `game_data/keen1/`, of naast de exe) en negeert hoofd/kleine letters.
@@ -929,12 +960,13 @@ Na de eerste eigen test van de gebruiker:
 
 Keen 2:
 
-1. B9 (co-op lokaal en online) op `milestone-b9-coop`, vanaf
-   `milestone-b8-extras`; zie `docs/keen2/roadmap.md`.
-2. **Voor de gebruiker:** B7 en B8 proberen in `build/` (Mac en Windows).
-   Alles van Keen 2 kan in één keer naar `main`: de laatste B-branch bevat
-   alle eerdere.
-3. Naast het origineel leggen (B10).
+1. **Voor de gebruiker:** B7, B8 en B9 proberen in `build/` (Mac en
+   Windows): menu's, opslaan, high scores, F7 voor twee spelers, online
+   met een vriend (via Steam, of IP op twee computers).
+2. Alles van Keen 2 kan in één keer naar `main`: `milestone-b9-coop`
+   bevat alle eerdere B-branches.
+3. B10: naast het origineel leggen (DOSBox), zie `docs/keen2/roadmap.md`
+   en de lijst "Estimates" in `docs/keen2/gameplay.md`.
 
 Keen 1:
 

@@ -15,6 +15,7 @@ class Step:
 ## The reasons a host may give; anything else reads as a plain refusal.
 const KNOWN_REASONS: Array[String] = [
 	JoinHandshake.NOT_OURS,
+	JoinHandshake.OTHER_GAME,
 	JoinHandshake.OTHER_VERSION,
 	JoinHandshake.OTHER_DATA,
 	JoinHandshake.WRONG_PASSWORD,
@@ -23,6 +24,8 @@ const KNOWN_REASONS: Array[String] = [
 ]
 
 var player_name := "Keen"
+## The game played ([constant OnlineProtocol.GAME_ID] for Keen 1).
+var game_id := OnlineProtocol.GAME_ID
 var password := ""
 var fingerprint := ""
 ## The host's name, once he let us in.
@@ -33,8 +36,11 @@ var host_name := ""
 func answer(data: PackedByteArray) -> Step:
 	var step := Step.new()
 	var challenge := JoinHandshake.unpack(data, 4)
-	if challenge.is_empty() or str(challenge[0]) != OnlineProtocol.GAME_ID:
+	if challenge.is_empty():
 		step.problem = JoinHandshake.NOT_OURS
+		return step
+	if str(challenge[0]) != game_id:
+		step.problem = JoinHandshake.game_problem(str(challenge[0]))
 		return step
 	if not challenge[1] is int or challenge[1] != OnlineProtocol.VERSION:
 		step.problem = JoinHandshake.OTHER_VERSION
@@ -46,10 +52,10 @@ func answer(data: PackedByteArray) -> Step:
 	if locked and password.is_empty():
 		step.problem = JoinHandshake.NEEDS_PASSWORD
 		return step
-	var proof := JoinHandshake.proof(challenge[2], password) if locked else PackedByteArray()
-	step.reply = var_to_bytes(
-		[OnlineProtocol.GAME_ID, OnlineProtocol.VERSION, fingerprint, player_name, proof]
+	var proof := (
+		JoinHandshake.proof(challenge[2], password, game_id) if locked else PackedByteArray()
 	)
+	step.reply = var_to_bytes([game_id, OnlineProtocol.VERSION, fingerprint, player_name, proof])
 	return step
 
 

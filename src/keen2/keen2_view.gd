@@ -1,5 +1,5 @@
 class_name Keen2View
-extends Keen2MenuScreen
+extends Keen2OnlineScreen
 ## The Keen 2 game screen that the start screen opens. [GameScreen] draws it
 ## as it draws Keen 1: the World viewport, the graphics (original, xBRZ or
 ## HD, F5), widescreen with the [Hud], the camera that follows Keen, and
@@ -69,6 +69,9 @@ func _ready() -> void:
 ## Player 2 joins or leaves. In a level his Keen appears where player 1's
 ## is; on the map he plays along from the next level on.
 func _toggle_second_player() -> void:
+	if _online.is_active():
+		_show_message(NOT_ONLINE_MESSAGE)
+		return
 	_two_players = not _two_players
 	if _mode == Mode.LEVEL and _session != null:
 		if _two_players:
@@ -105,14 +108,17 @@ func _process(delta: float) -> void:
 	_message_time_left -= delta
 	if _graphics_loader != null and _graphics_loader.poll():
 		_apply_graphics()
-	# The game stands still while a menu is open.
-	if _menus.is_open():
+	# The game stands still while a menu is open, unless two play online.
+	if _menus.is_open() and not _online.is_together():
 		_update_status()
 		return
 	_count_down_window(delta)
 	_count_down_screen(delta)
-	if _mode in [Mode.MAP, Mode.LEVEL] and not _window.visible:
+	var window_pauses := _window.visible and not _online.is_together()
+	if _mode in [Mode.MAP, Mode.LEVEL] and not window_pauses:
 		_run_ticks(delta)
+	elif _mode == Mode.REMOTE:
+		_run_remote(delta)
 	elif _mode == Mode.ENDING:
 		_run_ending(delta)
 	elif _doom == Doom.SHAKING:
@@ -122,6 +128,7 @@ func _process(delta: float) -> void:
 	_second_player.update(delta)
 	_move_camera_anchor()
 	_update_backdrops()
+	_point_arrow()
 	_update_status()
 
 
@@ -140,6 +147,8 @@ func _unhandled_input(event: InputEvent) -> void:
 		_open_main_menu()
 	elif event.is_action_pressed("status"):
 		_on_enter_pressed()
+	elif _handle_joined_input(event):
+		pass
 	elif event.is_action_pressed("toggle_second_player") and _mode in [Mode.MAP, Mode.LEVEL]:
 		_toggle_second_player()
 	elif _window.visible and _buttons_close_window and _is_button(event):
@@ -155,8 +164,9 @@ func _on_enter_pressed() -> void:
 		_keen2_ending.confirm()
 	elif _window.visible:
 		_close_window()
-	elif _mode in [Mode.MAP, Mode.LEVEL]:
-		Keen2StatusScreen.fill(_window, play.progress, _texts.status_lines, _texts.city_names)
+	elif _mode in [Mode.MAP, Mode.LEVEL, Mode.REMOTE]:
+		var progress := _status_progress()
+		Keen2StatusScreen.fill(_window, progress, _texts.status_lines, _texts.city_names)
 		_buttons_close_window = true
 
 
@@ -165,11 +175,12 @@ func _run_ticks(delta: float) -> void:
 	_time_left = minf(_time_left + delta, KeenPhysics.MAX_TICKS_PER_FRAME * KeenPhysics.TICK)
 	if _session != null:
 		_session.view_rects = _view_rects()
-	while (
-		_time_left >= KeenPhysics.TICK and _mode in [Mode.MAP, Mode.LEVEL] and not _window.visible
-	):
+	var mode := _mode
+	while _time_left >= KeenPhysics.TICK and _mode == mode:
 		_time_left -= KeenPhysics.TICK
 		play.step_players(_inputs())
+		if _mode == mode:
+			_send_tick()
 		_show_sprites()
 	_place_sprites(_time_left / KeenPhysics.TICK)
 
@@ -178,8 +189,12 @@ func _run_ticks(delta: float) -> void:
 ## own keys (in a level), and on the map the keys of both and of playing
 ## alone, which all steer the one Keen there.
 func _inputs() -> Array[KeenInput]:
+	# Online the game goes on behind a menu; the keys are the menu's then.
+	var own := KeenInput.new() if _menus.is_open() else KeenInput.from_actions()
+	if _second_player.is_active() and not _second_player.is_split_screen():
+		return [own, _online.partner_input()]
 	if not _two_players:
-		return [KeenInput.from_actions()]
+		return [own]
 	if _second_player.is_split_screen():
 		return [KeenInput.for_player(0), KeenInput.for_player(1)]
 	return [KeenInput.from_actions(), KeenInput.for_player(0), KeenInput.for_player(1)]
@@ -189,7 +204,11 @@ func _inputs() -> Array[KeenInput]:
 func _view_rects() -> Array[Rect2]:
 	if _second_player.is_split_screen():
 		return _second_player.view_rects()
-	return [_own_view()]
+	var rects: Array[Rect2] = [_own_view()]
+	var partner_view := _online.partner_view()
+	if partner_view.has_area():
+		rects.append(partner_view)
+	return rects
 
 
 func _show_sprites() -> void:
@@ -217,6 +236,7 @@ func _set_up_screen() -> void:
 	_menus.settings = _user_settings
 	add_child(_menus)
 	_set_up_menus()
+	_connect_online()
 	# GameScreen's drawings of Keen 1's ship stay empty here; in the tree
 	# they are freed with the scene.
 	_add_ship_drawings()
@@ -263,6 +283,7 @@ func _load_data() -> bool:
 	_elder_messages = data.elder_messages
 	_texts = data
 	_set_up_texts()
+	_set_up_online_data()
 	play = Keen2LevelPlay.create(files, _properties)
 	_progress = play.progress
 	play.level_started.connect(_on_level_started)
@@ -299,9 +320,9 @@ func _on_level_started(number: int) -> void:
 	_level = play.level
 	_map_session = null
 	_session = play.session
-	_session.tile_changed.connect(_level_map.set_tile)
-	_session.sound_played.connect(_sounds.play)
-	_session.lights_changed.connect(_set_dark)
+	_session.tile_changed.connect(_on_game_tile_changed)
+	_session.sound_played.connect(_play_game_sound)
+	_session.lights_changed.connect(_on_lights_changed)
 	_session.elder_message_touched.connect(_on_elder_message)
 	_session.set_invincible(_god_mode)
 	_set_dark(_session.is_dark())
@@ -311,8 +332,11 @@ func _on_level_started(number: int) -> void:
 	_apply_backdrop()
 	_keen.show_body(_session.keen)
 	_follow(_keen)
+	_announce_scene()
 	if _two_players:
 		_second_player.start(_session, _session.keen.position, _camera_anchor.position)
+	elif _online.has_partner():
+		_add_online_partner()
 
 
 ## Shows the world map that [member play] has just started: the done levels
@@ -323,8 +347,8 @@ func _on_map_started() -> void:
 	_level = play.level
 	_session = null
 	_map_session = play.map_session
-	_map_session.tile_changed.connect(_level_map.set_tile)
-	_map_session.sound_played.connect(_sounds.play)
+	_map_session.tile_changed.connect(_on_game_tile_changed)
+	_map_session.sound_played.connect(_play_game_sound)
 	_set_dark(false)
 	_level_map.show_level(_level, _properties)
 	_mode = Mode.MAP
@@ -332,12 +356,14 @@ func _on_map_started() -> void:
 	_apply_backdrop()
 	_keen.show_on_map(_map_session.keen)
 	_follow(_keen)
+	_announce_scene()
 
 
 ## "Keens Left", with a little Keen per life, on the map; a button closes it
 ## and it closes by itself.
 func _show_lives(lives: int) -> void:
 	_sounds.play(Sound.Id.KEENS_LEFT)
+	_send_event(OnlineMessages.Event.KEENS_LEFT, lives)
 	MapMessages.show_lives(_window, lives)
 	_window_time_left = LIVES_SECONDS
 	_buttons_close_window = true
@@ -349,23 +375,31 @@ func _on_game_over() -> void:
 	_show_game_over()
 
 
-## A Vorticon Elder speaks: its message, until Enter closes it. An Elder
-## whose message was not found in KEEN2.EXE stays silent.
+## A Vorticon Elder speaks: its message, until Enter closes it (online it
+## closes by itself), for the other player too.
 func _on_elder_message() -> void:
-	var index := Keen2LevelPlay.elder_message_index(_level_number)
+	_send_event(OnlineMessages.Event.HINT, _level_number)
+	_show_elder_message(_level_number)
+
+
+## The message of the Elder in level [param number]. An Elder whose message
+## was not found in KEEN2.EXE stays silent.
+func _show_elder_message(number: int) -> void:
+	var index := Keen2LevelPlay.elder_message_index(number)
 	if index >= _elder_messages.size() or _elder_messages[index].is_empty():
 		return
 	var lines := _elder_messages[index].duplicate()
 	if not "\n".join(lines).to_upper().contains(ELDER_PROMPT_WORD):
 		lines.append_array(["", ELDER_PROMPT])
 	_window.show_lines(lines)
+	_close_by_itself_online()
 
 
 ## The HUD as [GameScreen] shows it, but never with Keen 1's ship parts.
 func _update_hud() -> void:
 	_hud.visible = (
 		_settings.aspect == DisplaySettings.Aspect.WIDESCREEN
-		and _mode in [Mode.MAP, Mode.LEVEL]
+		and _mode in [Mode.MAP, Mode.LEVEL, Mode.REMOTE]
 		and not _menus.is_open()
 	)
 	if _hud.visible:
@@ -375,7 +409,7 @@ func _update_hud() -> void:
 ## The cheats, on the map and in a level; returns whether [param event] was
 ## one.
 func _handle_cheat_keys(event: InputEvent) -> bool:
-	if _mode not in [Mode.MAP, Mode.LEVEL]:
+	if _mode not in [Mode.MAP, Mode.LEVEL] or _joined_online:
 		return false
 	if event.is_action_pressed("cheat_items"):
 		_progress.inventory.give_everything()

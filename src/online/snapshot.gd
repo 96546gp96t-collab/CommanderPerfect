@@ -17,6 +17,10 @@ const ACTOR_FIELDS := 4
 const DOOR_HEADER := 5
 ## Numbers in the inventory: score, lives, charges, flags.
 const INVENTORY_FIELDS := 4
+## Where [member progress_bits] sit in the inventory's flags, and how many:
+## above the pogo stick, the keycards and the ship parts.
+const PROGRESS_SHIFT := 9
+const PROGRESS_MASK := 0xFF
 ## More than this is not a level of Keen 1 but somebody's attack.
 const MAX_FIGURES := 512
 const MAX_DOOR_TILES := 16
@@ -41,6 +45,9 @@ class Figure:
 ## ignored.
 var scene := 0
 var inventory := Inventory.new()
+## Up to 8 bits of the game's progress that the joiner shows: Keen 2's saved
+## cities. Always 0 in Keen 1, whose messages stay as they were.
+var progress_bits := 0
 var sounds := PackedByteArray()
 ## Player 1's Keen (the host's) first, then player 2's. On the world map the
 ## one Keen walking there.
@@ -109,6 +116,7 @@ func _inventory_numbers() -> PackedInt32Array:
 		flags |= (1 << (1 + color)) if inventory.keycards[color] else 0
 	for part in inventory.ship_parts.size():
 		flags |= (1 << (5 + part)) if inventory.ship_parts[part] else 0
+	flags |= (progress_bits & PROGRESS_MASK) << PROGRESS_SHIFT
 	return PackedInt32Array([inventory.score, inventory.lives, inventory.charges, flags])
 
 
@@ -124,6 +132,7 @@ func _read_inventory(numbers: PackedInt32Array) -> bool:
 		inventory.keycards[color] = flags & (1 << (1 + color)) != 0
 	for part in inventory.ship_parts.size():
 		inventory.ship_parts[part] = flags & (1 << (5 + part)) != 0
+	progress_bits = (flags >> PROGRESS_SHIFT) & PROGRESS_MASK
 	return true
 
 

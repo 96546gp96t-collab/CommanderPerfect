@@ -136,6 +136,15 @@ XDG_DATA_HOME=/tmp/join godot --path .                # join: Online Game > Join
 `tools/scripted_play.gd` can type text (`type_127.0.0.1`), so both can be
 played with scripted keys and screenshots.
 
+On a Mac, two windows of the game at once can fail to meet: macOS slows
+down the window behind, so its host may answer the handshake too late (3
+seconds) and the other player reads "The host did not let you in". Run
+the host headless (`godot --headless --max-fps 60 ...` with a script that
+hosts), or play on two computers.
+
+Keen 2 plays online too (milestone B9, [keen2/gameplay.md](keen2/gameplay.md)),
+with its own game id: a Keen 1 host and a Keen 2 player do not meet.
+
 ## Not yet
 
 - Steam has not been tried with two real accounts yet (the same holds for
