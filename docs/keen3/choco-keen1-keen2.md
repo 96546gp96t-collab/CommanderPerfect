@@ -14,6 +14,33 @@ ticks/s; times in our ticks) as explained at the top of
 [research.md](research.md). ✓ = Chocolate Keen agrees, ✗ = it contradicts,
 ~ = close.
 
+## Jump heights: measured in the original Keen 2 (17-10-2026)
+
+In another session the user had Keen measured pixel by pixel in the original
+`KEEN2.EXE` (v1.31) in a DOS emulator (js-dos), and compared with our
+`src/keen/keen_physics.gd`, which Keen 1, Keen 2 (and Keen 3) share:
+
+| Jump | Original Keen 2 | Ours | Chocolate Keen (converted) |
+|---|---|---|---|
+| Normal jump, button held | about 54-55 px | 58 px | 55.7 px (up-speed 216) |
+| Pogo without the jump button | 50 px | 58 px | about 48 px |
+| Pogo with the jump button held | about 104 px | 109 px | about 104 px |
+| First bounce with the button ("impossible pogo") | not measured | 122 px | — |
+
+- One bounce takes as long as ours (original 1.1 s low and 1.55 s high,
+  ours 1.08 s and 1.53 s): Keen goes up just as long but too far. Probably
+  our start speed is a little too high, or the original pulls harder.
+- Keen 1 could not be measured (Keen kept landing on a stack of cans and a
+  Yorp pushed him away). Keen 1 and 2 share the engine and Commander Genius
+  gives them the same pogo, so Keen 1 is most likely just as high.
+- The measurements agree with Chocolate Keen's numbers (see "Keen 1" below:
+  pogo ~48 px, with jump ~104 px; one gravity for rising and falling), so
+  the cause is known: our physics follow Commander Genius.
+- **Not changed** (the user's decision, 17-10-2026: write it down, decide
+  later). `KeenBody` is shared, so a fix changes Keen 1 and Keen 2 too, and
+  Keen 3 inherits the same jumps. The choices are in `PROGRESS.md` (open
+  decisions).
+
 ## Keen 2 (estimates in `docs/keen2/gameplay.md`)
 
 
