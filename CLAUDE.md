@@ -13,7 +13,9 @@ Real-ESRGAN graphics. Singleplayer comes first; local co-op may follow later.
   Keen 2 milestones are `milestone-b<n>-<topic>`; the Keen 1 code is never
   changed for them.
 - **End:** update `PROGRESS.md`: tick off finished work, note open bugs and
-  decisions, and write down the next concrete step.
+  decisions, and write down the next concrete step. After a milestone, add
+  its row to `docs/doorlooptijden.md` (how long it took; the user wants to
+  see what an episode costs).
 - **Always rebuild the app** after changing the game: run
   `tools/build_macos.sh` (on the Mac). The user plays from
   `build/CommanderPerfect.app`, which is not updated by itself.

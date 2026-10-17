@@ -6,6 +6,7 @@ eind van elke sessie bij.
 ## Mijlpalen
 
 Wat elke mijlpaal precies inhoudt, staat in [docs/roadmap.md](docs/roadmap.md).
+Hoe lang elke mijlpaal duurde: [docs/doorlooptijden.md](docs/doorlooptijden.md).
 
 | # | Mijlpaal | Status |
 |---|---|---|
