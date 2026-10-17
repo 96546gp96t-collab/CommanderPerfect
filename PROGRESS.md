@@ -56,7 +56,7 @@ over Keen 3 bekend is in [docs/keen3/research.md](docs/keen3/research.md).
 | C1 | Onderzoek: code in kaart, Keen 3-bestanden, Chocolate Keen, Commander Genius, js-dos, architectuur, mijlpalen | ✅ Klaar (branch `milestone-c1-onderzoek`); vragen aan de gebruiker open |
 | C2 | De bestanden van Keen 3 inlezen, data viewer, derde icoon op het startscherm | ✅ Klaar en gecontroleerd door de architect (branch `milestone-c2-bestanden`) |
 | C3 | Een level spelen (Keen, items, de ankh, deuren, uitgangen) | ✅ Klaar en gecontroleerd door de architect (branch `milestone-c3-level`); in test bij de gebruiker |
-| C4 | Vijanden (grunt, youth, moeder, Meep, ninja, Foob) | ✅ Gebouwd, wacht op controle architect (branch `milestone-c4-vijanden`) |
+| C4 | Vijanden (grunt, youth, moeder, Meep, ninja, Foob) | ✅ Klaar en gecontroleerd door de architect (branch `milestone-c4-vijanden`) |
 | C5 | Bal, jack, platforms, wapens in de muur | ⬜ |
 | C6 | Wereldkaart: teleporters, Messie, het schip, statusscherm | ⬜ |
 | C7 | Mortimer, de Mangling Machine en het einde | ⬜ |
@@ -1238,11 +1238,10 @@ Na de eerste eigen test van de gebruiker:
 
 Keen 3:
 
-1. **Architect:** C4 controleren (branch `milestone-c4-vijanden`).
-2. **Voor de gebruiker:** Keen 3 proberen in `build/` (Mac en Windows):
+1. **Voor de gebruiker:** Keen 3 proberen in `build/` (Mac en Windows):
    levels 1-16 met vijanden (grunts, youths, moeders, Meeps, ninja's,
    Foobs), de verdoving door een youth, de ankh tegen vijanden.
-3. Daarna C5 (branch `milestone-c5-mechaniek` vanaf
+2. Daarna C5, als de gebruiker dat vraagt (branch `milestone-c5-mechaniek` vanaf
    `milestone-c4-vijanden`): bal, jack, platforms (`Keen2RidingCollision`
    en `Keen2Carrier`; platforms blijven altijd wakker), de wapens in de
    muur (info 14/15; hun schot raakt Keen, grunts en Foobs: in
