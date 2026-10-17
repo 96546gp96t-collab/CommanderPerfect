@@ -55,7 +55,7 @@ over Keen 3 bekend is in [docs/keen3/research.md](docs/keen3/research.md).
 |---|---|---|
 | C1 | Onderzoek: code in kaart, Keen 3-bestanden, Chocolate Keen, Commander Genius, js-dos, architectuur, mijlpalen | ✅ Klaar (branch `milestone-c1-onderzoek`); vragen aan de gebruiker open |
 | C2 | De bestanden van Keen 3 inlezen, data viewer, derde icoon op het startscherm | ✅ Klaar en gecontroleerd door de architect (branch `milestone-c2-bestanden`) |
-| C3 | Een level spelen (Keen, items, de ankh, deuren, uitgangen) | ✅ Gebouwd, wacht op controle architect (branch `milestone-c3-level`) |
+| C3 | Een level spelen (Keen, items, de ankh, deuren, uitgangen) | ✅ Klaar en gecontroleerd door de architect (branch `milestone-c3-level`); in test bij de gebruiker |
 | C4 | Vijanden (grunt, youth, moeder, Meep, ninja, Foob) | ⬜ |
 | C5 | Bal, jack, platforms, wapens in de muur | ⬜ |
 | C6 | Wereldkaart: teleporters, Messie, het schip, statusscherm | ⬜ |
@@ -1179,13 +1179,19 @@ Na de eerste eigen test van de gebruiker:
 
 Keen 3:
 
-1. De architect controleert C3 (branch `milestone-c3-level`).
-2. **Voor de gebruiker:** Keen 3 proberen in `build/` (Mac en Windows):
+1. **Voor de gebruiker:** Keen 3 proberen in `build/` (Mac en Windows):
    level 1-16 spelen zonder vijanden, de ankh in level 3, 10 of 14.
-3. **Voor de gebruiker:** de open vragen van C1 (Open beslissingen).
-4. Daarna C4 (branch `milestone-c4-vijanden` vanaf `milestone-c3-level`):
-   de vijanden in `Keen3LevelSession.create_enemy`, met
-   `Keen3Body.is_protected()` voor de ankh en Keen 3's eigen verdoving.
+2. **Voor de gebruiker:** de open vragen van C1 (Open beslissingen).
+3. Daarna C4 (branch `milestone-c4-vijanden` vanaf `milestone-c3-level`),
+   pas als de gebruiker dat vraagt: de vijanden in
+   `Keen3LevelSession.create_enemy`, met `Keen3Body.is_protected()` voor de
+   ankh en Keen 3's eigen verdoving. Klein punt voor C4: de iconen in de
+   HUD (raygun, ankh, sleutelkaarten) houden de cyaan achtergrond van hun
+   tile-rij; in `Keen3Hud` de achtergrondkleur van de rij weglaten.
+4. Controle bij C4: de regressies (`keen1_regression.sh`,
+   `keen2_regression.sh`) in een venster draaien, niet schermvullend; met
+   `fullscreen=true` in de instellingen pakt de Keen 1-wandeling een ander
+   beeld (geen echte wijziging, zie C3).
 
 Keen 2:
 

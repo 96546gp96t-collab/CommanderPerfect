@@ -32,7 +32,7 @@ const SPRITE_NAMES: Dictionary[int, String] = {
 	146: "HEART1",
 }
 ## Collision boxes (left, top, right, bottom) from research.md §3.
-const SPRITE_BOXES: Dictionary[int, PackedInt32Array] = {
+const SPRITE_BOXES: Dictionary[int, Array] = {
 	47: [1, 6, 14, 23],
 	63: [2, 1, 21, 31],
 	77: [4, 4, 27, 31],
@@ -197,7 +197,7 @@ func test_sprite_names_fit_the_enemies() -> void:
 	for sprite in SPRITE_NAMES:
 		assert_equal(header.sprites[sprite].name, SPRITE_NAMES[sprite], "sprite %d" % sprite)
 	for sprite in SPRITE_BOXES:
-		var box := SPRITE_BOXES[sprite]
+		var box: Array = SPRITE_BOXES[sprite]
 		var expected := Rect2i(box[0], box[1], box[2] - box[0], box[3] - box[1])
 		assert_equal(header.sprites[sprite].hitbox, expected, "box of sprite %d" % sprite)
 
