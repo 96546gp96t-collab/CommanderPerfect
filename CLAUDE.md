@@ -40,6 +40,11 @@ Real-ESRGAN graphics. Singleplayer comes first; local co-op may follow later.
   EXE (tile properties etc.) is fine.
 - **No copied code** from other projects (Commander Genius is GPL). Use them as
   documentation only and write our own implementation.
+- **Chocolate Keen** (a reconstruction of the original 1.31 code): its data
+  tables (offsets, names, sizes) may be read, and since Keen 3 (decision of
+  the user, 17-10-2026) also the facts and numbers in its behaviour code
+  (speeds, timings, chances, hit points). Mark them `(Choco)`. Never copy its
+  code or rewrite it line by line; our structure stays our own.
 
 ## Layout
 

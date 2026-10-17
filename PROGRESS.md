@@ -44,6 +44,63 @@ Voor een volgend deel: [docs/new-episode-guide.md](docs/new-episode-guide.md).
 | B9 | Co-op lokaal en online | 🔶 Gebouwd, in test bij de gebruiker (branch `milestone-b9-coop`) |
 | B10 | Naast het origineel leggen (js-dos) | 🔶 Deels: schermen gemeten en aangepast; vijanden/levels niet te meten (branch `milestone-b10-origineel`) |
 
+## Keen 3: mijlpalen C
+
+Het derde deel komt naast Keen 1 en 2; die blijven zoals ze zijn. Wat elke
+mijlpaal inhoudt staat in [docs/keen3/roadmap.md](docs/keen3/roadmap.md), de
+opzet in [docs/keen3/architecture.md](docs/keen3/architecture.md), en wat er
+over Keen 3 bekend is in [docs/keen3/research.md](docs/keen3/research.md).
+
+| # | Mijlpaal | Status |
+|---|---|---|
+| C1 | Onderzoek: code in kaart, Keen 3-bestanden, Chocolate Keen, Commander Genius, js-dos, architectuur, mijlpalen | ✅ Klaar (branch `milestone-c1-onderzoek`); vragen aan de gebruiker open |
+| C2 | De bestanden van Keen 3 inlezen, data viewer, derde icoon op het startscherm | ⬜ |
+| C3 | Een level spelen (Keen, items, de ankh, deuren, uitgangen) | ⬜ |
+| C4 | Vijanden (grunt, youth, moeder, Meep, ninja, Foob) | ⬜ |
+| C5 | Bal, jack, platforms, wapens in de muur | ⬜ |
+| C6 | Wereldkaart: teleporters, Messie, het schip, statusscherm | ⬜ |
+| C7 | Mortimer, de Mangling Machine en het einde | ⬜ |
+| C8 | Geluid, menu's, opslaan, highscores | ⬜ |
+| C9 | Mooier maken (framerate, xBRZ, achtergronden, builds) | ⬜ |
+| C10 | Co-op lokaal en online | ⬜ |
+| C11 | Naast het origineel (wat nog geschat is) | ⬜ |
+
+## Mijlpaal C1: wat er nu is
+
+- **Branch:** `milestone-c1-onderzoek`, gemaakt vanaf
+  `milestone-b10-origineel` (die bevat alles van Keen 1 en 2; de B-branches
+  staan nog niet op `main`). Tot die op `main` staan, is commit `a9d04cc` de
+  referentie voor "Keen 1 en 2 niet veranderd".
+- **De Keen 3-bestanden van de gebruiker** (`game_data/keen3`) zijn
+  **versie 1.00**, niet 1.31 (Steam/GOG). Commander Genius en Chocolate Keen
+  kennen alleen de adressen van 1.31, en die schuiven niet overal evenveel
+  op: alles wordt op inhoud gezocht. Een nieuwere versie is niet nodig; 1.31
+  hoort ook te werken (nog niet te testen).
+- **Wat de bestanden zeggen:** 624 tiles maar een tile-tabel van 715 breed
+  (de gedeelde `TileProperties` leest met 624 stil een verkeerde tabel; C2
+  krijgt een optionele `stride`), 148 sprites (vanaf 31 één lager dan Keen
+  2), 14 bitmaps, 45 geluiden (nieuw: ANKH, MEEP, MORTIMER, FOOTSLAM), de
+  teksten in een andere volgorde dan Keen 2, de randtile 245 is een "OH
+  no!"-plaatje dat nooit te zien mag zijn, teleporters in de info-laag
+  (0x0Fsd), Messie's pad (0x2000-0x2200), de machine in level 16 van tiles.
+- **Chocolate Keen:** op verzoek van de gebruiker mogen nu ook de getallen
+  uit de gedragscode gebruikt worden (`CLAUDE.md` aangepast). Daarmee zijn
+  bijna alle vijanden, de ankh (9,6 s, telt op, per level op 0), Messie, de
+  teleporters, de machine, Mortimers berichten, het einde en het
+  statusscherm bekend. Het origineel rekent met 145,65 Hz en ~24 beelden per
+  seconde; `research.md` legt uit hoe we omrekenen naar onze 60 Hz.
+- **Bijvangst voor Keen 1 en 2** (alleen informatie, niets aangepast):
+  [docs/keen3/choco-keen1-keen2.md](docs/keen3/choco-keen1-keen2.md). Zo
+  telt in Keen 2 een stad als gered zodra iets de vonk raakt, duurt de
+  verdoving langer, en zijn de geluiden 145,65 Hz.
+- **Architectuur:** Keen 3 in `src/keen3/` met klassen `Keen3...`;
+  `Keen3LevelSession extends Keen2LevelSession` (meerijden, verdoving),
+  grunt en youth als subklassen van Keen 2's, `Keen3MapSession extends
+  MapSession`; een eigen schermketen. Een nieuwe controle
+  `tools/keen2_regression.sh` (C2) bewijst dat Keen 2 niet verandert.
+- **Handleiding** voor volgende delen bijgewerkt (lessen van C1).
+- Er is nog geen code geschreven.
+
 ## Mijlpaal B1: wat er nu is
 
 - De code is in kaart gebracht: decoders, graphics, schaling,
@@ -976,6 +1033,9 @@ het origineel. Details in `docs/world-map.md` onder "Extra levels".
 - **HD met nieuwe details (generatieve AI)**, besproken op 14-10-2026, voor nu geparkeerd door de gebruiker. Oordeel van de gebruiker: de Real-ESRGAN-HD is "best lelijk", xBRZ ziet er mooier uit, maar hij mist nieuwe details. Real-ESRGAN kan geen details verzinnen; daarvoor is een generatief model nodig. Het plan staat in `docs/graphics.md` onder "Plan: HD with new details". Eerste stap als de gebruiker verder wil: toestemming vragen om Stable Diffusion 1.5 + ControlNet Tile te downloaden (~6 GB, Hugging Face, naar een map die git negeert) en een proef doen met ~10 plaatjes naast xBRZ.
 
 - **Keen 2: besluiten van de gebruiker (16-10-2026, B1).** Gedeelde code mag alleen toevoegingen krijgen met Keen 1 als standaard; Keen 1-code blijft onaangeroerd. Chocolate Keen mag als bron voor datatabellen (adressen, namen, groottes), nooit voor code met gedrag. De architect (deze sessie) stuurt een developer-subagent aan en controleert zijn werk.
+- **Keen 3: besluiten van de gebruiker (17-10-2026, C1).** Keen 1- en Keen 2-code blijven onaangeroerd; Keen 3 mag hun klassen gebruiken en er subklassen van maken. Branches `milestone-c<n>-<onderwerp>`. Uit Chocolate Keen mogen nu ook de feiten en getallen uit de gedragscode komen (gemarkeerd `(Choco)`), nooit de code zelf (`CLAUDE.md`). Versie 1.00 is goed genoeg; geen nieuwere versie nodig.
+- **Keen 3: besluiten van de architect (C1), te melden aan de gebruiker.** De lijst-van-spellen-asserties in `tests/test_launcher.gd` en `tests/test_keen2_files.gd` gaan van twee naar drie (zoals in B2); `GameLaunch.skips_launcher`/`scene_for`, de data viewer en `export_graphics.gd` kiezen uit drie spellen, met hetzelfde antwoord voor alles wat vroeger werkte. De bugs van versie 1.00 (level 10, level 13) blijven zoals ze zijn.
+- **Keen 3: open vragen aan de gebruiker (C1).** (1) Real-ESRGAN voor Keen 3: overslaan zoals bij Keen 2? (2) De geluidssnelheid: Chocolate Keen bevestigt 145,65 Hz voor alle delen; Keen 3 gebruikt de gedeelde speler (nu 140 Hz). Mag de gedeelde snelheid later voor alle drie omgezet worden (dat verandert Keen 1 en 2)? (3) Willen we later een aparte mijlpaal om Keen 1 en 2 bij te werken met de getallen uit Chocolate Keen (`docs/keen3/choco-keen1-keen2.md`)? (4) De randflits van het origineel bij een geraakte vonk/hart: nabootsen als flits van de rand rond het 4:3-beeld, of weglaten?
 - **Keen 2: de knop op het startscherm** (besluit van de gebruiker, 16-10-2026): lettertype en Keen-mannetje komen altijd uit de Keen 2-data. Zonder die bestanden blijft de knop grijs met een gewoon lettertype (geen Keen 1-data als vervanging).
 - **Keen 2: speldata.** De gebruiker heeft Keen 2 op floppies maar geen floppylezer. Keen 2 is geen shareware en wordt nog verkocht, dus het wordt niet gedownload van onofficiële sites. Opties: de Complete Pack op Steam/GOG, of een USB-floppylezer. Tot dan: bouwen en testen met zelfgemaakte testdata; de suites met echte data slaan zich over, en de vragen die alleen de echte bestanden beantwoorden blijven open (research.md).
 - **Keen 2: sprong van de youth** (B4, architect): met de getallen uit Commander Genius (200/32 omhoog, zwaartekracht 4/32) springt hij ruim 10 tiles hoog. Dat lijkt te veel; vermoedelijk heeft de youth in het origineel een eigen zwaartekracht. Naast het origineel leggen in B10.
@@ -990,6 +1050,14 @@ Na de eerste eigen test van de gebruiker:
 - Tests in `test_online_menus.gd`: adressen in de setup, het hosting-venster ververst, `address_lines`, eigen wachtwoord typen en onthouden.
 
 ## Volgende stap
+
+Keen 3:
+
+1. **Voor de gebruiker:** de open vragen van C1 beantwoorden (Open
+   beslissingen, "Keen 3: open vragen").
+2. C2 starten: branch `milestone-c2-bestanden` vanaf `milestone-c1-onderzoek`;
+   de developer bouwt de opdracht uit `docs/keen3/roadmap.md`, de architect
+   controleert.
 
 Keen 2:
 
