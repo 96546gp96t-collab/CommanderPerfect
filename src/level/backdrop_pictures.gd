@@ -4,10 +4,12 @@ extends RefCounted
 ## plain background (an extra; see docs/graphics.md). One picture per level,
 ## named after it: level01.png for level 1 (or .webp, .jpg).
 ##
-## The pictures that come with the game are in assets/backgrounds/. A
-## player can add or replace one without building the game: a picture of
-## the same name in a folder "backgrounds" in his own game folder (next to
-## the game files, such as game_data/keen1/backgrounds/) wins.
+## The pictures that come with the game are in assets/backgrounds/ (another
+## game passes its own folder to [method create], such as
+## assets/backgrounds/keen2/). A player can add or replace one without
+## building the game: a picture of the same name in a folder "backgrounds"
+## in his own game folder (next to the game files, such as
+## game_data/keen1/backgrounds/) wins.
 ##
 ## Which tiles the picture shows through is decided by [method background_tile]:
 ## the plain background of the level, and the same color around everything
@@ -18,13 +20,17 @@ const PLAYER_FOLDER := "backgrounds"
 const EXTENSIONS: Array[String] = ["png", "webp", "jpg"]
 
 var _files: GameFiles
+var _folder := FOLDER
 var _cache: Dictionary[int, Texture2D] = {}
 var _missing: Dictionary[int, bool] = {}
 
 
-static func create(files: GameFiles) -> BackdropPictures:
+## The pictures for the game in [param files]; those that come with it are
+## in [param folder].
+static func create(files: GameFiles, folder := FOLDER) -> BackdropPictures:
 	var pictures := BackdropPictures.new()
 	pictures._files = files
+	pictures._folder = folder
 	return pictures
 
 
@@ -111,7 +117,7 @@ func _player_image(number: int) -> Image:
 
 func _own_image(number: int) -> Image:
 	for extension in EXTENSIONS:
-		var path := FOLDER.path_join(picture_name(number) + "." + extension)
+		var path := _folder.path_join(picture_name(number) + "." + extension)
 		if ResourceLoader.exists(path):
 			var texture := load(path) as Texture2D
 			if texture != null:

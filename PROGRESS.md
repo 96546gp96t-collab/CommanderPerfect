@@ -39,8 +39,8 @@ Voor een volgend deel: [docs/new-episode-guide.md](docs/new-episode-guide.md).
 | B5 | Schakelaars, bruggen, licht, de Tantalus-straal, de aarde ontploft | ✅ Klaar en gecontroleerd door de architect (branch `milestone-b5-tantalus`) |
 | B5.1 | B1-B5 controleren en repareren met de echte Keen 2-bestanden (v1.31) | ✅ Getest door de gebruiker, "geen issues" (branch `milestone-b5.1-echte-data`) |
 | B6 | Wereldkaart, steden, statusscherm, het einde | ✅ Getest door de gebruiker, "ziet er goed uit" (branch `milestone-b6-kaart-einde`) |
-| B7 | Geluid, menu's, opslaan, highscores | 🔶 Gebouwd, in test bij de gebruiker (branch `milestone-b7-geluid-menus`) |
-| B8 | Mooier maken (framerate, xBRZ, HD, achtergronden, builds) | ⬜ |
+| B7 | Geluid, menu's, opslaan, highscores | ✅ Gebouwd (branch `milestone-b7-geluid-menus`) |
+| B8 | Mooier maken (framerate, xBRZ, HD, achtergronden, builds) | ✅ Gebouwd; Real-ESRGAN bewust overgeslagen (branch `milestone-b8-extras`) |
 | B9 | Co-op lokaal en online | ⬜ |
 | B10 | Naast het origineel leggen (DOSBox) | ⬜ |
 
@@ -481,6 +481,33 @@ Gebouwd en gespeeld met de echte Keen 2-bestanden. Regels in
   in de EXE, nog niet gebruikt); de intro, "About ID", "Ordering Info" en
   "Previews!" zijn niet nagebouwd (net als bij Keen 1).
 
+## Mijlpaal B8: wat er nu is
+
+- **Besluit van de gebruiker (17-10-2026):** geen Real-ESRGAN/HD voor Keen
+  2 (ook bij Keen 1 niet mooi genoeg; misschien gaat het daar ooit uit).
+  xBRZ zat er al in.
+- **xBRZ (F5), vloeiende beweging (F6), widescreen:** werken voor Keen 2
+  via de gedeelde code; alle Keen 2-figuren, Keen op de kaart en de
+  schepen van het einde bewegen vloeiend.
+- **Plaatjes achter levels:** eigen map `assets/backgrounds/keen2/` (nog
+  leeg) of die van de speler `game_data/keen2/backgrounds/levelNN.png`;
+  nooit die van Keen 1. Omdat de meeste Keen 2-levels een ruitpatroon als
+  achtergrond hebben (het plaatje zou door de stipjes heen schijnen), krijgt
+  een level alleen een plaatje als zijn effen achtergrond ook de meest
+  gebruikte tile is; in v1.31 is dat alleen level 12. Getest met een
+  tijdelijk plaatje (weer verwijderd). In het donker wordt het plaatje mee
+  donker.
+- **Gedeelde code:** één toevoeging: `BackdropPictures.create` kreeg een
+  optionele map (standaard die van Keen 1).
+- **Builds:** macOS en Windows nemen `game_data/keen2` mee (sinds B5.1);
+  vanaf nu worden na elke mijlpaal beide gebouwd.
+- **Tests:** nieuwe suite `test_keen2_extras`. Keen 1-controle: alle tests
+  slagen, gdlint schoon, screenshots gelijk aan `main` (alleen het icoon
+  op het startscherm verschilt).
+- **Voor de gebruiker:** wil je plaatjes achter Keen 2-levels, zet ze in
+  `game_data/keen2/backgrounds/`. Voor levels met het ruitpatroon zou een
+  andere aanpak nodig zijn (het patroon vervangen); dat kan later.
+
 ## Mijlpaal 1: wat er nu is
 
 - `GameFiles`: vindt de spelbestanden (`--data-dir=`, `game_data/keen1/`, of naast de exe) en negeert hoofd/kleine letters.
@@ -902,13 +929,12 @@ Na de eerste eigen test van de gebruiker:
 
 Keen 2:
 
-1. **Voor de gebruiker:** `build/CommanderPerfect.app` proberen met Keen 2
-   (B7): titel, menu, verhaal, opslaan en laden, high scores na game over.
-2. Daarna B8 (mooier maken: framerate, xBRZ, HD, achtergronden, builds) op
-   `milestone-b8-extras`, vanaf `milestone-b7-geluid-menus`; zie
-   `docs/keen2/roadmap.md`.
-3. Naast het origineel leggen (B10): startlading straalgeweer, punten van
-   de machine, "stad gered", plekken op status- en high score-scherm.
+1. B9 (co-op lokaal en online) op `milestone-b9-coop`, vanaf
+   `milestone-b8-extras`; zie `docs/keen2/roadmap.md`.
+2. **Voor de gebruiker:** B7 en B8 proberen in `build/` (Mac en Windows).
+   Alles van Keen 2 kan in één keer naar `main`: de laatste B-branch bevat
+   alle eerdere.
+3. Naast het origineel leggen (B10).
 
 Keen 1:
 

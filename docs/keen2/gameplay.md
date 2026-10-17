@@ -390,10 +390,28 @@ picture (Keen 1's `WINDON`/`WINDOFF` are not used).
 - The sounds come from `KEEN2.EXE` since B3; EARTHPOW plays when the Earth
   is hit (B5), HISCORESND for a new high score.
 
+## Extras (B8)
+
+- **xBRZ (F5), smooth motion (F6), widescreen with the HUD** work for Keen 2
+  as for Keen 1: they are shared ([GameScreen], [ActorLayer]), and every
+  Keen 2 actor, Keen on the map and the ending's ships are interpolated.
+  The Real-ESRGAN HD graphics are left out for Keen 2 (the user's choice:
+  they did not look good enough for Keen 1 either).
+- **Pictures behind the levels** (widescreen, the "Backgrounds" option):
+  Keen 2's own pictures in `assets/backgrounds/keen2/` (none yet), or the
+  player's in `game_data/keen2/backgrounds/` (`level01.png` ... `level16.png`,
+  also .webp or .jpg); Keen 1's pictures are never used. A picture shows
+  through the level's plain background, and through that color in every
+  other tile. Most Keen 2 levels have a patterned background (the gray
+  diamonds) whose dots have the plain tiles' color, so a picture would
+  shine through the dots all over the level: a level gets its picture only
+  when its plain background is also its most used tile
+  (`Keen2BackdropPictures`). In version 1.31 that is level 12. In the dark
+  the picture darkens with the level.
+
 ## Not yet
 
-Pictures behind the levels (B8; Keen 1's pictures are never shown behind
-Keen 2's levels); two players (B9). Not built, as for Keen 1: the intro
+Two players (B9). Not built, as for Keen 1: the intro
 (the Apogee and id screens), the demo, "About ID...", "Ordering Info",
 "Previews!" and the help text.
 

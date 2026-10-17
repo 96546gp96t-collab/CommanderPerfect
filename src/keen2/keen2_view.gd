@@ -12,9 +12,10 @@ extends Keen2MenuScreen
 ## that is done, or a death, brings Keen back to the map. Enter shows the
 ## status screen ([Keen2StatusScreen]), Escape the main menu. With all eight
 ## cities saved the ending runs ([Keen2Ending]); after it, and after GAME
-## OVER, the high scores. The pictures behind the levels come in milestone
-## B8: no [BackdropPictures] are made, so [method GameScreen._apply_backdrop]
-## shows none, also not Keen 1's.
+## OVER, the high scores. In widescreen, with the option on, a level can
+## show a picture behind it (milestone B8: Keen 2's own pictures in
+## [constant BACKGROUNDS_FOLDER] or the player's game_data/keen2/backgrounds,
+## never Keen 1's); it darkens with the level.
 ##
 ## Milestone B5 added what the switches do: the darkness ([Keen2Darkness]),
 ## the Vorticon Elders' messages (in a [GameWindow], the game waits until
@@ -33,6 +34,8 @@ const MISSING_DATA_MESSAGE := (
 )
 const UNREADABLE_MESSAGE := "The Keen 2 files in %s could not be read."
 const NOT_PLAYABLE_MESSAGE := "Keen 2 has no level %d"
+## Keen 2's own pictures behind the levels (Keen 1's are never used).
+const BACKGROUNDS_FOLDER := "res://assets/backgrounds/keen2"
 ## How long "Keens Left" stays open (as Keen 1's), unless a button closes it.
 const LIVES_SECONDS := 3.0
 ## Shown under an Elder's message unless it says so itself.
@@ -166,6 +169,8 @@ func _set_up_screen() -> void:
 	add_child(_keen_2_sounds)
 	_keen_2_sounds.enabled = _user_settings.sound_enabled
 	_world.add_child(_darkness)
+	_backdrop.add_child(_backdrop_darkness)
+	_backdrop_2.add_child(_backdrop_darkness_2)
 	_menus.window = _window
 	_menus.settings = _user_settings
 	add_child(_menus)
@@ -207,6 +212,7 @@ func _load_data() -> bool:
 	_hud.set_textures(_textures)
 	_hud.raygun_tile = Keen2Icons.raygun(_properties)
 	_hud.keycard_icons = Keen2Icons.keycards(_properties)
+	_backdrop_pictures = _make_backdrop_pictures()
 	_graphics_loader = GraphicsLoader.create(files, _graphics, _finale_image)
 	_menus.hd_available = HdPack.exists(files)
 	_apply_graphics()
@@ -226,6 +232,19 @@ func _load_data() -> bool:
 	return true
 
 
+## The pictures behind the levels, for the levels they suit
+## ([Keen2BackdropPictures]).
+func _make_backdrop_pictures() -> Keen2BackdropPictures:
+	var levels: Dictionary[int, LevelData] = {}
+	for number in range(Keen2Files.FIRST_LEVEL, Keen2Files.LAST_LEVEL + 1):
+		var level := LevelData.parse(files.read(files.level_file(number)))
+		if level != null:
+			levels[number] = level
+	return Keen2BackdropPictures.for_levels(
+		files, BACKGROUNDS_FOLDER, levels, _properties, _graphics.tiles
+	)
+
+
 func _start_level(number: int) -> void:
 	if not play.start(number):
 		_show_error("Level %d could not be read from %s." % [number, files.directory])
@@ -240,10 +259,10 @@ func _on_level_started(number: int) -> void:
 	_session = play.session
 	_session.tile_changed.connect(_level_map.set_tile)
 	_session.sound_played.connect(_sounds.play)
-	_session.lights_changed.connect(_darkness.set_dark)
+	_session.lights_changed.connect(_set_dark)
 	_session.elder_message_touched.connect(_on_elder_message)
 	_session.set_invincible(_god_mode)
-	_darkness.set_dark(_session.is_dark())
+	_set_dark(_session.is_dark())
 	_level_map.show_level(_level, _properties)
 	_mode = Mode.LEVEL
 	_frame_camera()
@@ -262,7 +281,7 @@ func _on_map_started() -> void:
 	_map_session = play.map_session
 	_map_session.tile_changed.connect(_level_map.set_tile)
 	_map_session.sound_played.connect(_sounds.play)
-	_darkness.set_dark(false)
+	_set_dark(false)
 	_level_map.show_level(_level, _properties)
 	_mode = Mode.MAP
 	_frame_camera()

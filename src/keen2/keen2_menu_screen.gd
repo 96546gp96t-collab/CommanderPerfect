@@ -106,7 +106,7 @@ func _clear_screen() -> void:
 	_pictures.clear()
 	_close_window()
 	_show_picture(false)
-	_darkness.set_dark(false)
+	_set_dark(false)
 	_level_map.visible = true
 	_time_left = 0.0
 

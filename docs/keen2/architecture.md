@@ -182,6 +182,21 @@ death restarts the level, game over and Escape go back to the start screen
   file passes 500 lines. `Keen2View` keeps playing the game and starts one
   in `_start_game`.
 
+## Deviations in B8
+
+- **Real-ESRGAN left out** for Keen 2, on the user's word (17-10-2026);
+  xBRZ and smooth motion needed nothing (shared).
+- **One shared change, additive:** `BackdropPictures.create(files, folder)`
+  got the optional `folder` (default Keen 1's `res://assets/backgrounds`).
+- **`Keen2BackdropPictures extends BackdropPictures`** shows a picture only
+  behind levels whose plain background tile is their most used tile;
+  otherwise the patterned backgrounds of Keen 2 let it shine through their
+  dots. `Keen2View` builds it from the 16 levels at load.
+- **Darkness over the pictures:** the pictures are on canvas layers of
+  their own, which the `CanvasModulate` of the level does not reach, so
+  `Keen2SpaceScreen` puts a second and third `Keen2Darkness` into the two
+  backdrop layers (`_set_dark` sets all three).
+
 ## Testing
 
 - Most Keen 2 logic is tested with hand-made fixtures (`tests/fixtures.gd`
@@ -236,6 +251,8 @@ death restarts the level, game over and Escape go back to the start screen
   saving and loading in Keen 2's folder, a new game, the menus of Keen 2
   without and of Keen 1 with online play, the second player and the extra
   levels); `test_keen2_data` checks the story and the high score texts.
+- *B8:* `tests/test_keen2_extras.gd` (which levels suit a picture, Keen 2's
+  folder only, Keen 1 keeps its own; with the real files only level 12).
 - Numbers that come from Commander Genius are marked *estimate* in the code,
   as for Keen 1, and listed at the bottom of the Keen 2 docs to check
   against the original (DOSBox) in B10.

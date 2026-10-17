@@ -40,6 +40,7 @@ const SUITES: Array[Script] = [
 	preload("res://tests/test_keen2_tantalus.gd"),
 	preload("res://tests/test_keen2_ending.gd"),
 	preload("res://tests/test_keen2_menus.gd"),
+	preload("res://tests/test_keen2_extras.gd"),
 ]
 
 

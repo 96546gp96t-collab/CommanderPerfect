@@ -33,6 +33,10 @@ var _time_left := 0.0
 ## Counts down while GAME OVER is shown.
 var _game_over_time_left := 0.0
 var _darkness := Keen2Darkness.new()
+## The same darkness over the pictures behind the level, which are on canvas
+## layers of their own (one per player's view).
+var _backdrop_darkness := Keen2Darkness.new()
+var _backdrop_darkness_2 := Keen2Darkness.new()
 var _keen_2_sounds := Keen2Sounds.new()
 ## What the status screen and the ending show, from the files.
 var _texts: Keen2GameData
@@ -51,7 +55,7 @@ func _on_earth_exploded() -> void:
 	_doom = Doom.SHAKING
 	_shake_left = SHAKE_SECONDS
 	_close_window()
-	_darkness.set_dark(false)
+	_set_dark(false)
 	_keen.visible = false
 
 
@@ -209,6 +213,13 @@ func _move_camera_anchor() -> void:
 		super()
 	elif _keen2_ending != null and _keen2_ending.shows_space():
 		_camera_anchor.position = _keen2_ending.view_center(Vector2(_settings.game_size()))
+
+
+## Darkens the level and the picture behind it ([param dark] true), or
+## lights them again.
+func _set_dark(dark: bool) -> void:
+	for darkness in [_darkness, _backdrop_darkness, _backdrop_darkness_2]:
+		darkness.set_dark(dark)
 
 
 ## The game is over (GAME OVER or the ending). [Keen2View] shows the high
