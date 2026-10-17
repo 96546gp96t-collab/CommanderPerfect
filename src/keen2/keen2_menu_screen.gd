@@ -9,8 +9,8 @@ extends Keen2SpaceScreen
 ## GAME OVER and the end of the game lead to the high scores, which ask for a
 ## name when the score is good enough. Saved games and the high scores live in
 ## Keen 2's own folder ([constant SAVES_DIRECTORY]); the keys and the display
-## settings are shared with Keen 1. The menus offer no online game, no second
-## player and no extra levels (Keen 1's); co-op comes in milestone B9.
+## settings are shared with Keen 1. The menus offer adding or removing
+## player 2 during a game (milestone B9), but not Keen 1's extra levels.
 ##
 ## [Keen2View], which extends this, plays the game; it starts one in
 ## [method _start_game].
@@ -23,6 +23,9 @@ const LOAD_FAILED_LINES: PackedStringArray = ["That game could not be", "read.  
 
 ## The game being played; null when the files could not be read.
 var play: Keen2LevelPlay
+## Whether a second player plays along on the keyboard (not saved with a
+## game, as in Keen 1).
+var _two_players := false
 var _saves := SaveGames.in_directory(SAVES_DIRECTORY)
 var _high_scores := Keen2HighScores.new()
 var _screen_time_left := 0.0
@@ -35,11 +38,15 @@ func _start_game(_game: Keen2Progress) -> void:
 	pass
 
 
+## A second player joins, or leaves (F7 or the menu).
+func _toggle_second_player() -> void:
+	pass
+
+
 ## Connects the menus; call before the screen is shown.
 func _set_up_menus() -> void:
 	_menus.saves = _saves
 	_menus.offers_online = false
-	_menus.offers_second_player = false
 	_menus.offers_extra_levels = false
 	_menus.chosen.connect(_on_menu_chosen)
 	_menus.settings_changed.connect(_on_settings_changed)
@@ -98,6 +105,7 @@ func _show_screen(mode: Mode, area: Rect2i) -> bool:
 
 ## Takes away what a level, the map or the ending left on the screen.
 func _clear_screen() -> void:
+	_second_player.stop()
 	_session = null
 	_map_session = null
 	_keen2_ending = null
@@ -143,7 +151,8 @@ func _on_screen_key() -> void:
 func _open_main_menu() -> void:
 	_close_window()
 	_user_settings.fullscreen = _is_fullscreen()
-	_menus.open_main(_mode in [Mode.MAP, Mode.LEVEL, Mode.ENDING], _can_save())
+	var in_game := _mode in [Mode.MAP, Mode.LEVEL, Mode.ENDING]
+	_menus.open_main(in_game, _can_save(), _two_players)
 
 
 ## Saving is only possible while Keen stands on the world map.
@@ -159,6 +168,8 @@ func _on_menu_chosen(id: StringName, slot: int) -> void:
 	match id:
 		MenuController.CHOICE_NEW_GAME:
 			_start_game(null)
+		MenuController.CHOICE_SECOND_PLAYER:
+			_toggle_second_player()
 		MenuController.CHOICE_LOAD:
 			_load_game(slot)
 		MenuController.CHOICE_SAVE:

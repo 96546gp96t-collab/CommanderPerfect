@@ -409,9 +409,23 @@ picture (Keen 1's `WINDON`/`WINDOFF` are not used).
   (`Keen2BackdropPictures`). In version 1.31 that is level 12. In the dark
   the picture darkens with the level.
 
+## Two players on one keyboard (B9)
+
+As in Keen 1 ([../two-players.md](../two-players.md)): F7, or "Add Player
+2" / "Remove Player 2" in the menu during a game. Player 2's Keen (blue
+helmet) appears in the level where player 1 is; on the map he plays along
+from the next level. Each has his own keys in a level (player 1 WASD,
+player 2 the arrows); on the world map and in the ending the keys of both
+steer the one Keen. Shared inventory, one death ends the attempt for both,
+one exit completes the level for both. The split screen is Keen 1's
+(`TwoPlayerView`). What is Keen 2's own works for both Keens: either can be
+stunned by a youth, ride a platform or a Scrub, press a switch (also the
+Tantalus Ray's) or wake an Elder; the darkness covers both halves of the
+screen. The Earth exploding and the ending end player 2's part.
+
 ## Not yet
 
-Two players (B9). Not built, as for Keen 1: the intro
+Playing online (B9, next). Not built, as for Keen 1: the intro
 (the Apogee and id screens), the demo, "About ID...", "Ordering Info",
 "Previews!" and the help text.
 

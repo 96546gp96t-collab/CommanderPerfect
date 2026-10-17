@@ -34,6 +34,9 @@ const MISSING_DATA_MESSAGE := (
 )
 const UNREADABLE_MESSAGE := "The Keen 2 files in %s could not be read."
 const NOT_PLAYABLE_MESSAGE := "Keen 2 has no level %d"
+const PLAYER_2_LEFT_MESSAGE := "Player 2 left"
+const PLAYER_2_JOINED_MESSAGE := "Player 2 joined: player 1 on WASD, player 2 on the arrows"
+const PLAYER_2_LATER_MESSAGE := "Player 2 plays along in the levels"
 ## Keen 2's own pictures behind the levels (Keen 1's are never used).
 const BACKGROUNDS_FOLDER := "res://assets/backgrounds/keen2"
 ## How long "Keens Left" stays open (as Keen 1's), unless a button closes it.
@@ -61,6 +64,24 @@ func _ready() -> void:
 	_show_title()
 	if wants_menu:
 		_open_main_menu()
+
+
+## Player 2 joins or leaves. In a level his Keen appears where player 1's
+## is; on the map he plays along from the next level on.
+func _toggle_second_player() -> void:
+	_two_players = not _two_players
+	if _mode == Mode.LEVEL and _session != null:
+		if _two_players:
+			var view_center := _camera.get_screen_center_position()
+			_second_player.start(_session, _session.keen.position, view_center)
+		else:
+			_second_player.stop()
+	if not _two_players:
+		_show_message(PLAYER_2_LEFT_MESSAGE)
+	elif _mode == Mode.LEVEL:
+		_show_message(PLAYER_2_JOINED_MESSAGE)
+	else:
+		_show_message(PLAYER_2_LATER_MESSAGE)
 
 
 ## A new game (or [param game], a loaded one) on the world map.
@@ -98,6 +119,7 @@ func _process(delta: float) -> void:
 		_shake(delta)
 	elif _doom == Doom.EXPLODING:
 		_run_explosion(delta)
+	_second_player.update(delta)
 	_move_camera_anchor()
 	_update_backdrops()
 	_update_status()
@@ -118,6 +140,8 @@ func _unhandled_input(event: InputEvent) -> void:
 		_open_main_menu()
 	elif event.is_action_pressed("status"):
 		_on_enter_pressed()
+	elif event.is_action_pressed("toggle_second_player") and _mode in [Mode.MAP, Mode.LEVEL]:
+		_toggle_second_player()
 	elif _window.visible and _buttons_close_window and _is_button(event):
 		_close_window()
 	elif not _handle_cheat_keys(event):
@@ -140,20 +164,38 @@ func _on_enter_pressed() -> void:
 func _run_ticks(delta: float) -> void:
 	_time_left = minf(_time_left + delta, KeenPhysics.MAX_TICKS_PER_FRAME * KeenPhysics.TICK)
 	if _session != null:
-		var views: Array[Rect2] = [_own_view()]
-		_session.view_rects = views
+		_session.view_rects = _view_rects()
 	while (
 		_time_left >= KeenPhysics.TICK and _mode in [Mode.MAP, Mode.LEVEL] and not _window.visible
 	):
 		_time_left -= KeenPhysics.TICK
-		play.step(KeenInput.from_actions())
+		play.step_players(_inputs())
 		_show_sprites()
 	_place_sprites(_time_left / KeenPhysics.TICK)
+
+
+## The buttons of this tick: one player's, or with two players each one's
+## own keys (in a level), and on the map the keys of both and of playing
+## alone, which all steer the one Keen there.
+func _inputs() -> Array[KeenInput]:
+	if not _two_players:
+		return [KeenInput.from_actions()]
+	if _second_player.is_split_screen():
+		return [KeenInput.for_player(0), KeenInput.for_player(1)]
+	return [KeenInput.from_actions(), KeenInput.for_player(0), KeenInput.for_player(1)]
+
+
+## What the players see, for waking up the enemies.
+func _view_rects() -> Array[Rect2]:
+	if _second_player.is_split_screen():
+		return _second_player.view_rects()
+	return [_own_view()]
 
 
 func _show_sprites() -> void:
 	if _mode == Mode.LEVEL:
 		_keen.show_body(_session.keen)
+		_second_player.show_body()
 		_actor_layer.show_actors(_session.actors)
 	elif _mode == Mode.MAP:
 		_keen.show_on_map(_map_session.keen)
@@ -269,6 +311,8 @@ func _on_level_started(number: int) -> void:
 	_apply_backdrop()
 	_keen.show_body(_session.keen)
 	_follow(_keen)
+	if _two_players:
+		_second_player.start(_session, _session.keen.position, _camera_anchor.position)
 
 
 ## Shows the world map that [member play] has just started: the done levels

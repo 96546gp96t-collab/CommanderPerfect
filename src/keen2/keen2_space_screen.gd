@@ -51,6 +51,7 @@ var _flight_sprite := Keen2SpaceSprite.new()
 ## The Tantalus Ray fired: the level stands still, Keen is gone, the lights
 ## are on, and the screen shakes.
 func _on_earth_exploded() -> void:
+	_second_player.stop()
 	_mode = Mode.NONE
 	_doom = Doom.SHAKING
 	_shake_left = SHAKE_SECONDS
@@ -133,6 +134,7 @@ func _start_ending() -> void:
 	_keen2_ending = Keen2Ending.create(_texts.ending_texts, _texts.end_text, ship_start)
 	_keen2_ending.changed.connect(_on_ending_changed)
 	_close_window()
+	_second_player.stop()
 	_session = null
 	_map_session = null
 	_mode = Mode.ENDING

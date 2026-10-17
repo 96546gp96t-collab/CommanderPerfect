@@ -41,7 +41,7 @@ Voor een volgend deel: [docs/new-episode-guide.md](docs/new-episode-guide.md).
 | B6 | Wereldkaart, steden, statusscherm, het einde | ✅ Getest door de gebruiker, "ziet er goed uit" (branch `milestone-b6-kaart-einde`) |
 | B7 | Geluid, menu's, opslaan, highscores | ✅ Gebouwd (branch `milestone-b7-geluid-menus`) |
 | B8 | Mooier maken (framerate, xBRZ, HD, achtergronden, builds) | ✅ Gebouwd; Real-ESRGAN bewust overgeslagen (branch `milestone-b8-extras`) |
-| B9 | Co-op lokaal en online | ⬜ |
+| B9 | Co-op lokaal en online | 🔶 Lokaal gebouwd; online volgt (branch `milestone-b9-coop`) |
 | B10 | Naast het origineel leggen (DOSBox) | ⬜ |
 
 ## Mijlpaal B1: wat er nu is
