@@ -1,17 +1,18 @@
 class_name Keen2View
-extends Keen2SpaceScreen
+extends Keen2MenuScreen
 ## The Keen 2 game screen that the start screen opens. [GameScreen] draws it
 ## as it draws Keen 1: the World viewport, the graphics (original, xBRZ or
 ## HD, F5), widescreen with the [Hud], the camera that follows Keen, and
 ## short messages. This plays a game of Keen 2 with [Keen2LevelPlay].
 ##
-## Milestone B6: the game starts on the world map (map 80) with "Keens
-## Left", or in the level given with [code]-- --level=N[/code] (1-16), after
-## which the map comes. A level that is done, or a death, brings Keen back to
-## the map. Enter shows the status screen ([Keen2StatusScreen]). With all
-## eight cities saved the ending runs ([Keen2Ending]), then the start screen
-## comes back; so it does after game over. Escape goes back to it at once
-## (the menus come in B7). The pictures behind the levels come in milestone
+## The screen starts on the title (milestone B7, [Keen2MenuScreen]; from the
+## start screen with the main menu open), or in the level given with
+## [code]-- --level=N[/code] (1-16), after which the map comes. A game
+## starts on the world map (map 80) with "Keens Left" (milestone B6). A level
+## that is done, or a death, brings Keen back to the map. Enter shows the
+## status screen ([Keen2StatusScreen]), Escape the main menu. With all eight
+## cities saved the ending runs ([Keen2Ending]); after it, and after GAME
+## OVER, the high scores. The pictures behind the levels come in milestone
 ## B8: no [BackdropPictures] are made, so [method GameScreen._apply_backdrop]
 ## shows none, also not Keen 1's.
 ##
@@ -31,23 +32,19 @@ const MISSING_DATA_MESSAGE := (
 	+ "or start with: -- --data-dir-keen2=PATH"
 )
 const UNREADABLE_MESSAGE := "The Keen 2 files in %s could not be read."
-const NOT_PLAYABLE_MESSAGE := "Keen 2 has no level %d: here is the world map"
-const GAME_OVER_MESSAGE := "Game over"
+const NOT_PLAYABLE_MESSAGE := "Keen 2 has no level %d"
 ## How long "Keens Left" stays open (as Keen 1's), unless a button closes it.
 const LIVES_SECONDS := 3.0
 ## Shown under an Elder's message unless it says so itself.
 const ELDER_PROMPT := "Press ENTER:"
 const ELDER_PROMPT_WORD := "ENTER"
 
-## The levels being played; null when the files could not be read.
-var play: Keen2LevelPlay
 var _elder_messages: Array[PackedStringArray] = []
 
 
 func _ready() -> void:
-	# The start screen asks every game to open its main menu; Keen 2 has
-	# none yet (milestone B7).
-	GameLaunch.take_menu_request()
+	# Picked on the start screen: straight on to the main menu.
+	var wants_menu := GameLaunch.take_menu_request()
 	_set_up_screen()
 	if not _load_data():
 		return
@@ -57,7 +54,19 @@ func _ready() -> void:
 		first = 0
 	if first != 0:
 		_start_level(first)
-	elif play.start_map():
+		return
+	_show_title()
+	if wants_menu:
+		_open_main_menu()
+
+
+## A new game (or [param game], a loaded one) on the world map.
+func _start_game(game: Keen2Progress) -> void:
+	play.new_game(game)
+	# The HUD and the cheats look at GameScreen's progress.
+	_progress = play.progress
+	_god_mode = false
+	if play.start_map():
 		_show_lives(play.inventory.lives)
 	else:
 		_show_error("The world map could not be read from %s." % files.directory)
@@ -72,7 +81,12 @@ func _process(delta: float) -> void:
 	_message_time_left -= delta
 	if _graphics_loader != null and _graphics_loader.poll():
 		_apply_graphics()
+	# The game stands still while a menu is open.
+	if _menus.is_open():
+		_update_status()
+		return
 	_count_down_window(delta)
+	_count_down_screen(delta)
 	if _mode in [Mode.MAP, Mode.LEVEL] and not _window.visible:
 		_run_ticks(delta)
 	elif _mode == Mode.ENDING:
@@ -81,22 +95,24 @@ func _process(delta: float) -> void:
 		_shake(delta)
 	elif _doom == Doom.EXPLODING:
 		_run_explosion(delta)
-	elif _mode == Mode.GAME_OVER:
-		_leave_time_left -= delta
-		if _leave_time_left <= 0.0:
-			_leave()
 	_move_camera_anchor()
 	_update_backdrops()
 	_update_status()
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	if _handle_display_keys(event):
+	if play == null:
+		return
+	if _menus.is_open():
+		_menus.handle_input(event)
+	elif _handle_display_keys(event):
 		pass
+	elif _mode in [Mode.TITLE, Mode.HIGH_SCORES, Mode.GAME_OVER]:
+		if not _is_any_press(event):
+			return
+		_on_screen_key()
 	elif event.is_action_pressed("menu"):
-		_leave()
-	elif _mode == Mode.GAME_OVER and _is_any_press(event):
-		_leave()
+		_open_main_menu()
 	elif event.is_action_pressed("status"):
 		_on_enter_pressed()
 	elif _window.visible and _buttons_close_window and _is_button(event):
@@ -153,6 +169,7 @@ func _set_up_screen() -> void:
 	_menus.window = _window
 	_menus.settings = _user_settings
 	add_child(_menus)
+	_set_up_menus()
 	# GameScreen's drawings of Keen 1's ship stay empty here; in the tree
 	# they are freed with the scene.
 	_add_ship_drawings()
@@ -197,6 +214,7 @@ func _load_data() -> bool:
 	_keen_2_sounds.load_sounds(data.sounds)
 	_elder_messages = data.elder_messages
 	_texts = data
+	_set_up_texts()
 	play = Keen2LevelPlay.create(files, _properties)
 	_progress = play.progress
 	play.level_started.connect(_on_level_started)
@@ -215,9 +233,7 @@ func _start_level(number: int) -> void:
 
 ## Shows the level that [member play] has just started.
 func _on_level_started(number: int) -> void:
-	_actor_layer.clear()
-	_close_window()
-	_time_left = 0.0
+	_clear_screen()
 	_level_number = number
 	_level = play.level
 	_map_session = null
@@ -239,9 +255,7 @@ func _on_level_started(number: int) -> void:
 ## Shows the world map that [member play] has just started: the done levels
 ## have their sign already.
 func _on_map_started() -> void:
-	_actor_layer.clear()
-	_close_window()
-	_time_left = 0.0
+	_clear_screen()
 	_level_number = Keen2Files.WORLD_MAP_LEVEL
 	_level = play.level
 	_session = null
@@ -266,9 +280,10 @@ func _show_lives(lives: int) -> void:
 	_buttons_close_window = true
 
 
+## The last life is gone: GAME OVER, then the high scores.
 func _on_game_over() -> void:
-	_sounds.play(Sound.Id.GAME_OVER)
-	_leave_after(GAME_OVER_MESSAGE)
+	_clear_screen()
+	_show_game_over()
 
 
 ## A Vorticon Elder speaks: its message, until Enter closes it. An Elder
@@ -292,13 +307,6 @@ func _update_hud() -> void:
 	)
 	if _hud.visible:
 		_hud.show_inventory(_progress.inventory)
-
-
-## Shows [param message] for a while, then goes back to the start screen.
-func _leave_after(message: String) -> void:
-	_mode = Mode.GAME_OVER
-	_show_message(message)
-	_leave_time_left = LEAVE_SECONDS
 
 
 ## The cheats, on the map and in a level; returns whether [param event] was

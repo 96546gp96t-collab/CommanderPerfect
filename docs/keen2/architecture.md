@@ -55,7 +55,9 @@ src/keen2/            Keen 2 only (all class names start with Keen2)
                       Keen2Ending and Keen2Flight (B6), Keen2EarthExplosion with
                       Keen2SpaceSprite (B5), Keen2Sounds (EARTHPOW, B5)
   keen2_view.gd       Keen2View (the scene; the Keen 2 counterpart of level_view.gd)
-  keen2_space_screen.gd  Keen2SpaceScreen, which Keen2View extends: map 81 (B6)
+  keen2_space_screen.gd  Keen2SpaceScreen: map 81 (B6)
+  keen2_menu_screen.gd   Keen2MenuScreen, on Keen2SpaceScreen: title, high scores,
+                         main menu, saving (B7); Keen2View extends it
   keen2_view.tscn     The game scene that the start screen opens
 tests/test_keen2_*.gd Keen 2 suites; the ones that need real data skip without it
 docs/keen2/           Keen 2 documents
@@ -160,6 +162,26 @@ death restarts the level, game over and Escape go back to the start screen
   text: `LevelMap.clear()` leaves the animated tiles (the twinkling stars of
   map 81) drawing.
 
+## Deviations in B7
+
+- **One shared change, additive:** `MenuController` got `offers_online`,
+  `offers_second_player` and `offers_extra_levels`, all `true` by default,
+  so Keen 1's menus are the same; Keen 2 switches them off (no online play
+  or co-op until B9, and the extra levels are Keen 1's). A Keen 1 test of
+  the new suite checks that Keen 1's menus still have all three.
+- **Keen 1 classes used unchanged:** `Backdrops` (map 90 has Keen 1's
+  layout: the title and high score screens are at the same cells),
+  `ScoreTexts` (KEEN2.EXE has the same "SCORES." records) and `SaveGames`
+  (in `user://keen2/saves`; `Keen2Progress.from_game` turns what it reads
+  into a Keen 2 game).
+- **Keen 2's own high score table** (`Keen2HighScores`): the shared
+  `HighScores` stores ship parts; Keen 2 stores the number of cities, in its
+  own file.
+- **A third screen class:** the title, the high scores and the menus live in
+  `Keen2MenuScreen` (between `Keen2SpaceScreen` and `Keen2View`), so that no
+  file passes 500 lines. `Keen2View` keeps playing the game and starts one
+  in `_start_game`.
+
 ## Testing
 
 - Most Keen 2 logic is tested with hand-made fixtures (`tests/fixtures.gd`
@@ -210,6 +232,10 @@ death restarts the level, game over and Escape go back to the start screen
   plays the map (start, entering a level, exit and death back to the map,
   done signs, winning); `test_keen2_data` checks the status box, the ending
   texts and the entrances of map 80 in the real files.
+- *B7:* `tests/test_keen2_menus.gd` (the high score table and its screen,
+  saving and loading in Keen 2's folder, a new game, the menus of Keen 2
+  without and of Keen 1 with online play, the second player and the extra
+  levels); `test_keen2_data` checks the story and the high score texts.
 - Numbers that come from Commander Genius are marked *estimate* in the code,
   as for Keen 1, and listed at the bottom of the Keen 2 docs to check
   against the original (DOSBox) in B10.

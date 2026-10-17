@@ -38,8 +38,8 @@ Voor een volgend deel: [docs/new-episode-guide.md](docs/new-episode-guide.md).
 | B4 | Vijanden en meerijden (platforms, Scrubs) | ✅ Klaar en gecontroleerd door de architect (branch `milestone-b4-vijanden`) |
 | B5 | Schakelaars, bruggen, licht, de Tantalus-straal, de aarde ontploft | ✅ Klaar en gecontroleerd door de architect (branch `milestone-b5-tantalus`) |
 | B5.1 | B1-B5 controleren en repareren met de echte Keen 2-bestanden (v1.31) | ✅ Getest door de gebruiker, "geen issues" (branch `milestone-b5.1-echte-data`) |
-| B6 | Wereldkaart, steden, statusscherm, het einde | 🔶 Gebouwd, in test bij de gebruiker (branch `milestone-b6-kaart-einde`) |
-| B7 | Geluid, menu's, opslaan, highscores | ⬜ |
+| B6 | Wereldkaart, steden, statusscherm, het einde | ✅ Getest door de gebruiker, "ziet er goed uit" (branch `milestone-b6-kaart-einde`) |
+| B7 | Geluid, menu's, opslaan, highscores | 🔶 Gebouwd, in test bij de gebruiker (branch `milestone-b7-geluid-menus`) |
 | B8 | Mooier maken (framerate, xBRZ, HD, achtergronden, builds) | ⬜ |
 | B9 | Co-op lokaal en online | ⬜ |
 | B10 | Naast het origineel leggen (DOSBox) | ⬜ |
@@ -440,6 +440,46 @@ begin tot eind uit te spelen. De regels staan in `docs/keen2/gameplay.md`
   is (en hoe het origineel Keen tegenhoudt); de plekken op het
   statusscherm; of het origineel `TO BE CONTINUED....` en de eindtekst na
   de pagina's toont; de high scores na het einde (B7).
+
+## Mijlpaal B7: wat er nu is
+
+Gebouwd en gespeeld met de echte Keen 2-bestanden. Regels in
+`docs/keen2/gameplay.md` ("Title, menus, saving and high scores").
+
+- **Titelscherm:** map 90 met het `TITLE`-plaatje (ruimte, moederschip,
+  aarde). Titel en high scores wisselen elke 8 seconden; een toets opent
+  het hoofdmenu. Vanaf het startscherm gaat het menu meteen open.
+- **High scores:** eigen tabel (`Keen2HighScores`) met naam, score en
+  aantal geredde steden, onder het `SAVED`-plaatje ("Cities saved").
+  Standaardnamen Yorpy, Gargile, Zzapp! uit `KEEN2.EXE`. Na GAME OVER of
+  het einde: de high scores, en bij een goede score een naam invullen.
+- **Hoofdmenu (gedeeld):** New Game, Continue Game, Save Game (alleen op
+  de kaart), Story (uit de EXE), High Scores, Controls, Options, Quit to
+  Title, Choose Game, Quit. Zonder Online Game, Player 2 en Extra levels.
+- **Opslaan:** 9 plekken in `user://keen2/saves`, apart van Keen 1;
+  high scores in `user://keen2/high_scores.json`. Toetsen en
+  beeldinstellingen zijn gedeeld.
+- **Gedeelde code:** één toevoeging: `MenuController` kreeg
+  `offers_online`, `offers_second_player` en `offers_extra_levels`
+  (standaard aan, dus Keen 1 blijft gelijk; getest). Keen 1's
+  `Backdrops`, `ScoreTexts` en `SaveGames` worden ongewijzigd gebruikt.
+- **Code:** nieuw `Keen2MenuScreen` (titel, high scores, menu, opslaan)
+  tussen `Keen2SpaceScreen` en `Keen2View`; alle bestanden onder 500
+  regels. Gerepareerd tijdens het testen: na "New Game"/"Continue" keek de
+  HUD nog naar de oude voortgang.
+- **Tests:** nieuwe suite `test_keen2_menus` (tabel, scherm, opslaan en
+  laden, nieuw spel, menu's van Keen 2 en Keen 1); `test_keen2_data`
+  controleert verhaal en high score-teksten.
+- **Gespeeld met screenshots:** titel, high scores, hoofdmenu, verhaal,
+  menu in het spel, opslaan in plek 1 en weer laden, GAME OVER → naam →
+  high scores.
+- **Keen 1-controle:** alle tests slagen, gdlint schoon; titel, level 1
+  (ook lopend) en kaart byte voor byte gelijk aan `main`; `launcher.png`
+  verschilt alleen op de plek van het Keen 2-icoon.
+- **Open:** de plekken in de high score-tabel (schatting); het origineel
+  toont na een spel waarschijnlijk "You saved N cities!" (de teksten staan
+  in de EXE, nog niet gebruikt); de intro, "About ID", "Ordering Info" en
+  "Previews!" zijn niet nagebouwd (net als bij Keen 1).
 
 ## Mijlpaal 1: wat er nu is
 
@@ -863,15 +903,12 @@ Na de eerste eigen test van de gebruiker:
 Keen 2:
 
 1. **Voor de gebruiker:** `build/CommanderPerfect.app` proberen met Keen 2
-   (B6): de kaart, levels in en uit, DONE-bordjes, het statusscherm
-   (Enter), en het einde. Snel naar het einde: met Shift+N/P naar een stad,
-   Shift+G en Shift+I helpen; of de steden echt uitspelen.
-2. Daarna B7 (geluid, menu's, opslaan, high scores) op
-   `milestone-b7-geluid-menus`, vanaf `milestone-b6-kaart-einde`, zie
-   `docs/keen2/roadmap.md`. Na het einde en na game over komen dan de high
-   scores (`CITIESSA`/`SAVED`-bitmap, aantal steden).
-3. De startlading van het straalgeweer, de punten van de machine en de
-   regel "stad gered" naast het origineel leggen (B10).
+   (B7): titel, menu, verhaal, opslaan en laden, high scores na game over.
+2. Daarna B8 (mooier maken: framerate, xBRZ, HD, achtergronden, builds) op
+   `milestone-b8-extras`, vanaf `milestone-b7-geluid-menus`; zie
+   `docs/keen2/roadmap.md`.
+3. Naast het origineel leggen (B10): startlading straalgeweer, punten van
+   de machine, "stad gered", plekken op status- en high score-scherm.
 
 Keen 1:
 

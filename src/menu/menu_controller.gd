@@ -95,6 +95,12 @@ var settings := UserSettings.new()
 var story := PackedStringArray()
 ## Whether the player has made HD graphics, so that they can be picked.
 var hd_available := false
+## Whether the menus offer playing online, a second player and Keen 1's
+## extra levels. All on by default (Keen 1); a game that has no such thing
+## yet switches it off.
+var offers_online := true
+var offers_second_player := true
+var offers_extra_levels := true
 ## Online: see [OnlineMenuInfo]. The game screen fills it in before it
 ## opens the main menu.
 var online := OnlineMenuInfo.new()
@@ -141,11 +147,12 @@ func open_main(in_game: bool, can_save: bool, two_players := false) -> void:
 	var menu := Menu.create(MAIN, ["     MAIN MENU"])
 	if in_game:
 		menu.add("Return to Game", CHOICE_RESUME)
-		if online.role == OnlineMenuInfo.Role.OFFLINE:
+		if online.role == OnlineMenuInfo.Role.OFFLINE and offers_second_player:
 			menu.add("Remove Player 2" if two_players else "Add Player 2", CHOICE_SECOND_PLAYER)
 	menu.add("New Game", CHOICE_NEW_GAME)
 	menu.add("Continue Game", SLOTS_LOAD)
-	menu.add("Online Game", ONLINE)
+	if offers_online:
+		menu.add("Online Game", ONLINE)
 	if in_game:
 		menu.add("Save Game", SLOTS_SAVE if can_save else &"save_not_here")
 	if not story.is_empty():
@@ -400,7 +407,8 @@ func _options_menu() -> Menu:
 		widescreen
 	)
 	menu.add("Graphics      " + GRAPHICS_LABELS[display.graphics], &"graphics")
-	menu.add("Extra levels  " + _on_off(settings.extra_levels), &"extra_levels")
+	if offers_extra_levels:
+		menu.add("Extra levels  " + _on_off(settings.extra_levels), &"extra_levels")
 	return menu
 
 

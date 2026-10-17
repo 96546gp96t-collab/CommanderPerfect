@@ -7,23 +7,24 @@ status screen and the ending in B6; later milestones add to it.
 The facts and their sources are in [research.md](research.md), the code
 layout in [architecture.md](architecture.md).
 
-## The course of the game (B6)
-
-There is no title or menu yet (B7). The game goes like this:
+## The course of the game (B6, B7)
 
 | What | Then |
 |---|---|
-| Keen 2 picked on the start screen | A new game on the world map (map 80), with "Keens Left" |
-| `-- --game=2 --level=N` | Level N (1-16) at once; after it the map. Another number: the map, with a message |
+| Keen 2 picked on the start screen | The title with the main menu open (B7) |
+| `-- --game=2` | The title |
+| Title / high scores | They take turns every 8 seconds; a key opens the main menu |
+| "New Game" / "Continue Game" | A new or saved game on the world map (map 80), with "Keens Left" |
+| `-- --game=2 --level=N` | Level N (1-16) at once; after it the map. Another number: the title, with a message |
 | On the map | Keen walks as on Keen 1's map (`MapSession`, unchanged): the jump or pogo button on an entrance enters its level |
 | Keen walks out through the exit | The level is done: back on the map where he went in; its entrance shows the "DONE" sign (77, or 78-81 for 2x2) and cannot be entered again. Entrances with 0x8000 (levels 1 and 5) block the way until their level is done |
 | A city level is done | That city is saved (levels 4, 6, 7, 9, 11, 13, 15, 16: London, Cairo, Sydney, New York, Paris, Rome, Moscow, Washington) |
-| All eight cities saved | The ending (below), then the start screen |
+| All eight cities saved | The ending (below), then the high scores |
 | Keen dies | One life less, back on the map with "Keens Left" |
-| Keen dies without lives left | "Game over", then the start screen |
-| Keen presses the switch of an intact Tantalus Ray machine | The Earth explodes, GAME OVER whatever the lives, then the start screen (B5) |
+| Keen dies without lives left | GAME OVER (the bitmap) for 4 seconds or until a key, then the high scores |
+| Keen presses the switch of an intact Tantalus Ray machine | The Earth explodes, GAME OVER whatever the lives, then the high scores (B5) |
 | Enter | The status screen (below); Enter or a button closes it |
-| Escape | The start screen |
+| Escape | The main menu (B7) |
 
 "Keens Left" is Keen 1's window (`MapMessages`, unchanged): a little Keen
 per life, it closes by itself after 3 seconds or with a button. A city is
@@ -361,10 +362,40 @@ ship lands right on the Earth, which suggests they are right. Texts that
 are not found are left out. Keen 2 has no light in the window of the
 picture (Keen 1's `WINDON`/`WINDOFF` are not used).
 
+## Title, menus, saving and high scores (B7)
+
+`Keen2MenuScreen`, as Keen 1 has them:
+
+- **The title** is the title screen of map 90 (space with the mothership and
+  the Earth) with the `TITLE` bitmap: map 90 has Keen 1's layout, so Keen
+  1's `Backdrops` cuts it out and draws it unchanged.
+- **The high scores** are the frame of map 90 with `HIGHSCOR`, the `NAME`
+  and `SCORE` headings and the `SAVED` bitmap ("Cities saved"), and per
+  place a name, a score and the number of cities (`Keen2HighScores`, drawn
+  by `Keen2Screens`). A new table has the names of `KEEN2.EXE` (Yorpy,
+  Gargile, Zzapp!) and 100 points everywhere; a score that gets in asks for
+  a name ("first" ... "last" from `KEEN2.EXE`), with HISCORESND. The places
+  follow Keen 1's table, 4 pixels lower for the headings and the rows (as
+  Commander Genius moves Keen 2's); the number of cities at x 260
+  (estimates).
+- **The main menu** is the shared one: New Game, Continue Game, Save Game
+  (only on the world map), Story (from `KEEN2.EXE`), High Scores, Controls,
+  Options, Quit to Title, Choose Game, Quit. No Online Game, no second
+  player and no "Extra levels" option (Keen 1's) until co-op comes (B9).
+- **Saving**: nine slots in `user://keen2/saves`, Keen 1's format
+  (`SaveGames`) in Keen 2's own folder; a loaded game becomes a
+  `Keen2Progress`. The high scores are in `user://keen2/high_scores.json`.
+  The keys, the display settings and the sound setting are shared with
+  Keen 1 (`user://settings.cfg`).
+- The sounds come from `KEEN2.EXE` since B3; EARTHPOW plays when the Earth
+  is hit (B5), HISCORESND for a new high score.
+
 ## Not yet
 
-Title, menus, saving and high scores (B7); pictures behind the levels (B8;
-Keen 1's pictures are never shown behind Keen 2's levels); two players (B9).
+Pictures behind the levels (B8; Keen 1's pictures are never shown behind
+Keen 2's levels); two players (B9). Not built, as for Keen 1: the intro
+(the Apogee and id screens), the demo, "About ID...", "Ordering Info",
+"Previews!" and the help text.
 
 ## Estimates to check against the original (B10)
 
@@ -378,6 +409,9 @@ Keen 1's pictures are never shown behind Keen 2's levels); two players (B9).
     ticks at (−32, −12.8)/32.
   - `TO BE CONTINUED....` as the last page and the end text after it.
   - "Keens Left" for 3 seconds (Keen 1's value).
+- Title and high scores (B7): 8 seconds each; the table's places (headings
+  at 50, rows from 68, the number of cities at 260); 100 points in a new
+  table.
 - Enemies (B4), all from Commander Genius (research.md §5):
   - Chances: n + 1 in 1000 per tick for a chance of n.
   - Grunt: 1 HP; walk 28/32, 5 ticks a frame; look 2 x 16 ticks; jump

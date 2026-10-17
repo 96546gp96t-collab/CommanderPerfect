@@ -715,6 +715,14 @@ starts at tile 593 (6, 5), flies 672 ticks at (32, 12.8)/32 and 150 at
 map. The texts: part 1 (6 lines), part 2 (5 lines), four pages at home,
 `TO BE CONTINUED....`; all line records (file-formats.md).
 
+**Texts around the high scores (B7):** after the two `SCORES.` records
+(0x1A4CA: Yorpy, Gargile, Zzapp!; 0x1A515: first ... last) come
+`SCORE:`, `You saved `, `no cities!`, ` cities!`, ` city!`,
+`CONGRATULATIONS!`, `You got `, ` place!` and `Enter your name:`
+(around 0x1A660), then `Keens Left` and the main menu's own words. So the
+original most likely tells how many cities were saved at the end of a
+game; B7 does not show that yet (the shared name entry is used).
+
 ## Open questions (need real KEEN2 files or the original game)
 
 **Answered in B5.1 with the player's own files (version 1.31):**

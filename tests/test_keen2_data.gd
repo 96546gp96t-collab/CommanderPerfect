@@ -244,6 +244,18 @@ func test_world_map_has_an_entrance_for_every_level() -> void:
 	assert_true(map.find_info(LevelData.PLAYER_START_INFO).x >= 0, "Keen's start")
 
 
+func test_story_and_high_score_texts_are_found() -> void:
+	var data := Keen2GameData.load_from(_files)
+	assert_true(data != null, "the game data")
+	if data == null:
+		return
+	assert_true(not data.story.is_empty(), "the story")
+	assert_true(data.score_texts != null, "the high score texts")
+	if data.score_texts != null:
+		assert_equal(data.score_texts.default_names.size(), ScoreTexts.NAME_COUNT, "names")
+		assert_equal(data.score_texts.place_names[0], "first", "the places")
+
+
 func _properties() -> TileProperties:
 	return _executable.tile_properties(TILE_COUNT) if _executable != null else null
 

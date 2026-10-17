@@ -34,6 +34,11 @@ var ending_texts: Array[PackedStringArray] = []
 ## The end text block, ready for [method TextDocument.layout]; empty when
 ## not found.
 var end_text := PackedByteArray()
+## The story block for the menu, the same way; empty when not found.
+var story := PackedByteArray()
+## The names of a new high score table and the words for the places
+## ("first"...), as in Keen 1's executable; null when not found.
+var score_texts: ScoreTexts
 
 
 ## Reads everything from [param game_files]. Returns null (and says why)
@@ -72,6 +77,10 @@ static func _read_texts(data: Keen2GameData, executable: Keen2Executable) -> voi
 	var end := Keen2Executable.TextBlock.END_TEXT
 	if Keen2Executable.find_text_block(executable.image, end) >= 0:
 		data.end_text = executable.text(end)
+	var story := Keen2Executable.TextBlock.STORY
+	if Keen2Executable.find_text_block(executable.image, story) >= 0:
+		data.story = executable.text(story)
+	data.score_texts = ScoreTexts.find_in_image(executable.image)
 
 
 ## The sounds inside [param executable], or those of [constant SOUNDS_FILE];

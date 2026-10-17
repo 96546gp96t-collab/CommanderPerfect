@@ -65,6 +65,7 @@ read from the program code.
 | Vorticon Elder messages (B5) | 0x19FCC, 0x1A08C | Only at the known position: zero-terminated records of printable ASCII (and CR), one per line, each ending in LF, at least 32 bytes in all, with no printable byte right before the first. There is no search: not found means the Elder stays silent (no error) | `elder_message(index)` → lines; `find_elder_message(data, index)` |
 
 | Status screen box (B6) | 0x1991C | Twelve line records (see below), the last without LF | `status_box_lines()` |
+| High score names and place words (B7) | after the two `SCORES.` records (0x1A4CA, 0x1A515) | As in KEEN1.EXE: Keen 1's `ScoreTexts` reads them unchanged (Yorpy, Gargile, Zzapp!; first ... last) | `Keen2GameData.score_texts` |
 | Ending texts (B6) | 0x1A1A1, 0x1A253, 0x1A2F7, 0x1A333, 0x1A3C9, 0x1A429, 0x1A434 | Only at the known positions: line records; a text ends after a record without LF, or before the next known text or the record `finale.ck2` (0x1A2EC) | `ending_text(which)` |
 
 **Line records.** The Elder messages, the status box and the ending texts

@@ -69,6 +69,16 @@ static func create(
 	return play
 
 
+## Starts over with [param game] (a loaded game), or with a new game when
+## none is given. Call [method start_map] next.
+func new_game(game: Keen2Progress = null) -> void:
+	progress = game if game != null else Keen2Progress.new()
+	inventory = progress.inventory
+	session = null
+	map_session = null
+	state = State.MAP
+
+
 ## Whether level [param number] is one that Keen can play (1-16).
 static func is_playable(number: int) -> bool:
 	return number >= Keen2Files.FIRST_LEVEL and number <= Keen2Files.LAST_LEVEL

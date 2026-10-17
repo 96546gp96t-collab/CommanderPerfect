@@ -19,6 +19,16 @@ func _init(keen_inventory: Inventory = null) -> void:
 	inventory = keen_inventory if keen_inventory != null else Keen2Inventory.new()
 
 
+## A game read by [SaveGames] (which knows only [GameProgress]) as a Keen 2
+## game: the same inventory, completed levels and place on the map.
+static func from_game(game: GameProgress) -> Keen2Progress:
+	var progress := Keen2Progress.new(game.inventory)
+	for number in game.completed_levels():
+		progress.complete_level(number)
+	progress.map_position = game.map_position
+	return progress
+
+
 ## Whether level [param level_number] is one of the cities.
 static func is_city(level_number: int) -> bool:
 	return level_number in CITY_LEVELS

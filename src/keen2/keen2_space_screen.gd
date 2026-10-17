@@ -4,8 +4,8 @@ extends GameScreen
 ## 81 and around it: the Tantalus Ray (the screen shakes, the Earth explodes
 ## with [Keen2EarthExplosion], GAME OVER) and the ending ([Keen2Ending]: the
 ## flights over map 81, the picture of FINALE.CK2 with its pages, the end
-## text). Then the start screen comes back (milestone B7 adds the high
-## scores).
+## text). Then [method _finish_game] runs: [Keen2View] shows the high
+## scores.
 ##
 ## [GameScreen] knows Keen 1's ending in two places; they are overridden
 ## here: [method _show_picture] (no light in the window) and
@@ -14,9 +14,8 @@ extends GameScreen
 ## What happens after the Tantalus Ray fired.
 enum Doom { NONE, SHAKING, EXPLODING }
 
-## Seconds after game over before the start screen comes back, unless a key
-## is pressed.
-const LEAVE_SECONDS := 4.0
+## Seconds that GAME OVER stays, unless a key is pressed.
+const GAME_OVER_SECONDS := 4.0
 ## How long the screen shakes when the Tantalus Ray fires (Commander Genius:
 ## 2 seconds), and how far, in game pixels.
 const SHAKE_SECONDS := 2.0  # estimate
@@ -31,7 +30,8 @@ const GAME_OVER_TEXT := "GAME OVER"
 ## set before the view enters the tree (the tests use stand-in files).
 var files: GameFiles
 var _time_left := 0.0
-var _leave_time_left := 0.0
+## Counts down while GAME OVER is shown.
+var _game_over_time_left := 0.0
 var _darkness := Keen2Darkness.new()
 var _keen_2_sounds := Keen2Sounds.new()
 ## What the status screen and the ending show, from the files.
@@ -107,8 +107,8 @@ func _on_earth_hit() -> void:
 		_keen_2_sounds.play_earth_pow()
 
 
-## GAME OVER after the Earth exploded, whatever the lives; then the start
-## screen.
+## GAME OVER: after the Earth exploded (whatever the lives) or the last life;
+## then [method _finish_game].
 func _show_game_over() -> void:
 	_doom = Doom.NONE
 	_actor_layer.clear()
@@ -119,7 +119,7 @@ func _show_game_over() -> void:
 	else:
 		_window.show_lines(PackedStringArray([GAME_OVER_TEXT]))
 	_mode = Mode.GAME_OVER
-	_leave_time_left = LEAVE_SECONDS
+	_game_over_time_left = GAME_OVER_SECONDS
 
 
 ## All eight cities are saved: the ending, on map 81 first.
@@ -139,7 +139,7 @@ func _start_ending() -> void:
 ## Shows the stage of the ending that has just begun, or its next text.
 func _on_ending_changed() -> void:
 	if _keen2_ending.is_finished():
-		_leave()
+		_finish_game()
 		return
 	var space := _keen2_ending.shows_space()
 	if space and _level_number != Keen2Files.SPACE_LEVEL:
@@ -209,6 +209,12 @@ func _move_camera_anchor() -> void:
 		super()
 	elif _keen2_ending != null and _keen2_ending.shows_space():
 		_camera_anchor.position = _keen2_ending.view_center(Vector2(_settings.game_size()))
+
+
+## The game is over (GAME OVER or the ending). [Keen2View] shows the high
+## scores; here the start screen comes back.
+func _finish_game() -> void:
+	_leave()
 
 
 ## Back to the start screen. Deferred: this runs inside the handling of a
