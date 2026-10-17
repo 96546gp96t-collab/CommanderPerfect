@@ -36,6 +36,10 @@ In another session the user had Keen measured pixel by pixel in the original
 - The measurements agree with Chocolate Keen's numbers (see "Keen 1" below:
   pogo ~48 px, with jump ~104 px; one gravity for rising and falling), so
   the cause is known: our physics follow Commander Genius.
+- The user's view (17-10-2026): Commander Genius probably made the jumps a
+  little higher on purpose, to make the games easier (Keen reaches things
+  more easily). Keen 3 most likely has the same difference; not researched
+  further for now.
 - **Not changed** (the user's decision, 17-10-2026: write it down, decide
   later). `KeenBody` is shared, so a fix changes Keen 1 and Keen 2 too, and
   Keen 3 inherits the same jumps. The choices are in `PROGRESS.md` (open

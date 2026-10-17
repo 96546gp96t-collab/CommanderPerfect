@@ -360,6 +360,13 @@ CG `ai/CManglingMachine.cpp`; files for the cells.)
   shared `KeenBody` unchanged. (Choco shows that some of Keen 1's numbers in
   `docs/keen-physics.md` are off, see "Notes for Keen 1 and Keen 2" below;
   they are not changed.)
+- **Jump heights:** the original Keen 2 jumps lower than our shared physics
+  (pogo 50 px against our 58), and Chocolate Keen gives the original's
+  heights; Commander Genius, which our numbers come from, probably made
+  them higher on purpose. Keen 3 shares the physics, so it will jump as high
+  as Keen 1 and 2 do now. Not researched further; the decision (all games,
+  Keen 3 only, or nothing) is open in `PROGRESS.md` and is needed before C3.
+  The measurements: [choco-keen1-keen2.md](choco-keen1-keen2.md).
 - **Start:** 4 lives, **5 charges**, the pogo stick, score 0; an extra life
   every 20,000 (EXTRAMANSND). Keycards are taken away at the end of every
   level. (Choco `game/menus.c`, `gameplay.c:CVort_add_score`; CG agrees on 5)
