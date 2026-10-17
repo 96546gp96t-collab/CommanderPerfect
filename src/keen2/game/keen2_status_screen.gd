@@ -6,10 +6,13 @@ extends RefCounted
 ## the next extra life, a little Keen per life, the raygun with its charges,
 ## the names of the saved cities and the keycards Keen has.
 ##
-## The places come from Commander Genius's status screen, shifted by the
-## border (Commander Genius counts it as column and row 0): they are
-## estimates until the original is seen. Without the lines from KEEN2.EXE
-## the same labels are written in their place.
+## The numbers, the little Keens and the raygun stand where the original
+## shows them (B10, seen in the original); the cities and keycards still
+## come from Commander Genius's status screen, shifted by the border
+## (Commander Genius counts it as column and row 0). The original draws its
+## labels on gray bars and the numbers in white boxes; this box is plain.
+## Without the lines from KEEN2.EXE the same labels are written in their
+## place.
 
 ## The box inside the border: 28 columns, 12 rows.
 const SIZE := Vector2i(28, 12)
@@ -28,23 +31,23 @@ const FALLBACK_LINES: PackedStringArray = [
 	"",
 	"     PLEASE PRESS A KEY",
 ]
-## The numbers in row 1: the score ends before column 12, the next extra
-## life before column 28.
+## The numbers in row 1: the score ends before column 10, the next extra
+## life before column 26.
 const NUMBER_ROW := 1
-const SCORE_END := 12  # estimate
-const EXTRA_LIFE_END := 28  # estimate
+const SCORE_END := 10
+const EXTRA_LIFE_END := 26
 ## A little Keen (standing, 2x3 cells) per life, from column 1 of row 3 (in
 ## column 0 its sprite would touch the border); at most
 ## [constant MAX_LIVES_SHOWN].
 const LIFE_SPRITE := 0
-const LIFE_CELL := Vector2i(1, 3)  # estimate
+const LIFE_CELL := Vector2i(1, 3)
 const LIFE_CELLS := 2
 const MAX_LIVES_SHOWN := 7  # estimate
-## The raygun icon and its charges, which end before column 27.
+## The raygun icon and its charges, written from column 24 (the original
+## draws the icon half a row lower).
 const RAYGUN_TILE := 414
-const RAYGUN_CELL := Vector2i(19, 3)  # estimate
-const CHARGES_END := 27  # estimate
-const CHARGES_ROW := 4
+const RAYGUN_CELL := Vector2i(21, 3)
+const CHARGES_CELL := Vector2i(24, 4)
 ## Where each city's name goes, in the order of [constant
 ## Keen2Progress.CITY_LEVELS] (two columns, as Commander Genius has them).
 const CITY_CELLS: Array[Vector2i] = [
@@ -82,7 +85,7 @@ static func fill(
 	for life in clampi(inventory.lives, 0, MAX_LIVES_SHOWN):
 		window.put_sprite(LIFE_CELL + Vector2i(life * LIFE_CELLS, 0), LIFE_SPRITE)
 	window.put_tile(RAYGUN_CELL, RAYGUN_TILE)
-	window.put_text_right(CHARGES_END, CHARGES_ROW, str(inventory.charges))
+	window.put_text(CHARGES_CELL, str(inventory.charges))
 	var saved := progress.saved_cities()
 	if city_names.size() == saved.size():
 		for city in saved.size():

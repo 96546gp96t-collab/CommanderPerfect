@@ -1,52 +1,54 @@
 class_name Keen2Screens
 extends RefCounted
-## The screens of Keen 2's map 90 that are not levels. Map 90 has the same
-## layout as Keen 1's: a row of screens of 20 tiles, with the title screen
-## (space, the mothership and the Earth) and the high score frame at the
-## same cells, so Keen 1's [Backdrops] cuts them out and draws the title
-## unchanged. The high score table is Keen 2's own: a third column with the
-## SAVED bitmap and the number of cities instead of ship parts.
-##
-## The places follow Keen 1's table, moved down as Commander Genius moves
-## Keen 2's (its headings 4 pixels lower, the rows too); they are estimates.
+## The screens of Keen 2's map 90 that are not levels, a row of screens of
+## 20 tiles as in Keen 1, cut out with [method Backdrops.screen]. Keen 2
+## uses other screens than Keen 1 (B10, seen in the original): the title
+## goes over the first screen (the wall with the fires), with the TITLE
+## bitmap and "PRESS F1 FOR HELP"; the high score table goes on the gray
+## screen framed with tile 395 (cells 84-103), not the frame at cells
+## 62-83 that Keen 1's table uses. The table has a third column: the SAVED
+## bitmap and the number of cities instead of ship parts. All places are
+## the original's, in pixels from the top left of the screen.
 
-const TITLE_SCREEN := Backdrops.TITLE_SCREEN
-const HIGH_SCORE_SCREEN := Backdrops.HIGH_SCORE_SCREEN
+const TITLE_SCREEN := Rect2i(2, 2, 20, 13)
+const TITLE_BITMAP := Backdrops.TITLE_BITMAP
+const TITLE_POSITION := Vector2(32, 1)
+const HELP_BITMAP := "F1HELP"
+const HELP_POSITION := Vector2(96, 182)
+const HIGH_SCORE_SCREEN := Rect2i(84, 2, 20, 13)
 const HIGH_SCORE_BITMAP := "HIGHSCOR"
-const HIGH_SCORE_TOP := Backdrops.HIGH_SCORE_TOP
-## The NAME and SCORE headings, and the rows below them.
-const HEADINGS_TOP := 50  # estimate
-const FIRST_ROW_TOP := 68  # estimate
+const HIGH_SCORE_POSITION := Vector2(88, 7)
+## The NAME and SCORE headings; the SAVED bitmap is 8 pixels taller and
+## starts 4 higher.
+const HEADINGS: Dictionary[String, Vector2] = {
+	"NAME": Vector2(40, 44), "SCORE": Vector2(152, 44), "SAVED": Vector2(232, 40)
+}
+## The text of the first row, and the rows below it.
+const FIRST_ROW_TOP := 64
 const ROW_HEIGHT := Backdrops.ROW_HEIGHT
-const HEADINGS: Dictionary[String, int] = {"NAME": 36, "SCORE": 168}  # estimate
-const NAME_LEFT := Backdrops.NAME_LEFT
-const SCORE_RIGHT := Backdrops.SCORE_RIGHT
-## The SAVED bitmap is 24 pixels high: its top is 4 pixels above the
-## others, and the number of cities goes under its middle.
-const SAVED_BITMAP := "SAVED"
-const SAVED_POSITION := Vector2(240, 46)  # estimate
-const CITIES_LEFT := 260  # estimate
-const TEXT_OFFSET := Backdrops.TEXT_OFFSET
+const NAME_LEFT := 40
+const SCORE_RIGHT := 200
+const CITIES_LEFT := 256
 
 
 ## Puts the title on the title screen of a map made by [method Backdrops.screen].
 static func show_title(layer: PictureLayer) -> void:
-	Backdrops.show_title(layer)
+	layer.clear()
+	var origin := Vector2(LevelData.BORDER_CELLS, LevelData.BORDER_CELLS) * EgaGraphics.TILE_SIZE
+	layer.put_bitmap(origin + TITLE_POSITION, TITLE_BITMAP)
+	layer.put_bitmap(origin + HELP_POSITION, HELP_BITMAP)
 
 
 ## Fills the high score screen with [param table].
 static func show_high_scores(layer: PictureLayer, table: Keen2HighScores) -> void:
 	layer.clear()
 	var origin := Vector2(LevelData.BORDER_CELLS, LevelData.BORDER_CELLS) * EgaGraphics.TILE_SIZE
-	var width := HIGH_SCORE_SCREEN.size.x * EgaGraphics.TILE_SIZE
-	var title_left := (width - layer.bitmap_width(HIGH_SCORE_BITMAP)) / 2
-	layer.put_bitmap(origin + Vector2(title_left, HIGH_SCORE_TOP), HIGH_SCORE_BITMAP)
+	layer.put_bitmap(origin + HIGH_SCORE_POSITION, HIGH_SCORE_BITMAP)
 	for heading: String in HEADINGS:
-		layer.put_bitmap(origin + Vector2(HEADINGS[heading], HEADINGS_TOP), heading)
-	layer.put_bitmap(origin + SAVED_POSITION, SAVED_BITMAP)
+		layer.put_bitmap(origin + HEADINGS[heading], heading)
 	for place in table.entries.size():
 		var entry := table.entries[place]
-		var top := origin.y + FIRST_ROW_TOP + place * ROW_HEIGHT + TEXT_OFFSET
+		var top := origin.y + FIRST_ROW_TOP + place * ROW_HEIGHT
 		var score := str(entry.score)
 		var score_left := SCORE_RIGHT - score.length() * EgaGraphics.FONT_CHAR_SIZE
 		layer.put_text(Vector2(origin.x + NAME_LEFT, top), entry.name)

@@ -792,3 +792,11 @@ game; B7 does not show that yet (the shared name entry is used).
     31; what is 30 `KEENSBACK` for?).
 20. The sound tick rate (CG: 145.6 Hz, our docs: 140 Hz). This applies to
     Keen 1 too.
+
+**B10, watched in the original (js-dos):** of questions 13-20 only part of
+18 could be answered: the places on the status screen (now the original's,
+apart from the cities and keycards). Also seen: 3 starting charges, the
+title over the first screen of map 90, the high score screen at cells
+84-103, and GAME OVER without a window (`gameplay.md`, "Seen in the
+original"). Questions 13-17, 19, 20 and the rest of 18 stay open: they need
+someone to play the original through those levels.

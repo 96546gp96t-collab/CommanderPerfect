@@ -366,18 +366,19 @@ picture (Keen 1's `WINDON`/`WINDOFF` are not used).
 
 `Keen2MenuScreen`, as Keen 1 has them:
 
-- **The title** is the title screen of map 90 (space with the mothership and
-  the Earth) with the `TITLE` bitmap: map 90 has Keen 1's layout, so Keen
-  1's `Backdrops` cuts it out and draws it unchanged.
-- **The high scores** are the frame of map 90 with `HIGHSCOR`, the `NAME`
-  and `SCORE` headings and the `SAVED` bitmap ("Cities saved"), and per
-  place a name, a score and the number of cities (`Keen2HighScores`, drawn
-  by `Keen2Screens`). A new table has the names of `KEEN2.EXE` (Yorpy,
-  Gargile, Zzapp!) and 100 points everywhere; a score that gets in asks for
-  a name ("first" ... "last" from `KEEN2.EXE`), with HISCORESND. The places
-  follow Keen 1's table, 4 pixels lower for the headings and the rows (as
-  Commander Genius moves Keen 2's); the number of cities at x 260
-  (estimates).
+- **The title** is the first screen of map 90 (cells 2-21: the wall with
+  the fires) with the `TITLE` bitmap at (32, 1) and `F1HELP` at (96, 182),
+  as the original shows it (B10); not the space screen that Keen 1 uses.
+- **The high scores** are on the gray screen of map 90 framed with tile
+  395 (cells 84-103; Keen 1's frame at 62-83 is not used), with
+  `HIGHSCOR` at (88, 7), the `NAME`, `SCORE` and `SAVED` ("Cities saved")
+  bitmaps at (40, 44), (152, 44) and (232, 40), and per place a name (from
+  x 40), a score (ending at x 200) and the number of cities (x 256), the
+  first row's text at y 64, 16 apart: all as the original shows them (B10).
+  `Keen2HighScores` keeps the table, `Keen2Screens` draws it. A new table
+  has the names of `KEEN2.EXE` (Yorpy, Gargile, Zzapp!) and 100 points
+  everywhere; a score that gets in asks for a name ("first" ... "last" from
+  `KEEN2.EXE`), with HISCORESND.
 - **The main menu** is the shared one: New Game, Continue Game, Save Game
   (only on the world map), Story (from `KEEN2.EXE`), High Scores, Controls,
   Options, Quit to Title, Choose Game, Quit. No Online Game, no second
@@ -454,21 +455,46 @@ Comparing everything with the original (B10). Not built, as for Keen 1: the intr
 (the Apogee and id screens), the demo, "About ID...", "Ordering Info",
 "Previews!" and the help text.
 
+## Seen in the original (B10)
+
+Watched in the original `KEEN2.EXE` (v1.31) running in js-dos, a DOS
+emulator in the browser, and measured in its raw 320x200 frames:
+
+- A new game starts with **3 raygun charges** (the status screen of a new
+  game shows them).
+- **Status screen:** the score ends before column 10, the next extra life
+  before column 26, the little Keens from column 1 two apart, the raygun at
+  column 21 and its charges from column 24 (left aligned), in the rows we
+  had. The original draws its labels on gray bars and the numbers in white
+  boxes; ours stays a plain box.
+- **Title:** the `TITLE` bitmap at (32, 1) and `F1HELP` at (96, 182) over
+  the first screen of map 90 (cells 2-21).
+- **High scores:** the screen at cells 84-103 of map 90; `HIGHSCOR` (88, 7),
+  `NAME` (40, 44), `SCORE` (152, 44), `SAVED` (232, 40); text rows from y 64,
+  16 apart; names from x 40, scores ending at x 200, cities at x 256. The
+  original writes the names and numbers in red; ours are black.
+- **GAME OVER** is the bare `GAMEOVER` bitmap, without a window around it.
+- The original has the cheat C+T+Space ("You are now cheating! You just got
+  all the key cards, and lots of ray gun charges."); not built in.
+
+Not measured: steering Keen through levels by script was too unreliable in
+the emulator (its frames lag behind the keys), so the enemies, the stun,
+the darkness, the machine, the Tantalus Ray and the ending below keep
+their estimates. Sound could not be heard there either.
+
 ## Estimates to check against the original (B10)
 
-- Starting raygun charges: 0.
 - World map and ending (B6):
   - A city is saved when its level is done (also without destroying the
     machine).
-  - The places on the status screen; at most 7 little Keens.
+  - The places of the cities and keycards on the status screen; at most 7
+    little Keens.
   - The flights: 10 ticks of waiting; Keen's ship 672 ticks at (32, 12.8)/32
     and 150 at (0, 8)/32; the mothership from (8, 26), view (0, 300), 80
     ticks at (−32, −12.8)/32.
   - `TO BE CONTINUED....` as the last page and the end text after it.
   - "Keens Left" for 3 seconds (Keen 1's value).
-- Title and high scores (B7): 8 seconds each; the table's places (headings
-  at 50, rows from 68, the number of cities at 260); 100 points in a new
-  table.
+- Title and high scores (B7): 8 seconds each; 100 points in a new table.
 - Enemies (B4), all from Commander Genius (research.md §5):
   - Chances: n + 1 in 1000 per tick for a chance of n.
   - Grunt: 1 HP; walk 28/32, 5 ticks a frame; look 2 x 16 ticks; jump

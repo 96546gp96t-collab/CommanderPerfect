@@ -20,8 +20,10 @@ const GAME_OVER_SECONDS := 4.0
 ## 2 seconds), and how far, in game pixels.
 const SHAKE_SECONDS := 2.0  # estimate
 const SHAKE_PIXELS := 2.0  # estimate
-## The GAMEOVER bitmap is 112x24 pixels: 14x3 cells of the window. Without
-## it the window says [constant GAME_OVER_TEXT].
+## The GAMEOVER bitmap is 112x24 pixels: 14x3 cells of the window, drawn
+## bare in the middle of the screen as the original does (no white window
+## around it, seen in B10). Without it a window says
+## [constant GAME_OVER_TEXT].
 const GAME_OVER_BITMAP := "GAMEOVER"
 const GAME_OVER_CELLS := Vector2i(14, 3)
 const GAME_OVER_TEXT := "GAME OVER"
@@ -121,6 +123,7 @@ func _show_game_over() -> void:
 	_sounds.play(Sound.Id.GAME_OVER)
 	if _textures.bitmap(GAME_OVER_BITMAP) != null:
 		_window.open(GAME_OVER_CELLS)
+		_window.framed = false
 		_window.put_bitmap(Vector2i.ZERO, GAME_OVER_BITMAP)
 	else:
 		_window.show_lines(PackedStringArray([GAME_OVER_TEXT]))

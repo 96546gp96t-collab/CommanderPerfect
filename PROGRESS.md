@@ -42,7 +42,7 @@ Voor een volgend deel: [docs/new-episode-guide.md](docs/new-episode-guide.md).
 | B7 | Geluid, menu's, opslaan, highscores | ✅ Gebouwd (branch `milestone-b7-geluid-menus`) |
 | B8 | Mooier maken (framerate, xBRZ, HD, achtergronden, builds) | ✅ Gebouwd; Real-ESRGAN bewust overgeslagen (branch `milestone-b8-extras`) |
 | B9 | Co-op lokaal en online | 🔶 Gebouwd, in test bij de gebruiker (branch `milestone-b9-coop`) |
-| B10 | Naast het origineel leggen (DOSBox) | ⬜ |
+| B10 | Naast het origineel leggen (js-dos) | 🔶 Deels: schermen gemeten en aangepast; vijanden/levels niet te meten (branch `milestone-b10-origineel`) |
 
 ## Mijlpaal B1: wat er nu is
 
@@ -547,6 +547,31 @@ Gebouwd en gespeeld met de echte Keen 2-bestanden. Regels in
   beantwoordt ("The host did not let you in"). Op twee computers, of met
   een headless host, werkt het (zie `docs/online.md`).
 
+## Mijlpaal B10: wat er nu is
+
+Het originele `KEEN2.EXE` (v1.31) gedraaid in js-dos (DOSBox in de browser,
+lokaal geserveerd uit de scratchpad, niets in git) en de ruwe 320x200-beelden
+gemeten. Aangepast naar wat het origineel laat zien:
+
+- Een nieuw spel begint met **3 ladingen** voor de raygun (was 0).
+- **Statusscherm:** score eindigt voor kolom 10, volgend extra leven voor
+  kolom 26, raygun op kolom 21 en de ladingen vanaf kolom 24 (links
+  uitgelijnd). Het origineel heeft grijze balken en witte vakjes; wij een
+  gewoon venster.
+- **Titel** over het eerste scherm van map 90 (muur met vuurtjes) in plaats
+  van het ruimtescherm, met ook het bordje "PRESS F1 FOR HELP".
+- **Highscores** op het juiste scherm van map 90 (cellen 84-103) en alle
+  plekken gemeten. Verschil: het origineel schrijft in rood, wij in zwart.
+- **GAME OVER** zonder wit venster eromheen (`GameWindow.framed`, een
+  toevoeging met Keen 1 als standaard).
+- Nieuwe testsuite `test_keen2_original.gd`.
+
+Niet gemeten: Keen door levels sturen met een script lukte niet
+betrouwbaar (de beelden van de emulator lopen achter op de toetsen, Keen
+ging dood). Vijanden, verdoving, donker, de machine, de Tantalus-straal,
+het einde en de geluidssnelheid houden hun `# estimate`. Gevonden: het
+origineel heeft de cheat C+T+Space (alle keycards en veel ladingen).
+
 ## Mijlpaal 1: wat er nu is
 
 - `GameFiles`: vindt de spelbestanden (`--data-dir=`, `game_data/keen1/`, of naast de exe) en negeert hoofd/kleine letters.
@@ -971,10 +996,12 @@ Keen 2:
 1. **Voor de gebruiker:** B7, B8 en B9 proberen in `build/` (Mac en
    Windows): menu's, opslaan, high scores, F7 voor twee spelers, online
    met een vriend (via Steam, of IP op twee computers).
-2. Alles van Keen 2 kan in één keer naar `main`: `milestone-b9-coop`
-   bevat alle eerdere B-branches.
-3. B10: naast het origineel leggen (DOSBox), zie `docs/keen2/roadmap.md`
-   en de lijst "Estimates" in `docs/keen2/gameplay.md`.
+2. B10 proberen: titel, highscores, statusscherm (3 ladingen), GAME OVER.
+3. B10 afmaken (optioneel): de punten die nog `# estimate` zijn (lijst in
+   `docs/keen2/gameplay.md`) kan de gebruiker zelf in het origineel
+   bekijken; zeg wat afwijkt en het wordt aangepast.
+4. `milestone-b10-origineel` bevat alle eerdere B-branches en kan in één
+   keer naar `main`.
 
 Keen 1:
 

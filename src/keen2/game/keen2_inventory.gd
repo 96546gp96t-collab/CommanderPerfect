@@ -6,10 +6,10 @@ extends Inventory
 ## pogo stick from the start, and Keen 2 has no ship parts (its eight cities
 ## come with the world map, milestone B6). See docs/keen2/gameplay.md.
 
-## Raygun charges at the start of a game. estimate: check against the
-## original. Commander Genius reads them from a code byte of KEEN2.EXE,
-## which we do not read (docs/keen2/research.md, section 6).
-const START_CHARGES := 0
+## Raygun charges at the start of a game: the status screen of a new game in
+## the original shows 3 (B10). Commander Genius reads them from a code byte
+## of KEEN2.EXE, which we do not read (docs/keen2/research.md, section 6).
+const START_CHARGES := 3
 
 
 func _init() -> void:

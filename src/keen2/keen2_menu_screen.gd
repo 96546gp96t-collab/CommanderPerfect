@@ -65,7 +65,7 @@ func _set_up_texts() -> void:
 	_high_scores = Keen2HighScores.load_from(Keen2HighScores.DEFAULT_PATH, names)
 
 
-## Shows the title over the mothership and the Earth.
+## Shows the title over the first screen of map 90, as the original does.
 func _show_title() -> void:
 	if _show_screen(Mode.TITLE, Keen2Screens.TITLE_SCREEN):
 		Keen2Screens.show_title(_pictures)
