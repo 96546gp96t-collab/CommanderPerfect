@@ -561,16 +561,61 @@ CG `ai/CManglingMachine.cpp`; files for the cells.)
 
 ## Watching the original
 
-*(To be completed with the js-dos session of C1: how to run `KEEN3.EXE` in
-js-dos from the scratchpad, how to take raw frames, which start option for a
-level works, and what was measured.)*
+How to run the original in js-dos and record its frames:
+[tools/original/README.md](../../tools/original/README.md). In C1 the
+user's `KEEN3.EXE` (1.00) was watched that way (17-10-2026). Two problems of
+B10 are solved there: keys no longer arrive seconds late, and the emulator
+keeps running while the browser pane is hidden. A level cannot be started
+from the command line (`/LEVEL` loads `TEDLEVEL.CK3`, which gave a garbled
+screen); walking there on the map works now.
+
+Measured (sure unless noted; positions in the raw 320x200 frame):
+
+- **The game draws ~24.2 times a second** (every 3, sometimes 2 retraces),
+  also with a fixed CPU speed. This matches Choco's frame every 6 clock
+  ticks.
+- **Attract loop:** a "one moment" box, the starfield intro (~13.6 s), title
+  16.8 s, id Software page 16.7 s, high scores ~21.3 s (the border animates
+  ~15 s, then the screen stands still 4.9 s), ordering page with the Foob
+  scene ~12-13 s (rough), title again; no demo. Screens are drawn piece by
+  piece, without a fade between them.
+- **Title:** map 90 cells 2-21, map row 2 at screen y 0; `TITLE` at (32,1),
+  `F1HELP` at **(120,182)**.
+- **High scores:** cells 84-103; `HIGHSCOR` (88,7), `NAME` (80,44), `SCORE`
+  (192,44); 7 rows from y 64, 16 apart; names from x 80, scores ending at x
+  240; text **red**; no third column. id page: cells 63-82, map row 2 at y 4,
+  `IDLOGO` (104,23). Ordering page: cells 22-41.
+- **New game:** 4 Keens, **5 charges**, ankh time 0, score 0, next extra
+  Keen at 20000. The map starts with cell (35,44) in the top-left corner.
+- **Status screen** (Space, on the map and in a level): window x 40-279, y
+  48-151, inside 28x11 text cells; labels red on gray bars, values in white
+  boxes. Score ends before text column 16, next extra Keen before 32 (inside
+  the window: 10 and 26, as Keen 2); little Keens from x 56, 16 apart, top
+  y 80; pistol icon at x 216, y 80, charges at x 240, y 88; ankh icon at
+  x 72, y 116; ankh time at x 104, y 120; keycards from text column 18.
+- **Level 1:** the view starts with cell (2,12) in the corner. A Foob walks 2
+  px per frame toward Keen, is scared for ~0.2 s when it sees him (~110 px
+  away), then runs away at 6 px per frame (~145 px/s); at a wall it bobs 1 px.
+  The green plant right of the start is deadly, also in god mode.
+- **Messie** swims by herself at 2 px per frame on each axis (diagonals not
+  normalised), two animation frames of 2 frames each (likely).
+- **Death:** Keen's sprite rises, the screen fades out in 2 steps ~114 ms
+  apart and back in on the map. **Keens Left:** box x 88-231, y 72-119, text
+  at (120,80), little Keens from x 104, 16 apart, y 88; gone by itself after
+  **0.87 s**. **GAME OVER** after the last life: the bare `GAMEOVER` bitmap at
+  (96,80) over the level, no window, 5.27 s, then the high scores.
+- **Cheats:** C+T+Space (a 4-line box at x 48-271, y 72-119) and G+O+D (god
+  mode, a one-line box at x 72-247, y 88-111) work.
+- **F1** opens a full-width help reader (frame y 8-183, gray bar at y 168).
+- Not seen yet: the ankh's halo, the enemies other than the Foob, level 16,
+  sound.
 
 ## Only the original can answer
 
 Collect the answers here (js-dos) during C3-C10; C11 finishes the list.
 
 1. Ankh: 9.6 s (Choco), 21 s (CG) or 15 s (KeenWiki)? The halo's look.
-2. Start charges (5) and the raygun's amount.
+2. The raygun's amount (start charges: 5, seen in C1).
 3. Hit points: mother 5, ninja 4, the rest 1.
 4. The mother turning round before she spits; the fireball's speed.
 5. The Meep's wave through walls; the Meep singing in the air at a ledge.
@@ -590,7 +635,7 @@ Collect the answers here (js-dos) during C3-C10; C11 finishes the list.
 17. The ending: places, the flashes, the end text.
 18. Which of level 9's starts is used.
 19. The tile an opened door leaves.
-20. The status screen's places.
+20. ~~The status screen's places~~ (measured in C1).
 21. Which enemies enemy shots kill.
 22. The 1.00 bugs in level 10 and 13.
 
