@@ -54,7 +54,7 @@ over Keen 3 bekend is in [docs/keen3/research.md](docs/keen3/research.md).
 | # | Mijlpaal | Status |
 |---|---|---|
 | C1 | Onderzoek: code in kaart, Keen 3-bestanden, Chocolate Keen, Commander Genius, js-dos, architectuur, mijlpalen | ✅ Klaar (branch `milestone-c1-onderzoek`); vragen aan de gebruiker open |
-| C2 | De bestanden van Keen 3 inlezen, data viewer, derde icoon op het startscherm | ✅ Gebouwd, wacht op controle architect (branch `milestone-c2-bestanden`) |
+| C2 | De bestanden van Keen 3 inlezen, data viewer, derde icoon op het startscherm | ✅ Klaar en gecontroleerd door de architect (branch `milestone-c2-bestanden`) (branch `milestone-c2-bestanden`) |
 | C3 | Een level spelen (Keen, items, de ankh, deuren, uitgangen) | ⬜ |
 | C4 | Vijanden (grunt, youth, moeder, Meep, ninja, Foob) | ⬜ |
 | C5 | Bal, jack, platforms, wapens in de muur | ⬜ |

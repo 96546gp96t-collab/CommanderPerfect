@@ -132,8 +132,9 @@ Notes:
   help, previews, story). The texts use the Keen 1 text format (CR LF, `~`,
   0x1F, ends with 0x1A). The help text starts with ANSI-art lines. (files)
 - `Keen2Executable.text_blocks` finds the four blocks in KEEN3.EXE but starts
-  the first one two bytes early (the `0xFFFF` end of the last sound passes as
-  text). (files)
+  the first one two bytes early: the `0xFFFF` of a word table right before
+  the help text passes as text (found in C2; not the end of the sound block,
+  which ends at 0x16604). (files)
 - **There are no** city names, `TO BE CONTINUED`, Elder messages or switch
   texts. (files)
 - **Status box:** 11 line records (Keen 2 has 12): "SCORE / EXTRA KEEN AT",
