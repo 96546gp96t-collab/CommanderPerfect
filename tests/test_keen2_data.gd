@@ -41,6 +41,8 @@ const EARTH_FIRST_TILE := 572
 const EARTH_LAST_TILE := 600
 const SHIP_CELL := Vector2i(6, 5)
 const SHIP_TILE := 593
+## The row of the status box with "TARGETS SAVED" and "KEYS".
+const STATUS_TARGETS_ROW := 6
 
 var _files: GameFiles
 var _executable: Keen2Executable
@@ -212,6 +214,34 @@ func test_map_81_has_the_earth_and_the_ship() -> void:
 	assert_equal(level.tile_at(last), EARTH_LAST_TILE, "the Earth's last tile")
 	assert_equal(level.tile_at(last + Vector2i.ONE), Keen2EarthExplosion.SPACE_TILE, "space")
 	assert_equal(level.tile_at(SHIP_CELL), SHIP_TILE, "the ship's start")
+
+
+func test_status_box_and_ending_texts_are_found() -> void:
+	if _executable == null:
+		return
+	var box := _executable.status_box_lines()
+	assert_equal(box.size(), Keen2Executable.STATUS_BOX_LINES, "the status box")
+	if box.size() == Keen2Executable.STATUS_BOX_LINES:
+		assert_true(box[STATUS_TARGETS_ROW].contains("TARGETS SAVED"), "its labels")
+	for which in Keen2Executable.EndingText.size():
+		var lines := _executable.ending_text(which as Keen2Executable.EndingText)
+		assert_true(not lines.is_empty(), "ending text %d" % which)
+		for line in lines:
+			assert_true(line != "finale.ck2", "no file name in text %d" % which)
+	var last := _executable.ending_text(Keen2Executable.EndingText.TO_BE_CONTINUED)
+	assert_true(not last.is_empty() and last[0].begins_with("TO BE CONTINUED"), "the last page")
+
+
+func test_world_map_has_an_entrance_for_every_level() -> void:
+	var map := LevelData.parse(_files.read(_files.level_file(Keen2Files.WORLD_MAP_LEVEL)))
+	assert_true(map != null, "map 80")
+	if map == null:
+		return
+	for number in range(Keen2Files.FIRST_LEVEL, Keen2Files.LAST_LEVEL + 1):
+		var found := map.infos.has(number) or map.infos.has(number | MapInfo.BLOCKING_FLAG)
+		assert_true(found, "an entrance of level %d" % number)
+	assert_true(not map.infos.has(MapInfo.SHIP), "no ship")
+	assert_true(map.find_info(LevelData.PLAYER_START_INFO).x >= 0, "Keen's start")
 
 
 func _properties() -> TileProperties:

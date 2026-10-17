@@ -1,68 +1,47 @@
 class_name Keen2View
-extends GameScreen
+extends Keen2SpaceScreen
 ## The Keen 2 game screen that the start screen opens. [GameScreen] draws it
 ## as it draws Keen 1: the World viewport, the graphics (original, xBRZ or
 ## HD, F5), widescreen with the [Hud], the camera that follows Keen, and
-## short messages. This plays Keen 2's levels with [Keen2LevelPlay].
+## short messages. This plays a game of Keen 2 with [Keen2LevelPlay].
 ##
-## For now (milestone B3) there is no title, menu or world map: the game
-## starts in level 1, or in the level given with [code]-- --level=N[/code]
-## (1-16). The exit leads to the next level; after level 16, and after the
-## last life, the start screen comes back. Escape goes back to it at once.
-## The pictures behind the levels come in milestone B8: no
-## [BackdropPictures] are made, so [method GameScreen._apply_backdrop] shows
-## none, also not Keen 1's.
+## Milestone B6: the game starts on the world map (map 80) with "Keens
+## Left", or in the level given with [code]-- --level=N[/code] (1-16), after
+## which the map comes. A level that is done, or a death, brings Keen back to
+## the map. Enter shows the status screen ([Keen2StatusScreen]). With all
+## eight cities saved the ending runs ([Keen2Ending]), then the start screen
+## comes back; so it does after game over. Escape goes back to it at once
+## (the menus come in B7). The pictures behind the levels come in milestone
+## B8: no [BackdropPictures] are made, so [method GameScreen._apply_backdrop]
+## shows none, also not Keen 1's.
 ##
-## Milestone B5 adds what the switches do: the darkness ([Keen2Darkness]),
+## Milestone B5 added what the switches do: the darkness ([Keen2Darkness]),
 ## the Vorticon Elders' messages (in a [GameWindow], the game waits until
-## Enter closes it), and the Tantalus Ray: the screen shakes, then the
-## Earth explodes on map 81 ([Keen2EarthExplosion]), then GAME OVER, and
-## back to the start screen (milestones B6/B7 add the high scores).
+## Enter closes it), and the Tantalus Ray. What happens on map 81 (the
+## Earth exploding, the ending's flights) is in [Keen2SpaceScreen].
+##
+## [GameScreen] shows Keen 1's ship parts in the HUD on the map; this view
+## overrides [method _update_hud] so that it does not.
 ##
 ## Cheats for testing, as in Keen 1: Shift+N / Shift+P go to the next or
 ## previous level, Shift+I gives every item, Shift+G toggles god mode.
-
-## What happens after the Tantalus Ray fired.
-enum Doom { NONE, SHAKING, EXPLODING }
 
 const MISSING_DATA_MESSAGE := (
 	"Keen 2 data not found. Put the files in game_data/keen2 "
 	+ "or start with: -- --data-dir-keen2=PATH"
 )
 const UNREADABLE_MESSAGE := "The Keen 2 files in %s could not be read."
-const NOT_PLAYABLE_MESSAGE := "Level %d cannot be played yet: here is level %d"
-const LIVES_MESSAGE := "Keens left: %d"
+const NOT_PLAYABLE_MESSAGE := "Keen 2 has no level %d: here is the world map"
 const GAME_OVER_MESSAGE := "Game over"
-const FINISHED_MESSAGE := "That was the last level"
-## Seconds after game over or the last level before the start screen comes
-## back, unless a key is pressed.
-const LEAVE_SECONDS := 4.0
+## How long "Keens Left" stays open (as Keen 1's), unless a button closes it.
+const LIVES_SECONDS := 3.0
 ## Shown under an Elder's message unless it says so itself.
 const ELDER_PROMPT := "Press ENTER:"
 const ELDER_PROMPT_WORD := "ENTER"
-## How long the screen shakes when the Tantalus Ray fires (Commander Genius:
-## 2 seconds), and how far, in game pixels.
-const SHAKE_SECONDS := 2.0  # estimate
-const SHAKE_PIXELS := 2.0  # estimate
-## The GAMEOVER bitmap is 112x24 pixels: 14x3 cells of the window. Without
-## it the window says [constant GAME_OVER_TEXT].
-const GAME_OVER_BITMAP := "GAMEOVER"
-const GAME_OVER_CELLS := Vector2i(14, 3)
-const GAME_OVER_TEXT := "GAME OVER"
 
-## The Keen 2 files. Found with [method Keen2Files.locate] unless they are
-## set before the view enters the tree (the tests use stand-in files).
-var files: GameFiles
 ## The levels being played; null when the files could not be read.
 var play: Keen2LevelPlay
-var _time_left := 0.0
-var _leave_time_left := 0.0
-var _darkness := Keen2Darkness.new()
-var _keen_2_sounds := Keen2Sounds.new()
 var _elder_messages: Array[PackedStringArray] = []
-var _doom := Doom.NONE
-var _shake_left := 0.0
-var _explosion: Keen2EarthExplosion
 
 
 func _ready() -> void:
@@ -74,9 +53,14 @@ func _ready() -> void:
 		return
 	var first := Keen2LevelPlay.requested_level(OS.get_cmdline_user_args())
 	if first != 0 and not Keen2LevelPlay.is_playable(first):
-		_show_message(NOT_PLAYABLE_MESSAGE % [first, Keen2Files.FIRST_LEVEL])
+		_show_message(NOT_PLAYABLE_MESSAGE % first)
 		first = 0
-	_start_level(first if first != 0 else Keen2Files.FIRST_LEVEL)
+	if first != 0:
+		_start_level(first)
+	elif play.start_map():
+		_show_lives(play.inventory.lives)
+	else:
+		_show_error("The world map could not be read from %s." % files.directory)
 
 
 func _exit_tree() -> void:
@@ -88,8 +72,11 @@ func _process(delta: float) -> void:
 	_message_time_left -= delta
 	if _graphics_loader != null and _graphics_loader.poll():
 		_apply_graphics()
-	if _mode == Mode.LEVEL and not _window.visible:
+	_count_down_window(delta)
+	if _mode in [Mode.MAP, Mode.LEVEL] and not _window.visible:
 		_run_ticks(delta)
+	elif _mode == Mode.ENDING:
+		_run_ending(delta)
 	elif _doom == Doom.SHAKING:
 		_shake(delta)
 	elif _doom == Doom.EXPLODING:
@@ -110,19 +97,35 @@ func _unhandled_input(event: InputEvent) -> void:
 		_leave()
 	elif _mode == Mode.GAME_OVER and _is_any_press(event):
 		_leave()
-	elif _window.visible and _mode == Mode.LEVEL and event.is_action_pressed("status"):
+	elif event.is_action_pressed("status"):
+		_on_enter_pressed()
+	elif _window.visible and _buttons_close_window and _is_button(event):
 		_close_window()
-	elif _mode != Mode.LEVEL or not _handle_cheat_keys(event):
+	elif not _handle_cheat_keys(event):
 		return
 	get_viewport().set_input_as_handled()
+
+
+## Enter moves on in the ending, closes a window, or opens the status screen.
+func _on_enter_pressed() -> void:
+	if _mode == Mode.ENDING:
+		_keen2_ending.confirm()
+	elif _window.visible:
+		_close_window()
+	elif _mode in [Mode.MAP, Mode.LEVEL]:
+		Keen2StatusScreen.fill(_window, play.progress, _texts.status_lines, _texts.city_names)
+		_buttons_close_window = true
 
 
 ## Runs the ticks for [param delta] seconds and shows the result.
 func _run_ticks(delta: float) -> void:
 	_time_left = minf(_time_left + delta, KeenPhysics.MAX_TICKS_PER_FRAME * KeenPhysics.TICK)
-	var views: Array[Rect2] = [_own_view()]
-	_session.view_rects = views
-	while _time_left >= KeenPhysics.TICK and _mode == Mode.LEVEL:
+	if _session != null:
+		var views: Array[Rect2] = [_own_view()]
+		_session.view_rects = views
+	while (
+		_time_left >= KeenPhysics.TICK and _mode in [Mode.MAP, Mode.LEVEL] and not _window.visible
+	):
 		_time_left -= KeenPhysics.TICK
 		play.step(KeenInput.from_actions())
 		_show_sprites()
@@ -130,8 +133,11 @@ func _run_ticks(delta: float) -> void:
 
 
 func _show_sprites() -> void:
-	_keen.show_body(_session.keen)
-	_actor_layer.show_actors(_session.actors)
+	if _mode == Mode.LEVEL:
+		_keen.show_body(_session.keen)
+		_actor_layer.show_actors(_session.actors)
+	elif _mode == Mode.MAP:
+		_keen.show_on_map(_map_session.keen)
 
 
 ## What [GameScreen] needs before anything is shown: the settings, the
@@ -190,12 +196,14 @@ func _load_data() -> bool:
 	_sounds.load_sounds(data.sounds)
 	_keen_2_sounds.load_sounds(data.sounds)
 	_elder_messages = data.elder_messages
-	_progress.inventory = Keen2Inventory.new()
-	play = Keen2LevelPlay.create(files, _properties, _progress.inventory)
+	_texts = data
+	play = Keen2LevelPlay.create(files, _properties)
+	_progress = play.progress
 	play.level_started.connect(_on_level_started)
-	play.life_lost.connect(_on_life_lost)
+	play.map_started.connect(_on_map_started)
+	play.life_lost.connect(_show_lives)
 	play.game_over.connect(_on_game_over)
-	play.finished.connect(_leave_after.bind(FINISHED_MESSAGE))
+	play.won.connect(_start_ending)
 	play.earth_exploded.connect(_on_earth_exploded)
 	return true
 
@@ -212,6 +220,7 @@ func _on_level_started(number: int) -> void:
 	_time_left = 0.0
 	_level_number = number
 	_level = play.level
+	_map_session = null
 	_session = play.session
 	_session.tile_changed.connect(_level_map.set_tile)
 	_session.sound_played.connect(_sounds.play)
@@ -227,9 +236,34 @@ func _on_level_started(number: int) -> void:
 	_follow(_keen)
 
 
-func _on_life_lost(lives: int) -> void:
+## Shows the world map that [member play] has just started: the done levels
+## have their sign already.
+func _on_map_started() -> void:
+	_actor_layer.clear()
+	_close_window()
+	_time_left = 0.0
+	_level_number = Keen2Files.WORLD_MAP_LEVEL
+	_level = play.level
+	_session = null
+	_map_session = play.map_session
+	_map_session.tile_changed.connect(_level_map.set_tile)
+	_map_session.sound_played.connect(_sounds.play)
+	_darkness.set_dark(false)
+	_level_map.show_level(_level, _properties)
+	_mode = Mode.MAP
+	_frame_camera()
+	_apply_backdrop()
+	_keen.show_on_map(_map_session.keen)
+	_follow(_keen)
+
+
+## "Keens Left", with a little Keen per life, on the map; a button closes it
+## and it closes by itself.
+func _show_lives(lives: int) -> void:
 	_sounds.play(Sound.Id.KEENS_LEFT)
-	_show_message(LIVES_MESSAGE % lives)
+	MapMessages.show_lives(_window, lives)
+	_window_time_left = LIVES_SECONDS
+	_buttons_close_window = true
 
 
 func _on_game_over() -> void:
@@ -249,82 +283,15 @@ func _on_elder_message() -> void:
 	_window.show_lines(lines)
 
 
-## The Tantalus Ray fired: the level stands still, Keen is gone, the lights
-## are on, and the screen shakes.
-func _on_earth_exploded() -> void:
-	_mode = Mode.NONE
-	_doom = Doom.SHAKING
-	_shake_left = SHAKE_SECONDS
-	_close_window()
-	_darkness.set_dark(false)
-	_keen.visible = false
-
-
-func _shake(delta: float) -> void:
-	_shake_left -= delta
-	if _shake_left > 0.0:
-		var pixel := _screen.size.y / _settings.game_size().y
-		var jitter := Vector2(randf_range(-1.0, 1.0), randf_range(-1.0, 1.0))
-		_screen.position = _settings.fit_rect(size).position + jitter * SHAKE_PIXELS * pixel
-		return
-	_fit_screen()
-	_start_explosion()
-
-
-## Map 81: the beam flies to the Earth and it explodes.
-func _start_explosion() -> void:
-	var space := LevelData.parse(files.read(files.level_file(Keen2Files.SPACE_LEVEL)))
-	if space == null:
-		_show_game_over()
-		return
-	_doom = Doom.EXPLODING
-	_time_left = 0.0
-	_explosion = Keen2EarthExplosion.create(space)
-	_explosion.tile_changed.connect(_level_map.set_tile)
-	_explosion.sound_played.connect(_sounds.play)
-	_explosion.earth_hit.connect(_on_earth_hit)
-	_session = null
-	_level = space
-	_level_number = Keen2Files.SPACE_LEVEL
-	_actor_layer.clear()
-	_level_map.show_level(space, _properties)
-	_frame_camera()
-	_camera_anchor.position = _explosion.view_center()
-	_follow(_camera_anchor)
-
-
-func _run_explosion(delta: float) -> void:
-	_time_left = minf(_time_left + delta, KeenPhysics.MAX_TICKS_PER_FRAME * KeenPhysics.TICK)
-	while _time_left >= KeenPhysics.TICK and not _explosion.finished:
-		_time_left -= KeenPhysics.TICK
-		_explosion.step()
-		_actor_layer.show_actors(_explosion.actors)
-	_place_sprites(_time_left / KeenPhysics.TICK)
-	_camera_anchor.position = _explosion.view_center()
-	if _explosion.finished:
-		_show_game_over()
-
-
-## EARTHPOW, alone on the speaker.
-func _on_earth_hit() -> void:
-	if _keen_2_sounds.has_earth_pow():
-		_sounds.stop()
-		_keen_2_sounds.play_earth_pow()
-
-
-## GAME OVER after the Earth exploded, whatever the lives; then the start
-## screen.
-func _show_game_over() -> void:
-	_doom = Doom.NONE
-	_actor_layer.clear()
-	_sounds.play(Sound.Id.GAME_OVER)
-	if _textures.bitmap(GAME_OVER_BITMAP) != null:
-		_window.open(GAME_OVER_CELLS)
-		_window.put_bitmap(Vector2i.ZERO, GAME_OVER_BITMAP)
-	else:
-		_window.show_lines(PackedStringArray([GAME_OVER_TEXT]))
-	_mode = Mode.GAME_OVER
-	_leave_time_left = LEAVE_SECONDS
+## The HUD as [GameScreen] shows it, but never with Keen 1's ship parts.
+func _update_hud() -> void:
+	_hud.visible = (
+		_settings.aspect == DisplaySettings.Aspect.WIDESCREEN
+		and _mode in [Mode.MAP, Mode.LEVEL]
+		and not _menus.is_open()
+	)
+	if _hud.visible:
+		_hud.show_inventory(_progress.inventory)
 
 
 ## Shows [param message] for a while, then goes back to the start screen.
@@ -334,24 +301,18 @@ func _leave_after(message: String) -> void:
 	_leave_time_left = LEAVE_SECONDS
 
 
-## Back to the start screen. Deferred: this runs inside the handling of a
-## key or a frame, and changing the scene takes this one out of the tree at
-## once.
-func _leave() -> void:
-	if not is_processing():
-		return
-	set_process(false)
-	get_tree().change_scene_to_file.call_deferred(GameLaunch.LAUNCHER_SCENE)
-
-
-## The cheats; returns whether [param event] was one.
+## The cheats, on the map and in a level; returns whether [param event] was
+## one.
 func _handle_cheat_keys(event: InputEvent) -> bool:
+	if _mode not in [Mode.MAP, Mode.LEVEL]:
+		return false
 	if event.is_action_pressed("cheat_items"):
 		_progress.inventory.give_everything()
 		_show_message("Cheat: all keycards and a full raygun")
 	elif event.is_action_pressed("cheat_god"):
 		_god_mode = not _god_mode
-		_session.set_invincible(_god_mode)
+		if _session != null:
+			_session.set_invincible(_god_mode)
 		_show_message("Cheat: god mode " + ("on" if _god_mode else "off"))
 	elif event.is_action_pressed("next_level"):
 		_start_level(_neighbor_level(1))
@@ -363,9 +324,20 @@ func _handle_cheat_keys(event: InputEvent) -> bool:
 
 
 ## The level [param offset] places after the current one; wraps around.
+## From the map, the next level is level 1 and the previous one level 16.
 func _neighbor_level(offset: int) -> int:
+	if _mode != Mode.LEVEL:
+		return Keen2Files.FIRST_LEVEL if offset > 0 else Keen2Files.LAST_LEVEL
 	var count := Keen2Files.LAST_LEVEL - Keen2Files.FIRST_LEVEL + 1
 	return Keen2Files.FIRST_LEVEL + posmod(_level_number - Keen2Files.FIRST_LEVEL + offset, count)
+
+
+## Jump, pogo or fire.
+static func _is_button(event: InputEvent) -> bool:
+	for button in ["jump", "pogo", "fire"]:
+		if event.is_action_pressed(button):
+			return true
+	return false
 
 
 ## A key or button that was just pressed (not held, not the mouse).

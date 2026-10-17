@@ -86,6 +86,7 @@ func test_switch_of_an_intact_machine_explodes_the_earth() -> void:
 	var play := Keen2LevelPlay.create(null, session.properties, session.inventory)
 	play.session = session
 	play.level = session.level
+	play.state = Keen2LevelPlay.State.PLAYING
 	var events := {"exploded": 0, "game over": 0, "fired": 0}
 	play.earth_exploded.connect(func() -> void: events["exploded"] += 1)
 	play.game_over.connect(func() -> void: events["game over"] += 1)

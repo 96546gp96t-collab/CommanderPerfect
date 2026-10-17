@@ -48,12 +48,14 @@ src/keen2/            Keen 2 only (all class names start with Keen2)
   level/              Keen2LevelSession, Keen2RidingCollision (B4), Keen2Switches,
                       Keen2Bridge (B5: here, not in actors/, because it is no actor),
                       Keen2Darkness, Keen2Tantalus
-  map/                Keen2MapSession (no teleporters, no ship), Keen2MapInfo
-  game/               Keen2LevelPlay (the levels one after another, B3), Keen2GameData
-                      (loading), Keen2Icons (HUD icons), Keen2Progress, Keen2Inventory,
-                      Keen2StatusScreen, Keen2Ending, Keen2EarthExplosion with
-                      Keen2SpaceSprite (B5), Keen2Sounds (EARTHPOW, B5), Keen2Hud parts
+  map/                (none: B6 uses Keen 1's MapSession unchanged, see below)
+  game/               Keen2LevelPlay (the course of the game: map and levels, B6),
+                      Keen2GameData (loading), Keen2Icons (HUD icons), Keen2Progress
+                      (the cities, B6), Keen2Inventory, Keen2StatusScreen (B6),
+                      Keen2Ending and Keen2Flight (B6), Keen2EarthExplosion with
+                      Keen2SpaceSprite (B5), Keen2Sounds (EARTHPOW, B5)
   keen2_view.gd       Keen2View (the scene; the Keen 2 counterpart of level_view.gd)
+  keen2_space_screen.gd  Keen2SpaceScreen, which Keen2View extends: map 81 (B6)
   keen2_view.tscn     The game scene that the start screen opens
 tests/test_keen2_*.gd Keen 2 suites; the ones that need real data skip without it
 docs/keen2/           Keen 2 documents
@@ -126,6 +128,38 @@ death restarts the level, game over and Escape go back to the start screen
   explosions around the Earth's middle, the wreck stays whole, the chunks
   spread out) are listed in [gameplay.md](gameplay.md) with their reasons.
 
+## Deviations in B6
+
+- **No `Keen2MapSession` and `Keen2MapInfo`.** Map 80 of Keen 2 uses
+  exactly what Keen 1's `MapSession` does: entrances 1-16, blocking with
+  0x8000, the done signs 77 and 78-81 (the same tiles in Keen 2), Keen's
+  sprites 32-47 and his box. It has no ship (20) and no teleporter values,
+  so those branches never run. `Keen2LevelPlay` uses `MapSession`,
+  `MapCollision`, `MapKeen` and `MapMessages` ("Keens Left") **unchanged**:
+  using a Keen 1 class is no change to it. `Keen2Progress extends
+  GameProgress` (completed levels and the map position are the same; the
+  cities are the completed city levels) and is what `MapSession` gets. If
+  Keen 1 ever changes these classes, Keen 2's map changes with them; the
+  stand-in and real-data tests would show it.
+- **`Keen2LevelPlay` is now the course of the game** (map → level → map,
+  won, game over) instead of B3's "level after level"; its B3 signal
+  `finished` and state `FINISHED` are gone, `map_started` and `won` are new.
+  The B3/B4 tests that played level after level now expect the map
+  (`test_keen2_stand_in`), and the Tantalus test sets the state to PLAYING
+  itself.
+- **`Keen2View` split in two:** with the map, the status screen and the
+  ending it grew past 500 lines, so what happens on map 81 (the Earth
+  exploding, the ending's flights, the picture, the end text) moved to
+  `Keen2SpaceScreen`, which `Keen2View` extends.
+- **Three `GameScreen` methods overridden, no shared change:** `GameScreen`
+  calls Keen 1's `EndingSequence` in `_show_picture` (the window light) and
+  `_move_camera_anchor` (the ship's flight), and shows ship parts in the
+  HUD on the map (`_update_hud`). `Keen2SpaceScreen` overrides the first
+  two, `Keen2View` the third. `GameScreen` itself is unchanged.
+- The map layer is hidden (not only cleared) during the picture and the end
+  text: `LevelMap.clear()` leaves the animated tiles (the twinkling stars of
+  map 81) drawing.
+
 ## Testing
 
 - Most Keen 2 logic is tested with hand-made fixtures (`tests/fixtures.gd`
@@ -171,6 +205,11 @@ death restarts the level, game over and Escape go back to the start screen
   white for a varying number of frames, `tools/keen1_regression.sh` sets it
   when it runs without xvfb, and the build scripts copy `game_data/keen2`
   next to the build when it exists (Keen 1's copy is unchanged).
+- *B6:* `tests/test_keen2_ending.gd` (cities, status screen, flights, the
+  ending's stages, the texts in a hand-made EXE image); the stand-in suite
+  plays the map (start, entering a level, exit and death back to the map,
+  done signs, winning); `test_keen2_data` checks the status box, the ending
+  texts and the entrances of map 80 in the real files.
 - Numbers that come from Commander Genius are marked *estimate* in the code,
   as for Keen 1, and listed at the bottom of the Keen 2 docs to check
   against the original (DOSBox) in B10.

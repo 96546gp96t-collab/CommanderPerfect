@@ -1,29 +1,36 @@
 class_name Keen2LevelPlay
 extends RefCounted
-## Keen 2's levels, one after the other ([Keen2LevelSession]). This is the
-## temporary course of the game of milestone B3, until the world map (B6)
-## and the menus (B7) come:
-##   exit       on to the next level; after the last one the game is over
-##              ([signal finished])
-##   death      one life less and the same level again; without lives left,
-##              [signal game_over]
+## The course of a game of Keen 2 (milestone B6): the world map and the
+## levels, until the game is won or over.
+##   map        Keen walks over map 80 ([MapSession], as for Keen 1): the jump
+##              or pogo button on an entrance starts its level; done levels
+##              show their sign and cannot be entered again; entrances with
+##              0x8000 block the way until their level is done
+##   exit       the level is done (a city is saved when it is one of
+##              [constant Keen2Progress.CITY_LEVELS]) and Keen is back on the
+##              map where he entered it; with all eight cities saved,
+##              [signal won] (the ending)
+##   death      one life less and back on the map ([signal life_lost]);
+##              without lives left, [signal game_over]
 ##   Tantalus   the switch of an intact machine fires the Tantalus Ray:
 ##              [signal earth_exploded], game over whatever the lives
-## Every level starts fresh from its file, so that its items are back. Only
-## the logic is here, so that the tests can play it; [Keen2View] draws it.
+## Every level and the map start fresh from their file. Only the logic is
+## here, so that the tests can play it; [Keen2View] draws it.
 
 ## A level has started (again): [member session] and [member level] are new.
 signal level_started(number: int)
-## Keen died and starts the level again with [param lives] lives left.
+## Keen is on the world map: [member map_session] and [member level] are new.
+signal map_started
+## Keen died and is back on the map with [param lives] lives left.
 signal life_lost(lives: int)
 ## Keen died with no lives left.
 signal game_over
-## Keen walked out of the last level, or the next level could not be read.
-signal finished
+## All eight cities are saved: the ending starts.
+signal won
 ## The Tantalus Ray fired: the Earth explodes and the game is over.
 signal earth_exploded
 
-enum State { PLAYING, GAME_OVER, FINISHED, EARTH_EXPLODED }
+enum State { MAP, PLAYING, GAME_OVER, WON, EARTH_EXPLODED }
 
 const LEVEL_OPTION := GameLaunch.LEVEL_OPTION
 ## The level whose Vorticon Elder has the first of the two messages; every
@@ -34,27 +41,35 @@ const FIRST_ELDER_MESSAGE_LEVEL := 8  # estimate
 
 var files: GameFiles
 var properties: TileProperties
+var progress: Keen2Progress
+## What Keen carries: [member progress]'s inventory.
 var inventory: Inventory
+## The level or map on the screen.
 var level_number := 0
-## The level being played, changed by Keen (items, doors).
+## The level or map being played, changed by Keen (items, doors, signs).
 var level: LevelData
+## Keen in a level; null on the map.
 var session: Keen2LevelSession
-var state := State.PLAYING
+## Keen on the map; null in a level.
+var map_session: MapSession
+var state := State.MAP
 
 
-## Plays the levels in [param game_files] with [param keen_inventory] (a
-## new [Keen2Inventory] when none is given). Call [method start] next.
+## Plays the game in [param game_files] with [param keen_inventory] (a new
+## [Keen2Inventory] when none is given). Call [method start_map] (a new
+## game) or [method start] (a level) next.
 static func create(
 	game_files: GameFiles, tile_properties: TileProperties, keen_inventory: Inventory = null
 ) -> Keen2LevelPlay:
 	var play := Keen2LevelPlay.new()
 	play.files = game_files
 	play.properties = tile_properties
-	play.inventory = keen_inventory if keen_inventory != null else Keen2Inventory.new()
+	play.progress = Keen2Progress.new(keen_inventory)
+	play.inventory = play.progress.inventory
 	return play
 
 
-## Whether level [param number] is one that is played in this milestone.
+## Whether level [param number] is one that Keen can play (1-16).
 static func is_playable(number: int) -> bool:
 	return number >= Keen2Files.FIRST_LEVEL and number <= Keen2Files.LAST_LEVEL
 
@@ -82,18 +97,17 @@ static func elder_message_index(number: int) -> int:
 
 
 ## Starts an attempt at level [param number]. Returns false (and says why)
-## when it is not played yet or cannot be read.
+## when it is no level or cannot be read.
 func start(number: int) -> bool:
 	if not is_playable(number):
-		push_error("Keen 2 level %d is not played yet." % number)
+		push_error("Keen 2 has no level %d." % number)
 		return false
-	var file_name := files.level_file(number)
-	var data := LevelData.parse(files.read(file_name))
+	var data := _read(number)
 	if data == null:
-		push_error("%s could not be read." % file_name)
 		return false
 	level_number = number
 	level = data
+	map_session = null
 	var start_at := Vector2(start_cell(level) * EgaGraphics.TILE_SIZE)
 	session = Keen2LevelSession.begin(level, properties, inventory, start_at)
 	state = State.PLAYING
@@ -101,33 +115,64 @@ func start(number: int) -> bool:
 	return true
 
 
+## Puts Keen on the world map, where he entered the last level (at its start
+## in a new game). Returns false (and says why) when it cannot be read. With
+## every city saved, the game is won at once.
+func start_map() -> bool:
+	var data := _read(Keen2Files.WORLD_MAP_LEVEL)
+	if data == null:
+		return false
+	level_number = Keen2Files.WORLD_MAP_LEVEL
+	level = data
+	session = null
+	map_session = MapSession.create(level, properties, progress)
+	state = State.MAP
+	map_started.emit()
+	if progress.all_cities_saved():
+		state = State.WON
+		won.emit()
+	return true
+
+
 ## Advances one tick with the buttons in [param input], and moves on when
-## the attempt is over.
+## Keen enters a level or his attempt is over.
 func step(input: KeenInput) -> void:
-	if state != State.PLAYING or session == null:
-		return
-	session.step(input)
-	if session.tantalus_fired:
-		state = State.EARTH_EXPLODED
-		earth_exploded.emit()
-	elif session.outcome != LevelSession.Outcome.PLAYING:
-		_on_level_over(session.outcome)
+	if state == State.MAP and map_session != null:
+		map_session.step(input)
+		if map_session.outcome == MapSession.Outcome.ENTER_LEVEL:
+			start(map_session.chosen_level)
+	elif state == State.PLAYING and session != null:
+		session.step(input)
+		if session.tantalus_fired:
+			state = State.EARTH_EXPLODED
+			earth_exploded.emit()
+		elif session.outcome != LevelSession.Outcome.PLAYING:
+			_on_level_over(session.outcome)
 
 
 func _on_level_over(outcome: LevelSession.Outcome) -> void:
 	match outcome:
 		LevelSession.Outcome.COMPLETED:
-			if level_number >= Keen2Files.LAST_LEVEL or not start(level_number + 1):
-				state = State.FINISHED
-				finished.emit()
+			progress.complete_level(level_number)
+			start_map()
 		LevelSession.Outcome.DIED:
 			if inventory.is_game_over():
 				state = State.GAME_OVER
 				game_over.emit()
 			else:
+				start_map()
 				life_lost.emit(inventory.lives)
-				start(level_number)
 		_:
 			# Keen 2 has no teleporters and no open sides: this cannot
 			# happen, but Keen should not get stuck if it does.
-			start(level_number)
+			start_map()
+
+
+## Map or level [param number] fresh from its file; null (and says why) when
+## it cannot be read.
+func _read(number: int) -> LevelData:
+	var file_name := files.level_file(number)
+	var data := LevelData.parse(files.read(file_name))
+	if data == null:
+		push_error("%s could not be read." % file_name)
+	return data

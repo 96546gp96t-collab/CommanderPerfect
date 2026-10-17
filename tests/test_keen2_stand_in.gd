@@ -2,8 +2,9 @@ extends "res://tests/test_case.gd"
 ## Plays Keen 2's levels with stand-in data: the Keen 1 shareware files,
 ## copied to a folder in the user folder under Keen 2's names (see
 ## tests/keen2_fixtures.gd). Checks the loading ([Keen2GameData]), the
-## course of the levels ([Keen2LevelPlay]: exit, death, game over, the last
-## level), and Keen 2's enemies spawned from Keen 1's info values (the
+## course of the game ([Keen2LevelPlay]: the world map, entering a level,
+## exit and death back to the map, done levels, game over, all cities saved),
+## and Keen 2's enemies spawned from Keen 1's info values (the
 ## shareware levels have no info 7, so no sparks), played for a while in
 ## every level with the pogo button pressed now and then (Keen 1's levels
 ## have no Keen 2 switches), and the Earth exploding on Keen 1's map 81. The
@@ -96,44 +97,81 @@ func test_enemies_spawn_and_play_in_every_level() -> void:
 	assert_equal(kinds.size(), expected.size(), "only Keen 2's enemies")
 
 
-func test_exit_leads_to_the_next_level() -> void:
+func test_a_new_game_starts_on_the_map() -> void:
 	var play := _play()
 	if play == null:
 		return
-	play.start(3)
+	var started := [0]
+	play.map_started.connect(func() -> void: started[0] += 1)
+	assert_true(play.start_map(), "map 80 loads")
+	assert_equal(started[0], 1, "announced")
+	assert_equal(play.state, Keen2LevelPlay.State.MAP, "on the map")
+	assert_equal(play.level_number, Keen2Files.WORLD_MAP_LEVEL, "map 80")
+	var start := play.level.find_info(LevelData.PLAYER_START_INFO)
+	assert_equal(play.map_session.cell_under_keen(), start, "Keen at the start")
+
+
+func test_an_entrance_on_the_map_starts_its_level() -> void:
+	var play := _play()
+	if play == null:
+		return
+	play.start_map()
+	_stand_on_entrance(play, 2)
+	play.step(KeenInput.create(0, true))
+	assert_equal(play.state, Keen2LevelPlay.State.PLAYING, "in a level")
+	assert_equal(play.level_number, 2, "level 2")
+	assert_true(play.map_session == null, "off the map")
+
+
+func test_exit_leads_back_to_the_map() -> void:
+	var play := _play()
+	if play == null:
+		return
+	play.start_map()
+	_stand_on_entrance(play, 3)
+	var entrance := play.map_session.keen.position
+	play.step(KeenInput.create(0, true))
 	var score := play.inventory.score
 	play.session.outcome = LevelSession.Outcome.COMPLETED
 	play.step(KeenInput.new())
-	assert_equal(play.level_number, 4, "level 4")
-	assert_equal(play.state, Keen2LevelPlay.State.PLAYING, "playing")
+	assert_equal(play.state, Keen2LevelPlay.State.MAP, "on the map")
+	assert_true(play.progress.is_completed(3), "level 3 is done")
+	assert_equal(play.map_session.keen.position, entrance, "where he went in")
 	assert_equal(play.inventory.score, score, "the score stays")
-
-
-func test_last_level_finishes() -> void:
-	var play := _play()
-	if play == null:
-		return
-	var done := [false]
-	play.finished.connect(func() -> void: done[0] = true)
-	play.start(Keen2Files.LAST_LEVEL)
-	play.session.outcome = LevelSession.Outcome.COMPLETED
+	var cell := play.level.find_info(3)
+	assert_true(play.level.tile_at(cell) in [MapSession.DONE_TILE, 78], "a done sign")
 	play.step(KeenInput.new())
-	assert_true(done[0], "finished after level 16")
-	assert_equal(play.state, Keen2LevelPlay.State.FINISHED, "nothing more to play")
+	play.step(KeenInput.create(0, true))
+	assert_equal(play.state, Keen2LevelPlay.State.MAP, "a done level is not entered again")
 
 
-func test_death_restarts_the_level() -> void:
+func test_death_leads_back_to_the_map() -> void:
 	var play := _play()
 	if play == null:
 		return
 	var lives_left: Array[int] = []
 	play.life_lost.connect(func(lives: int) -> void: lives_left.append(lives))
 	play.start(2)
-	var first_session := play.session
 	_die(play)
 	assert_equal(lives_left, [Inventory.START_LIVES - 1] as Array[int], "one life less")
-	assert_equal(play.level_number, 2, "the same level")
-	assert_true(play.session != first_session, "a fresh attempt")
+	assert_equal(play.state, Keen2LevelPlay.State.MAP, "on the map")
+	assert_true(not play.progress.is_completed(2), "not done")
+
+
+func test_the_last_city_wins_the_game() -> void:
+	var play := _play()
+	if play == null:
+		return
+	var won := [0]
+	play.won.connect(func() -> void: won[0] += 1)
+	for number in Keen2Progress.CITY_LEVELS.slice(1):
+		play.progress.complete_level(number)
+	play.start(Keen2Progress.CITY_LEVELS[0])
+	play.session.outcome = LevelSession.Outcome.COMPLETED
+	play.step(KeenInput.new())
+	assert_equal(won[0], 1, "won once")
+	assert_equal(play.state, Keen2LevelPlay.State.WON, "the ending")
+	assert_true(play.progress.all_cities_saved(), "eight cities")
 
 
 func test_last_life_ends_the_game() -> void:
@@ -170,6 +208,14 @@ func _play() -> Keen2LevelPlay:
 	if _data == null:
 		return null
 	return Keen2LevelPlay.create(_files, _data.properties)
+
+
+## Puts Keen on the map on the entrance of level [param number].
+func _stand_on_entrance(play: Keen2LevelPlay, number: int) -> void:
+	var cell := play.level.find_info(number)
+	var keen := play.map_session.keen
+	keen.position = Vector2(cell * EgaGraphics.TILE_SIZE) + Vector2.ONE * 4.0
+	play.step(KeenInput.new())
 
 
 ## Kills Keen and runs the ticks until his attempt is over.

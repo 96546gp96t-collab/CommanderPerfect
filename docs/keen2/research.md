@@ -709,6 +709,12 @@ boxes (left, top, right, bottom; the table holds the last pixel inside):
 | Spark 128-131 | 2, 2, 13, 13 |
 | Shots 122-123 | 0, 0, 15, 7 |
 
+**The ending with the real files (B6):** with CG's numbers, Keen's ship
+starts at tile 593 (6, 5), flies 672 ticks at (32, 12.8)/32 and 150 at
+(0, 8)/32 and ends right on the Earth (47-49, 22-24): the numbers fit the
+map. The texts: part 1 (6 lines), part 2 (5 lines), four pages at home,
+`TO BE CONTINUED....`; all line records (file-formats.md).
+
 ## Open questions (need real KEEN2 files or the original game)
 
 **Answered in B5.1 with the player's own files (version 1.31):**
@@ -761,7 +767,7 @@ boxes (left, top, right, bottom; the table holds the last pixel inside):
     whether enemies behave differently in the dark beyond not jumping.
 14. How the original stops Keen from leaving a city level before destroying
     the machine (locked exit? out of reach?), and the points for destroying
-    it (10,000 or 30,000?).
+    it (10,000 or 30,000?). B6 saves a city when its level is done, as CG.
 15. What happens on screen when the Tantalus switch is hit (text? shake
     length?), and the timing of the beam and explosion; whether `EARTHPOW`
     plays.
@@ -771,8 +777,9 @@ boxes (left, top, right, bottom; the table holds the last pixel inside):
 17. Whether enemy shots hurt other enemies (Guard robot shots vs grunts and
     youths).
 18. The ending: whether `TO BE CONTINUED....` and the end text are shown after
-    the `FINALE.CK2` pages; the ship flight timings; whether the light bitmaps
-    are used.
+    the `FINALE.CK2` pages (B6 shows both); the ship flight timings (they fit
+    map 81); whether the light bitmaps are used (B6: no). Also the places on
+    the status screen (B6 uses CG's).
 19. Stun: whether Keen is thrown up a full jump, and the frames (28/29, then
     31; what is 30 `KEENSBACK` for?).
 20. The sound tick rate (CG: 145.6 Hz, our docs: 140 Hz). This applies to

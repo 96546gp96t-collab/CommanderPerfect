@@ -1,34 +1,42 @@
 # Keen 2: the rules of a level in our engine
 
-What playing a Keen 2 level does in CommanderPerfect so far, and which
-numbers are estimates. Written in milestone B3, the enemies in B4, the
-switches, the Tantalus Ray and the Earth exploding in B5; later milestones
-add to it.
+What playing Keen 2 does in CommanderPerfect so far, and which numbers are
+estimates. Written in milestone B3, the enemies in B4, the switches, the
+Tantalus Ray and the Earth exploding in B5, the world map, the cities, the
+status screen and the ending in B6; later milestones add to it.
 The facts and their sources are in [research.md](research.md), the code
 layout in [architecture.md](architecture.md).
 
-## The course of the game (temporary, B3)
+## The course of the game (B6)
 
-There is no title, menu or world map yet (B6, B7). Until then:
+There is no title or menu yet (B7). The game goes like this:
 
 | What | Then |
 |---|---|
-| Keen 2 picked on the start screen | Level 1 |
-| `-- --game=2 --level=N` | Level N (1-16); another number starts level 1 with a message |
-| Keen walks out through the exit | The next level; after level 16 the start screen |
-| Keen dies | One life less and the same level again, fresh from its file; "Keens left: N" |
+| Keen 2 picked on the start screen | A new game on the world map (map 80), with "Keens Left" |
+| `-- --game=2 --level=N` | Level N (1-16) at once; after it the map. Another number: the map, with a message |
+| On the map | Keen walks as on Keen 1's map (`MapSession`, unchanged): the jump or pogo button on an entrance enters its level |
+| Keen walks out through the exit | The level is done: back on the map where he went in; its entrance shows the "DONE" sign (77, or 78-81 for 2x2) and cannot be entered again. Entrances with 0x8000 (levels 1 and 5) block the way until their level is done |
+| A city level is done | That city is saved (levels 4, 6, 7, 9, 11, 13, 15, 16: London, Cairo, Sydney, New York, Paris, Rome, Moscow, Washington) |
+| All eight cities saved | The ending (below), then the start screen |
+| Keen dies | One life less, back on the map with "Keens Left" |
 | Keen dies without lives left | "Game over", then the start screen |
 | Keen presses the switch of an intact Tantalus Ray machine | The Earth explodes, GAME OVER whatever the lives, then the start screen (B5) |
+| Enter | The status screen (below); Enter or a button closes it |
 | Escape | The start screen |
 
-Levels 80, 81 and 90 (world map, space, title) are not played yet. Cheats
-for testing, as in Keen 1: Shift+N / Shift+P (next / previous level),
-Shift+I (all keycards, 99 charges), Shift+G (god mode). Enter (status
-screen) does nothing yet; Keen 2's status screen comes with the cities in
-B6.
+"Keens Left" is Keen 1's window (`MapMessages`, unchanged): a little Keen
+per life, it closes by itself after 3 seconds or with a button. A city is
+saved when its level is done, as in Commander Genius; how the original
+keeps Keen from leaving a city before its machine is destroyed is still to
+be seen (research.md, question 14). Cheats for testing, as in Keen 1, on
+the map and in a level: Shift+N / Shift+P (next / previous level; from
+the map level 1 / 16), Shift+I (all keycards, 99 charges), Shift+G (god
+mode).
 
-Code: `Keen2View` (the scene) and `Keen2LevelPlay` (the course of the
-levels), `Keen2LevelSession` (one attempt at a level).
+Code: `Keen2View` (the scene), `Keen2SpaceScreen` (what it shows on map
+81), `Keen2LevelPlay` (the course of the game), `Keen2Progress` (the
+cities), `Keen2LevelSession` (one attempt at a level).
 
 ## Start values
 
@@ -304,17 +312,72 @@ Lives, score, raygun charges and keycards; no ship parts. The raygun and
 keycard icons are the first tile with that behaviour in the tile
 properties (`Keen2Icons`): the pictures Keen picks up, as in Keen 1's HUD.
 In version 1.31 these are 175 and 190-193, the same numbers as Keen 1.
-The status screen's own icons, 414 (raygun) and 424-427 (keycards), are
-in the tile set too (B6).
+On the map the HUD shows the same, never Keen 1's ship parts.
+
+## The status screen (B6)
+
+Enter opens it on the map and in a level (`Keen2StatusScreen`). The box is
+28x12 cells inside its border, and its text comes from `KEEN2.EXE` (one
+record per line, file-formats.md): `SCORE` / `EXTRA KEEN AT`, `KEENS` /
+`PISTOL`, `TARGETS SAVED` / `KEYS`, `PLEASE PRESS A KEY`. Into it go:
+
+| What | Where (inside the border) |
+|---|---|
+| The score / the next extra life | row 1, ending before column 12 / 28 |
+| A little Keen (sprite 0) per life, at most 7 | from (1, 3), two columns each |
+| The raygun (tile 414) and its charges | (19, 3); the charges end before column 27, row 4 |
+| The saved cities | London (0, 7), Cairo (7, 7), Sydney (0, 8), Rome (7, 8), Paris (0, 9), New York (7, 9), Moscow (0, 10), Washington (7, 10) |
+| The keycards Keen has (424-427) | (20, 7), (24, 7), (20, 9), (24, 9) |
+
+The places come from Commander Genius's status screen (shifted by the
+border); they are estimates. Without the lines from `KEEN2.EXE` the same
+labels are written in their place.
+
+## The ending (B6)
+
+As soon as the map loads with all eight cities saved, the ending runs
+(`Keen2Ending`); a button (jump, pogo, fire) or Enter closes a text or
+turns a page:
+
+1. **Map 81:** Keen's small ship (sprite 132) starts where tile 593 is (part
+   of the mothership's picture, (6, 5)), waits 10 ticks, flies 672 ticks at
+   32/32 right and 12.8/32 down, then 150 ticks at 8/32 down: it lands on
+   the Earth. The first text ("After disabling the weaponry...") is shown at
+   the bottom; the stage ends when the ship is there and the text is closed.
+   The view follows the ship.
+2. **Map 81 again:** the mothership (sprite 72) from tile (8, 26), the view's
+   top left at (0, 300), waits 10 ticks and flies 80 ticks at 32/32 left
+   and 12.8/32 up, with the second text ("The Vorticon ship limps back...").
+3. **`FINALE.CK2`** with the four pages at home, one per press, at the
+   bottom, then `TO BE CONTINUED....` as a fifth page (it follows the pages
+   in `KEEN2.EXE`; Commander Genius does not show it).
+4. **The end text** of `KEEN2.EXE` (it starts with "TO BE CONTINUED..."),
+   scrolled with up and down as Keen 1's; a press ends it (Commander Genius
+   shows no end text; our reading of the original).
+5. The start screen (B7 adds the high scores).
+
+The flights' numbers come from Commander Genius; with the real map 81 the
+ship lands right on the Earth, which suggests they are right. Texts that
+are not found are left out. Keen 2 has no light in the window of the
+picture (Keen 1's `WINDON`/`WINDOFF` are not used).
 
 ## Not yet
 
-The world map, cities, status screen and the ending (B6); menus, saving and high scores (B7); pictures behind the levels (B8;
+Title, menus, saving and high scores (B7); pictures behind the levels (B8;
 Keen 1's pictures are never shown behind Keen 2's levels); two players (B9).
 
 ## Estimates to check against the original (B10)
 
 - Starting raygun charges: 0.
+- World map and ending (B6):
+  - A city is saved when its level is done (also without destroying the
+    machine).
+  - The places on the status screen; at most 7 little Keens.
+  - The flights: 10 ticks of waiting; Keen's ship 672 ticks at (32, 12.8)/32
+    and 150 at (0, 8)/32; the mothership from (8, 26), view (0, 300), 80
+    ticks at (−32, −12.8)/32.
+  - `TO BE CONTINUED....` as the last page and the end text after it.
+  - "Keens Left" for 3 seconds (Keen 1's value).
 - Enemies (B4), all from Commander Genius (research.md §5):
   - Chances: n + 1 in 1000 per tick for a chance of n.
   - Grunt: 1 HP; walk 28/32, 5 ticks a frame; look 2 x 16 ticks; jump

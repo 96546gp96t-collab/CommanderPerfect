@@ -37,8 +37,8 @@ Voor een volgend deel: [docs/new-episode-guide.md](docs/new-episode-guide.md).
 | B3 | Een level spelen (Keen, items, deuren, uitgang) | ✅ Klaar en gecontroleerd door de architect (branch `milestone-b3-level`) |
 | B4 | Vijanden en meerijden (platforms, Scrubs) | ✅ Klaar en gecontroleerd door de architect (branch `milestone-b4-vijanden`) |
 | B5 | Schakelaars, bruggen, licht, de Tantalus-straal, de aarde ontploft | ✅ Klaar en gecontroleerd door de architect (branch `milestone-b5-tantalus`) |
-| B5.1 | B1-B5 controleren en repareren met de echte Keen 2-bestanden (v1.31) | 🔶 Gebouwd, in test bij de gebruiker (branch `milestone-b5.1-echte-data`) |
-| B6 | Wereldkaart, steden, statusscherm, het einde | ⬜ |
+| B5.1 | B1-B5 controleren en repareren met de echte Keen 2-bestanden (v1.31) | ✅ Getest door de gebruiker, "geen issues" (branch `milestone-b5.1-echte-data`) |
+| B6 | Wereldkaart, steden, statusscherm, het einde | 🔶 Gebouwd, in test bij de gebruiker (branch `milestone-b6-kaart-einde`) |
 | B7 | Geluid, menu's, opslaan, highscores | ⬜ |
 | B8 | Mooier maken (framerate, xBRZ, HD, achtergronden, builds) | ⬜ |
 | B9 | Co-op lokaal en online | ⬜ |
@@ -387,6 +387,59 @@ app in `build/game_data/keen2`). Details in `docs/keen2/research.md`
   alleen in de code van de EXE, dus naast het origineel leggen), versie
   1.00, en alles wat alleen het origineel kan laten zien (research.md,
   vragen 13-20).
+
+## Mijlpaal B6: wat er nu is
+
+Gebouwd en gespeeld met de echte Keen 2-bestanden (v1.31). Keen 2 is nu van
+begin tot eind uit te spelen. De regels staan in `docs/keen2/gameplay.md`
+("The course of the game", "The status screen", "The ending").
+
+- **Wereldkaart (map 80):** een nieuw spel begint op de kaart bij het
+  schip, met "Keens Left". Lopen, met springen/pogo een level in, na de
+  uitgang terug op de plek van de ingang met het "DONE"-bord (77 of
+  78-81); een klaar level kan niet opnieuw. Ingangen met 0x8000 (levels 1
+  en 5) houden de weg dicht tot dat level klaar is. Dood: een leven minder
+  en terug op de kaart met "Keens Left". `--level=N` speelt eerst level N
+  en gaat daarna naar de kaart.
+- **Hergebruik zonder wijziging:** Keen 1's `MapSession`, `MapCollision`,
+  `MapKeen` en `MapMessages` werken ongewijzigd voor Keen 2's kaart (geen
+  schip, geen teleporters); er is dus geen `Keen2MapSession`. Afwijking
+  van het plan, uitgelegd in `docs/keen2/architecture.md`.
+- **Steden:** `Keen2Progress` (op `GameProgress`): een stad is gered als
+  zijn level klaar is (levels 4, 6, 7, 9, 11, 13, 15, 16). Alle acht gered:
+  het einde.
+- **Statusscherm (Enter):** het vak met de teksten uit `KEEN2.EXE` (SCORE,
+  EXTRA KEEN AT, KEENS, PISTOL, TARGETS SAVED, KEYS, PLEASE PRESS A KEY),
+  score, volgende extra Keen, een Keentje per leven, het pistool (414) met
+  ladingen, de geredde steden en de sleutelkaarten (424-427). Plekken uit
+  Commander Genius (*schatting*).
+- **Het einde** (`Keen2Ending`, `Keen2Flight`): Keens schip vliegt op map 81
+  van het moederschip naar de aarde (met de getallen van CG landt het
+  precies op de aarde), daarna het moederschip met de tweede tekst,
+  `FINALE.CK2` met de vier pagina's en `TO BE CONTINUED....`, dan de
+  eindtekst (scrollen), dan het startscherm. Alle teksten uit de EXE.
+- **Scherm:** `Keen2View` werd te groot en is gesplitst: map 81 (aarde
+  ontploft, het einde) zit nu in `Keen2SpaceScreen`. Drie methodes van
+  `GameScreen` die Keen 1's einde of scheepsonderdelen kennen worden in
+  Keen 2 overschreven; `GameScreen` zelf is niet veranderd.
+- **Tests:** nieuwe suite `test_keen2_ending` (steden, statusscherm,
+  vluchten, het einde, teksten in een zelfgemaakte EXE);
+  `test_keen2_stand_in` speelt nu de kaart (start, level in, uitgang en
+  dood terug naar de kaart, DONE, winnen); `test_keen2_data` controleert
+  het statusvak, de eindteksten en de ingangen van map 80. De B3-tests
+  "uitgang → volgend level" en "na level 16 klaar" zijn vervangen (Keen
+  2-tests).
+- **Gespeeld met screenshots:** de kaart met "Keens Left", het statusscherm
+  met London en Cairo, Londen in via de ingang en terug met DONE, het hele
+  einde (schip, moederschip, plaatje met pagina's, eindtekst).
+- **Keen 1-controle:** alle tests slagen, gdlint schoon, titel, level 1
+  (ook lopend) en kaart byte voor byte gelijk aan `main`; `launcher.png`
+  gelijk aan die van B5.1. Buiten `src/keen2/` en de Keen 2-tests is niets
+  veranderd.
+- **Open:** of een stad in het origineel pas gered is als de machine kapot
+  is (en hoe het origineel Keen tegenhoudt); de plekken op het
+  statusscherm; of het origineel `TO BE CONTINUED....` en de eindtekst na
+  de pagina's toont; de high scores na het einde (B7).
 
 ## Mijlpaal 1: wat er nu is
 
@@ -810,17 +863,15 @@ Na de eerste eigen test van de gebruiker:
 Keen 2:
 
 1. **Voor de gebruiker:** `build/CommanderPerfect.app` proberen met Keen 2
-   (B5.1): plaatjes, vijanden, schakelaars, bruggen, licht, de machine
-   kapotschieten, de verkeerde hendel. Daarna eventueel
-   `milestone-b5.1-echte-data` mergen.
-2. **Overleg over B6** (wereldkaart, steden, statusscherm, einde) en **B7**
-   (geluid, menu's, opslaan), zie `docs/keen2/roadmap.md`. B6 komt op
-   `milestone-b6-kaart-einde`, vanaf `milestone-b5.1-echte-data`. Wat de
-   bestanden er al over zeggen: ingangen 1-16 op de kaart, 0x8001/0x8005
-   blokkeren tot level 1/5 klaar is, de statusschermteksten zijn records
-   per regel, de iconen 414/424-427, de eindteksten op 0x1A1A1-0x1A447.
-3. De startlading van het straalgeweer en de punten van de machine (10.000
-   of 30.000) naast het origineel leggen (B10).
+   (B6): de kaart, levels in en uit, DONE-bordjes, het statusscherm
+   (Enter), en het einde. Snel naar het einde: met Shift+N/P naar een stad,
+   Shift+G en Shift+I helpen; of de steden echt uitspelen.
+2. Daarna B7 (geluid, menu's, opslaan, high scores) op
+   `milestone-b7-geluid-menus`, vanaf `milestone-b6-kaart-einde`, zie
+   `docs/keen2/roadmap.md`. Na het einde en na game over komen dan de high
+   scores (`CITIESSA`/`SAVED`-bitmap, aantal steden).
+3. De startlading van het straalgeweer, de punten van de machine en de
+   regel "stad gered" naast het origineel leggen (B10).
 
 Keen 1:
 

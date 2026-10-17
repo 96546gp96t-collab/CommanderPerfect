@@ -14,6 +14,10 @@ extends RefCounted
 ## The text blocks, in the order in which they follow each other in the
 ## image (version 1.31).
 enum TextBlock { END_TEXT, HELP, PREVIEWS, STORY }
+## The texts of the ending, in the order in which they are shown: Keen's
+## ship heads home, the mothership flies off, the four pages at home, and
+## "TO BE CONTINUED....".
+enum EndingText { SHIP_HOME, MOTHERSHIP, HOME_1, HOME_2, HOME_3, HOME_4, TO_BE_CONTINUED }
 
 ## Raw image positions in version 1.31, tried before searching.
 const SOUND_OFFSET := 0x12730
@@ -27,6 +31,19 @@ const ELDER_MESSAGE_OFFSETS: PackedInt32Array = [0x19FCC, 0x1A08C]
 ## at least this long in all. The record after the last line ("Press
 ## ENTER:") has no line feed and is not part of the message.
 const MIN_ELDER_MESSAGE_SIZE := 32
+## The texts of the ending (version 1.31), in the order of [enum EndingText].
+## Each is a run of line records like an Elder message, but its last line
+## may have no line feed.
+const ENDING_TEXT_OFFSETS: PackedInt32Array = [
+	0x1A1A1, 0x1A253, 0x1A2F7, 0x1A333, 0x1A3C9, 0x1A429, 0x1A434
+]
+## The record "finale.ck2" between the second part and the pages: the
+## second part ends before it.
+const FINALE_NAME_OFFSET := 0x1A2EC
+## The box of the status screen (version 1.31): one record per line, the
+## text of the original's layout (labels, empty lines, "PLEASE PRESS A KEY").
+const STATUS_BOX_OFFSET := 0x1991C
+const STATUS_BOX_LINES := 12
 ## The tile property table in version 1.31 and 1.00.
 const TILE_TABLE_OFFSETS: PackedInt32Array = [0x17828, 0x17938]
 
@@ -168,6 +185,29 @@ func elder_message(index: int) -> PackedStringArray:
 	return message_lines(elder_message_text(image, start))
 
 
+## The lines of ending text [param which]; empty when it is not found (only
+## version 1.31's positions are known; the ending then shows no text).
+func ending_text(which: EndingText) -> PackedStringArray:
+	var start := ENDING_TEXT_OFFSETS[which]
+	if not _is_record_start(image, start):
+		return PackedStringArray()
+	return message_lines("".join(line_records(image, start, true)))
+
+
+## The lines of the status screen's box, with their spaces (they lay out
+## the labels), without line feeds; empty when they are not found.
+func status_box_lines() -> PackedStringArray:
+	if not _is_record_start(image, STATUS_BOX_OFFSET):
+		return PackedStringArray()
+	var records := line_records(image, STATUS_BOX_OFFSET, true)
+	if records.size() != STATUS_BOX_LINES:
+		return PackedStringArray()
+	var lines := PackedStringArray()
+	for record in records:
+		lines.append(record.trim_suffix("\n"))
+	return lines
+
+
 ## Where Elder message [param index] starts in [param data], or -1. Only the
 ## known position is tried, and only used when a message of printable lines
 ## starts there.
@@ -175,29 +215,40 @@ static func find_elder_message(data: PackedByteArray, index: int) -> int:
 	if index < 0 or index >= ELDER_MESSAGE_OFFSETS.size():
 		return -1
 	var start := ELDER_MESSAGE_OFFSETS[index]
-	if start <= 0 or start >= data.size() or ExeStrings.is_printable(data[start - 1]):
+	if not _is_record_start(data, start):
 		return -1
 	return start if elder_message_text(data, start).length() >= MIN_ELDER_MESSAGE_SIZE else -1
 
 
 ## The text of the Elder message from [param start]: its line records one
-## after the other. It ends before a record without a line feed, a record
-## that is not printable text, or the start of the other message.
+## after the other (see [method line_records]); the prompt after the last
+## message is left out.
 static func elder_message_text(data: PackedByteArray, start: int) -> String:
-	var text := ""
+	return "".join(line_records(data, start, false))
+
+
+## The line records from [param start], each with its line feed. They end
+## at a record that is not printable text, at the start of another known
+## text, or after a record without a line feed; that last record is kept
+## only with [param keep_unfinished].
+static func line_records(
+	data: PackedByteArray, start: int, keep_unfinished: bool
+) -> PackedStringArray:
+	var records := PackedStringArray()
 	var position := start
 	while position < data.size():
 		var end := data.find(0, position)
 		if end < 0 or not _is_message_record(data, position, end):
 			break
 		var record := data.slice(position, end).get_string_from_ascii()
-		if not record.ends_with("\n"):
+		var finished := not record.ends_with("\n")
+		if finished and not keep_unfinished:
 			break
-		text += record
+		records.append(record)
 		position = end + 1
-		if position in ELDER_MESSAGE_OFFSETS:
+		if finished or _starts_known_text(position):
 			break
-	return text
+	return records
 
 
 ## The lines of [param text]: split at the line ends, without carriage
@@ -291,6 +342,21 @@ static func _is_sound_block(data: PackedByteArray, start: int) -> bool:
 		count > 0
 		and start + size <= data.size()
 		and SoundFile.HEADER_SIZE + count * SoundFile.ENTRY_SIZE <= size
+	)
+
+
+## Whether a record can start at [param start]: nothing printable runs into
+## it from before.
+static func _is_record_start(data: PackedByteArray, start: int) -> bool:
+	return start > 0 and start < data.size() and not ExeStrings.is_printable(data[start - 1])
+
+
+## Whether another of the known texts starts at [param position].
+static func _starts_known_text(position: int) -> bool:
+	return (
+		position in ELDER_MESSAGE_OFFSETS
+		or position in ENDING_TEXT_OFFSETS
+		or position == FINALE_NAME_OFFSET
 	)
 
 

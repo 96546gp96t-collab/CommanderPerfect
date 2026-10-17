@@ -232,8 +232,10 @@ func test_keen_2_scene_is_the_game_screen() -> void:
 		if state.get_node_property_name(0, index) == &"script":
 			script = state.get_node_property_value(0, index)
 	assert_true(script != null and script.get_global_name() == &"Keen2View", "Keen2View")
-	if script != null:
-		assert_equal(script.get_base_script().get_global_name(), &"GameScreen", "on GameScreen")
+	var base := script.get_base_script() if script != null else null
+	while base != null and base.get_global_name() != &"GameScreen":
+		base = base.get_base_script()
+	assert_true(base != null, "on GameScreen")
 
 
 ## A session with [param items] in Keen's row, Keen standing at

@@ -2,8 +2,9 @@ class_name Keen2GameData
 extends RefCounted
 ## What Keen 2's game screen reads from the player's files before it can
 ## show a level: the graphics (EGAHEAD.CK2 and the others), the tile
-## properties, the sounds and the Vorticon Elders' messages from KEEN2.EXE,
-## and FINALE.CK2 for the scaled graphics.
+## properties, the sounds, the Vorticon Elders' messages, the city names, the
+## status screen's box and the texts of the ending from KEEN2.EXE, and
+## FINALE.CK2.
 ##
 ## Keen 2 keeps its sounds inside KEEN2.EXE. When that has no sound block
 ## and a SOUNDS.CK2 file lies next to it, that file is used instead: the
@@ -22,6 +23,17 @@ var sounds: SoundFile
 var finale: Image
 ## The two Elder messages as lines; a message that was not found is empty.
 var elder_messages: Array[PackedStringArray] = []
+## The eight city names in the order of [constant Keen2Progress.CITY_LEVELS];
+## empty when they were not found.
+var city_names := PackedStringArray()
+## The lines of the status screen's box; empty when not found.
+var status_lines := PackedStringArray()
+## The texts of the ending, in the order of [enum Keen2Executable.EndingText];
+## a text that was not found is empty.
+var ending_texts: Array[PackedStringArray] = []
+## The end text block, ready for [method TextDocument.layout]; empty when
+## not found.
+var end_text := PackedByteArray()
 
 
 ## Reads everything from [param game_files]. Returns null (and says why)
@@ -43,9 +55,23 @@ static func load_from(game_files: GameFiles) -> Keen2GameData:
 	data.sounds = _sounds_from(executable, game_files)
 	for index in Keen2Executable.ELDER_MESSAGE_OFFSETS.size():
 		data.elder_messages.append(executable.elder_message(index))
+	_read_texts(data, executable)
 	if game_files.has_file(Keen2Files.FINALE):
 		data.finale = FinaleImage.load_from(game_files, Keen2Files.FINALE)
 	return data
+
+
+## The city names, the status screen and the ending. Missing texts are no
+## error: the screens that use them do without.
+static func _read_texts(data: Keen2GameData, executable: Keen2Executable) -> void:
+	if Keen2Executable.find_city_names(executable.image) >= 0:
+		data.city_names = executable.city_names()
+	data.status_lines = executable.status_box_lines()
+	for which in Keen2Executable.EndingText.size():
+		data.ending_texts.append(executable.ending_text(which as Keen2Executable.EndingText))
+	var end := Keen2Executable.TextBlock.END_TEXT
+	if Keen2Executable.find_text_block(executable.image, end) >= 0:
+		data.end_text = executable.text(end)
 
 
 ## The sounds inside [param executable], or those of [constant SOUNDS_FILE];

@@ -64,6 +64,16 @@ read from the program code.
 | `TO BE CONTINUED....` | 0x1A434 | The text `TO BE CONTINUED` | `to_be_continued()` |
 | Vorticon Elder messages (B5) | 0x19FCC, 0x1A08C | Only at the known position: zero-terminated records of printable ASCII (and CR), one per line, each ending in LF, at least 32 bytes in all, with no printable byte right before the first. There is no search: not found means the Elder stays silent (no error) | `elder_message(index)` → lines; `find_elder_message(data, index)` |
 
+| Status screen box (B6) | 0x1991C | Twelve line records (see below), the last without LF | `status_box_lines()` |
+| Ending texts (B6) | 0x1A1A1, 0x1A253, 0x1A2F7, 0x1A333, 0x1A3C9, 0x1A429, 0x1A434 | Only at the known positions: line records; a text ends after a record without LF, or before the next known text or the record `finale.ck2` (0x1A2EC) | `ending_text(which)` |
+
+**Line records.** The Elder messages, the status box and the ending texts
+are runs of zero-terminated records, one per line. `line_records` reads
+them from a start: it stops at a record that is not printable text, at the
+start of another known text, or after a record without a line feed (which
+is kept for the status box and the ending, and left out for the Elder
+messages: there it is the prompt).
+
 **Text blocks.** A text block is a run of text bytes (printable ASCII, CR,
 LF, tab, the break mark 0x1F, and font pictures from 0x80 on) of at least 64
 bytes, with at least one CR LF, ending in 0x1A, with no text byte right
