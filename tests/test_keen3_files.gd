@@ -291,16 +291,6 @@ func test_older_arguments_give_the_same_answer() -> void:
 		)
 
 
-func test_keen_3_placeholder() -> void:
-	var view: Keen3View = load(GameLaunch.KEEN_3_SCENE).instantiate()
-	view._build()  # The tests run outside the scene tree.
-	assert_true(view.message().contains("coming soon"), "says Keen 3 is coming")
-	view.free()
-	assert_true(Keen3View.is_back_event(_key(KEY_ESCAPE)), "Escape goes back")
-	assert_true(Keen3View.is_back_event(_key(KEY_ENTER)), "Enter goes back")
-	assert_true(not Keen3View.is_back_event(_key(KEY_LEFT)), "other keys do not")
-
-
 func test_keen3_behaviors() -> void:
 	assert_true(Keen3Behavior.is_keen3_item(Keen3Behavior.ANKH), "the ankh")
 	assert_true(Keen3Behavior.is_keen3_item(Keen3Behavior.SINGLE_CHARGE), "a single charge")
@@ -352,14 +342,6 @@ func _tile_values(properties: TileProperties, tile: int) -> Array:
 		properties.blocks_bottom(tile),
 		properties.blocks_left(tile),
 	]
-
-
-func _key(keycode: Key) -> InputEventKey:
-	var event := InputEventKey.new()
-	event.keycode = keycode
-	event.physical_keycode = keycode
-	event.pressed = true
-	return event
 
 
 func _folder(folder_name: String) -> String:

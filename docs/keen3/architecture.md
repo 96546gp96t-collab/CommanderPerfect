@@ -238,3 +238,66 @@ Written by the developer of C2. None of them changes Keen 1 or Keen 2.
 - **`tools/keen2_regression.sh`** takes title, level 1, the walk in level 1
   and map 80, but not the start screen: that changes with every new game
   (the Keen 1 script keeps it, and only its `launcher.png` may differ).
+
+## Deviations in C3
+
+Written by the developer of C3. None of them changes Keen 1 or Keen 2; **no
+shared file changed** in C3 (`git diff 303ae1f` touches only `src/keen3/`,
+`tests/keen3_*`, `tests/test_keen3_*`, `tests/run_tests.gd` and docs).
+
+- **The choice: `Keen3LevelSession extends Keen2LevelSession`** (not the
+  fallback `extends LevelSession`). It worked without trouble: Keen 3
+  overrides `create_enemy` (null for now), `_spawn_enemies`, `_create_keen`
+  (a `Keen3Body` on Keen 2's riding collision; Keen 2's switches object is
+  still made, because `Keen2LevelSession.step_players` steps it, but no
+  Keen 3 level has a switch), `_create_shot`, `_touch_tiles` (to know which
+  Keen picks up an ankh), `_is_item`, `_pick_up`, `_touch_special_tile`
+  (behaviour 22) and `_open_door` (the tile left of the door's top). Its
+  constructor is `started`.
+- **`Keen3Body extends Keen2Body`**, constructor `spawned`. The ankh lives
+  in the body (`ankh_ticks`, `add_ankh`, `is_protected`, `ankh_seconds`,
+  `halo_sprite`), not in the inventory: it is reset by every new attempt
+  and counts down in `step`. `kill` and `stun` return early while it
+  protects; falling out of the level does not go through `kill`. The
+  getting-up frame of the stun is 30; the stun's timing stays Keen 2's
+  until C4.
+- **The halo is an actor** (`Keen3AnkhShield` in `src/keen3/actors/`), so
+  the shared `ActorLayer` draws it (behind Keen) and nothing in the view
+  needed to change.
+- **Keen 3's own sounds** go through a new signal
+  `Keen3LevelSession.keen3_sound_played(name)` to `Keen3Sounds` (a node
+  like `Keen2Sounds`, for ANKH, MEEP, MORTIMER and FOOTSLAM), because
+  `LevelSession.sound_played` only carries `Sound.Id`.
+- **The screen chain** is `Keen3View` → `Keen3SceneScreen` → `GameScreen`.
+  `Keen3SceneScreen` has the generic parts (setup, loading the data, the
+  HUD icons, "Keens Left", GAME OVER, Keen 3's sounds, leaving); C7 adds
+  the ending there, C8 puts a `Keen3MenuScreen` between it and
+  `Keen3View`, as Keen 2's chain has.
+- **`Keen3Hud extends Hud`**, set as the script of the `Hud` node in
+  `keen3_view.tscn` (otherwise the scene is a copy of `keen2_view.tscn`).
+  It redraws the left panel with Keen 3's map Keen (sprite 35; the shared
+  `Hud.LIFE_SPRITE` 36 is another frame in Keen 3) and adds the ankh panel.
+  No member was added to the shared `Hud`.
+- **`Keen3LevelPlay`** is Keen 2's B3 course, with `start_cell` taking the
+  last 255 (`PackedInt32Array.rfind`) and `start_position` adding the 8 px
+  of the original. It calls `Keen2LevelPlay.requested_level` unchanged.
+- **The border (tile 245)** needed no Keen 3 code: the shared `LevelMap`
+  draws only the playable area and the camera keeps to it (details and the
+  test in [gameplay.md](gameplay.md), "The border").
+- **Tests:** the level tests are split in two suites (gdlint allows 20
+  public methods per file): `test_keen3_level.gd` (items, doors, exits)
+  and `test_keen3_keen.gd` (Keen, the ankh); `test_keen3_play.gd` uses the
+  real files. The C2 test of the placeholder screen is removed from
+  `test_keen3_files.gd`, as B3 did with Keen 2's (that screen no longer
+  exists). The level fixtures were added to `tests/keen3_fixtures.gd`.
+- **The regression scripts and full screen:** with the user's setting
+  `fullscreen=true`, `keen1_regression.sh` gave a different
+  `level1_walk.png` for this branch than for `a9d04cc` (the reference
+  showed Keen not yet walking). The game logic was the same: Keen's
+  positions at frames 40-100 were equal in both trees. With `--fixed-fps
+  60` the frames run in a few milliseconds and, during the macOS full
+  screen animation, the screenshot shows an older frame; how much older
+  depends on how long the start takes. Run windowed (`fullscreen=false`
+  for the run, then restored), every Keen 1 picture except `launcher.png`
+  and every Keen 2 picture is the same. Later milestones should run the
+  regressions windowed.

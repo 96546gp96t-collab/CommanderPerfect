@@ -10,6 +10,11 @@ extends RefCounted
 ## finale name, the box over the finale, the ship's messages and the high
 ## score records. Everything lies far below the known positions, so every
 ## piece is found by the search.
+##
+## Also small hand-made levels for the level tests (tests/test_keen3_level.gd):
+## a tile table with Keen 3's item rows (each row starts with its own
+## background), its doors, its exit and its border tile, levels drawn with
+## the characters of [constant LEGEND], and a session with Keen at a cell.
 
 const FILLER := 0x01
 const TEXT_END := 0x1A
@@ -38,6 +43,83 @@ const FILLER_FRAMES := 1
 const SCORE_MARKER := "SCORES."
 const SCORE_NAMES: PackedStringArray = ["Abc", "Bcd", "Cde"]
 const PLACE_WORDS: PackedStringArray = ["one", "two", "three", "four", "five", "six", "seven"]
+
+## The tile table of the hand-made levels: long enough for the border tile
+## and the exit, with Keen 3's tile numbers.
+const LEVEL_TILE_COUNT := 260
+const AIR := 0
+const WALL := 1
+const FIRE := 2
+## Behaviour 22: becomes tile 143 when touched, nothing else.
+const ODD_22 := 3
+## An item row of the tile table: its first tile is its background.
+const ITEM_ROW := 156
+const CANDY := 157
+const BURGER := 158
+const COLA := 159
+const CAKE := 160
+const STUFFED_NINJA := 161
+const ANKH := 162
+const SINGLE_CHARGE := 163
+const RAYGUN := 164
+const YELLOW_CARD := 165
+const RED_CARD := 166
+const GREEN_CARD := 167
+const BLUE_CARD := 168
+## A candy bar of another row, with another background.
+const OTHER_ROW := 182
+const OTHER_CANDY := 183
+## A plain tile that is not empty air: what stands left of a door.
+const WALLPAPER := 195
+const YELLOW_DOOR := 234
+const RED_DOOR := 236
+const BORDER := 245
+const EXIT := 255
+const LEVEL_LEGEND := {
+	".": AIR,
+	"#": WALL,
+	"X": FIRE,
+	"o": ODD_22,
+	"5": CANDY,
+	"1": BURGER,
+	"2": COLA,
+	"K": CAKE,
+	"N": STUFFED_NINJA,
+	"A": ANKH,
+	"c": SINGLE_CHARGE,
+	"g": RAYGUN,
+	"y": YELLOW_CARD,
+	"k": RED_CARD,
+	"n": GREEN_CARD,
+	"b": BLUE_CARD,
+	"6": OTHER_CANDY,
+	"w": WALLPAPER,
+	"Y": YELLOW_DOOR,
+	"D": RED_DOOR,
+	"E": EXIT,
+}
+const LEVEL_BEHAVIORS: Dictionary[int, int] = {
+	FIRE: TileProperties.Behavior.DEADLY,
+	ODD_22: TileProperties.Behavior.HINT,
+	CANDY: TileProperties.Behavior.POINTS_500,
+	BURGER: TileProperties.Behavior.POINTS_100,
+	COLA: TileProperties.Behavior.POINTS_200,
+	CAKE: TileProperties.Behavior.POINTS_1000,
+	STUFFED_NINJA: TileProperties.Behavior.POINTS_5000,
+	ANKH: Keen3Behavior.ANKH,
+	SINGLE_CHARGE: Keen3Behavior.SINGLE_CHARGE,
+	RAYGUN: TileProperties.Behavior.RAYGUN,
+	YELLOW_CARD: TileProperties.Behavior.KEYCARD_YELLOW,
+	RED_CARD: TileProperties.Behavior.KEYCARD_RED,
+	GREEN_CARD: TileProperties.Behavior.KEYCARD_GREEN,
+	BLUE_CARD: TileProperties.Behavior.KEYCARD_BLUE,
+	OTHER_CANDY: TileProperties.Behavior.POINTS_500,
+	YELLOW_DOOR: TileProperties.Behavior.DOOR_YELLOW,
+	YELLOW_DOOR + 1: TileProperties.Behavior.DOOR_YELLOW,
+	RED_DOOR: TileProperties.Behavior.DOOR_RED,
+	RED_DOOR + 1: TileProperties.Behavior.DOOR_RED,
+	EXIT: TileProperties.Behavior.EXIT,
+}
 
 
 ## The whole image.
@@ -210,3 +292,67 @@ static func _records(records: PackedStringArray) -> PackedByteArray:
 static func _set_word(table: PackedByteArray, field: int, tile: int, value: int) -> void:
 	var position := (field * TILE_STRIDE + tile) * TileProperties.BYTES_PER_ENTRY
 	table.encode_s16(position, value)
+
+
+## The tile properties of the hand-made levels: walls are solid on every
+## side; doors are solid by their behaviour, as in the real table.
+static func level_properties() -> TileProperties:
+	var planes: Array[PackedInt32Array] = []
+	for plane in TileProperties.PLANE_COUNT:
+		var values := PackedInt32Array()
+		values.resize(LEVEL_TILE_COUNT)
+		values.fill(1 if plane == TileProperties.Field.ANIMATION else 0)
+		planes.append(values)
+	for side in range(TileProperties.Field.TOP, TileProperties.PLANE_COUNT):
+		planes[side][WALL] = 1
+	for tile in LEVEL_BEHAVIORS:
+		planes[TileProperties.Field.BEHAVIOR][tile] = LEVEL_BEHAVIORS[tile]
+	var table := PackedByteArray()
+	for plane in planes:
+		for value in plane:
+			var bytes := PackedByteArray([0, 0])
+			bytes.encode_s16(0, value)
+			table.append_array(bytes)
+	return TileProperties.from_table(table, LEVEL_TILE_COUNT)
+
+
+## A level from rows of [constant LEVEL_LEGEND] characters, surrounded by a
+## border of [constant LevelData.BORDER_CELLS] cells of the border tile, as
+## in Keen 3's levels. [param infos] puts values into the info layer, at
+## cells counted without the border.
+static func create_level(
+	rows: PackedStringArray, infos: Dictionary[Vector2i, int] = {}
+) -> LevelData:
+	var border := LevelData.BORDER_CELLS
+	var level := LevelData.new()
+	level.width = rows[0].length() + border * 2
+	level.height = rows.size() + border * 2
+	level.tiles.resize(level.width * level.height)
+	level.tiles.fill(BORDER)
+	level.infos.resize(level.width * level.height)
+	for y in rows.size():
+		for x in rows[y].length():
+			level.tiles[(y + border) * level.width + x + border] = LEVEL_LEGEND[rows[y][x]]
+	for cell in infos:
+		level.infos[(cell.y + border) * level.width + cell.x + border] = infos[cell]
+	return level
+
+
+## A Keen 3 session in [param rows] with Keen's sprite at the top left of
+## [param keen_cell] (counted without the border), before its first tick.
+static func start_session(
+	rows: PackedStringArray, keen_cell: Vector2i, inventory: Inventory = null
+) -> Keen3LevelSession:
+	return Keen3LevelSession.started(
+		create_level(rows),
+		level_properties(),
+		inventory if inventory != null else Keen3Inventory.new(),
+		cell_top_left(keen_cell)
+	)
+
+
+## The top left of [param cell] (counted without the border), in level
+## pixels.
+static func cell_top_left(cell: Vector2i) -> Vector2:
+	var border := Vector2i(LevelData.BORDER_CELLS, LevelData.BORDER_CELLS)
+	return Vector2((cell + border) * EgaGraphics.TILE_SIZE)

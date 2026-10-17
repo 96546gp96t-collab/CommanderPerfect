@@ -55,7 +55,7 @@ over Keen 3 bekend is in [docs/keen3/research.md](docs/keen3/research.md).
 |---|---|---|
 | C1 | Onderzoek: code in kaart, Keen 3-bestanden, Chocolate Keen, Commander Genius, js-dos, architectuur, mijlpalen | ✅ Klaar (branch `milestone-c1-onderzoek`); vragen aan de gebruiker open |
 | C2 | De bestanden van Keen 3 inlezen, data viewer, derde icoon op het startscherm | ✅ Klaar en gecontroleerd door de architect (branch `milestone-c2-bestanden`) |
-| C3 | Een level spelen (Keen, items, de ankh, deuren, uitgangen) | ⬜ |
+| C3 | Een level spelen (Keen, items, de ankh, deuren, uitgangen) | ✅ Gebouwd, wacht op controle architect (branch `milestone-c3-level`) |
 | C4 | Vijanden (grunt, youth, moeder, Meep, ninja, Foob) | ⬜ |
 | C5 | Bal, jack, platforms, wapens in de muur | ⬜ |
 | C6 | Wereldkaart: teleporters, Messie, het schip, statusscherm | ⬜ |
@@ -64,6 +64,67 @@ over Keen 3 bekend is in [docs/keen3/research.md](docs/keen3/research.md).
 | C9 | Mooier maken (framerate, xBRZ, achtergronden, builds) | ⬜ |
 | C10 | Co-op lokaal en online | ⬜ |
 | C11 | Naast het origineel (wat nog geschat is) | ⬜ |
+
+## Mijlpaal C3: wat er nu is
+
+Gebouwd en getest met de echte Keen 3-bestanden van de gebruiker (1.00).
+De regels staan in `docs/keen3/gameplay.md`; afwijkingen van de
+architectuur in `docs/keen3/architecture.md`, "Deviations in C3".
+
+- **Het spelscherm:** `Keen3View` (`src/keen3/keen3_view.gd/.tscn`, een kopie
+  van de opbouw van `keen2_view.tscn`) op `Keen3SceneScreen` op
+  `GameScreen`: widescreen met HUD, F1-F6 (ook xBRZ), de camera, berichten.
+  De keten is zo opgezet dat C6-C8 er de kaart, de menu's en het einde
+  tussen kunnen zetten (zoals bij Keen 2).
+- **Voorlopig verloop** (`Keen3LevelPlay`, zoals B3): vanaf het startscherm
+  level 1, met `-- --game=3 --level=N` level N (1-16). Uitgang: volgend
+  level (sleutelkaarten weg), na 16 terug naar het startscherm. Dood: een
+  leven minder, hetzelfde level opnieuw met het venster "Keens Left" (0,87 s,
+  zoals in js-dos). Geen levens: GAME OVER (het plaatje, 5,27 s) en terug.
+  Escape gaat terug. Cheats: Shift+N/P, Shift+I, Shift+G.
+- **Een level** (`Keen3LevelSession extends Keen2LevelSession`): punten uit
+  de tabel (snoepreep 500, hamburger 100, cola 200, taart 1000, ninja-knuffel
+  5000), straalgeweer +5, losse lading +1, sleutelkaarten en deuren (de deur
+  krijgt de tile links van zijn bovenste cel en zakt weg zoals bij Keen 1),
+  uitgang (elke uitgang telt, dus de twee uitgangen van 12, 13 en 15
+  werken), dodelijke tiles, extra leven per 20.000. Een opgepakt item laat
+  de eerste tile van zijn rij achter, `(tile / 13) * 13`. Gedrag 22 wordt
+  tile 143. Nog geen vijanden (C4/C5). Level 9 start bij de laatste van
+  zijn twee starts, (63,17).
+- **Keen** (`Keen3Body extends Keen2Body`): de gedeelde natuurkunde,
+  ongewijzigd (sprongen blijven voorlopig iets te hoog, besluit van de
+  gebruiker). Startwaarden: 4 levens, 5 ladingen, pogo vanaf het begin.
+  Doodgaan met sprites 22/23 (nagekeken).
+- **De ankh:** geluid ANKH (`Keen3Sounds`), 577 ticks per ankh (Chocolate
+  Keen: 1400 klokticks, 9,6 s), telt op, bij elk level op 0, telt alleen af
+  tijdens het spelen. Keen kan dan niet dood (behalve door uit het level te
+  vallen) en niet verdoofd worden (`is_protected()`, klaar voor C4). Het
+  schild: sprites 61/62 om de 6,6 ticks, 8 px links-boven Keen, knippert in
+  de laatste 103 ticks (`Keen3AnkhShield`).
+- **HUD:** `Keen3Hud extends Hud`: levens (met Keen 3's eigen kaart-Keen),
+  score, ladingen, sleutelkaarten en, zolang de ankh werkt, de ankh met zijn
+  tijd in hele "seconden" zoals het statusscherm (een nieuwe ankh: 9).
+- **De rand (tile 245, "OH no!"):** nooit te zien. De gedeelde `LevelMap`
+  tekent alleen het speelbare deel en de camera blijft erbinnen; smalle
+  levels (16 in widescreen) krijgen zwarte balken. Getest voor alle levels
+  en drie beeldbreedtes; bekeken in 4:3, widescreen en xBRZ.
+- **Gedeelde code:** niets veranderd.
+- **Tests:** `test_keen3_level` en `test_keen3_keen` (zelfgemaakte levels met
+  een rand van 245) en `test_keen3_play` (echte bestanden). De C2-test van
+  het voorlopige scherm is weg (dat scherm bestaat niet meer).
+- **Keen 1- en Keen 2-controle:** alle 45 suites slagen, gdlint schoon.
+  `keen1_regression.sh` en `keen2_regression.sh` tegen `a9d04cc`: alles
+  gelijk behalve `launcher.png`, als het venster niet schermvullend is.
+  Schermvullend gaf `level1_walk.png` van Keen 1 een ouder beeld bij de
+  referentie (de spellogica was gelijk; het schermvullend-maken van macOS
+  verschuift de schermafdruk). Zie architecture.md.
+- **Niet gedaan:** de vergelijking met het origineel in js-dos (optioneel).
+  Wel opgevallen: ons eerste beeld van level 1 begint bij cel (2; 11,5), het
+  origineel bij (2,12) (zie gameplay.md).
+- **Open punten:** de plaatjes van het straalgeweer, de kaarten en de ankh in
+  de HUD houden de cyaan achtergrond van hun rij; in `test_keen3_data.gd`
+  (C2) breekt `test_sprite_names_fit_the_enemies` af met een scriptfout bij
+  de boxen (de suite meldt toch PASS), niet aangepast.
 
 ## Mijlpaal C2: wat er nu is
 
@@ -1100,7 +1161,7 @@ het origineel. Details in `docs/world-map.md` onder "Extra levels".
 - **Keen 3: besluiten van de gebruiker (17-10-2026, C1).** Keen 1- en Keen 2-code blijven onaangeroerd; Keen 3 mag hun klassen gebruiken en er subklassen van maken. Branches `milestone-c<n>-<onderwerp>`. Uit Chocolate Keen mogen nu ook de feiten en getallen uit de gedragscode komen (gemarkeerd `(Choco)`), nooit de code zelf (`CLAUDE.md`). Versie 1.00 is goed genoeg; geen nieuwere versie nodig.
 - **Keen 3: besluiten van de architect (C1), te melden aan de gebruiker.** De lijst-van-spellen-asserties in `tests/test_launcher.gd` en `tests/test_keen2_files.gd` gaan van twee naar drie (zoals in B2); `GameLaunch.skips_launcher`/`scene_for`, de data viewer en `export_graphics.gd` kiezen uit drie spellen, met hetzelfde antwoord voor alles wat vroeger werkte. De bugs van versie 1.00 (level 10, level 13) blijven zoals ze zijn.
 - **Keen 3: open vragen aan de gebruiker (C1).** (1) Real-ESRGAN voor Keen 3: overslaan zoals bij Keen 2? (2) De geluidssnelheid: Chocolate Keen bevestigt 145,65 Hz voor alle delen; Keen 3 gebruikt de gedeelde speler (nu 140 Hz). Mag de gedeelde snelheid later voor alle drie omgezet worden (dat verandert Keen 1 en 2)? (3) Willen we later een aparte mijlpaal om Keen 1 en 2 bij te werken met de getallen uit Chocolate Keen (`docs/keen3/choco-keen1-keen2.md`)? (4) De randflits van het origineel bij een geraakte vonk/hart: nabootsen als flits van de rand rond het 4:3-beeld, of weglaten?
-- **Sprongen te hoog in Keen 1 en 2 (en dus ook Keen 3)** (gemeten door de gebruiker in een ander venster, 17-10-2026; nog niets aangepast). In het originele Keen 2 is de gewone sprong ~54-55 px (wij 58), de pogo zonder springknop 50 px (wij 58, een halve tile te hoog) en met springknop ~104 px (wij 109); de tijd van een stuit klopt. Chocolate Keen geeft dezelfde hoogtes (48 en 104 px, sprong 55,7 px), dus de oorzaak zit in onze natuurkunde-getallen (overgenomen van Commander Genius). Details: [docs/keen3/choco-keen1-keen2.md](docs/keen3/choco-keen1-keen2.md). Keuzes: (a) de gedeelde `src/keen/keen_physics.gd` aanpassen naar de getallen van Chocolate Keen, voor alle drie de delen (verandert Keen 1 en 2, mag alleen met toestemming); (b) eerst nog nauwkeuriger meten (de eerste hoge stuit, Keen 1 op een vrije plek); (c) alleen voor Keen 3 lager (`Keen3Body`), Keen 1 en 2 laten zoals ze zijn. **Beslissen vóór C3**, want daar gaat Keen 3 springen.
+- **Sprongen te hoog in Keen 1 en 2 (en dus ook Keen 3)** (gemeten door de gebruiker in een ander venster, 17-10-2026; nog niets aangepast). In het originele Keen 2 is de gewone sprong ~54-55 px (wij 58), de pogo zonder springknop 50 px (wij 58, een halve tile te hoog) en met springknop ~104 px (wij 109); de tijd van een stuit klopt. Chocolate Keen geeft dezelfde hoogtes (48 en 104 px, sprong 55,7 px), dus de oorzaak zit in onze natuurkunde-getallen (overgenomen van Commander Genius). Details: [docs/keen3/choco-keen1-keen2.md](docs/keen3/choco-keen1-keen2.md). Keuzes: (a) de gedeelde `src/keen/keen_physics.gd` aanpassen naar de getallen van Chocolate Keen, voor alle drie de delen (verandert Keen 1 en 2, mag alleen met toestemming); (b) eerst nog nauwkeuriger meten (de eerste hoge stuit, Keen 1 op een vrije plek); (c) alleen voor Keen 3 lager (`Keen3Body`), Keen 1 en 2 laten zoals ze zijn. **Beslissen vóór C3**, want daar gaat Keen 3 springen. *Besluit van de gebruiker (C3): de sprongen blijven voorlopig zoals ze zijn, later beslissen voor alle delen samen; Keen 3 gebruikt de gedeelde natuurkunde ongewijzigd.*
 - **Keen 2: de knop op het startscherm** (besluit van de gebruiker, 16-10-2026): lettertype en Keen-mannetje komen altijd uit de Keen 2-data. Zonder die bestanden blijft de knop grijs met een gewoon lettertype (geen Keen 1-data als vervanging).
 - **Keen 2: speldata.** De gebruiker heeft Keen 2 op floppies maar geen floppylezer. Keen 2 is geen shareware en wordt nog verkocht, dus het wordt niet gedownload van onofficiële sites. Opties: de Complete Pack op Steam/GOG, of een USB-floppylezer. Tot dan: bouwen en testen met zelfgemaakte testdata; de suites met echte data slaan zich over, en de vragen die alleen de echte bestanden beantwoorden blijven open (research.md).
 - **Keen 2: sprong van de youth** (B4, architect): met de getallen uit Commander Genius (200/32 omhoog, zwaartekracht 4/32) springt hij ruim 10 tiles hoog. Dat lijkt te veel; vermoedelijk heeft de youth in het origineel een eigen zwaartekracht. Naast het origineel leggen in B10.
@@ -1118,15 +1179,13 @@ Na de eerste eigen test van de gebruiker:
 
 Keen 3:
 
-1. **Voor de gebruiker:** de open vragen van C1 beantwoorden (Open
-   beslissingen, "Keen 3: open vragen").
-2. De architect controleert C2 (branch `milestone-c2-bestanden`).
-3. **Voor de gebruiker:** het startscherm in `build/` bekijken (drie
-   iconen; Keen 3 zegt "coming soon") en eventueel de data viewer met
-   `-- --game=3`.
-4. Daarna C3 starten (branch `milestone-c3-level` vanaf
-   `milestone-c2-bestanden`): eerst de keuze over de spronghoogte maken
-   (Open beslissingen), dan `Keen3View` met `Keen3GameData`.
+1. De architect controleert C3 (branch `milestone-c3-level`).
+2. **Voor de gebruiker:** Keen 3 proberen in `build/` (Mac en Windows):
+   level 1-16 spelen zonder vijanden, de ankh in level 3, 10 of 14.
+3. **Voor de gebruiker:** de open vragen van C1 (Open beslissingen).
+4. Daarna C4 (branch `milestone-c4-vijanden` vanaf `milestone-c3-level`):
+   de vijanden in `Keen3LevelSession.create_enemy`, met
+   `Keen3Body.is_protected()` voor de ankh en Keen 3's eigen verdoving.
 
 Keen 2:
 
