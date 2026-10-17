@@ -54,7 +54,7 @@ over Keen 3 bekend is in [docs/keen3/research.md](docs/keen3/research.md).
 | # | Mijlpaal | Status |
 |---|---|---|
 | C1 | Onderzoek: code in kaart, Keen 3-bestanden, Chocolate Keen, Commander Genius, js-dos, architectuur, mijlpalen | ✅ Klaar (branch `milestone-c1-onderzoek`); vragen aan de gebruiker open |
-| C2 | De bestanden van Keen 3 inlezen, data viewer, derde icoon op het startscherm | ⬜ |
+| C2 | De bestanden van Keen 3 inlezen, data viewer, derde icoon op het startscherm | ✅ Gebouwd, wacht op controle architect (branch `milestone-c2-bestanden`) |
 | C3 | Een level spelen (Keen, items, de ankh, deuren, uitgangen) | ⬜ |
 | C4 | Vijanden (grunt, youth, moeder, Meep, ninja, Foob) | ⬜ |
 | C5 | Bal, jack, platforms, wapens in de muur | ⬜ |
@@ -64,6 +64,70 @@ over Keen 3 bekend is in [docs/keen3/research.md](docs/keen3/research.md).
 | C9 | Mooier maken (framerate, xBRZ, achtergronden, builds) | ⬜ |
 | C10 | Co-op lokaal en online | ⬜ |
 | C11 | Naast het origineel (wat nog geschat is) | ⬜ |
+
+## Mijlpaal C2: wat er nu is
+
+Gebouwd met de echte Keen 3-bestanden van de gebruiker (versie 1.00).
+Details in `docs/keen3/file-formats.md`; afwijkingen van de architectuur
+staan in `docs/keen3/architecture.md`, "Deviations in C2".
+
+- **Bestanden vinden:** `Keen3Files` (`src/keen3/data/`) zoekt
+  `game_data/keen3` op dezelfde plekken als Keen 1 en 2
+  (`--data-dir-keen3=PATH`, de projectmap, naast het programma, naast de
+  macOS-app) en geeft een gewone `GameFiles` met extensie `CK3`. Vereist:
+  `KEEN3.EXE`, `EGAHEAD.CK3`, `EGALATCH.CK3`, `EGASPRIT.CK3`. Levels 1-16,
+  80, 81 en 90.
+- **De tile-tabel:** `TileProperties.find_in_image` en `from_table` kregen
+  een optionele `stride` (standaard de tile-telling, dus Keen 1 en 2 lezen
+  precies hetzelfde; een test bewijst dat ook met hun echte tabellen). Keen 3
+  leest 624 tiles met rijen van 715 (0x199F8 in 1.00, 0x198C8 in 1.31, anders
+  zoeken); met 624/624 vindt hij aantoonbaar een verkeerde tabel. Gedrag 27
+  (ankh) en 28 (losse lading) staan in `Keen3Behavior`, niet in de gedeelde
+  enum.
+- **KEEN3.EXE:** `Keen3Executable` pakt de EXE uit, herkent de versie (1.00,
+  1.31 of "unknown") en vindt op inhoud: het geluidsblok (45 namen, met
+  ANKH, MEEP, MORTIMER en FOOTSLAM), de tile-tabel, de vier teksten in de
+  volgorde help, eind, previews, verhaal (de eerste niet meer twee bytes te
+  vroeg), het statusvak (11 regels), Mortimers negen vakjes (na de
+  puntentabel), de vier pagina's van het einde, het vakje boven het
+  slotplaatje, de vier scheepsberichten en de highscore-teksten. Het gebruikt
+  de openbare hulpfuncties van `Keen2Executable`; die is niet veranderd.
+  Niets crasht als een stuk ontbreekt.
+- **`Keen3GameData`** leest graphics, tile-eigenschappen, geluiden, teksten
+  en `FINALE.CK3` in één keer (klaar voor C3).
+- **Startscherm:** een derde icoon "Keen 3" rechts van Keen 2, met Keen uit
+  de eigen Keen 3-graphics; zonder bestanden grijs met de uitleg dat ze in
+  `game_data/keen3` horen (de teksten van Keen 1 en 2 zijn gelijk gebleven).
+  Met bestanden opent het voorlopig `src/keen3/keen3_view.tscn` ("Keen 3 -
+  coming soon"; Enter of Escape terug, via `call_deferred`).
+- **Opdrachtregel:** `-- --game=3` (met of zonder `--level=N`) opent Keen 3;
+  `GameLaunch.game_number` kiest uit drie spellen. Elke oude
+  argumentenlijst geeft hetzelfde antwoord (getest, ook `--game=2 --game=3`
+  blijft Keen 2). Data viewer en `tools/export_graphics.gd` kiezen ook uit
+  drie (Keen 3 naar `exported/keen3/`); de statusregel van de viewer noemt
+  de versie van `KEEN3.EXE` en wat erin gevonden is.
+- **Online:** alleen de constante `OnlineProtocol.GAME_ID_KEEN_3`, nog niet in
+  `GAME_IDS` (dat is C10).
+- **Tools:** nieuw `tools/keen2_regression.sh` (titel, level 1, lopen in
+  level 1, kaart 80, met `--game=2`); de bouwscripts nemen `game_data/keen3`
+  mee; `game_data/README.md` heeft een stukje over Keen 3.
+- **Tests:** `test_keen3_files` (zonder data: map zoeken, stride, Keen 1/2
+  lezen hetzelfde, een zelfgemaakt EXE-beeld uit `tests/keen3_fixtures.gd`
+  met alle stukken, kapotte stukken, versies, de catalogus met drie
+  spellen, `--game=3`, oude argumenten, het voorlopige scherm) en
+  `test_keen3_data` (echte data: 624 tiles, 148 sprites, 14 bitmaps,
+  spritenamen en -boxen, versie 1.00, de geluiden, de vier teksten op hun
+  plek, de berichten op hun plek en ook gevonden als alles verschoven is,
+  kaart 80: ingangen, 16 teleporters, Messie's cellen, het schip). Alleen
+  de "twee spellen"-regels in `test_launcher.gd` en `test_keen2_files.gd`
+  zijn nu drie.
+- **Keen 1- en Keen 2-controle:** alle 42 suites slagen, gdlint schoon.
+  `keen1_regression.sh` tegen `a9d04cc` (worktree): alleen `launcher.png`
+  verschilt (het derde icoon). `keen2_regression.sh` tegen `a9d04cc`: alle
+  vier plaatjes gelijk. `git diff a9d04cc` op de Keen 1/2-bestanden toont
+  alleen de toegestane regel in `tests/test_keen2_files.gd`.
+- **Nog niet getest:** versie 1.31 (Steam/GOG); de bekende adressen van 1.31
+  komen van Chocolate Keen, de rest wordt gezocht.
 
 ## Mijlpaal C1: wat er nu is
 
@@ -1056,9 +1120,13 @@ Keen 3:
 
 1. **Voor de gebruiker:** de open vragen van C1 beantwoorden (Open
    beslissingen, "Keen 3: open vragen").
-2. C2 starten: branch `milestone-c2-bestanden` vanaf `milestone-c1-onderzoek`;
-   de developer bouwt de opdracht uit `docs/keen3/roadmap.md`, de architect
-   controleert.
+2. De architect controleert C2 (branch `milestone-c2-bestanden`).
+3. **Voor de gebruiker:** het startscherm in `build/` bekijken (drie
+   iconen; Keen 3 zegt "coming soon") en eventueel de data viewer met
+   `-- --game=3`.
+4. Daarna C3 starten (branch `milestone-c3-level` vanaf
+   `milestone-c2-bestanden`): eerst de keuze over de spronghoogte maken
+   (Open beslissingen), dan `Keen3View` met `Keen3GameData`.
 
 Keen 2:
 

@@ -28,6 +28,9 @@ enum Message {
 ## player cannot play together (milestone B9).
 const GAME_ID := "commanderperfect"
 const GAME_ID_KEEN_2 := "commanderperfect-keen2"
+## Keen 3's id. Not in [constant GAME_IDS] yet: Keen 3 cannot be played
+## online before milestone C10.
+const GAME_ID_KEEN_3 := "commanderperfect-keen3"
 const GAME_IDS: Array[String] = [GAME_ID, GAME_ID_KEEN_2]
 ## Raised whenever a message changes: a host and a player with another
 ## version cannot play together.

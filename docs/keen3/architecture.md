@@ -199,3 +199,42 @@ derived from it, never use the name "Commander Keen" or its logo as branding
 data tables is fine), never copy code from Commander Genius, Chocolate Keen
 or other projects. Extras are off by default, with the user's exceptions
 (widescreen with HUD, pictures behind levels).
+
+## Deviations in C2
+
+Written by the developer of C2. None of them changes Keen 1 or Keen 2.
+
+- **`TileProperties.from_table` also got the optional `stride`** (default
+  -1 = the tile count), besides `find_in_image`: the search hands the found
+  table to it. A test (`test_keen3_files.gd`) shows that the default reads
+  the same values as an explicit stride of the tile count and as a plain
+  reading of the old layout, also for the real Keen 1 and Keen 2 tables.
+- **The two bytes before the help text** are not the end of the sound
+  block (which ends at 0x16604) but the `0xFFFF` of a table of words right
+  before the help. `Keen3Executable.text_blocks` moves every start past
+  font-picture bytes (0x80 and up), so no text starts with one.
+- **The sound block** is cut at the end of its last sound's data: the size
+  word in its header (16,224) runs up to the help text.
+- **No `Keen2Executable.line_records`:** it stops at Keen 2's known text
+  positions, which could cut a Keen 3 run short. `Keen3Executable` has its
+  own small record reader; it only calls Keen 2's public helpers
+  (`find_sound_block`, `text_blocks`, `text_end`, `message_lines`) and
+  constants. The private `_records_from` is not called.
+- **Ending pages without a known position:** they are the line records
+  right before the finale name (`ExeStrings.lines_before`), the box over the
+  finale the record after it; Mortimer's boxes follow the points table. Only
+  the status box and the ship's messages have a 1.00 position and a
+  record-by-record search.
+- **`OnlineProtocol.GAME_ID_KEEN_3`** is a new constant so that the catalog
+  entry has its own id; it is **not** in `GAME_IDS` (online play comes in
+  C10), so nothing online changes.
+- **`Keen3Behavior`** (27 ankh, 28 single charge) lives in
+  `src/keen3/data/`.
+- **The placeholder `keen3_view.tscn`** is a plain `Control` with a "Keen 3 -
+  coming soon" text, as Keen 2's in B2; C3 replaces it with the copy of
+  `keen2_view.tscn` described above.
+- **The hand-made KEEN3.EXE image** for the tests is in
+  `tests/keen3_fixtures.gd`.
+- **`tools/keen2_regression.sh`** takes title, level 1, the walk in level 1
+  and map 80, but not the start screen: that changes with every new game
+  (the Keen 1 script keeps it, and only its `launcher.png` may differ).

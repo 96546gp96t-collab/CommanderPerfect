@@ -1,7 +1,7 @@
 class_name GameCatalog
 extends RefCounted
-## The games the start screen offers, one icon each: Keen 1, then Keen 2.
-## Later games are added here.
+## The games the start screen offers, one icon each: Keen 1, then Keen 2,
+## then Keen 3. Later games are added here.
 
 
 ## One game: its name on the icon, the scene that plays it, and the
@@ -32,7 +32,13 @@ static func games() -> Array[Game]:
 	keen_2.files = Keen2Files.locate()
 	keen_2.data_folder = Keen2Files.SUBFOLDER
 	keen_2.game_id = OnlineProtocol.GAME_ID_KEEN_2
-	return [keen_1, keen_2]
+	var keen_3 := Game.new()
+	keen_3.title = "Keen 3"
+	keen_3.scene = GameLaunch.KEEN_3_SCENE
+	keen_3.files = Keen3Files.locate()
+	keen_3.data_folder = Keen3Files.SUBFOLDER
+	keen_3.game_id = OnlineProtocol.GAME_ID_KEEN_3
+	return [keen_1, keen_2, keen_3]
 
 
 ## The game with online id [param game_id], or null.

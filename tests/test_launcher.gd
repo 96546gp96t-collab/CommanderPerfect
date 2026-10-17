@@ -75,7 +75,7 @@ func test_game_without_files_says_why() -> void:
 
 func test_keen_1_is_offered() -> void:
 	var games := GameCatalog.games()
-	assert_equal(games.size(), 2, "Keen 1 and Keen 2")
+	assert_equal(games.size(), 3, "Keen 1, Keen 2 and Keen 3")
 	assert_equal(games[0].title, "Keen 1", "no other name on the icon")
 	assert_equal(games[0].scene, GameLaunch.KEEN_1_SCENE, "plays Keen 1")
 
