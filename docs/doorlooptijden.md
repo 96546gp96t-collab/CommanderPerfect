@@ -60,7 +60,7 @@ Hoe er gemeten wordt:
 | C2 Bestanden | 17-10 | ~20 min | 19 min | |
 | C3 Een level | 17-10 | ~25 min | 23 min | |
 | C4 Vijanden | 17-10 | ~50 min | 43 min | Inclusief een poging in js-dos |
-| C5 Bal, jack, platforms, wapens | | | | |
+| C5 Bal, jack, platforms, wapens | 18-10 | ~35 min | 33 min | Inclusief het verticale platform gemeten in js-dos |
 | C6 Wereldkaart | | | | |
 | C7 Mortimer en het einde | | | | |
 | C8 Geluid, menu's, opslaan | | | | |
@@ -68,4 +68,4 @@ Hoe er gemeten wordt:
 | C10 Co-op | | | | |
 | C11 Naast het origineel | | | | |
 | C12 Keen 1 en 2 bijwerken | | | | |
-| **Totaal tot nu toe** | 17-10 | **~3 u 05** | | C1-C4 |
+| **Totaal tot nu toe** | 17-10 t/m 18-10 | **~3 u 40** | | C1-C5 |

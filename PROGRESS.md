@@ -58,7 +58,7 @@ over Keen 3 bekend is in [docs/keen3/research.md](docs/keen3/research.md).
 | C2 | De bestanden van Keen 3 inlezen, data viewer, derde icoon op het startscherm | ✅ Klaar en gecontroleerd door de architect (branch `milestone-c2-bestanden`) |
 | C3 | Een level spelen (Keen, items, de ankh, deuren, uitgangen) | ✅ Klaar en gecontroleerd door de architect (branch `milestone-c3-level`); in test bij de gebruiker |
 | C4 | Vijanden (grunt, youth, moeder, Meep, ninja, Foob) | ✅ Klaar en gecontroleerd door de architect (branch `milestone-c4-vijanden`) |
-| C5 | Bal, jack, platforms, wapens in de muur | ✅ Gebouwd, wacht op controle architect (branch `milestone-c5-mechaniek`) |
+| C5 | Bal, jack, platforms, wapens in de muur | ✅ Klaar en gecontroleerd door de architect (branch `milestone-c5-mechaniek`) |
 | C6 | Wereldkaart: teleporters, Messie, het schip, statusscherm | ⬜ |
 | C7 | Mortimer, de Mangling Machine en het einde | ⬜ |
 | C8 | Geluid, menu's, opslaan, highscores | ⬜ |
@@ -1308,12 +1308,11 @@ Na de eerste eigen test van de gebruiker:
 
 Keen 3:
 
-1. **Voor de architect:** C5 controleren (branch `milestone-c5-mechaniek`).
-2. **Voor de gebruiker:** Keen 3 proberen in `build/` (Mac en Windows):
+1. **Voor de gebruiker:** Keen 3 proberen in `build/` (Mac en Windows):
    levels 1-15 helemaal, met ballen, jacks, platforms (meerijden, ook
    omhoog in level 2, 5, 8, 9 en 10) en de wapens in de muur (levels 9, 11,
    12); zeggen of het meerijden en de schoten goed voelen.
-3. Daarna C6, als de gebruiker dat vraagt (branch `milestone-c6-kaart`
+2. Daarna C6, als de gebruiker dat vraagt (branch `milestone-c6-kaart`
    vanaf `milestone-c5-mechaniek`): de wereldkaart met teleporters, Messie,
    het schip en het statusscherm (`Keen3MapSession extends MapSession`, zie
    `docs/keen3/roadmap.md` C6). De regressies weer in een venster draaien.
