@@ -20,17 +20,22 @@ extends Keen2LevelSession
 ##   22        turns its tile into 143 and does nothing else (Choco); no
 ##             level uses it
 ##   enemies   info 1 and 11 grunt, 2 youth, 3 mother, 4 Meep, 5 ninja,
-##             6 Foob ([method create_enemy]); 7-18 spawn nothing until
-##             milestones C5 and C7. They wake and sleep by the original's
-##             rule ([Keen3ActiveArea]); enemies give no points
+##             6 Foob ([method create_enemy]); they wake and sleep by the
+##             original's rule ([Keen3ActiveArea]); enemies give no points
+##   objects   7 ball, 8 jack, 9 and 10 the platforms, 14 and 15 the wall
+##             guns (C5); 12, 13 and 16-18 (the machine) spawn nothing until
+##             C7. Keen rides balls and platforms ([Keen3Carrier]); all guns
+##             fire together on one clock ([method step_players])
 ##   hits      Keen 3's own rules ([method _resolve_hits], Choco): Keen's
 ##             shot ([Keen3Shot]) splashes on every sprite but Keen and the
 ##             corpses, also on a fireball (both splash) and a Meep's wave
 ##             (which flies on); a fireball kills Keen, also a stunned one,
 ##             and grunts and Foobs, and splashes on anything but a mother
-##             or a corpse; a wave kills Keen; touching an enemy does what
-##             the enemy says (die, stun, push, or the Foob dies). Shots,
-##             splashes and waves are deleted far from the view
+##             or a corpse; a wave kills Keen; a gun's shot ([Keen3GunShot])
+##             flies through everything and kills Keen, grunts and Foobs on
+##             its way; touching an enemy does what the enemy says (die,
+##             stun, push, carry, or the Foob dies). Shots, splashes and
+##             waves are deleted far from the view
 ##   pogo      Keen has the pogo stick from the start
 ## Keen 2's switches, lights and Tantalus Ray stay idle: Keen 3 has no
 ## behaviours 24-26, and its one light switch (tile 271, 23) is in no level.
@@ -55,9 +60,18 @@ const INFO_MEEP := 4
 const INFO_NINJA := 5
 const INFO_FOOB := 6
 const INFO_GRUNT_TOO := 11
+## Info values of the objects of C5 (Choco).
+const INFO_BALL := 7
+const INFO_JACK := 8
+const INFO_SIDEWAYS_PLATFORM := 9
+const INFO_UP_DOWN_PLATFORM := 10
+const INFO_GUN_RIGHT := 14
+const INFO_GUN_DOWN := 15
 
 ## The Keen whose tiles are being checked.
 var _toucher: Keen3Body
+## The wall guns' clock: ticks since they last fired (or the level began).
+var _gun_ticks := 0
 
 
 ## Starts an attempt at [param level_data] with Keen's sprite at
@@ -114,7 +128,38 @@ func create_enemy(info: int, start: Vector2) -> Enemy:
 			enemy = Keen3Ninja.spawned(start, direction)
 		INFO_FOOB:
 			enemy = Keen3Foob.spawned(start, direction)
+		INFO_BALL:
+			enemy = Keen3Ball.spawned(start, keen.position)
+		INFO_JACK:
+			enemy = Keen3Jack.spawned(start, keen.position)
+		INFO_SIDEWAYS_PLATFORM:
+			enemy = Keen3Platform.sideways(start)
+		INFO_UP_DOWN_PLATFORM:
+			enemy = Keen3Platform.up_and_down(start)
+		INFO_GUN_RIGHT, INFO_GUN_DOWN:
+			enemy = Keen3WallGun.placed(start, info == INFO_GUN_DOWN)
 	return enemy
+
+
+## Advances one tick, as [method Keen2LevelSession.step_players]; then the
+## wall guns' clock goes on, and at the end of each period every gun fires
+## (Choco: one TANKFIRE, heard wherever the guns are).
+func step_players(inputs: Array[KeenInput]) -> void:
+	super.step_players(inputs)
+	if outcome != Outcome.PLAYING or tantalus_fired:
+		return
+	_gun_ticks += 1
+	if _gun_ticks < Keen3WallGun.PERIOD_TICKS:
+		return
+	_gun_ticks = 0
+	var fired := false
+	for actor in actors.duplicate():
+		var gun := actor as Keen3WallGun
+		if gun != null:
+			gun.fire(self)
+			fired = true
+	if fired:
+		play_sound(Sound.Id.TANK_FIRE)
 
 
 ## Whether a sleeping sprite with its top left at [param point] wakes up.
@@ -165,93 +210,36 @@ func _create_shot(start: Vector2, direction: int) -> RaygunShot:
 
 
 ## The carriers move their riders first, as in Keen 2; then Keen 3's own
-## hits take the place of [LevelSession]'s (Choco). Only awake enemies touch
-## anything.
+## hits ([Keen3Hits]) take the place of [LevelSession]'s (Choco). Only awake
+## enemies touch anything.
 func _resolve_hits() -> void:
 	_carry_riders()
 	_delete_far_shots()
-	var targets := _awake_enemies()
-	for actor in actors:
-		var shot := actor as Keen3Shot
-		if shot == null or not shot.is_flying():
-			continue
-		if shot.from_keen:
-			_hit_with_keen_shot(shot, targets)
-		else:
-			_hit_with_fireball(shot, targets)
-	for actor in actors:
-		if actor is Keen3SoundWave:
-			_hit_keens(actor.hitbox())
-	_touch_enemies(targets)
+	Keen3Hits.new(self).resolve(_awake_enemies())
 
 
-## Keen's [param shot] splashes on the first living enemy, fireball or wave
-## it touches; an enemy loses a hit, a fireball splashes too.
-func _hit_with_keen_shot(shot: Keen3Shot, targets: Array[Enemy]) -> void:
-	var box := shot.hitbox()
-	for enemy in targets:
-		if enemy.stops_shots() and box.intersects(enemy.hitbox()):
-			_kill(enemy, enemy.hit_by_shot.bind(self))
-			_splash(shot)
-			return
-	for actor in actors:
-		if actor == shot or actor.removed or not box.intersects(actor.hitbox()):
-			continue
-		if actor is Keen3Fireball and actor.is_flying():
-			actor.splash()
-			_splash(shot)
-			return
-		if actor is Keen3SoundWave:
-			_splash(shot)
-			return
-
-
-## A [param fireball] kills the Keen it touches (the ankh still protects
-## him), and grunts and Foobs; it splashes on anything but a mother, a
-## corpse or another fireball's splash.
-func _hit_with_fireball(fireball: Keen3Shot, targets: Array[Enemy]) -> void:
-	var box := fireball.hitbox()
-	if _hit_keens(box):
-		_splash(fireball)
-		return
-	for enemy in targets:
-		if Keen3Fireball.passes(enemy) or not box.intersects(enemy.hitbox()):
-			continue
-		var kind := enemy as Keen3Enemy
-		if kind != null and kind.hurt_by_enemy_shots():
-			_kill(enemy, enemy.die)
-		_splash(fireball)
-		return
-	for actor in actors:
-		if actor is Keen3SoundWave and box.intersects(actor.hitbox()):
-			_splash(fireball)
-			return
-
-
-## Kills every living Keen in [param box], also a stunned one. Returns
-## whether one was there (dead or protected by the ankh or not).
-func _hit_keens(box: Rect2) -> bool:
-	var hit := false
+## Keen 2's riding step (the riders go along with their carrier, through
+## the tiles), but a rider that a tile stops, so that the carrier would run
+## into him, makes the carrier give way ([method Keen3Carrier.give_way]):
+## a platform that carries Keen up into a ceiling stops as at the ceiling.
+func _carry_riders() -> void:
 	for body in keens:
-		if not body.is_dead and box.intersects(body.hitbox()):
-			body.kill()
-			hit = true
-	return hit
+		if not _stands(body):
+			continue
+		for carrier in carriers():
+			if carrier.carries(body.hitbox(), true):
+				_ride_along(body, carrier)
+				break
 
 
-## Each awake enemy that touches a living Keen does what it does to him.
-func _touch_enemies(targets: Array[Enemy]) -> void:
-	for body in keens:
-		for enemy in targets:
-			if body.is_dead or not enemy.touches_keen():
-				continue
-			if enemy.hitbox().intersects(body.hitbox()):
-				_kill(enemy, enemy.touch_keen.bind(self, body))
-
-
-func _splash(shot: Keen3Shot) -> void:
-	play_sound(Sound.Id.SHOT_HIT)
-	shot.splash()
+func _ride_along(body: KeenBody, carrier: Keen2Carrier) -> void:
+	var move := carrier.last_move
+	body.position.x += collision.sweep_x(body.hitbox(), move.x)
+	var moved_y := collision.sweep_y(body.hitbox(), move.y)
+	body.position.y += moved_y
+	var keen_3 := carrier as Keen3Carrier
+	if keen_3 != null and absf(moved_y - move.y) > Keen3Carrier.PUSH_TOLERANCE:
+		keen_3.give_way(self, Vector2(0.0, moved_y - move.y))
 
 
 ## The enemies that are awake, dead or alive.

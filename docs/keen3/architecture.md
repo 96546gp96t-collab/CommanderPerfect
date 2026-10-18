@@ -362,3 +362,49 @@ shared folders shows only the changes of C2).
 - **Tests** are split in three suites (gdlint's 20 public methods):
   `test_keen3_enemies`, `test_keen3_enemy_rules`, `test_keen3_enemy_census`
   (real files).
+
+## Deviations in C5
+
+Written by the developer of C5. None of them changes Keen 1 or Keen 2; **no
+shared file changed** in C5 (`git diff a9d04cc` on the Keen 1, Keen 2 and
+shared folders shows only the changes of C2). `Keen2Carrier` and
+`Keen2RidingCollision` are used unchanged.
+
+- **More classes than planned.** The plan had `Keen3Ball` for ball and jack
+  and one `Keen3Platform`. Built: `Keen3Carrier extends Keen2Carrier` (the
+  solid touch of Keen 3's carriers: on top, from below, aside, and
+  `give_way`), `Keen3Ball` and `Keen3Platform` on it (the platform has a
+  `sideways` and an `up_and_down` constructor), and `Keen3Jack extends
+  Keen3Enemy` apart: a jack is not solid and must not be a carrier (the
+  riding collision takes every `Keen2Carrier`), and as a `Keen3Enemy` it
+  wakes and sleeps for free. Both fly with the static `Keen3Ball.bounce`.
+  The ball copies the eight lines of waking and sleeping, because it cannot
+  extend `Keen3Enemy` and `Keen2Carrier` both.
+- **The wall gun is an `Enemy`** (`Keen3WallGun`), so `create_enemy` can
+  return it and the census can count it; it has no size, never wakes, stops
+  no shot and touches nothing. It does not count its own time: **the
+  session keeps one clock** (`Keen3LevelSession.step_players`, after the
+  tick) and fires every gun at once with one TANKFIRE. Its shot is
+  `Keen3GunShot extends Keen3Shot` (the downward one sweeps on y, is 8x16,
+  and its splash is centred).
+- **The hit rules moved to `Keen3Hits`** (`src/keen3/level/keen3_hits.gd`),
+  because the session grew past ~450 lines: `_resolve_hits` carries the
+  riders, deletes far shots and hands the awake enemies to a new
+  `Keen3Hits`. It has the general enemy-shot branch asked for in C4: a gun's
+  shot kills every Keen, grunt and Foob it touches and flies on; the
+  fireball keeps its own branch (it splashes on the first thing). Its kill
+  helper repeats `LevelSession._kill`'s four lines (the scream) instead of
+  calling a private method of the shared class.
+- **Riding.** `Keen3LevelSession._carry_riders` replaces Keen 2's (same
+  steps) so that a rider whose head a ceiling stops makes the carrier give
+  way. In `Keen3Carrier.touch_keen` a push that the tiles stop is simply
+  left there and the carrier passes Keen: the original did so in level 2
+  (research.md, "Watching the original", C5). The first version made the
+  carrier turn at Keen as at a tile; the js-dos run showed otherwise and it
+  was changed.
+- **Tests:** two new suites, `test_keen3_objects` and `test_keen3_riding`
+  (gdlint's 20 public methods). Two Keen 3 tests changed because C5 changes
+  what they expect: `test_keen3_level`'s "info values after the enemies
+  spawn nothing yet" now checks only the machine's values 12, 13, 16-18;
+  `test_keen3_enemy_census` accepts the C5 objects among the enemies and
+  got a second census for them.

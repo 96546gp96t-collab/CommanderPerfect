@@ -1,8 +1,8 @@
 # Keen 3: the rules of a level in our engine
 
 What playing Keen 3 does in CommanderPerfect so far, and which numbers are
-estimates. Written in milestone C3; C4 added the enemies; later milestones
-add to it. The facts
+estimates. Written in milestone C3; C4 added the enemies, C5 the ball, the
+jack, the platforms and the wall guns; later milestones add to it. The facts
 and their sources are in [research.md](research.md), the code layout in
 [architecture.md](architecture.md). Numbers from Chocolate Keen are marked
 (Choco) and converted with the table at the top of research.md ("Units").
@@ -67,7 +67,7 @@ Everything goes by the tile's behaviour in the tile table of `KEEN3.EXE`.
 | 2-5 | Doors yellow, red, green, blue: open with the keycard of their color (used up). The door's cells get **the tile left of the door's top cell** (Choco); the door sinks as in Keen 1 (1 px per tick; the original: 1 px per 5 clock ticks, 2 of ours) |
 | 6-10 | Points from the table: candy bar 500, burger 100, Vorta-Cola 200, cake 1000, stuffed ninja 5000 (the help text swaps the first two) |
 | 15 | Raygun: +5 charges, GOTITEMSND |
-| 17 | Exit: any exit tile ends the level, so the two exits of levels 12, 13 and 15 both work. Not while riding (C5) |
+| 17 | Exit: any exit tile ends the level, so the two exits of levels 12, 13 and 15 both work. Not while riding a ball or a platform |
 | 18-21 | Keycards; taken away at the end of every level |
 | 22 | Turns into tile 143, nothing else (Choco); used in no level |
 | 27 | **The ankh** (below) |
@@ -78,8 +78,8 @@ A picked up item leaves **the first tile of its row** in the tile table,
 own background. Keen 1's ship parts, teleporters and statues and Keen 2's
 switches and Elders do nothing.
 
-The info layer spawns the enemies of C4 (below); the ball, jack, platforms
-and wall guns come in C5, the machine in C7. Keen's shots use KEENSHOT (102)
+The info layer spawns the enemies of C4 and the objects of C5 (below); the
+machine (12, 13, 16-18) comes in C7. Keen's shots use KEENSHOT (102)
 and splash with SHOTSPLASHR (105) when flying right, SHOTSPLASHL (106) when
 flying left (*estimate*: the original picks one at random).
 
@@ -123,6 +123,74 @@ per kind), the rules in `Keen3LevelSession`.
   so 9.5·k in 1000 per tick of ours (`Keen3Enemy.chance`).
 - **Falling:** gravity 4.05 per tick, at most 111 (Choco: 3 per clock tick,
   at most 200, through the falling helper). Not Keen's, which stays shared.
+
+## Ball, jack, platforms and wall guns (C5)
+
+All numbers are Chocolate Keen's (Choco), converted as above; the
+up-and-down platform was also watched in js-dos (research.md). Code:
+`Keen3Ball`, `Keen3Jack`, `Keen3Platform` (on `Keen3Carrier`),
+`Keen3WallGun`, `Keen3GunShot` in `src/keen3/actors/`; the hits in
+`Keen3Hits`, the guns' clock and the riding in `Keen3LevelSession`.
+
+| Info | Object | What it does | Touch | Shots |
+|---|---|---|---|---|
+| 7 | Ball (`Keen3Ball`) | Sets off diagonally toward Keen's start (the top left corners compared; right and down when level), 121 on each axis, no gravity; an axis that hits a tile turns round (walls, floors, ceilings). One picture, 109. Wakes and sleeps as the enemies | **carries** Keen (solid, below) | splash on it; never breaks |
+| 8 | Jack (`Keen3Jack`) | The same flight; 110-113 every 3.3 | **kills** Keen (not through the ankh) | splash on it; never breaks |
+| 9 | Platform, sideways (`Keen3Platform.sideways`) | 4 px above its cell; sets off right at 22.8; at a wall it stands still 31 ticks, then goes back. 107-108 every 13.2 | carries | splash on it; never breaks |
+| 10 | Platform, up and down (`Keen3Platform.up_and_down`) | In its cell; sets off **down** at 22.8; at a floor it turns up at once, at a ceiling it stands still 31 ticks, then goes down | carries | splash on it; never breaks |
+| 14 | Wall gun → (`Keen3WallGun`) | Invisible; every 165 ticks a shot (103) from 3 px below the top left of its cell, 121 to the right | — | — |
+| 15 | Wall gun ↓ | The same, its shot (104, 8x16) from 4 px right of the top left, 121 down | — | — |
+
+- **Platforms always move**, also far out of sight; balls and jacks wake
+  and sleep as the enemies do ([Waking and sleeping](#waking-and-sleeping-c4)).
+- **One clock for all guns** (Choco): it starts with the level, and every
+  165 ticks (400 clock ticks, 2.75 s) every gun of the level fires, with
+  one TANKFIRE, heard wherever the guns are. A shot that would start where
+  sprites are deleted (outside -8 … +28 / -8 … +18 tiles) is not made: the
+  original deletes it at once. So a gun far away is heard but its shot
+  never splashes there.
+- **The gun's shot** (`Keen3GunShot`): straight until a wall (SHOTHIT and
+  a splash, 105); it **flies through every sprite**, and kills on its way
+  Keen (also a stunned one; not through the ankh), grunts and Foobs. Keen's
+  shot splashes on it and it flies on; a fireball splashes on it too.
+- **Keen's shot** splashes on balls, jacks and platforms as on every other
+  sprite (C4 rule); none of them can be hurt. A fireball splashes on them
+  as well.
+
+### Riding (`Keen3Carrier`)
+
+Balls and platforms are solid, as the original's "carry" (Choco). Standing
+and riding are Keen 2's (`Keen2RidingCollision`: their tops are floors for
+Keen; the session moves a Keen who stands on one along with it, through the
+tiles). What happens when Keen and a carrier overlap:
+
+| Where Keen is | Then |
+|---|---|
+| His feet at most 8 px below its top, not rising | put on top (lifted, through the tiles) |
+| His head at most 12 px above its bottom, while he rises or it comes down | pushed down (through the tiles); his jump ends: he rises no faster than it (*estimate* of the 12 px) |
+| Otherwise | pushed out sideways, to the nearer side (through the tiles) |
+
+Every push goes through the tiles, so Keen is never put inside a wall.
+**When the tiles hold him, the carrier passes him** and nothing else
+happens: a platform that comes down on Keen standing on the floor goes on
+to the floor past him and turns up there; a ball that runs into Keen against
+a wall goes on to the wall and bounces there. That is what the original did
+in level 2 (js-dos, C5; research.md). If the platform then rises under him,
+he is put on top and rides up.
+
+**Carried up into a ceiling** (*estimate*, not seen in the original;
+Commander Genius pushes Keen down through the platform): when the session
+moves a rider up and a ceiling stops his head, the carrier stops under his
+feet and reacts as if it had hit the ceiling itself: the up-and-down
+platform waits 31 ticks and goes down, a ball bounces down. Keen is never
+squeezed into a tile and never killed by it.
+
+- **No exit while riding** (Keen 2's rule, inherited): Keen cannot walk out
+  through an exit tile while he stands on a ball or a platform.
+- **The 32x8 platform** (Keen 2's is 32x16): its box is the whole sprite,
+  so Keen's feet stand on its top line, as in the original's pictures.
+- A wall or a ceiling at Keen's height scrapes him off a moving platform
+  (level 14: the pole at column 110 over the spikes).
 
 ## Waking and sleeping (C4)
 
@@ -200,8 +268,7 @@ map (C6), map 81 (C7), map 90 (C8) and two players (C10).
 
 ## Not yet
 
-Ball, jack, platforms and wall guns (C5), the world map and
-the status screen (C6), level 16's machine (C7), title, menus, saving and
+The world map and the status screen (C6), level 16's machine (C7), title, menus, saving and
 high scores (C8), the pictures behind levels (C9; never Keen 1's or 2's),
 two players (C10).
 
@@ -217,6 +284,13 @@ than 200 pixels high, or its first view is placed differently. To check in
 C11.
 
 ## Estimates to check against the original
+
+- C5: the head reach of 12 px (from below), the carrier that stops under a
+  Keen carried into a ceiling, which splash picture a gun's shot shows
+  (105), that a far gun's shot is not made at all. Seen in js-dos: the
+  up-and-down platform's speed, its turn at the floor and its wait at the
+  ceiling (roughly), and that it passes a Keen held by the floor. Not
+  seen: the sideways platform, the ball, the jack, the guns.
 
 - C4: the youth's one box for both directions (the right-running frames
   carry a smaller box in EGAHEAD.CK3; Choco would use it); which splash
@@ -263,6 +337,16 @@ C11.
   sleeping also in widescreen, far shots, Keen's shot and the wave, the
   chances, the HUD's row background) and `tests/test_keen3_enemy_census.gd`
   (real files: every level spawns the enemies of research.md §5).
+- C5: `tests/test_keen3_objects.gd` (ball and jack: spawning toward Keen,
+  the diagonal flight, bouncing on every side, riding the ball, its push,
+  passing a Keen held by a wall, the jack's touch and the ankh, shots that
+  splash on both; the guns: one clock every 165 ticks, the shots' start and
+  speed, far guns heard without a shot, the splash at a wall, what the shot
+  kills and passes, Keen's shot on it) and `tests/test_keen3_riding.gd`
+  (both platforms: spawning, the waits and turns, always moving, stopping
+  shots; riding both, carried into a ceiling, a platform coming down on
+  Keen, bumping the head from below, no exit while riding). The census
+  suite also counts the objects of every level (research.md §5).
 - The screen: `tools/scripted_play.gd` with
   `SCENE=res://src/keen3/keen3_view.tscn -- --game=3 --level=N`. With
   `--fixed-fps 60` the frames run much faster than real time, so a

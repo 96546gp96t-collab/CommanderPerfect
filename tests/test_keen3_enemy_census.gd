@@ -1,7 +1,8 @@
 extends "res://tests/test_case.gd"
-## Tests of Keen 3's enemies with the player's own files (skipped without
-## them): every level 1-16 spawns the enemies of its census
-## (docs/keen3/research.md §5), and level 1 runs with its enemies awake.
+## Tests of Keen 3's enemies and objects with the player's own files
+## (skipped without them): every level 1-16 spawns the enemies and the
+## objects of C5 of its census (docs/keen3/research.md §5), and level 1 runs
+## with its enemies awake.
 
 ## Per level: grunts, youths, mothers, Meeps, ninjas, Foobs (research §5).
 const CENSUS: Dictionary[int, Array] = {
@@ -21,6 +22,26 @@ const CENSUS: Dictionary[int, Array] = {
 	14: [4, 0, 0, 3, 21, 1],
 	15: [9, 0, 0, 0, 9, 8],
 	16: [0, 0, 0, 2, 0, 0],
+}
+## Per level: balls, jacks, sideways and up-and-down platforms, guns firing
+## right and down (research §5).
+const OBJECT_CENSUS: Dictionary[int, Array] = {
+	1: [0, 0, 0, 0, 0, 0],
+	2: [0, 0, 0, 2, 0, 0],
+	3: [1, 0, 0, 0, 0, 0],
+	4: [0, 1, 0, 0, 1, 0],
+	5: [0, 0, 0, 3, 0, 0],
+	6: [3, 0, 0, 0, 0, 0],
+	7: [0, 0, 0, 0, 0, 0],
+	8: [2, 0, 2, 2, 0, 0],
+	9: [6, 1, 4, 3, 11, 0],
+	10: [0, 0, 2, 2, 3, 1],
+	11: [0, 0, 1, 0, 4, 0],
+	12: [0, 0, 3, 0, 2, 9],
+	13: [0, 0, 0, 0, 0, 0],
+	14: [0, 0, 1, 0, 1, 1],
+	15: [13, 2, 0, 0, 0, 0],
+	16: [0, 0, 0, 0, 0, 2],
 }
 const RUN_TICKS := 600
 
@@ -48,10 +69,24 @@ func test_every_level_spawns_its_census() -> void:
 		counts.fill(0)
 		for enemy in play.session.enemies():
 			var kind := _kinds.find(enemy.get_script())
-			assert_true(kind >= 0, "a Keen 3 enemy in level %d" % number)
+			assert_true(kind >= 0 or _object_kind(enemy) >= 0, "known in level %d" % number)
 			if kind >= 0:
 				counts[kind] += 1
 		assert_equal(counts, CENSUS[number], "the enemies of level %d" % number)
+
+
+func test_every_level_spawns_its_objects() -> void:
+	var play := Keen3LevelPlay.create(_files, _data.properties)
+	for number in OBJECT_CENSUS:
+		assert_true(play.start(number), "level %d starts" % number)
+		var counts := []
+		counts.resize(OBJECT_CENSUS[number].size())
+		counts.fill(0)
+		for enemy in play.session.enemies():
+			var kind := _object_kind(enemy)
+			if kind >= 0:
+				counts[kind] += 1
+		assert_equal(counts, OBJECT_CENSUS[number], "the objects of level %d" % number)
 
 
 func test_level_1_runs_with_its_enemies() -> void:
@@ -67,3 +102,16 @@ func test_level_1_runs_with_its_enemies() -> void:
 			woke += 1
 	assert_true(woke > 0, "enemies near Keen woke up")
 	assert_equal(session.inventory.score, 0, "no points from enemies")
+
+
+## The column of [param enemy] in [constant OBJECT_CENSUS], or -1.
+func _object_kind(enemy: Enemy) -> int:
+	if enemy is Keen3Ball:
+		return 0
+	if enemy is Keen3Jack:
+		return 1
+	if enemy is Keen3Platform:
+		return 3 if enemy.vertical else 2
+	if enemy is Keen3WallGun:
+		return 5 if enemy.downward else 4
+	return -1

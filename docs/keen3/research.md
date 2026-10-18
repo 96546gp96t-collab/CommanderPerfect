@@ -627,6 +627,33 @@ as described, then G+O+D):
   animate, so the Foob's frame timing could not be read from these
   recordings either. The Choco numbers stay (C11).
 
+Watched again in C5 (18-10-2026; js-dos 8.5.3, KEEN3.EXE 1.00). New game,
+on the map one cell up and four right to level 2's entrance (48,45),
+G+O+D, then right along the floor to the shaft of the up-and-down platform
+of cell (45,17) (columns 45-46, ceiling row 4, a notch in the floor at row
+19). Two recordings (25 s and 14 s) while Keen stood at the bottom of the
+shaft; the platform's top edge tracked in every frame:
+
+- **Speed: 1.75 px per frame, ~42.4 px/s, 0.71 of our px per tick**
+  (Choco 75: 42.7 px/s, 22.8/32). Same both ways. (sure)
+- **At the floor it turns up at once**: one frame at the lowest place, then
+  up at the same speed. (sure)
+- **At the ceiling it waits ~0.55 s** (33 of our ticks; from the time above
+  the view and the whole period, 11.5 s, solved for speed and wait); Choco's
+  31 ticks plus the turning tick is 32. (likely; the ceiling itself was not
+  in view)
+- **Coming down on Keen:** Keen stood at the bottom of the shaft against
+  its right wall (his box under the platform's right end by ~5 px). The
+  platform did **not** stop on him or push him down: it went on to the
+  floor past him, turned there and went up again; Keen did not move and
+  was not lifted (god mode was on, but carrying is no kill). Our rule
+  (gameplay.md): a carrier pushes Keen through the tiles and passes him
+  where they hold him.
+- Not seen: riding up into the ceiling (Keen could not get onto the
+  platform by script), the ball, the jack and the wall guns (levels 3 and 4
+  lie beyond the block that opens after level 2; level 9 and on are
+  further). Their Choco numbers stay; to check in C11.
+
 ## Only the original can answer
 
 Collect the answers here (js-dos) during C3-C10; C11 finishes the list.
@@ -642,7 +669,9 @@ Collect the answers here (js-dos) during C3-C10; C11 finishes the list.
 8. Ball and jack: 121/32 per axis, start direction toward Keen.
 9. The wall guns: every 2.75 s, all in step, heard off screen.
 10. Platforms: the waits (31 ticks), the vertical one turning at once at the
-    floor.
+    floor (~~the up-and-down platform's speed, its turn at the floor and,
+    roughly, its wait at the ceiling~~: seen in C5; the sideways one and
+    riding into a ceiling are still open).
 11. The machine: arm and leg steps, the sweeps, how long until the level is
     won; what the border flash looks like.
 12. The Mortimer boxes: places, pauses, skipping.

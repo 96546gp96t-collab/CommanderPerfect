@@ -30,10 +30,10 @@ const FIELD: PackedStringArray = [
 ]
 const START_CELL := Vector2i(2, 12)
 const FEET_ROW := 13
-## Every info value that is something in Keen 3's levels (research.md §5).
-const LAST_OBJECT_INFO := 18
-## Info values 1-6 (and 11) are the enemies of C4; the rest come later.
-const FIRST_LATER_INFO := 7
+## The info values of level 16's machine (research.md §5), which spawn
+## nothing until C7: the enemies (1-6, 11) came in C4, the ball, jack,
+## platforms and guns (7-10, 14, 15) in C5.
+const MACHINE_INFOS: Array[int] = [12, 13, 16, 17, 18]
 
 
 func test_points_per_behaviour() -> void:
@@ -176,11 +176,9 @@ func test_behaviour_22_only_becomes_143() -> void:
 	assert_equal(session.outcome, LevelSession.Outcome.PLAYING, "nothing else")
 
 
-func test_info_values_after_the_enemies_spawn_nothing_yet() -> void:
+func test_the_machine_info_values_spawn_nothing_yet() -> void:
 	var infos: Dictionary[Vector2i, int] = {}
-	for value in range(FIRST_LATER_INFO, LAST_OBJECT_INFO + 1):
-		if value == Keen3LevelSession.INFO_GRUNT_TOO:
-			continue
+	for value in MACHINE_INFOS:
 		infos[Vector2i(value, FEET_ROW - 1)] = value
 	var session := Keen3LevelSession.started(
 		Fixtures.create_level(FIELD, infos),
@@ -188,7 +186,7 @@ func test_info_values_after_the_enemies_spawn_nothing_yet() -> void:
 		Keen3Inventory.new(),
 		Fixtures.cell_top_left(START_CELL)
 	)
-	assert_true(session.actors.is_empty(), "nothing before C5 and C7")
+	assert_true(session.actors.is_empty(), "nothing before C7")
 	assert_true(session.keen is Keen3Body, "Keen 3's Keen")
 
 

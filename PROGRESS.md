@@ -58,7 +58,7 @@ over Keen 3 bekend is in [docs/keen3/research.md](docs/keen3/research.md).
 | C2 | De bestanden van Keen 3 inlezen, data viewer, derde icoon op het startscherm | ✅ Klaar en gecontroleerd door de architect (branch `milestone-c2-bestanden`) |
 | C3 | Een level spelen (Keen, items, de ankh, deuren, uitgangen) | ✅ Klaar en gecontroleerd door de architect (branch `milestone-c3-level`); in test bij de gebruiker |
 | C4 | Vijanden (grunt, youth, moeder, Meep, ninja, Foob) | ✅ Klaar en gecontroleerd door de architect (branch `milestone-c4-vijanden`) |
-| C5 | Bal, jack, platforms, wapens in de muur | ⬜ |
+| C5 | Bal, jack, platforms, wapens in de muur | ✅ Gebouwd, wacht op controle architect (branch `milestone-c5-mechaniek`) |
 | C6 | Wereldkaart: teleporters, Messie, het schip, statusscherm | ⬜ |
 | C7 | Mortimer, de Mangling Machine en het einde | ⬜ |
 | C8 | Geluid, menu's, opslaan, highscores | ⬜ |
@@ -66,6 +66,75 @@ over Keen 3 bekend is in [docs/keen3/research.md](docs/keen3/research.md).
 | C10 | Co-op lokaal en online | ⬜ |
 | C11 | Naast het origineel (wat nog geschat is) | ⬜ |
 | C12 | Keen 1 en 2 bijwerken met de getallen uit Chocolate Keen (ook de sprongen) | ⬜ |
+
+## Mijlpaal C5: wat er nu is
+
+Gebouwd en getest met de echte Keen 3-bestanden van de gebruiker (1.00).
+De getallen komen uit Chocolate Keen (`(Choco)`), omgerekend naar onze
+eenheden; het verticale platform is ook in js-dos nagekeken. De regels
+staan in `docs/keen3/gameplay.md` ("Ball, jack, platforms and wall guns
+(C5)", "Riding"); afwijkingen van de architectuur in
+`docs/keen3/architecture.md`, "Deviations in C5".
+
+- **Bal** (info 7, `Keen3Ball`): vertrekt schuin naar Keens start, 121/32
+  per as, zonder zwaartekracht, kaatst tegen muren, vloeren en plafonds.
+  Keen kan erop staan en meerijden; de bal duwt hem opzij. Schoten spatten
+  erop, hij gaat nooit kapot.
+- **Jack** (info 8, `Keen3Jack`): vliegt hetzelfde, vier plaatjes; aanraken
+  is dodelijk (niet met de ankh); schoten spatten erop.
+- **Platforms** (info 9 zijwaarts, 10 op en neer, `Keen3Platform`):
+  22,8/32; het zijwaartse wacht 31 ticks bij een muur, het verticale keert
+  bij een vloer meteen en wacht 31 ticks bij een plafond. Ze bewegen altijd,
+  ook ver buiten beeld. Meerijden met Keen 2's `Keen2RidingCollision` en
+  `Keen2Carrier` (ongewijzigd, met `Keen3Carrier` als Keen 3-laag erop);
+  niet naar buiten lopen terwijl je meerijdt. Op het 32x8-platform staat
+  Keen goed (schermafdruk level 2).
+- **Hard van alle kanten** (`Keen3Carrier`): van boven komt Keen erop, van
+  onder stoot hij zijn hoofd, van opzij wordt hij weggeduwd; altijd door de
+  tiles heen, dus nooit in een muur. Houden de tiles hem vast, dan gaat het
+  ding langs hem heen (zo deed het origineel in level 2). Draagt een
+  platform of bal Keen tegen een plafond, dan stopt het onder zijn voeten
+  alsof het zelf het plafond raakte (*schatting*; nooit vastgeklemd of
+  dood).
+- **Wapens in de muur** (info 14 naar rechts, 15 omlaag, `Keen3WallGun`):
+  onzichtbaar; één klok voor alle wapens vanaf de start van het level, elke
+  165 ticks (2,75 s) vuren ze tegelijk met één TANKFIRE, ook buiten beeld
+  (hoorbaar); een schot dat ver buiten beeld zou beginnen wordt niet
+  gemaakt. Het schot (`Keen3GunShot`, 103/104) vliegt door alle sprites en
+  doodt onderweg Keen (ook verdoofd, niet met de ankh), grunts en Foobs;
+  bij een muur SHOTHIT en een spat.
+- **Raakregels** verhuisd naar `Keen3Hits` (de sessie werd te lang), met de
+  algemene tak voor vijandelijke schoten. Keens schot spat nu ook op bal,
+  jack, platforms en het schot van een wapen.
+- **Gedeelde code:** niets veranderd.
+- **Tests:** `test_keen3_objects` (bal, jack, wapens) en `test_keen3_riding`
+  (platforms, meerijden) met zelfgemaakte levels; `test_keen3_enemy_census`
+  telt nu ook de objecten van elk level 1-16 (echte bestanden). Twee
+  Keen 3-tests aangepast: `test_keen3_level` (alleen 12, 13, 16-18 maken
+  nog niets) en de census (objecten tussen de vijanden toegestaan). Alle 50
+  suites slagen, geen `SCRIPT ERROR`, gdlint schoon.
+- **Keen 1- en Keen 2-controle:** `keen1_regression.sh` en
+  `keen2_regression.sh` tegen `a9d04cc` in een venster (fullscreen even
+  uit, daarna exact teruggezet): alles gelijk behalve `launcher.png`.
+  `git diff a9d04cc` op de gedeelde mappen toont alleen de C2-wijzigingen.
+- **js-dos:** level 2 bereikt (kaart: één omhoog, vier naar rechts), het
+  verticale platform gemeten: 0,71 px per tick (Choco 22,8/32), keert bij de
+  vloer meteen, wacht ~0,55 s bij het plafond (Choco 31 ticks + 1): de
+  getallen kloppen. Het platform ging langs een Keen die onderin de schacht
+  stond (daarom de regel hierboven). Niet bereikt: bal, jack, wapens
+  (levels 3 en 4 liggen achter de blokkade die pas na level 2 opengaat).
+- **Bekeken in de app** (schermafdrukken in de scratchpad, `c5shots/`):
+  level 2 (meerijden op het verticale platform, tot onder het plafond),
+  level 8 (zijwaarts platform), level 9 (schoten naar rechts uit de rode
+  kanonnen), level 12 (schoten omlaag uit de lampen, spatten op de vloer),
+  level 15 (bal en jack), level 6 (bal). Levels 1-15 draaien headless 2000
+  ticks zonder fouten; Keen, op elk echt platform gezet, komt nooit in een
+  tile (op een paar in levels 9, 10 en 14 schraapt een muur op hoofdhoogte
+  hem eraf).
+- **Open punten:** in level 14 schraapt een paal (kolom 110) Keen van het
+  zijwaartse platform boven de spijkers; zo zitten de tiles, maar of het
+  origineel hem ook laat vallen is niet gezien. Nog te zien in js-dos (C11):
+  bal, jack, wapens, het zijwaartse platform, meerijden tegen een plafond.
 
 ## Mijlpaal C4: wat er nu is
 
@@ -1239,16 +1308,15 @@ Na de eerste eigen test van de gebruiker:
 
 Keen 3:
 
-1. **Voor de gebruiker:** Keen 3 proberen in `build/` (Mac en Windows):
-   levels 1-16 met vijanden (grunts, youths, moeders, Meeps, ninja's,
-   Foobs), de verdoving door een youth, de ankh tegen vijanden.
-2. Daarna C5, als de gebruiker dat vraagt (branch `milestone-c5-mechaniek` vanaf
-   `milestone-c4-vijanden`): bal, jack, platforms (`Keen2RidingCollision`
-   en `Keen2Carrier`; platforms blijven altijd wakker), de wapens in de
-   muur (info 14/15; hun schot raakt Keen, grunts en Foobs: in
-   `Keen3LevelSession._hit_with_fireball` een gewone vijandelijk-schot-tak
-   maken, het schot vliegt door sprites heen). De regressies weer in een
-   venster draaien (zie C3).
+1. **Voor de architect:** C5 controleren (branch `milestone-c5-mechaniek`).
+2. **Voor de gebruiker:** Keen 3 proberen in `build/` (Mac en Windows):
+   levels 1-15 helemaal, met ballen, jacks, platforms (meerijden, ook
+   omhoog in level 2, 5, 8, 9 en 10) en de wapens in de muur (levels 9, 11,
+   12); zeggen of het meerijden en de schoten goed voelen.
+3. Daarna C6, als de gebruiker dat vraagt (branch `milestone-c6-kaart`
+   vanaf `milestone-c5-mechaniek`): de wereldkaart met teleporters, Messie,
+   het schip en het statusscherm (`Keen3MapSession extends MapSession`, zie
+   `docs/keen3/roadmap.md` C6). De regressies weer in een venster draaien.
 
 Keen 2:
 
