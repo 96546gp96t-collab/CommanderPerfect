@@ -63,9 +63,10 @@ Hoe er gemeten wordt:
 | C5 Bal, jack, platforms, wapens | 18-10 | ~35 min | 33 min | Inclusief het verticale platform gemeten in js-dos |
 | C6 Wereldkaart | 18-10 | ~47 min | 46 min | Inclusief kaart, teleporter, Messie en statusscherm gemeten in js-dos |
 | C7 Mortimer en het einde | 18-10 | ~42 min | 41 min | Armen en benen van de machine gemeten in js-dos (level 16 tijdelijk als level 1) |
+| Fix: gemaskeerde tiles (na C7) | 18-10 | ~30 min | 16 min | Bug van de gebruiker: Keen achter wolken, hekken en tafels; ook Keen 2 levels 6, 7, 9; plus de kaart-screenshot van de Keen 2-controle |
 | C8 Geluid, menu's, opslaan | | | | |
 | C9 Extra's | | | | |
 | C10 Co-op | | | | |
 | C11 Naast het origineel | | | | |
 | C12 Keen 1 en 2 bijwerken | | | | |
-| **Totaal tot nu toe** | 17-10 t/m 18-10 | **~5 u 05** | | C1-C7: Keen 3 is uit te spelen |
+| **Totaal tot nu toe** | 17-10 t/m 18-10 | **~5 u 35** | | C1-C7 en de fix: Keen 3 is uit te spelen |

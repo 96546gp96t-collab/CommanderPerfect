@@ -550,3 +550,10 @@ that for every Keen 1 level and map, and `keen1_regression.sh` and
 viewports of two players (one World shared), the online client
 (`RemoteGame`) and the scene screens get it as well; the data viewer
 (`LevelImageBuilder`) draws no sprites and is unchanged.
+
+- *After the masked-tile fix:* `tools/keen2_regression.sh` took its "map"
+  picture with `--level=80`, which Keen 2 does not support, so it showed
+  the title with an error text. It now opens the menu (Space), starts a new
+  game (Enter) and takes the map at frame 320, after the Keens Left box.
+  Checked: the four pictures are the same at `a9d04cc` and after the fix
+  (the map's start view has no masked tiles).

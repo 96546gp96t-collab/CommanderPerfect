@@ -41,7 +41,9 @@ shoot() {
 
 shoot "40:shot_keen2_title"
 shoot "40:shot_keen2_level1,60:hold_Right,100:shot_keen2_level1_walk,101:up_Right" --level=1
-shoot "40:shot_keen2_map" --level=80
+# Keen 2 has no --level=80: open the menu (Space), start a new game
+# (Enter) and wait until the Keens Left box is gone.
+shoot "40:Space,80:Enter,320:shot_keen2_map"
 
 if [ -n "$BASE" ]; then
 	status=0
