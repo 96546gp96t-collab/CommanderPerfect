@@ -7,8 +7,8 @@ extends RefCounted
 ## before the first text, the four text blocks in Keen 3's order, a tile
 ## table with planes longer than the tile count, the status box, the points
 ## table with Mortimer's boxes after it, the pages of the ending, the
-## finale name, the box over the finale, the ship's messages and the high
-## score records. Everything lies far below the known positions, so every
+## finale name, the box over the finale, the ship's messages with the line
+## under them and the high score records. Everything lies far below the known positions, so every
 ## piece is found by the search.
 ##
 ## Also small hand-made levels for the level tests (tests/test_keen3_level.gd):
@@ -43,6 +43,9 @@ const FILLER_FRAMES := 1
 const SCORE_MARKER := "SCORES."
 const SCORE_NAMES: PackedStringArray = ["Abc", "Bcd", "Cde"]
 const PLACE_WORDS: PackedStringArray = ["one", "two", "three", "four", "five", "six", "seven"]
+## The line under a ship's message, in two records as in KEEN3.EXE.
+const SHIP_PROMPT_RECORDS: PackedStringArray = ["\n   Hit any ", "thing:"]
+const SHIP_PROMPT := "   Hit any thing:"
 
 ## The tile table of the hand-made levels: long enough for the border tile
 ## and the exit, with Keen 3's tile numbers.
@@ -140,6 +143,7 @@ static func image() -> PackedByteArray:
 	data.append_array(filler(PADDING))
 	data.append(0)
 	data.append_array(_records(ship_records()))
+	data.append_array(_records(SHIP_PROMPT_RECORDS))
 	data.append_array(_score_records())
 	data.append_array(filler(PADDING))
 	return data

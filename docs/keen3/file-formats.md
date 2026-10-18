@@ -56,6 +56,7 @@ read from the program code.
 | Ending pages | before the finale name | The line records right before the record naming `FINALE.CK3` (lower case in the EXE): 11 lines, grouped 4, 3, 3, 1 | `ending_pages()` |
 | The box over the finale | after the finale name | The record after the finale name: two lines | `the_end()` |
 | The ship's messages | 0x1CF00 | Four messages of 4, 3, 4 and 4 line records right after a zero byte; the last line of each has no line feed; no line wider than 40 | `ship_messages()` |
+| The line under a ship's message | right after them (0x1D0CE) | Two records: a line feed, nine spaces and the start of the prompt, then the word for a key; a third record has the word for a joystick button | `ship_prompt()` |
 | High score names and place words | after the two `SCORES.` records | As in Keen 1 and 2: `ScoreTexts` reads them unchanged | `score_texts()` |
 
 **Text blocks.** Keen 3's order is help, end text, previews, story (Keen 2:

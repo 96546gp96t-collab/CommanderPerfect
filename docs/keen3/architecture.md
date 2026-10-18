@@ -73,9 +73,11 @@ src/keen3/            Keen 3 only (all class names start with Keen3)
   keen/               Keen3Body (Keen2Body with Keen 3's stun frames and the ankh)
   level/              Keen3LevelSession, Keen3Machine (Mortimer's Mangling Machine)
   map/                Keen3MapSession (teleporters, Messie, done signs, ship messages),
-                      Keen3Messie
+                      Keen3Messie, Keen3MapKeen, Keen3MapTeleport, Keen3MapScroll,
+                      Keen3MapInfo
   game/               Keen3LevelPlay, Keen3GameData, Keen3Progress, Keen3Inventory,
-                      Keen3StatusScreen, Keen3Screens, Keen3Ending, Keen3Sounds
+                      Keen3StatusScreen, Keen3Window, Keen3Screens, Keen3Ending,
+                      Keen3Sounds
   keen3_*_screen.gd   the screen chain on top of GameScreen (see below)
   keen3_view.gd/.tscn Keen3View, the scene the start screen opens
 tests/test_keen3_*.gd Keen 3 suites; tests/keen3_fixtures.gd
@@ -408,3 +410,63 @@ shared folders shows only the changes of C2). `Keen2Carrier` and
   spawn nothing yet" now checks only the machine's values 12, 13, 16-18;
   `test_keen3_enemy_census` accepts the C5 objects among the enemies and
   got a second census for them.
+
+## Deviations in C6
+
+Written by the developer of C6. None of them changes Keen 1 or Keen 2; **no
+shared file changed** in C6 (`git diff a9d04cc` on the Keen 1, Keen 2 and
+shared folders shows only the changes of C2). Keen 1's `MapSession`,
+`MapKeen`, `MapCollision` and `MapInfo` are used unchanged.
+
+- **`Keen3MapSession extends MapSession`**, constructor `opened`. It
+  overrides `step` as a whole (Keen 1's reads the cell under Keen's middle,
+  steps Keen 1's teleporter and knows the ship level), `_use`, `_enter`
+  (also keeps the view) and `_mark_done` (Keen 3's signs; the info cells
+  are cleared, as in the original), and `is_teleporting`. The button reads
+  the cells under Keen's box, the last one counting (Choco), not the cell
+  under his middle. It must be pressed anew, as in Keen 1 (the original
+  acts while it is held).
+- **`Keen3MapKeen extends MapKeen`** (constructor `placed`): Keen 3's
+  sprites and speed; `step` and `sprite_index` are its own because
+  `MapKeen` keeps them in constants. Keen 1's speed (127.5 px/s) is 30 %
+  above the original's 97 px/s, so Keen 3 has its own.
+- **Keen 1's `MapTeleport` is not used:** it flies Keen across the map and
+  flickers Keen 1's tiles. `Keen3MapTeleport` animates both teleporters in
+  place, makes the view jump and hides Keen (seen in js-dos).
+- **`Keen3MapScroll`, the map's own view.** The shared camera's dead zone
+  sits in the middle; the original keeps Keen between 9 and 11 cells from
+  the left and 3 and 7 from the top, starts a new game at (35,44) and puts
+  a teleporter's destination 10 cells right, 6 down. The session keeps the
+  view's corner; `Keen3View` puts the camera anchor on it with
+  `LevelCamera.follow_exactly(true)` (no smoothing, no dead zone) on the
+  map, and back to `follow_exactly(false)` in a level. The view size comes
+  from the screen every frame (widescreen).
+- **`Keen3Messie` is an `Actor`** (so the shared `ActorLayer` draws her)
+  but is moved by the map session with its own `swim`; `Actor.step` takes
+  a `LevelSession`. She and the view live in `Keen3Progress` while Keen is
+  in a level, because the original puts her at her start only once per
+  game.
+- **`Keen3Window extends GameWindow`** (the script of the Window node in
+  `keen3_view.tscn`, like `Keen3Hud` on the Hud node): tiles half a row
+  lower and text in the font's second half (red on gray), which the status
+  screen needs; `GameWindow` is unchanged. It copies the window's
+  three-line origin formula.
+- **The status screen opens with the status action (Enter)**, not Space as
+  in the original: Space is fire in our key bindings (Keen 1 and 2 do the
+  same). Any key closes it, and the ship's message.
+- **`Keen3Executable.ship_prompt`**: the line under the ship's messages
+  (asking for a key) is read from the two records after them, so no text of
+  the EXE is in the code.
+- **"Keens Left" shows at most 6 Keens** (Choco), was 7 (estimate) in C3.
+- **Tests:** four new suites (`test_keen3_map`, `test_keen3_messie`,
+  `test_keen3_status`, `test_keen3_map_data`) and the fixture file
+  `tests/keen3_map_fixtures.gd`; `tests/keen3_fixtures.gd` got the ship
+  prompt records. Keen 3 tests changed because C6 changes the course
+  (as B6 did for Keen 2): `test_keen3_play` (exit → map, level 16 wins,
+  death → map; the old "next level", "last level finishes" and "death
+  restarts the level" are gone) and `test_keen3_level` (keycards gone after
+  level 16, which now wins instead of finishing).
+- **Messie without a way on** stands still (the original would swim on in
+  her last direction); the real loop never gets there. A test map needs
+  cut corners, as the real loop has: with a square corner the
+  column-first rule turns her back.

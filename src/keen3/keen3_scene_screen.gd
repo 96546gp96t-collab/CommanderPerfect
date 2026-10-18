@@ -34,7 +34,8 @@ const LIVES_CELLS := Vector2i(16, 4)
 const LIVES_TITLE_COLUMN := 3
 const LIFE_FIRST_CELL := Vector2i(1, 1)
 const LIFE_CELLS := 2
-const MAX_LIVES_SHOWN := 7  # estimate: as many as fit
+## At most six little Keens (Choco `CVort_show_keens_left`).
+const MAX_LIVES_SHOWN := 6
 const LIVES_SECONDS := 0.87
 ## Keen 3's map Keen looking at the player (MAPKEEND1), for each life.
 const LIFE_SPRITE := Keen3Hud.KEEN_3_LIFE_SPRITE

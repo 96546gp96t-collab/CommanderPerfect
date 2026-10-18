@@ -1,7 +1,7 @@
 extends "res://tests/test_case.gd"
 ## Plays Keen 3's levels with the player's real files ([Keen3GameData],
 ## [Keen3LevelPlay]): every level starts, level 1 plays, the course of the
-## levels (exit, death, game over, the last level), level 9's start, the two
+## game (exit and death back to the map, game over, level 16 wins), level 9's start, the two
 ## exits of levels 12, 13 and 15, what items leave in the real tile table,
 ## and that the border (tile 245) is never drawn. The game screen itself
 ## ([Keen3View]) needs a running scene tree, which the test runner does not
@@ -154,7 +154,7 @@ func test_the_border_is_never_drawn() -> void:
 	map.free()
 
 
-func test_exit_leads_to_the_next_level() -> void:
+func test_exit_leads_to_the_map() -> void:
 	var play := _play()
 	if play == null:
 		return
@@ -162,36 +162,36 @@ func test_exit_leads_to_the_next_level() -> void:
 	play.inventory.keycards[0] = true
 	play.session.outcome = LevelSession.Outcome.COMPLETED
 	play.step(KeenInput.new())
-	assert_equal(play.level_number, 4, "level 4")
-	assert_equal(play.state, Keen3LevelPlay.State.PLAYING, "playing")
+	assert_equal(play.state, Keen3LevelPlay.State.MAP, "on the map")
+	assert_equal(play.level_number, Keen3Files.WORLD_MAP_LEVEL, "map 80")
+	assert_true(play.progress.is_completed(3), "level 3 is done")
 	assert_true(not play.inventory.keycards.has(true), "the keycards are gone")
 
 
-func test_last_level_finishes() -> void:
+func test_level_16_done_wins() -> void:
 	var play := _play()
 	if play == null:
 		return
 	var done := [false]
-	play.finished.connect(func() -> void: done[0] = true)
+	play.won.connect(func() -> void: done[0] = true)
 	play.start(Keen3Files.LAST_LEVEL)
 	play.session.outcome = LevelSession.Outcome.COMPLETED
 	play.step(KeenInput.new())
-	assert_true(done[0], "finished after level 16")
-	assert_equal(play.state, Keen3LevelPlay.State.FINISHED, "nothing more to play")
+	assert_true(done[0], "won after level 16")
+	assert_equal(play.state, Keen3LevelPlay.State.WON, "nothing more to play")
 
 
-func test_death_restarts_the_level() -> void:
+func test_death_goes_back_to_the_map() -> void:
 	var play := _play()
 	if play == null:
 		return
 	var lives_left: Array[int] = []
 	play.life_lost.connect(func(lives: int) -> void: lives_left.append(lives))
 	play.start(2)
-	var first_session := play.session
 	_die(play)
 	assert_equal(lives_left, [3] as Array[int], "one life less")
-	assert_equal(play.level_number, 2, "the same level")
-	assert_true(play.session != first_session, "a fresh attempt")
+	assert_equal(play.state, Keen3LevelPlay.State.MAP, "back on the map")
+	assert_true(not play.progress.is_completed(2), "level 2 is not done")
 
 
 func test_last_life_ends_the_game() -> void:

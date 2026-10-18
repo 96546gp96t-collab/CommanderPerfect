@@ -47,6 +47,9 @@ const ENDING_PAGE_LINES: PackedInt32Array = [4, 3, 3, 1]
 ## line of each message has no line feed.
 const SHIP_MESSAGES_OFFSET := 0x1CF00
 const SHIP_MESSAGE_LINES: PackedInt32Array = [4, 3, 4, 4]
+## The line under a ship's message is two records (the prompt and the word
+## for a key).
+const SHIP_PROMPT_RECORDS := 2
 ## No line of a message is wider than the screen.
 const MAX_LINE_WIDTH := 40
 const CARRIAGE_RETURN := 0x0D
@@ -187,6 +190,23 @@ func ship_messages() -> Array[PackedStringArray]:
 	if start < 0:
 		return []
 	return _grouped(_records(image, start, _total(SHIP_MESSAGE_LINES)), SHIP_MESSAGE_LINES)
+
+
+## The line under each of the ship's messages (asking for a key): the two
+## records right after the messages, the first starting with a line feed;
+## empty when they are not found.
+func ship_prompt() -> String:
+	var start := find_ship_messages(image)
+	if start < 0:
+		return ""
+	var count := _total(SHIP_MESSAGE_LINES)
+	var records := _records(image, start, count + SHIP_PROMPT_RECORDS)
+	if records.size() != count + SHIP_PROMPT_RECORDS:
+		return ""
+	var prompt := "".join(records.slice(count))
+	if not prompt.begins_with("\n") or prompt.count("\n") != 1:
+		return ""
+	return prompt.trim_prefix("\n")
 
 
 ## The names of a new high score table and the words for the places, as in

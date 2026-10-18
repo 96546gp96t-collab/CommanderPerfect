@@ -2,36 +2,137 @@
 
 What playing Keen 3 does in CommanderPerfect so far, and which numbers are
 estimates. Written in milestone C3; C4 added the enemies, C5 the ball, the
-jack, the platforms and the wall guns; later milestones add to it. The facts
+jack, the platforms and the wall guns, C6 the world map, Messie, the
+teleporters and the status screen; later milestones add to it. The facts
 and their sources are in [research.md](research.md), the code layout in
 [architecture.md](architecture.md). Numbers from Chocolate Keen are marked
 (Choco) and converted with the table at the top of research.md ("Units").
 
-## The course of the game (C3, provisional)
+## The course of the game (C6)
 
-Until the world map (C6) and the menus (C8) come, the course is the one
-Keen 2 had in B3.
+Since C6 the course is the one Keen 2 has since B6: the world map and the
+levels (`Keen3LevelPlay`). There is no title or menu yet (C8).
 
 | What | Then |
 |---|---|
-| Keen 3 picked on the start screen | Level 1 |
-| `-- --game=3` | Level 1 |
-| `-- --game=3 --level=N` | Level N (1-16); another number: level 1, with a message |
-| Keen walks out through an exit | The next level; the keycards are taken away. After level 16 (which has no exit; only reachable with the cheat) "That was the last level" and the start screen |
-| Keen dies | One life less, the same level again from its file, with "Keens Left" over it |
+| Keen 3 picked on the start screen | A new game on the world map, with "Keens Left" |
+| `-- --game=3`, `-- --game=3 --level=80` | The same |
+| `-- --game=3 --level=N` | Level N (1-16), then the map; another number: the map, with a message |
+| The jump or pogo button on an entrance | That level, unless it is done |
+| Keen walks out through an exit | The level is done (its sign on the map), the keycards are taken away, and Keen is back on the map where he entered it, with the same view |
+| Level 16 done (anything but a death ends it) | "You won - the ending comes later" for 5 s or until a key, then the start screen (the ending comes in C7) |
+| Keen dies | One life less, back on the map where he entered the level, with "Keens Left" |
 | Keen dies without lives left | GAME OVER (the bitmap, bare over the level) for 5.27 s or until a key, then the start screen |
+| The status key (Enter) | The status screen, on the map and in a level |
 | Escape | Back to the start screen |
 
+Every level starts fresh from its file (its items are back, Keen has no
+ankh); the map too, with the done signs put back. Messie and the view are
+kept between levels (`Keen3Progress`). Level 16 has no exit until C7, so
+the game can only be won by a test for now.
+
 "Keens Left" is a window of 16x4 cells with a little Keen (sprite 35,
-MAPKEEND1) per life, at most 7; the game waits while it is open; it closes
-by itself after 0.87 s (seen in js-dos in C1) or with a button. Cheats for
-testing, as in Keen 1 and 2: Shift+N / Shift+P (next / previous level,
-wrapping around), Shift+I (all keycards, 99 charges), Shift+G (god mode).
+MAPKEEND1) per life, at most 6 (Choco); the game waits while it is open;
+it closes by itself after 0.87 s (seen in js-dos in C1) or with a button.
+Cheats for testing, as in Keen 1 and 2: Shift+N / Shift+P (next / previous
+level, wrapping around; from the map level 1 / level 16), Shift+I (all
+keycards, 99 charges), Shift+G (god mode, in a level).
 
 Code: `Keen3View` (the scene) on `Keen3SceneScreen` (setup, loading, the
 windows, leaving) on `GameScreen`; `Keen3LevelPlay` (the course),
+`Keen3Progress` (the game), `Keen3MapSession` (the map),
 `Keen3LevelSession` (one attempt at a level), `Keen3Body` (Keen and the
 ankh).
+
+## The world map (C6)
+
+Map 80, 70x73 cells. All numbers from Chocolate Keen (`game/worldmap.c`,
+`episodes/episode3.c`) unless noted; the original moves things per drawn
+frame, 24.275 frames a second (`Keen3MapInfo`), which we turn into our 60
+ticks a second.
+
+- **Keen** (`Keen3MapKeen extends MapKeen`): sprites 31-34 right, 35-38
+  down, 39-42 left, 43-46 up (one lower than Keen 1's and 2's); up and down
+  win over left and right; 4 px per frame on each pressed axis, 97 px/s
+  (seen in js-dos: 4 px per frame). Keen 1's 127.5 px/s is too fast, so
+  Keen 3 has its own speed. A walking frame lasts 6.6 ticks; a step sounds
+  every second frame (WLDBLOCKSND when he is held up on either axis). He
+  starts on the cell with info 255, (44,47), at its top left.
+- **The button** (jump or pogo, pressed anew) uses the info cells under
+  Keen's box: column by column, row by row, the last non-zero one counts
+  (255 counts as nothing). 1-16 and 0x8000 + n enter level n unless it is
+  done (WLDENTERSND); 20 is the ship; 0x0Fsd a teleporter; Messie's cells
+  do nothing. The original also acts while the button is held; here it
+  must be pressed again, as in Keen 1 (otherwise a held jump button would
+  enter the level again right after a death).
+- **Blocking:** a cell with 0x8000 + n is a wall until level n is done
+  (Keen 1's `MapCollision`, unchanged).
+- **Done signs:** the entrance of a level is its first cell (row by row);
+  it is 2x2 when the cell right of it belongs to the same level. A done
+  level gets 56 on a 1x1 entrance, 52 53 / 54 55 on a 2x2 one, and its info
+  cells are cleared. Entrances 2, 4, 5, 10, 12, 13, 14 and 15 are 2x2
+  (level 15 has three 0x800F cells and one 0x000F).
+- **The ship** (info 20 at (42,48) and (43,48)): one of the four messages
+  at random (seen in js-dos: four different ones in five tries) in a
+  window of 32x6 cells, the prompt line from KEEN3.EXE in its last
+  row (place seen in js-dos: x 24-295, y 64-127); any key closes it.
+- **Teleporters** (`Keen3MapTeleport`; 16 slots, research.md §8): the
+  source cycles tiles 130-133 twice (TELEPORTSND at each cycle), 134 again;
+  the view jumps so that the destination is 10 cells from the left and 6
+  from the top; the same at the destination; Keen stands on its top left.
+  Seen in js-dos (slot 1 at (46,41) to slot 3 at (55,41) and back): each
+  tile 5 retraces (71 ms), 1.14 s in all; Keen is not drawn meanwhile; the
+  view shows (45,35) top left. Messie waits meanwhile.
+- **The view** (`Keen3MapScroll`, the camera exactly on it): Keen may move
+  while his sprite is 9-11 cells from the left of the view and 3-7 from the
+  top; beyond, the view moves as far as he does (seen in js-dos: he stays
+  at x 176). A new game shows (35,44) top left (Keen 9 cells right and 3
+  down of it; seen in js-dos). In widescreen the free stretch stays 2 cells
+  wide in the middle. The view never shows the border. After a level the
+  view is where it was (seen in js-dos after a death).
+- **Messie** (`Keen3Messie`, drawn as an actor): starts at the first row
+  whose middle column (35) holds her path, (35,8), heading left; 2 px per
+  frame on each axis of her direction, a cell in 8 frames; at each cell the
+  first neighbour (column x − 1, x, x + 1, each top to bottom) that is path
+  or weed and neither her cell nor the one she came from; before weed she
+  waits 122 frames (5.0 s), facing it. Her loop has 256 cells and takes
+  104.5 s with the four weeds. Pictures: 130/131 left, down-left and
+  standing, 132/133 right, down, down-right, 134/135 up-right, 136/137
+  up-left and up; 8 more with Keen; the second picture every other two
+  frames. Seen in js-dos: in a new game she first shows in the start view
+  35.8 s after "Keens Left" closes, and later at the same times as ours
+  (to 0.1 s), so her start, speed, way and weed wait match.
+- **Riding:** Keen gets on when the top left of his sprite lies inside her
+  32x24 picture (edges included): CRYSTALSND, he is hidden, cannot walk or
+  use anything, and the view follows her by the same rule. A pressed
+  direction (8 ways) toward a landing (0x2200) next to her cell (the cell
+  of her top left) puts him there, one cell from her top left; then she
+  cannot be mounted for 30 frames (74 ticks). Her landings are by level
+  16's island ((33-34,15), (33,16)) and the Hidden City, level 13
+  ((26-28,56)); she is the only way to both.
+
+## The status screen (C6)
+
+`Keen3StatusScreen` in a `Keen3Window` (the Window node of
+`keen3_view.tscn`; a `GameWindow` that can also put tiles 4 px below a row
+and write in the font's second half). The status key (Enter; the original
+uses Space, which is fire here) opens it on the map and in a level; the game
+stands still and any key closes it. The box is 28x11 cells, x 40-279,
+y 48-151, as in the original. Labels from KEEN3.EXE in red on gray bars
+(font characters 0x80-0xFF, as the original draws them), the one-space
+lines as gray dividers (row 1 column 12, rows 3-5 column 19, rows 7-9
+column 11). Score ends before column 10, the next extra Keen before 26
+(row 1); a little Keen (sprite 0) per life from column 1, two apart, at
+most 9 (row 3); pistol tile 216 at column 21 and the ankh tile 214 at
+column 3, 4 px below rows 3 and 7; charges at (24,4); the ankh time at
+(7,8) (0 on the map); keycards 217-220 at columns 13, 17, 21, 25, 4 px
+below row 7. Every icon and little Keen was found pixel for pixel in a
+status screen of the original (js-dos, C6).
+
+## The HUD on the map
+
+In widescreen the map shows the same two panels as a level (lives and
+score; raygun and keycards); the ankh panel only in a level.
 
 ## Start values
 
@@ -237,8 +338,8 @@ stun (`is_protected()`), and every kill goes through `KeenBody.kill`, which
 | Shown time | whole "seconds" of 144 clock ticks (59.3 of ours): a fresh ankh shows 9, as the status screen | Choco |
 
 The ankh time is Keen's own (`Keen3Body.ankh_ticks`), not part of the
-inventory: it never leaves a level. The status screen (C6) reads it from
-there.
+inventory: it never leaves a level. The status screen reads it from
+there (0 on the map).
 
 ## The HUD (widescreen)
 
@@ -263,13 +364,15 @@ widescreen, 21 cells wide) black bars show, not the border. xBRZ and HD
 scale the same tiles, so they show no more. `tests/test_keen3_play.gd`
 checks for every level 1-16 that no border cell is drawn and that the
 camera keeps to the playable area for views of 320, 426 and 480 pixels.
-Nothing had to change for Keen 3. Still to check in later milestones: the
-map (C6), map 81 (C7), map 90 (C8) and two players (C10).
+Nothing had to change for Keen 3. The map (C6) keeps the border out of
+view with its own scrolling (`Keen3MapScroll` clamps to the playable
+area). Still to check in later milestones: map 81 (C7), map 90 (C8) and two
+players (C10).
 
 ## Not yet
 
-The world map and the status screen (C6), level 16's machine (C7), title, menus, saving and
-high scores (C8), the pictures behind levels (C9; never Keen 1's or 2's),
+Level 16's machine and the ending (C7), title, menus, saving and high
+scores (C8; the map's state, Messie included, is not saved yet), the pictures behind levels (C9; never Keen 1's or 2's),
 two players (C10).
 
 ## Seen in the original (C3)
@@ -306,6 +409,11 @@ C11.
 - The splash sprites per direction (105 right, 106 left).
 - The door sinking speed (shared: 1 px per tick; Choco: 1 px per 5 clock
   ticks).
+- C6: the 30-frame lock after getting off Messie and getting on/off
+  themselves (her course was seen, riding was not); the done signs (no
+  level was finished in js-dos); TELEPORTSND per cycle (no sound in the
+  recordings); the walking frames' timing and the step sounds; the ankh
+  time on the map's status screen (0 here).
 - "Keens Left": the window's place (the original: x 88-231, y 72-119) and
   how many little Keens fit.
 - The ankh time itself: 9.6 s (Choco) against 15 s (KeenWiki) and 21 s (CG)
@@ -328,7 +436,8 @@ C11.
   plays (and the plant right of the start kills, as in js-dos), level 9
   starts at (63,17), exits per level, the item rows of the real table,
   the ankhs of levels 3, 10 and 14, the border is never drawn, the course
-  (next level, death, game over, after level 16), the HUD icons.
+  (exit and death back to the map, game over, level 16 wins), the HUD
+  icons.
 - C4: `tests/test_keen3_enemies.gd` (each enemy: spawning per info value,
   walking, turning, ledges, touching Keen, hits, dying frames, the
   fireball, the wave through a wall, the Meep at a ledge, the ninja's jump,
@@ -347,6 +456,24 @@ C11.
   shots; riding both, carried into a ceiling, a platform coming down on
   Keen, bumping the head from below, no exit while riding). The census
   suite also counts the objects of every level (research.md §5).
+- C6: `tests/test_keen3_map.gd` (hand-made maps,
+  `tests/keen3_map_fixtures.gd`: walking speed, sprites and steps,
+  entering with jump or pogo, a blocking cell entering its level,
+  blocking until done, the done signs 1x1, 2x2 and 2x2 with three blocking
+  cells, which info cell counts, the ship, Messie's cells, teleporter
+  routes, one-way teleporters, the animation and the view jump, the new
+  game's view, the free stretch, the map kept after a level),
+  `tests/test_keen3_messie.gd` (her start, speed, loop without going back,
+  the weed wait, pictures, getting on, nothing while riding, getting off,
+  no landing, the 30-frame lock, standing still for a teleporter, kept
+  between levels, the view following her), `tests/test_keen3_status.gd`
+  (the box's place, numbers, little Keens, icons, labels, the ship's
+  prompt, at most six Keens Left, winning with level 16) and
+  `tests/test_keen3_map_data.gd` (real files: every entrance and its sign,
+  the 16 teleporters, slot 1 to 3 with the view of js-dos, the start view,
+  the ship, Messie's start, closed 256-cell loop, both landings, her timing
+  against js-dos, riding to level 16 and to level 13, the course from the
+  map into level 1 and back with its done sign).
 - The screen: `tools/scripted_play.gd` with
   `SCENE=res://src/keen3/keen3_view.tscn -- --game=3 --level=N`. With
   `--fixed-fps 60` the frames run much faster than real time, so a

@@ -594,6 +594,7 @@ Measured (sure unless noted; positions in the raw 320x200 frame):
   the window: 10 and 26, as Keen 2); little Keens from x 56, 16 apart, top
   y 80; pistol icon at x 216, y 80, charges at x 240, y 88; ankh icon at
   x 72, y 116; ankh time at x 104, y 120; keycards from text column 18.
+  (C6: the pistol is at y 84 and the keycards from x 152, see below.)
 - **Level 1:** the view starts with cell (2,12) in the corner. A Foob walks 2
   px per frame toward Keen, is scared for ~0.2 s when it sees him (~110 px
   away), then runs away at 6 px per frame (~145 px/s); at a wall it bobs 1 px.
@@ -654,6 +655,43 @@ shaft; the platform's top edge tracked in every frame:
   lie beyond the block that opens after level 2; level 9 and on are
   further). Their Choco numbers stay; to check in C11.
 
+Watched again in C6 (18-10-2026; js-dos 8.5.3, KEEN3.EXE 1.00, a new
+game on the map; positions found with the tile matcher of the scratchpad
+tools, icons matched pixel for pixel against our own tiles):
+
+- **Map Keen: 4 px per frame** (frames ~43 ms apart, ~93-97 px/s), as
+  Choco. Walking right from the start he stays at **x 176** on the screen
+  once the view starts to move (Choco: the view moves when he would pass 11
+  cells); a new game shows (35,44) top left (as in C1). (sure)
+- **Teleporter** slot 1 (46,41) → slot 3 (55,41) and back: 16 tile changes
+  **71 ms (5 retraces) apart**, 1.14 s in all, then Keen appears 14 ms
+  later; **Keen is not drawn** during the animation, neither at the source
+  nor at the destination; the view jumps to **(45,35)** top left, the
+  destination 10 cells right and 6 down. Slots 1 and 3 lead to each other.
+  TELEPORTSND not checked (no sound recorded). (sure)
+- **Messie:** recorded 70 s of a new game without moving. She first shows
+  in the start view **35.8 s** after "Keens Left" closes, and again at
+  39.9, 45.6, 56.5 and 61.3 s; our Messie (start (35,8) heading left, 2 px
+  per frame, the column-first neighbour rule, 122 frames before weed)
+  shows at 35.9, 40.0, 45.6, 56.6 and 61.3 s. So her start, speed, way and
+  the weed wait (one weed lies on the way) match to ~0.1 s. Getting on and
+  off was not tried (her loop is far from the start). (sure)
+- **Ship** (Keen moved one cell left and down from the start, Ctrl): a
+  window of 32x6 cells, x 24-295, y 64-127, four message lines from row 0,
+  the prompt line at column 9 of row 5 with a blinking cursor after it; four
+  **different** messages in five tries (random). (sure)
+- **Status screen** with all keycards (C+T+Space): pistol (216) at
+  **(216, 84)**, ankh (214) at (72, 116), keycards 217-220 at **(152, 116),
+  (184, 116), (216, 116), (248, 116)**, little Keens (sprite 0) at
+  (56 + 16 n, 80): exactly Choco's places (4 px below the rows). The C1
+  notes "pistol at y 80" and "keycards from text column 18" were the edges
+  of their white boxes, not the icons. (sure)
+- **After a death** (level 1 entered from the map, Keen walked into the
+  plant) Keen is back where he entered and the map view is the same as
+  before; "Keens Left" shows 3. (sure)
+- Not seen: a done sign (no level was finished), getting on and off
+  Messie, the 30-frame lock, sounds.
+
 ## Only the original can answer
 
 Collect the answers here (js-dos) during C3-C10; C11 finishes the list.
@@ -675,9 +713,10 @@ Collect the answers here (js-dos) during C3-C10; C11 finishes the list.
 11. The machine: arm and leg steps, the sweeps, how long until the level is
     won; what the border flash looks like.
 12. The Mortimer boxes: places, pauses, skipping.
-13. Teleporters: the animation and the jump of the view.
-14. Messie: start (35,8), speed, the wait at the weed, getting on and off.
-15. The ship's messages: at random?
+13. ~~Teleporters: the animation and the jump of the view~~ (seen in C6).
+14. Messie: ~~start (35,8), speed, the wait at the weed~~ (seen in C6),
+    getting on and off.
+15. ~~The ship's messages: at random?~~ (yes, seen in C6).
 16. The done signs on every kind of entrance.
 17. The ending: places, the flashes, the end text.
 18. Which of level 9's starts is used.

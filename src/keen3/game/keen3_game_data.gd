@@ -30,6 +30,8 @@ var ending_pages: Array[PackedStringArray] = []
 var the_end := PackedStringArray()
 ## The ship's four messages on the world map; empty when not found.
 var ship_messages: Array[PackedStringArray] = []
+## The line under a ship's message; empty when not found.
+var ship_prompt := ""
 ## The names of a new high score table and the words for the places; null
 ## when not found.
 var score_texts: ScoreTexts
@@ -75,6 +77,7 @@ static func _read_messages(data: Keen3GameData, executable: Keen3Executable) -> 
 	data.ending_pages = executable.ending_pages()
 	data.the_end = executable.the_end()
 	data.ship_messages = executable.ship_messages()
+	data.ship_prompt = executable.ship_prompt()
 	data.score_texts = executable.score_texts()
 
 

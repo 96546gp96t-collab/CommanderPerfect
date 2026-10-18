@@ -59,13 +59,102 @@ over Keen 3 bekend is in [docs/keen3/research.md](docs/keen3/research.md).
 | C3 | Een level spelen (Keen, items, de ankh, deuren, uitgangen) | ✅ Klaar en gecontroleerd door de architect (branch `milestone-c3-level`); in test bij de gebruiker |
 | C4 | Vijanden (grunt, youth, moeder, Meep, ninja, Foob) | ✅ Klaar en gecontroleerd door de architect (branch `milestone-c4-vijanden`) |
 | C5 | Bal, jack, platforms, wapens in de muur | ✅ Klaar en gecontroleerd door de architect (branch `milestone-c5-mechaniek`) |
-| C6 | Wereldkaart: teleporters, Messie, het schip, statusscherm | ⬜ |
+| C6 | Wereldkaart: teleporters, Messie, het schip, statusscherm | ✅ Gebouwd, wacht op controle architect (branch `milestone-c6-kaart`) |
 | C7 | Mortimer, de Mangling Machine en het einde | ⬜ |
 | C8 | Geluid, menu's, opslaan, highscores | ⬜ |
 | C9 | Mooier maken (framerate, xBRZ, achtergronden, builds) | ⬜ |
 | C10 | Co-op lokaal en online | ⬜ |
 | C11 | Naast het origineel (wat nog geschat is) | ⬜ |
 | C12 | Keen 1 en 2 bijwerken met de getallen uit Chocolate Keen (ook de sprongen) | ⬜ |
+
+## Mijlpaal C6: wat er nu is
+
+Gebouwd en getest met de echte Keen 3-bestanden van de gebruiker (1.00).
+De getallen komen uit Chocolate Keen (`(Choco)`) en zijn in js-dos
+nagekeken waar dat lukte. De regels staan in `docs/keen3/gameplay.md`
+("The course of the game", "The world map", "The status screen");
+afwijkingen van de architectuur in `docs/keen3/architecture.md`,
+"Deviations in C6".
+
+- **Het verloop** (`Keen3LevelPlay`, zoals Keen 2 na B6): het startscherm
+  (en `--game=3`, ook met `--level=80`) begint een nieuw spel op de
+  wereldkaart met "Keens Left"; `--level=N` (1-16) start dat level en
+  daarna de kaart. Uitgang: level klaar (bordje op de kaart), sleutelkaarten
+  weg, terug op de kaart waar Keen het level in ging, met hetzelfde beeld.
+  Dood: een leven minder, terug op de kaart met "Keens Left" (hoogstens 6
+  Keens, Choco). Geen levens meer: GAME OVER, dan het startscherm.
+  **Level 16 klaar = gewonnen**: voorlopig het briefje "You won - the
+  ending comes later" (5 s of een toets) en dan het startscherm; het einde
+  komt in C7. `Keen3Progress extends GameProgress` bewaart ook Messie en
+  het beeld van de kaart. Cheats Shift+N/P/I/G werken (van de kaart: level
+  1 / level 16).
+- **De kaart** (`Keen3MapSession extends MapSession`, Keen 1's klassen
+  ongewijzigd): ingangen 1-16 met springen of pogo (opnieuw indrukken),
+  ook via een 0x8000-cel; de cellen onder Keens vak tellen, de laatste
+  wint. Muren (0x8000 + n) tot het level klaar is. Bordjes 56 (1x1) en
+  52-55 (2x2; ook level 15 met drie 0x800F-cellen), de info-cellen worden
+  gewist.
+- **Kaart-Keen** (`Keen3MapKeen`): sprites 31-46, 4 px per frame (97 px/s;
+  Keen 1's 127,5 px/s is te snel, dus eigen snelheid), stapgeluid elk
+  tweede frame.
+- **Het beeld** (`Keen3MapScroll`): zoals het origineel, Keen vrij tussen 9
+  en 11 cellen van links en 3 en 7 van boven; een nieuw spel toont (35,44)
+  linksboven; de camera staat er precies op.
+- **Teleporters** (`Keen3MapTeleport`): tiles 130-133 twee keer met
+  TELEPORTSND, 134; het beeld springt (bestemming 10 cellen rechts, 6
+  omlaag); dezelfde animatie daar; Keen onzichtbaar tot hij aankomt;
+  Messie wacht. Alle 16 routes kloppen met research §8.
+- **Het schip**: een van de vier berichten (willekeurig) in een venster van
+  32x6, met de regel eronder uit KEEN3.EXE; een toets sluit het.
+- **Messie** (`Keen3Messie`): start op (35,8) naar links, 2 px per frame,
+  de eerste buur kolom voor kolom die pad of wier is en niet haar cel of de
+  vorige; 122 frames wachten voor wier; plaatjes per richting (met Keen 8
+  verder). Opstappen door tegen haar aan te lopen (CRYSTALSND, Keen
+  verborgen, kan niets gebruiken, het beeld volgt haar), afstappen met een
+  richting naar een aanlegplek (0x2200); daarna 30 frames niet opnieuw.
+  Ze brengt Keen naar het eiland van level 16 en naar de Hidden City
+  (level 13) (getest met de echte kaart).
+- **Statusscherm** (`Keen3StatusScreen` in `Keen3Window`): de statustoets
+  (Enter; in het origineel Spatie, maar dat is hier vuren) op de kaart en
+  in een level, het spel staat stil, elke toets sluit. Vak 28x11 op x
+  40-279, y 48-151; rode labels op grijze balken (de tweede helft van het
+  lettertype, zoals het origineel); score, volgende extra Keen, Keentjes
+  (max 9), pistool met ladingen, ankh met tijd, sleutelkaarten. Alle
+  plaatjes staan pixel voor pixel waar het origineel ze heeft.
+- **HUD op de kaart** (breedbeeld): levens, score, straalgeweer,
+  sleutelkaarten (geen ankh-paneel).
+- **Gedeelde code:** niets veranderd.
+- **Tests:** vier nieuwe suites: `test_keen3_map` en `test_keen3_messie`
+  (zelfgemaakte kaarten, `tests/keen3_map_fixtures.gd`), `test_keen3_status`
+  en `test_keen3_map_data` (echte bestanden: alle ingangen en bordjes, de 16
+  teleporters, Messie's lus van 256 cellen, beide aanlegplekken, haar
+  timing tegen js-dos, met Messie naar level 16 en 13, van de kaart naar
+  level 1 en terug). Aangepast omdat C6 het verloop verandert:
+  `test_keen3_play` (uitgang en dood naar de kaart, level 16 wint) en
+  `test_keen3_level` (level 16 klaar = gewonnen). Alle 54 suites slagen,
+  geen `SCRIPT ERROR`, gdlint schoon.
+- **Keen 1- en Keen 2-controle:** `keen1_regression.sh` en
+  `keen2_regression.sh` tegen `a9d04cc` in een venster (fullscreen even
+  uit, daarna exact teruggezet): alles gelijk behalve `launcher.png`.
+  `git diff a9d04cc` op de gedeelde mappen toont alleen de C2-wijzigingen.
+- **js-dos:** kaart-Keen 4 px per frame en het beeld dat meeschuift op x
+  176; teleporter 1 → 3 en terug (71 ms per tile, 1,14 s, Keen onzichtbaar,
+  beeld op (45,35)); Messie 70 s gevolgd: ze komt op dezelfde momenten in
+  beeld als bij ons (op ~0,1 s), dus start, snelheid, route en het wachten
+  bij het wier kloppen; het schip (venster op x 24-295, y 64-127,
+  willekeurig bericht); het statusscherm met alle sleutelkaarten (pistool
+  en sleutelkaarten 4 px lager dan C1 noteerde: Choco klopt); na een dood
+  in level 1 hetzelfde beeld en dezelfde plek. Niet gezien: een
+  "done"-bordje (geen level uitgespeeld), op- en afstappen bij Messie,
+  geluiden.
+- **Bekeken in de app** (schermafdrukken in de scratchpad, `c6shots/`):
+  de kaart bij de start (4:3 en breedbeeld), lopen, "Keens Left", de
+  teleporter halverwege en erna, het schip, Messie zwemmend, Keen op
+  Messie, een 2x2-bordje, het statusscherm op de kaart en in level 1, de
+  kaart na een dood.
+- **Open punten:** de kaart (met Messie) wordt nog niet opgeslagen (C8);
+  het "done"-bordje en op/afstappen bij Messie nog in js-dos bekijken
+  (C11).
 
 ## Mijlpaal C5: wat er nu is
 
@@ -1308,14 +1397,15 @@ Na de eerste eigen test van de gebruiker:
 
 Keen 3:
 
-1. **Voor de gebruiker:** Keen 3 proberen in `build/` (Mac en Windows):
-   levels 1-15 helemaal, met ballen, jacks, platforms (meerijden, ook
-   omhoog in level 2, 5, 8, 9 en 10) en de wapens in de muur (levels 9, 11,
-   12); zeggen of het meerijden en de schoten goed voelen.
-2. Daarna C6, als de gebruiker dat vraagt (branch `milestone-c6-kaart`
-   vanaf `milestone-c5-mechaniek`): de wereldkaart met teleporters, Messie,
-   het schip en het statusscherm (`Keen3MapSession extends MapSession`, zie
-   `docs/keen3/roadmap.md` C6). De regressies weer in een venster draaien.
+1. **Voor de gebruiker:** Keen 3 proberen in `build/` (Mac en Windows): de
+   wereldkaart (lopen, levels in en uit, de bordjes, de muren die opengaan),
+   de teleporters, het schip, Messie (opstappen door tegen haar aan te
+   lopen, afstappen met een pijltje naar het eiland van level 16 of naar
+   de Hidden City), het statusscherm (Enter) op de kaart en in een level.
+2. Daarna C7, als de gebruiker dat vraagt (branch
+   `milestone-c7-mortimer-einde` vanaf `milestone-c6-kaart`): level 16 met
+   Mortimer en de Mangling Machine, en het einde (zie
+   `docs/keen3/roadmap.md` C7). De regressies weer in een venster draaien.
 
 Keen 2:
 

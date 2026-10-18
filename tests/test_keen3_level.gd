@@ -210,13 +210,14 @@ func test_keycards_are_gone_after_the_level() -> void:
 	var play := Keen3LevelPlay.create(null, Fixtures.level_properties())
 	play.session = Fixtures.start_session(FIELD, START_CELL, play.inventory)
 	play.level_number = Keen3Files.LAST_LEVEL
+	play.state = Keen3LevelPlay.State.PLAYING
 	play.inventory.keycards.fill(true)
 	var done := [false]
-	play.finished.connect(func() -> void: done[0] = true)
+	play.won.connect(func() -> void: done[0] = true)
 	play.session.outcome = LevelSession.Outcome.COMPLETED
 	play.step(KeenInput.new())
 	assert_true(not play.inventory.keycards.has(true), "no keycards")
-	assert_true(done[0], "after level 16 the game is over for now")
+	assert_true(done[0], "level 16 done: the game is won")
 
 
 func test_levels_1_to_16() -> void:
