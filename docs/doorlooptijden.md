@@ -62,10 +62,10 @@ Hoe er gemeten wordt:
 | C4 Vijanden | 17-10 | ~50 min | 43 min | Inclusief een poging in js-dos |
 | C5 Bal, jack, platforms, wapens | 18-10 | ~35 min | 33 min | Inclusief het verticale platform gemeten in js-dos |
 | C6 Wereldkaart | 18-10 | ~47 min | 46 min | Inclusief kaart, teleporter, Messie en statusscherm gemeten in js-dos |
-| C7 Mortimer en het einde | | | | |
+| C7 Mortimer en het einde | 18-10 | ~42 min | 41 min | Armen en benen van de machine gemeten in js-dos (level 16 tijdelijk als level 1) |
 | C8 Geluid, menu's, opslaan | | | | |
 | C9 Extra's | | | | |
 | C10 Co-op | | | | |
 | C11 Naast het origineel | | | | |
 | C12 Keen 1 en 2 bijwerken | | | | |
-| **Totaal tot nu toe** | 17-10 t/m 18-10 | **~4 u 25** | | C1-C6 |
+| **Totaal tot nu toe** | 17-10 t/m 18-10 | **~5 u 05** | | C1-C7: Keen 3 is uit te spelen |

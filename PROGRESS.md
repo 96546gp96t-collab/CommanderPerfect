@@ -60,7 +60,7 @@ over Keen 3 bekend is in [docs/keen3/research.md](docs/keen3/research.md).
 | C4 | Vijanden (grunt, youth, moeder, Meep, ninja, Foob) | ✅ Klaar en gecontroleerd door de architect (branch `milestone-c4-vijanden`) |
 | C5 | Bal, jack, platforms, wapens in de muur | ✅ Klaar en gecontroleerd door de architect (branch `milestone-c5-mechaniek`) |
 | C6 | Wereldkaart: teleporters, Messie, het schip, statusscherm | ✅ Klaar en gecontroleerd door de architect (branch `milestone-c6-kaart`) |
-| C7 | Mortimer, de Mangling Machine en het einde | ✅ Gebouwd, wacht op controle architect (branch `milestone-c7-mortimer-einde`) |
+| C7 | Mortimer, de Mangling Machine en het einde | ✅ Klaar en gecontroleerd door de architect (branch `milestone-c7-mortimer-einde`) |
 | C8 | Geluid, menu's, opslaan, highscores | ⬜ |
 | C9 | Mooier maken (framerate, xBRZ, achtergronden, builds) | ⬜ |
 | C10 | Co-op lokaal en online | ⬜ |
@@ -1474,12 +1474,11 @@ Keen 3:
    de teleporters, het schip, Messie (opstappen door tegen haar aan te
    lopen, afstappen met een pijltje naar het eiland van level 16 of naar
    de Hidden City), het statusscherm (Enter) op de kaart en in een level.
-2. **Architect:** C7 controleren (branch `milestone-c7-mortimer-einde`).
-3. **Voor de gebruiker:** Keen 3 van begin tot eind spelen in `build/`
+2. **Voor de gebruiker:** Keen 3 van begin tot eind spelen in `build/`
    (Mac en Windows): level 16 met Mortimer (Spatie slaat over), de
    machine (vonken, armen, benen, het hart), de randflits, het einde; of
    direct met `-- --game=3 --level=16` en `-- --game=3 --ending`.
-4. Daarna C8 (branch `milestone-c8-geluid-menus` vanaf
+3. Daarna C8, als de gebruiker dat vraagt (branch `milestone-c8-geluid-menus` vanaf
    `milestone-c7-mortimer-einde`): geluid, titel, menu's, opslaan,
    highscores (ook na het einde). De regressies weer in een venster.
 
