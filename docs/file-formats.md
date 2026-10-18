@@ -226,7 +226,7 @@ Behaviors seen in Keen 1 (version 1.1).
 
 | Value | Tiles | Meaning |
 |---|---|---|
-| -2 | — | Masked: drawn in front through a mask (not used in Keen 1) |
+| -2 | — | Masked: drawn in front through a mask, the next tile (not used in Keen 1; see below) |
 | -1 | 32 tiles, e.g. 288-301, 408-423 | Foreground: drawn in front of Keen |
 | 0 | most | Nothing |
 | 1 | fire, spikes, water, icicles | Deadly |
@@ -240,6 +240,20 @@ Behaviors seen in Keen 1 (version 1.1).
 | 22 | 435-438, 485-488 | Yorp and Garg statues that show a message (below) |
 | 23 | 271 | Looks like a light switch; no level of Keen 1 uses it |
 | 24 | 481-484, 494-497 | Teleporter: only in level 13; it takes Keen out of the level to a secret place on the map |
+
+**Masked tiles (behavior -2).** Keen 1 has none; Keen 2 and Keen 3 use
+them for things Keen can walk behind (fences, window frames, tables, trees,
+clouds). A masked tile is drawn behind the sprites like any tile, and in
+front of them only through its mask: **the next tile** (tile + 1), drawn in
+black and white only (EGA 0 and 15). Black means that the masked tile's
+pixel is drawn in front, white that it is see-through. All ten masked tiles
+of Keen 3 (108, 329, 398, 411, 479, 492, 505, 524, 526, 565) have such a
+mask. In Keen 2 all do except 371, 372 and 373, whose next tile is an
+ordinary tile; they are solid on every side and stay plain foreground tiles,
+drawn wholly in front. CommanderPerfect decides per tile: a masked tile
+whose next tile is black and white is drawn through it
+(`EgaGraphics.has_tile_mask`, `MaskedTiles`), every other one as a
+foreground tile (behavior -1).
 
 **Points table.** Right before the statue messages (below) are five 16-bit
 words: 500, 100, 200, 1000, 5000. These are the points of behaviors 6-10,

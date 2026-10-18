@@ -53,6 +53,18 @@ repeats its edge, so that linear filtering never picks up the neighbouring
 tile in the atlas. Godot's own texture padding is off, because it would be
 made from the larger image.
 
+Masked tiles (behavior -2, Keen 2 and 3; see `docs/file-formats.md`) are
+drawn by `LevelMap` on three layers: the whole tile behind the sprites, and
+on a layer in front of them (`masked()`, the z index of the foreground) the
+same tile through `masked_tiles.gdshader`. The shader reads the mask from
+the next cell of the same atlas (after the last column: the first cell of
+the next row) and keeps a pixel where the mask is darker than half. That
+works for the original, xBRZ and HD atlases alike, because the mask tile is
+scaled with the others. In the atlas behind a picture (below) a mask loses
+its black or white where that is the level's background color; the shader
+then counts those holes as black when the background is dark
+(`MaskedTiles`). A level without masked tiles leaves the third layer empty.
+
 `GraphicsLoader` makes xBRZ or reads HD graphics on worker threads (xBRZ:
 one image per job, all cores, under a second); the game keeps running with
 the current graphics until they are ready. What it made is kept, so

@@ -523,3 +523,30 @@ change: `--game=3 --ending` already skips the start screen and opens Keen
   level without them has none). `test_keen3_play`'s "level 16 done wins"
   still holds unchanged (the course emits `won`; the view now shows the
   ending).
+
+## Masked tiles (fix after C7)
+
+A shared, behaviour-changing fix, approved by the user for Keen 2 as well
+(18-10-2026). Tiles with behaviour -2 were drawn as plain foreground tiles,
+so for example the gray around the fence of Keen 3's level 14 hid Keen.
+Now `LevelMap` draws a masked tile whose next tile is a black-and-white
+mask whole on its normal layer, and again on a third layer in front of the
+sprites (`masked()`, z index of the foreground) through
+`src/graphics/masked_tiles.gdshader`, which reads the mask from the next
+atlas cell (rules in `docs/file-formats.md`, drawing in
+`docs/graphics.md`). Masked tiles without a mask (Keen 2's 371-373) and
+behaviour -1 tiles are drawn as before.
+
+The shared changes are additive: `EgaGraphics.has_tile_mask` and
+`is_black_and_white` (new), `MaskedTiles` (new; a custom data layer and a
+material that `LevelTileSet.build` adds to every tile set, so none of its
+callers changed), and `LevelMap` (the third layer, `masked()`, and the
+choice in `_draw_tile`). Keen 1 has no masked tiles, so its third layer
+stays empty and every cell lands where it did; `test_masked_tiles` checks
+that for every Keen 1 level and map, and `keen1_regression.sh` and
+`keen2_regression.sh` against `a9d04cc` give the same screenshots (only
+`launcher.png` differs). Everything that draws a level goes through
+`LevelMap`, so the world maps (Keen 2's map 80 has masked tiles), the two
+viewports of two players (one World shared), the online client
+(`RemoteGame`) and the scene screens get it as well; the data viewer
+(`LevelImageBuilder`) draws no sprites and is unchanged.

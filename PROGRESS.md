@@ -138,6 +138,14 @@ Mangling Machine", "The border flash", "The ending"); afwijkingen in
   1); of het origineel oude Mortimer-vensters laat staan; de y-plek van de
   vensters in het einde; de fade-snelheid; de randflits zelf nog niet in
   het origineel gezien.
+- **Gemaskeerde tiles (fix na C7, goedgekeurd voor Keen 2 en 3):** tiles
+  met gedrag -2 (hekken, raamkozijnen, tafels, bomen, wolken) worden nu
+  heel achter Keen getekend en ervoor alleen waar hun masker (de volgende
+  tile, zwart-wit) zwart is; Keen is door de open delen te zien, ook met
+  xBRZ en op de kaart van Keen 2. Keen 2's 371-373 hebben geen masker en
+  blijven gewone voorgrond-tiles. Keen 1 heeft ze niet en blijft byte voor
+  byte gelijk (regressie tegen `a9d04cc`). Zie `docs/keen3/architecture.md`,
+  "Masked tiles (fix after C7)".
 
 ## Mijlpaal C6: wat er nu is
 
@@ -1431,7 +1439,7 @@ het origineel. Details in `docs/world-map.md` onder "Extra levels".
 - De scores in een nieuwe highscorelijst (100) en de plek van de tabel in de rode lijst zijn geschat.
 - Level overslaan (cheat of Page Up/Down) houdt de inventaris, en een level dat zo gekozen is telt wel mee als het wordt uitgespeeld.
 - De data viewer toont tiles nog zonder animatie en zonder voorgrond-markering.
-- Gemaskeerde tiles (gedrag -2) worden als gewone voorgrond-tiles getekend; Keen 1 gebruikt ze niet.
+- Gemaskeerde tiles (gedrag -2) zonder zwart-wit masker als volgende tile (Keen 2: 371-373) worden als gewone voorgrond-tiles getekend, zoals Commander Genius ze als tile-fout ziet; of het origineel ze anders tekent, is niet nagekeken.
 - In de data viewer wordt de info-laag nog alleen gemarkeerd, zonder namen van de vijanden.
 - Zodra het beeld niet het originele is (xBRZ, HD of vloeiende beweging), scrolt de camera ook in delen van een spelpixel, ook als vloeiende beweging uit staat. Sprites staan dan wel op hele spelpixels.
 - Real-ESRGAN is gemaakt voor foto's en tekeningen, niet voor pixelart; of `realesrgan-x4plus-anime` mooi is, moet blijken. Een ander model kiezen kan met `MODEL=`.

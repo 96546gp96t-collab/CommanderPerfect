@@ -7,6 +7,8 @@ extends RefCounted
 ## lets a tile number from a level file be used directly. Every tile has a
 ## border that repeats its edge pixels, so that smoothly scaled graphics
 ## never show a line of the neighbouring tile in the atlas.
+##
+## The tile set also knows which tiles have a mask ([MaskedTiles]).
 
 const SOURCE_ID := 0
 const ATLAS_COLUMNS := 16
@@ -40,6 +42,7 @@ static func build(
 	var tile_set := TileSet.new()
 	tile_set.tile_size = tile_size
 	tile_set.add_source(source, SOURCE_ID)
+	MaskedTiles.mark(tile_set, graphics, backdrop_color)
 	return tile_set
 
 

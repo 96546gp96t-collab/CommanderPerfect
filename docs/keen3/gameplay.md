@@ -501,6 +501,19 @@ area). Map 81 in the ending (C7): the camera keeps to its playable area,
 black bars in widescreen. Still to check in later milestones: map 90 (C8)
 and two players (C10).
 
+## Masked tiles
+
+Ten tiles have behaviour -2 (108, 329, 398, 411, 479, 492, 505, 524, 526,
+565): the fence of level 14, tables, trees and clouds, in levels 1-5, 7,
+9, 10, 12, 14, 15 and on map 90. Each is followed by its mask, a
+black-and-white tile. Keen and the enemies walk behind them: the tile is
+drawn behind the sprites, and in front of them only where the mask is
+black (the fence's wires, a table's top and legs), so Keen shows through
+the rest. Fixed after C7 in the shared `LevelMap` (architecture.md,
+"Masked tiles (fix after C7)"); checked in the app with Keen behind the
+fence of level 14 and at a table in level 1, original and xBRZ. None of
+them is animated.
+
 ## Not yet
 
 Title, menus, saving and high
