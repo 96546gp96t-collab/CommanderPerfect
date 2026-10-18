@@ -6,10 +6,10 @@ extends GameScreen
 ## whole game shows ("Keens Left", GAME OVER), Keen 3's own sounds
 ## ([Keen3Sounds]) and going back to the start screen.
 ##
-## Planned like Keen 2's chain (docs/keen3/architecture.md): this class
-## grows the scenes that are no level (the ending, milestone C7), a
-## Keen3MenuScreen between this and [Keen3View] gets the title and the
-## menus (C8), and [Keen3View] plays the game. Generic parts are copied from
+## Planned like Keen 2's chain (docs/keen3/architecture.md): on this class
+## [Keen3EndingScreen] has the scenes that are no plain level (Mortimer, the
+## border flash, the ending; milestone C7), a Keen3MenuScreen will get the
+## title and the menus (C8), and [Keen3View] plays the game. Generic parts are copied from
 ## Keen 2's screens, which are not used: they hold Keen 2 types and numbers.
 
 const MISSING_DATA_MESSAGE := (

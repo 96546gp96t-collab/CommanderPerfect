@@ -5,7 +5,8 @@ extends RefCounted
 ## hands it the awake enemies (only they touch anything):
 ##   Keen's shot   splashes on every awake sprite but Keen and the corpses:
 ##                 an enemy loses a hit; a fireball splashes too; a wave or
-##                 a gun's shot flies on
+##                 a gun's shot flies on; a spark or the heart of the
+##                 machine is destroyed ([method Keen3Machine.hit])
 ##   fireball      kills Keen (also a stunned one), grunts and Foobs, and
 ##                 splashes on anything but a mother or a corpse
 ##   gun's shot    flies through everything and kills Keen, grunts and Foobs
@@ -58,6 +59,10 @@ func _hit_with_keen_shot(shot: Keen3Shot, targets: Array[Enemy]) -> void:
 			_splash(shot)
 			return
 		if actor is Keen3SoundWave or _is_flying_gun_shot(actor):
+			_splash(shot)
+			return
+		if actor is Keen3Spark or actor is Keen3Heart:
+			_session.shoot_machine(actor)
 			_splash(shot)
 			return
 

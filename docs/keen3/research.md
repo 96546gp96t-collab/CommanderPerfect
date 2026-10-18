@@ -692,6 +692,28 @@ tools, icons matched pixel for pixel against our own tiles):
 - Not seen: a done sign (no level was finished), getting on and off
   Messie, the 30-frame lock, sounds.
 
+Watched again in C7 (18-10-2026; js-dos 8.5.3, KEEN3.EXE 1.00). Level 16
+cannot be reached by script, so in a scratch copy of the player's files
+`LEVEL16.CK3` was copied over `LEVEL01.CK3` and level 1's entrance was
+entered from a new game (G+O+D on). Mortimer does not speak then (he
+belongs to level number 16), but the machine runs. A 12-second recording,
+the lowest pixel of each arm's column and the top of each foot tracked per
+frame:
+
+- **Arms:** 7 positions (rows 10-16), a step down every ~108 ms, up every
+  ~271 ms (Choco 15 and 40 clock ticks: 103 and 275 ms); at both ends the
+  arm rests ~371 ms before it moves again, which is the turn taking one
+  step without moving plus the next step. (sure)
+- **Feet:** a step every ~245 ms (Choco 35 clock ticks: 240 ms); under the
+  body ~490 ms (the turn's step); on the floor ~1.9 s: the step that finds
+  the floor, 200 clock ticks, and a step for the turn (1.85 s). (likely)
+- **The first view** of the level is lower than ours: the original shows
+  rows from ~5.6 (Mortimer's face at the top, the feet at the bottom),
+  ours centres Keen and shows rows 2-14.5. The same kind of difference as
+  level 1's first view (C3, gameplay.md "Seen in the original"); for C11.
+- Not seen: Mortimer, a spark or the heart being shot, the sweeps, the
+  border flash, the ending.
+
 ## Only the original can answer
 
 Collect the answers here (js-dos) during C3-C10; C11 finishes the list.
@@ -710,8 +732,9 @@ Collect the answers here (js-dos) during C3-C10; C11 finishes the list.
     floor (~~the up-and-down platform's speed, its turn at the floor and,
     roughly, its wait at the ceiling~~: seen in C5; the sideways one and
     riding into a ceiling are still open).
-11. The machine: arm and leg steps, the sweeps, how long until the level is
-    won; what the border flash looks like.
+11. The machine: ~~arm and leg steps~~ (seen in C7, with level 16 copied
+    over level 1: see below), the sweeps, how long until the level is won;
+    what the border flash looks like.
 12. The Mortimer boxes: places, pauses, skipping.
 13. ~~Teleporters: the animation and the jump of the view~~ (seen in C6).
 14. Messie: ~~start (35,8), speed, the wait at the weed~~ (seen in C6),

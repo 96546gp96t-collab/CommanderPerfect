@@ -60,12 +60,84 @@ over Keen 3 bekend is in [docs/keen3/research.md](docs/keen3/research.md).
 | C4 | Vijanden (grunt, youth, moeder, Meep, ninja, Foob) | ✅ Klaar en gecontroleerd door de architect (branch `milestone-c4-vijanden`) |
 | C5 | Bal, jack, platforms, wapens in de muur | ✅ Klaar en gecontroleerd door de architect (branch `milestone-c5-mechaniek`) |
 | C6 | Wereldkaart: teleporters, Messie, het schip, statusscherm | ✅ Klaar en gecontroleerd door de architect (branch `milestone-c6-kaart`) |
-| C7 | Mortimer, de Mangling Machine en het einde | ⬜ |
+| C7 | Mortimer, de Mangling Machine en het einde | ✅ Gebouwd, wacht op controle architect (branch `milestone-c7-mortimer-einde`) |
 | C8 | Geluid, menu's, opslaan, highscores | ⬜ |
 | C9 | Mooier maken (framerate, xBRZ, achtergronden, builds) | ⬜ |
 | C10 | Co-op lokaal en online | ⬜ |
 | C11 | Naast het origineel (wat nog geschat is) | ⬜ |
 | C12 | Keen 1 en 2 bijwerken met de getallen uit Chocolate Keen (ook de sprongen) | ⬜ |
+
+## Mijlpaal C7: wat er nu is
+
+Gebouwd en getest met de echte Keen 3-bestanden van de gebruiker (1.00).
+Getallen uit Chocolate Keen (`(Choco)`), de armen en benen nagekeken in
+js-dos. De regels staan in `docs/keen3/gameplay.md` ("Mortimer", "The
+Mangling Machine", "The border flash", "The ending"); afwijkingen in
+`docs/keen3/architecture.md`, "Deviations in C7".
+
+- **Mortimer** (`Keen3Mortimer`, `Keen3TypedBoxes`): elke keer dat level 16
+  begint staat het level met zijn sprites stil, speelt MORTIMER tot het
+  eind, en worden zijn negen vensters uit KEEN3.EXE getypt (6 retraces per
+  letter), met de maten, plekken en pauzes van Choco; één venster
+  tegelijk. Escape, Spatie of een knop slaat de rest over (Escape verlaat
+  het spel dan niet).
+- **De Mangling Machine** (`Keen3Machine`, `Keen3MachineArm`,
+  `Keen3MachineLeg`, `Keen3MachineSweep`, `Keen3Spark`, `Keen3Heart`):
+  zes vonken (+1000 en de randflits per vonk), het hart (146/147), twee
+  armen (omlaag elke 6,2 ticks, omhoog elke 16,5, keren bij 471 en bij het
+  einde van de schacht), twee benen (stap elke 14,4 ticks, FOOTSLAM op de
+  vloer, 82 ticks wachten). Bij de zesde vonk stoppen de armen en veegt
+  een sweep de kolommen 5-7 en 17-19 schoon (ook tile 611 die het hart
+  afschermt). Het hart: +1000, randflits, benen stoppen, alle sprites
+  behalve Keen weg, sweep over het lichaam, 181 ticks later is het level
+  klaar en volgt het einde. Alle tiles via `LevelSession.set_tile`, dus
+  xBRZ en HD volgen (gezien met xBRZ). Geen trillend scherm (Choco).
+- **De randflits** (besluit van de gebruiker): een dun kader (2
+  spelpixels) knippert geel en cyaan (EGA 14 en 3, elke 26 ticks, 124
+  ticks lang, zoals het origineel) rond het beeld: in de zwarte balken
+  naast het 4:3-beeld, of op de rand van het beeld zelf als er geen ruimte
+  is (breedbeeld).
+- **Het einde** (`Keen3Ending`, `Keen3EndingScreen`): map 81 met een
+  Vorticon en Keen, infaden, de vier pagina's getypt (120 retraces na
+  elke), vijf cameraflitsen (tile wisselt, het beeld licht 2 retraces op,
+  CLICKSND, wachttijden 20/10/5/10/15), 120, uitfaden; FINALE.CK3 infaden,
+  400 retraces, het venster eroverheen getypt, een toets; de eindtekst
+  (scrollen met omhoog/omlaag) met MORTIMER; dan GAME OVER en het
+  startscherm (highscores in C8). In breedbeeld zwarte balken naast map
+  81, nooit de rand. `-- --game=3 --ending` start het einde direct.
+- **Gedeelde code:** niets veranderd (ook `GameLaunch` niet: `--game=3
+  --ending` werkte al; `--ending` zonder `--game=3` blijft Keen 1).
+- **Tests:** vier nieuwe suites: `test_keen3_machine` (zelfgemaakt level
+  16, `tests/keen3_machine_fixtures.gd`), `test_keen3_scenes` (Mortimer,
+  typen, vensterplek, randflits, `--ending`), `test_keen3_ending` (alle
+  stappen van het einde) en `test_keen3_machine_data` (echte bestanden:
+  de machine van level 16, een echt schot op het hart wint het spel, de
+  teksten passen in hun vensters, map 81). Aangepast:
+  `test_keen3_level` ("machine-infowaarden maken nog niets" werd "maken
+  de machine"). Alle 58 suites slagen, geen `SCRIPT ERROR`, gdlint schoon.
+- **Keen 1- en Keen 2-controle:** `keen1_regression.sh` en
+  `keen2_regression.sh` tegen `a9d04cc` in een venster (fullscreen even
+  uit, daarna byte voor byte teruggezet): alles gelijk behalve
+  `launcher.png`. `git diff a9d04cc` op de gedeelde mappen toont alleen de
+  C2-wijzigingen.
+- **js-dos:** level 16 is niet te bereiken met een script; in een kopie
+  van de bestanden in de scratchpad is LEVEL16.CK3 over LEVEL01.CK3 gezet.
+  Daar draait de machine (zonder Mortimer, die hoort bij levelnummer 16):
+  de armen (stap omlaag ~108 ms, omhoog ~271 ms, ~371 ms stil aan elk
+  eind) en de voeten (~245 ms per stap, ~1,9 s op de vloer) kloppen met
+  onze getallen; daarop is het wachten na FOOTSLAM met één stap verlengd.
+  Niet gezien: Mortimer, een vonk of het hart raken, de sweeps, de
+  randflits, het einde.
+- **Bekeken in de app** (scratchpad `c7shots/`): Mortimers vensters (4:3
+  en breedbeeld), de machine in beweging, de randflits na een vonk, na de
+  zesde vonk, de sweep van het hart (ook met xBRZ), en elk deel van het
+  einde (infaden, pagina's, een cameraflits, het plaatje met venster, de
+  eindtekst, GAME OVER) in 4:3 en breedbeeld.
+- **Open punten:** het eerste beeld van level 16 staat in het origineel
+  lager (gezicht bovenaan, voeten onderaan) dan bij ons (C11, zoals level
+  1); of het origineel oude Mortimer-vensters laat staan; de y-plek van de
+  vensters in het einde; de fade-snelheid; de randflits zelf nog niet in
+  het origineel gezien.
 
 ## Mijlpaal C6: wat er nu is
 
@@ -1397,15 +1469,19 @@ Na de eerste eigen test van de gebruiker:
 
 Keen 3:
 
-1. **Voor de gebruiker:** Keen 3 proberen in `build/` (Mac en Windows): de
+1. **Voor de gebruiker (C6):** Keen 3 proberen in `build/` (Mac en Windows): de
    wereldkaart (lopen, levels in en uit, de bordjes, de muren die opengaan),
    de teleporters, het schip, Messie (opstappen door tegen haar aan te
    lopen, afstappen met een pijltje naar het eiland van level 16 of naar
    de Hidden City), het statusscherm (Enter) op de kaart en in een level.
-2. Daarna C7, als de gebruiker dat vraagt (branch
-   `milestone-c7-mortimer-einde` vanaf `milestone-c6-kaart`): level 16 met
-   Mortimer en de Mangling Machine, en het einde (zie
-   `docs/keen3/roadmap.md` C7). De regressies weer in een venster draaien.
+2. **Architect:** C7 controleren (branch `milestone-c7-mortimer-einde`).
+3. **Voor de gebruiker:** Keen 3 van begin tot eind spelen in `build/`
+   (Mac en Windows): level 16 met Mortimer (Spatie slaat over), de
+   machine (vonken, armen, benen, het hart), de randflits, het einde; of
+   direct met `-- --game=3 --level=16` en `-- --game=3 --ending`.
+4. Daarna C8 (branch `milestone-c8-geluid-menus` vanaf
+   `milestone-c7-mortimer-einde`): geluid, titel, menu's, opslaan,
+   highscores (ook na het einde). De regressies weer in een venster.
 
 Keen 2:
 

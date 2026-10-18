@@ -30,9 +30,9 @@ const FIELD: PackedStringArray = [
 ]
 const START_CELL := Vector2i(2, 12)
 const FEET_ROW := 13
-## The info values of level 16's machine (research.md §5), which spawn
-## nothing until C7: the enemies (1-6, 11) came in C4, the ball, jack,
-## platforms and guns (7-10, 14, 15) in C5.
+## The info values of level 16's machine (research.md §5): since C7 they
+## make Mortimer's Mangling Machine (the machine itself is tested in
+## tests/test_keen3_machine.gd).
 const MACHINE_INFOS: Array[int] = [12, 13, 16, 17, 18]
 
 
@@ -176,7 +176,7 @@ func test_behaviour_22_only_becomes_143() -> void:
 	assert_equal(session.outcome, LevelSession.Outcome.PLAYING, "nothing else")
 
 
-func test_the_machine_info_values_spawn_nothing_yet() -> void:
+func test_the_machine_info_values_make_the_machine() -> void:
 	var infos: Dictionary[Vector2i, int] = {}
 	for value in MACHINE_INFOS:
 		infos[Vector2i(value, FEET_ROW - 1)] = value
@@ -186,8 +186,17 @@ func test_the_machine_info_values_spawn_nothing_yet() -> void:
 		Keen3Inventory.new(),
 		Fixtures.cell_top_left(START_CELL)
 	)
-	assert_true(session.actors.is_empty(), "nothing before C7")
+	var machine := session.machine
+	assert_true(machine != null, "a machine (C7)")
+	if machine != null:
+		assert_equal([machine.arms.size(), machine.legs.size()], [1, 2], "an arm, two legs")
+	assert_equal(session.actors.size(), 2, "a spark and the heart")
 	assert_true(session.keen is Keen3Body, "Keen 3's Keen")
+
+
+func test_a_level_without_a_machine_has_none() -> void:
+	var session := _session(FIELD)
+	assert_true(session.machine == null, "no machine")
 
 
 func test_shots_use_keen_3_sprites() -> void:

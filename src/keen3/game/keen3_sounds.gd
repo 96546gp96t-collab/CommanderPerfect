@@ -46,3 +46,9 @@ func play(sound_name: String) -> void:
 		return
 	_speaker.stream = _streams[sound_name]
 	_speaker.play()
+
+
+## How long the sound [param sound_name] lasts, in seconds; 0 when it was
+## not found. Mortimer waits for his sound to end (also with the sound off).
+func seconds(sound_name: String) -> float:
+	return _streams[sound_name].get_length() if _streams.has(sound_name) else 0.0

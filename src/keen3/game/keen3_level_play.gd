@@ -23,7 +23,7 @@ signal map_started
 signal life_lost(lives: int)
 ## Keen died with no lives left.
 signal game_over
-## Level 16 is done: the game is won (the ending comes in milestone C7).
+## Level 16 is done: the game is won; the view shows the ending.
 signal won
 
 enum State { MAP, PLAYING, GAME_OVER, WON }

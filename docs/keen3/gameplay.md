@@ -18,9 +18,10 @@ levels (`Keen3LevelPlay`). There is no title or menu yet (C8).
 | Keen 3 picked on the start screen | A new game on the world map, with "Keens Left" |
 | `-- --game=3`, `-- --game=3 --level=80` | The same |
 | `-- --game=3 --level=N` | Level N (1-16), then the map; another number: the map, with a message |
+| `-- --game=3 --ending` | The ending at once (C7), for testing; `--ending` without `--game=3` stays Keen 1's |
 | The jump or pogo button on an entrance | That level, unless it is done |
 | Keen walks out through an exit | The level is done (its sign on the map), the keycards are taken away, and Keen is back on the map where he entered it, with the same view |
-| Level 16 done (anything but a death ends it) | "You won - the ending comes later" for 5 s or until a key, then the start screen (the ending comes in C7) |
+| Level 16 done (anything but a death ends it; the machine ends it 181 ticks after the heart is shot) | The ending (C7), then GAME OVER and the start screen (high scores in C8) |
 | Keen dies | One life less, back on the map where he entered the level, with "Keens Left" |
 | Keen dies without lives left | GAME OVER (the bitmap, bare over the level) for 5.27 s or until a key, then the start screen |
 | The status key (Enter) | The status screen, on the map and in a level |
@@ -28,8 +29,8 @@ levels (`Keen3LevelPlay`). There is no title or menu yet (C8).
 
 Every level starts fresh from its file (its items are back, Keen has no
 ankh); the map too, with the done signs put back. Messie and the view are
-kept between levels (`Keen3Progress`). Level 16 has no exit until C7, so
-the game can only be won by a test for now.
+kept between levels (`Keen3Progress`). Level 16 has no exit: it ends when
+the heart of Mortimer's machine is destroyed (C7).
 
 "Keens Left" is a window of 16x4 cells with a little Keen (sprite 35,
 MAPKEEND1) per life, at most 6 (Choco); the game waits while it is open;
@@ -38,11 +39,141 @@ Cheats for testing, as in Keen 1 and 2: Shift+N / Shift+P (next / previous
 level, wrapping around; from the map level 1 / level 16), Shift+I (all
 keycards, 99 charges), Shift+G (god mode, in a level).
 
-Code: `Keen3View` (the scene) on `Keen3SceneScreen` (setup, loading, the
+Code: `Keen3View` (the scene) on `Keen3EndingScreen` (Mortimer, the
+border flash, the ending; C7) on `Keen3SceneScreen` (setup, loading, the
 windows, leaving) on `GameScreen`; `Keen3LevelPlay` (the course),
 `Keen3Progress` (the game), `Keen3MapSession` (the map),
 `Keen3LevelSession` (one attempt at a level), `Keen3Body` (Keen and the
 ankh).
+
+## Mortimer (C7)
+
+Every time level 16 starts (`Keen3Mortimer`, Choco
+`CVort3_handle_grand_intellect`): the level is drawn with its sprites, then
+MORTIMER plays to its end (its length from the sound block, also with the
+sound off) and his nine boxes from KEEN3.EXE are typed one after another
+(`Keen3TypedBoxes`), a letter every 6 retraces (70.086 a second; spaces
+count as letters, an estimate). Keen cannot move meanwhile. Escape, Space
+(fire) or a button (jump, pogo, fire) skips everything that is left;
+during Mortimer, Escape does not leave the game.
+
+| # | Inside w x h | Middle row | Frame's top left (cells) | Pause after (retraces) |
+|---|---|---|---|---|
+| 1 | 5 x 1 | 20 | (17, 20) | 180 |
+| 2 | 12 x 1 | 20 | (13, 20) | 180 |
+| 3 | 18 x 1 | 20 | (10, 20) | 240 |
+| 4 | 38 x 5 | 20 | (0, 18) | 240 |
+| 5 | 38 x 5 | 20 | (0, 18) | 240 |
+| 6 | 31 x 2 | 20 | (4, 19) | 180 |
+| 7 | 35 x 4 | 18 | (2, 16) | 180 |
+| 8 | 34 x 1 | 20 | (2, 20) | 180 |
+| 9 | 38 x 3 | 18 | (0, 17) | 240 |
+
+The frame's top left is (19 − w/2, row − h/2) in 8-pixel text cells of
+the 320x200 picture (Choco); in widescreen the picture is the middle 320
+pixels (`Keen3Window.open_at`). Only one box shows at a time (estimate:
+whether the original leaves the edges of a larger earlier box standing is
+not known). A box is never narrower than its longest line.
+
+## The Mangling Machine (C7)
+
+`Keen3Machine` (src/keen3/level/), made by `Keen3LevelSession` when the
+info layer has values 12, 13, 16, 17 or 18, stepped after every tick.
+Every tile change goes through `LevelSession.set_tile`, so the drawing, also
+in xBRZ and HD, follows. Numbers from Choco (clock ticks × 0.412):
+
+- **Sparks** (12, `Keen3Spark`): sprites 114-117, a frame every 3.3 ticks,
+  box (2,2)-(13,13). Keen's shot splashes on a spark and destroys it:
+  +1000 and the border flash. Touching it does nothing.
+- **Heart** (13, `Keen3Heart`): 146/147 in turn every 9.9 ticks. Tile 611
+  at (7,8) and (17,8) (solid) stops the shots along its row until the
+  sixth spark's sweep. A shot: +1000, the border flash, both legs stop,
+  every sprite but Keen (and his ankh halo) is removed (Meeps, waves,
+  shots, sparks, the wall guns), a sweep clears columns 8-16, rows 3-18, a
+  row every 8.2 ticks, and 181 ticks after the shot the level is done.
+- **Arms** (16, `Keen3MachineArm`): the shaft (597) ends in the arm's cell
+  with a claw on each side (618, 620, 619 from the top). Start going down,
+  a tile every 6.2 ticks; up a tile every 16.5. Going down they turn up
+  when the tile 3 below is 471; going up they turn down when the tile
+  above is no shaft. A turn takes a step without moving (seen in js-dos,
+  below). A move
+  clears the cell and the cells beside and below it and draws the shaft
+  and the claws again. Level 16: the left arm moves between rows 10 and 16
+  (starting at 10), the right one between 10 and 16 (starting at 16, so it
+  turns up first).
+- **Legs** (17 left, 18 right, `Keen3MachineLeg`): the shaft ends in the
+  foot, 621, 623, 623, 622 from left to right; the left foot reaches 3
+  tiles left of the leg's cell, the right one 3 tiles right (as level 16
+  draws both feet). A step every 14.4 ticks; the left leg starts up, the
+  right one down. Going up they turn down when the tile above is no shaft
+  (rows 15-18 in level 16); going down onto 430: FOOTSLAM, 82 ticks, a
+  step for the turn, then up (seen in js-dos, below).
+- **The sixth spark**: both arms stop where they are, and a sweep clears
+  columns 5-7 and 17-19, rows 7-18, a row every 12.4 ticks: every tile that
+  is not 169 becomes 169, with a splash (105) on it and one SHOTHIT per
+  row. That takes 611 away.
+- The arms, legs, claws and the body's frame kill by their tiles
+  (behaviour 1); the two Meeps and the two wall guns are C4's and C5's.
+- **No screen shake** (Choco: the original does not shake; Commander Genius
+  does).
+
+Seen in js-dos in C7 (level 16 copied over level 1 in a scratch copy of
+the player's files, so the map's first entrance opens it; Mortimer does not
+speak there, he belongs to level number 16): both arms move between the
+same 7 rows, a step down every ~108 ms (ours 103), up every ~271 ms (ours
+275), and rest ~371 ms at each end (ours 378: the turn's step plus the
+next); the feet step every ~245 ms (ours 240), rest ~490 ms under the body
+(ours 480) and ~1.9 s on the floor (ours 1.85 s: the step that finds the
+floor, the 82 ticks, the turning step). Not seen: Mortimer, the sparks and
+the heart being shot, the sweeps, the border flash (Keen could not be
+steered to a spark by script in the time given).
+
+## The border flash (C7)
+
+The original makes the EGA border blink yellow and cyan (colours 14 and 3,
+every 26 ticks for 124 ticks) when a spark or the heart is shot. By the
+user's decision (C1) it is a thin frame around the game picture
+(`Keen3BorderFlash`, 2 game pixels thick, our choice): in the black bars
+around the 4:3 picture when the window has room for it, otherwise over the
+outermost pixels of the picture itself (a window of exactly that shape,
+and mostly widescreen, where the picture fills the window). Same colours
+and timing as the original.
+
+## The ending (C7)
+
+`Keen3Ending` (the logic, in retraces) and `Keen3EndingScreen` (the
+drawing), Choco `CVort3_draw_win` and `CVort3_blink_camera_flash`:
+
+1. Map 81 with the view's top left at tile (2,2), a Vorticon (sprite 67) at
+   tile (14,6) and Keen (sprite 0) at (15.5,6.5); it fades in (4 steps, 8
+   retraces apart, an estimate after the death fade seen in js-dos).
+2. The four pages from KEEN3.EXE, typed one after another at 6 retraces a
+   letter, 120 retraces after each. Choco gives their frames as
+   (4,18)-(43,23), (4,18)-(43,22) twice and (17,18)-(30,20) in the cells
+   of its screen buffer, whose visible part starts at the view's corner
+   (2,2) = 4 cells right and down; less those 4 cells they are (0,14) with
+   38 x 4 inside, (0,14) 38 x 3 twice and (13,14) 12 x 1: every box
+   centred. (That the y offset is 4 cells too is our reading; to check in
+   js-dos.)
+3. Five camera flashes: (19,5) → 58, (3,8) → 60, (5,8) → 60, (20,5) → 58,
+   (8,8) → 60; each with CLICKSND and the whole picture lighter for 2
+   retraces (`Keen3ScreenTint`, our reading of the camera-flash palette:
+   all colours bright), then the tile back to 72 or 61 and a wait of 20,
+   10, 5, 10, 15 retraces; then 120 and a fade out.
+4. FINALE.CK3 fades in; after 400 retraces the box from KEEN3.EXE is typed
+   in the frame (18,20)-(29,24), on the picture (14,16) with 10 x 3 inside;
+   a key goes on once it is typed.
+5. The end text (KEEN3.EXE), 38 columns by 23 lines in the shared window,
+   scrolled with up and down as Keen 1's and 2's, with MORTIMER playing at
+   its start; a key ends it.
+6. GAME OVER (the bitmap) on a black screen, 5.27 s or a key, then the
+   start screen (the high scores come in C8).
+
+Map 81 is 24x17; its playable part (20x13 tiles) is as wide as the 4:3
+view, so in widescreen black bars show beside it, never its border (the
+camera keeps to the playable area). The map layer is hidden while the
+picture or the end text shows. Escape leaves for the start screen at any
+time.
 
 ## The world map (C6)
 
@@ -366,12 +497,13 @@ checks for every level 1-16 that no border cell is drawn and that the
 camera keeps to the playable area for views of 320, 426 and 480 pixels.
 Nothing had to change for Keen 3. The map (C6) keeps the border out of
 view with its own scrolling (`Keen3MapScroll` clamps to the playable
-area). Still to check in later milestones: map 81 (C7), map 90 (C8) and two
-players (C10).
+area). Map 81 in the ending (C7): the camera keeps to its playable area,
+black bars in widescreen. Still to check in later milestones: map 90 (C8)
+and two players (C10).
 
 ## Not yet
 
-Level 16's machine and the ending (C7), title, menus, saving and high
+Title, menus, saving and high
 scores (C8; the map's state, Messie included, is not saved yet), the pictures behind levels (C9; never Keen 1's or 2's),
 two players (C10).
 
@@ -474,6 +606,22 @@ C11.
   the ship, Messie's start, closed 256-cell loop, both landings, her timing
   against js-dos, riding to level 16 and to level 13, the course from the
   map into level 1 and back with its done sign).
+- C7: `tests/test_keen3_machine.gd` (a hand-made level 16,
+  `tests/keen3_machine_fixtures.gd`: the parts found, the sparks' and the
+  heart's frames, the arms' steps, speeds and turns and what they draw,
+  the legs' steps, FOOTSLAM and its wait, +1000 and the border flash, the
+  sixth spark stopping the arms, the side sweep's rows and tile 611, the
+  heart removing every sprite, its sweep and the level done after 181
+  ticks, the game won), `tests/test_keen3_scenes.gd` (typing, Mortimer's
+  sound, his nine boxes with their sizes, places and pauses, skipping, a
+  window on its cell also in widescreen, the border flash's colours, time
+  and frame, the `--ending` option), `tests/test_keen3_ending.gd` (the
+  stages in order, the fades, the four pages and their boxes, the five
+  flashes with their tiles and waits, the picture's wait and box, the end
+  text) and `tests/test_keen3_machine_data.gd` (real files: level 16's
+  machine, the machine moving only in its own cells, the sixth spark and a
+  real shot at the heart winning the game, the texts fitting their boxes,
+  the sounds, map 81's camera tiles, the ending running to its end).
 - The screen: `tools/scripted_play.gd` with
   `SCENE=res://src/keen3/keen3_view.tscn -- --game=3 --level=N`. With
   `--fixed-fps 60` the frames run much faster than real time, so a

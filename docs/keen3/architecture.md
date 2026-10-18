@@ -470,3 +470,56 @@ shared folders shows only the changes of C2). Keen 1's `MapSession`,
   her last direction); the real loop never gets there. A test map needs
   cut corners, as the real loop has: with a square corner the
   column-first rule turns her back.
+
+## Deviations in C7
+
+Written by the developer of C7. None of them changes Keen 1 or Keen 2; **no
+shared file changed** in C7 (`git diff a9d04cc` on the Keen 1, Keen 2 and
+shared folders shows only the changes of C2). `GameLaunch` needed no
+change: `--game=3 --ending` already skips the start screen and opens Keen
+3's scene, and `--ending` alone still opens Keen 1's (a test in
+`test_keen3_scenes` says so); `Keen3View` reads the option itself.
+
+- **The screen chain** is now `Keen3View` → `Keen3EndingScreen` →
+  `Keen3SceneScreen` → `GameScreen` (the plan's "Keen3Ending" in
+  `Keen3SceneScreen` became its own class, as Keen 2's `Keen2SpaceScreen`).
+  It has Mortimer, the border flash and the ending's drawing, and overrides
+  `_show_picture` and `_move_camera_anchor` (both know Keen 1's ending in
+  `GameScreen`). `Keen3View._data` moved there.
+- **The machine is more classes than planned:** `Keen3Machine` (the
+  parts, the sparks' count, the heart, the end) with `Keen3MachineArm`,
+  `Keen3MachineLeg` and `Keen3MachineSweep` in `src/keen3/level/`; the
+  sparks and the heart are `Keen3Spark` and `Keen3Heart` in
+  `src/keen3/actors/`. They are plain `Actor`s, not `Enemy`s, so the enemy
+  census and the waking rules leave them alone; `Keen3Hits` hands a shot
+  that touches one to `Keen3LevelSession.shoot_machine`. The session makes
+  the machine in `_spawn_enemies` (`Keen3Machine.found_in`) and steps it in
+  `step_players`; its new signal `border_flashed` tells the view.
+- **Fractional waits** (6.2, 16.5, 14.4, 12.4, 8.2 ticks) are counted with
+  a tolerance of 0.001 tick (`Keen3Machine.TIME_TOLERANCE`), so sums that
+  should be whole are; the typed boxes count retraces the same way.
+- **Typed boxes** (`Keen3TypedBoxes`) serve Mortimer and the ending.
+  `Keen3Window.open_at` places a window's frame on a text cell of the
+  320x200 picture in the middle of the view: it moves `GameWindow`'s
+  drawing with `draw_set_transform`, so the shared window is unchanged.
+- **The border flash** is a `Control` over the `Screen` node
+  (`Keen3BorderFlash`); the fade and the camera flash are two
+  `Keen3ScreenTint` nodes added last to the World's UI layer (the camera
+  flash adds light: our reading of the camera-flash palette). All three are
+  made in code, `keen3_view.tscn` is unchanged.
+- **The ending's boxes** take Choco's cells less (4,4), the view's corner
+  on map 81 (gameplay.md, "The ending"); the y part of that is our reading.
+- **Level 16's sprites are drawn before its first tick**, so Mortimer
+  speaks over the Meeps, the sparks and the heart (`Keen3View` shows the
+  actors when any level starts; for other levels this is the same picture
+  one tick earlier).
+- **In the ending, up and down scroll the end text and do not count as
+  "any key"**; every other key goes on.
+- **Tests:** four new suites (`test_keen3_machine`, `test_keen3_scenes`,
+  `test_keen3_ending`, `test_keen3_machine_data`) and the fixture file
+  `tests/keen3_machine_fixtures.gd`. One Keen 3 test changed because C7
+  changes what it expects: `test_keen3_level`'s "the machine info values
+  spawn nothing yet" is now "make the machine" (with a new test that a
+  level without them has none). `test_keen3_play`'s "level 16 done wins"
+  still holds unchanged (the course emits `won`; the view now shows the
+  ending).

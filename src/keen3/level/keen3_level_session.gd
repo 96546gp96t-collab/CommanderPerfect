@@ -23,9 +23,12 @@ extends Keen2LevelSession
 ##             6 Foob ([method create_enemy]); they wake and sleep by the
 ##             original's rule ([Keen3ActiveArea]); enemies give no points
 ##   objects   7 ball, 8 jack, 9 and 10 the platforms, 14 and 15 the wall
-##             guns (C5); 12, 13 and 16-18 (the machine) spawn nothing until
-##             C7. Keen rides balls and platforms ([Keen3Carrier]); all guns
-##             fire together on one clock ([method step_players])
+##             guns (C5). Keen rides balls and platforms ([Keen3Carrier]);
+##             all guns fire together on one clock ([method step_players])
+##   machine   12 sparks, 13 the heart, 16 arms, 17 and 18 legs: Mortimer's
+##             Mangling Machine in level 16 ([Keen3Machine], C7), stepped
+##             after every tick; a spark or the heart that is shot flashes
+##             the border ([signal border_flashed])
 ##   hits      Keen 3's own rules ([method _resolve_hits], Choco): Keen's
 ##             shot ([Keen3Shot]) splashes on every sprite but Keen and the
 ##             corpses, also on a fireball (both splash) and a Meep's wave
@@ -44,6 +47,9 @@ extends Keen2LevelSession
 ## (see [Keen3Sounds]); the shared [signal LevelSession.sound_played] only
 ## knows Keen 1's names.
 signal keen3_sound_played(sound_name: String)
+## Emitted when a shot destroys a spark or the heart of the machine: the
+## original flashes the screen's border then.
+signal border_flashed
 
 ## Item tiles come in rows of this many tiles; the first tile of a row is
 ## its empty background (Choco).
@@ -68,6 +74,8 @@ const INFO_UP_DOWN_PLATFORM := 10
 const INFO_GUN_RIGHT := 14
 const INFO_GUN_DOWN := 15
 
+## Mortimer's Mangling Machine; null in a level without one.
+var machine: Keen3Machine
 ## The Keen whose tiles are being checked.
 var _toucher: Keen3Body
 ## The wall guns' clock: ticks since they last fired (or the level began).
@@ -142,12 +150,15 @@ func create_enemy(info: int, start: Vector2) -> Enemy:
 
 
 ## Advances one tick, as [method Keen2LevelSession.step_players]; then the
-## wall guns' clock goes on, and at the end of each period every gun fires
-## (Choco: one TANKFIRE, heard wherever the guns are).
+## machine moves, the wall guns' clock goes on, and at the end of each
+## period every gun fires (Choco: one TANKFIRE, heard wherever the guns
+## are).
 func step_players(inputs: Array[KeenInput]) -> void:
 	super.step_players(inputs)
 	if outcome != Outcome.PLAYING or tantalus_fired:
 		return
+	if machine != null:
+		machine.step(self)
 	_gun_ticks += 1
 	if _gun_ticks < Keen3WallGun.PERIOD_TICKS:
 		return
@@ -182,6 +193,17 @@ func play_keen3_sound(sound_name: String) -> void:
 	keen3_sound_played.emit(sound_name)
 
 
+## Keen's shot hit [param target], a spark or the heart of the machine.
+func shoot_machine(target: Actor) -> void:
+	if machine != null:
+		machine.hit(self, target)
+
+
+## Lets the view flash the border around the picture.
+func flash_border() -> void:
+	border_flashed.emit()
+
+
 func _spawn_enemies(_has_commander: bool) -> void:
 	for y in level.height:
 		for x in level.width:
@@ -190,6 +212,7 @@ func _spawn_enemies(_has_commander: bool) -> void:
 			if enemy != null:
 				add_actor(enemy)
 				enemy.settle(self)
+	machine = Keen3Machine.found_in(self)
 
 
 ## Keen 3's Keen: a [Keen3Body] that stands on carriers as Keen 2's does.
