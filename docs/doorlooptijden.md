@@ -68,6 +68,6 @@ Hoe er gemeten wordt:
 | C9 Extra's | 19-10 | ~22 min | 19 min | Vloeiende beweging en xBRZ deden al alles; plaatjes achter de levels met een eigen regel (lucht); geen builds in de cloud |
 | Plaatjes achter de levels (na C9) | 19-10 | ~35 min | | Op verzoek van de gebruiker: twaalf eigen plaatjes vanuit code (`tools/make_keen3_backgrounds.py`), door de architect zelf |
 | C10 Co-op | 19-10 | ~40 min | 36 min | Split-screen en online (ook overschakelen van en naar Keen 3); online getest met twee xvfb-vensters; Steam niet te testen in de cloud |
-| C11 Naast het origineel | | | | |
+| C11 Naast het origineel | 19-10 | ~65 min | 63 min | Het origineel in js-dos in een headless Chromium (nieuw: `tools/original/headless.js`); einde, eindtekst en highscores op de pixel gelijk; ankh 9,6 s bevestigd; sprongen gemeten voor C12 |
 | C12 Keen 1 en 2 bijwerken | | | | |
-| **Totaal tot nu toe** | 17-10 t/m 19-10 | **~7 u 55** | | C1-C10, de fix en de plaatjes: Keen 3 is uit te spelen, met geluid, menu's, opslaan, extra's en co-op |
+| **Totaal tot nu toe** | 17-10 t/m 19-10 | **~9 u 00** | | C1-C11, de fix en de plaatjes; C12 (Keen 1 en 2 bijwerken) volgt nog |
