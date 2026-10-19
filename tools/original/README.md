@@ -33,6 +33,34 @@ command line can be typed. `?bundle=other.jsdos` picks another bundle (for
 example one with `cycles=fixed 6000`). Stop the server and close the tab
 when done.
 
+## Headless (no browser pane)
+
+Where no browser pane is available (a cloud session), `headless.js` runs the
+same page in a headless Chromium with Playwright and drives it with a small
+line script (made in C11; its comment at the top lists the commands):
+
+```sh
+R=<scratchpad>/runner                          # outside the repository
+mkdir -p "$R" && (cd "$R" && npm install playwright-core)
+export PLAYWRIGHT_BROWSERS_PATH=/opt/pw-browsers   # Chromium lives there
+# the server from "Setting up" must run; then, one command per line:
+printf 'wait 3000\ntype KEEN3\\n\nwait 4000\nsnap title\n' > steps.txt
+NODE_PATH="$R/node_modules" node tools/original/headless.js steps.txt
+python3 -I tools/original/snap2png.py "$W/frames" title 320 200 --keep
+```
+
+To steer it step by step, keep it reading a file that grows:
+`tail -n +1 -f cmds.txt | NODE_PATH=... node tools/original/headless.js > drv.log &`,
+append commands to `cmds.txt` and wait for their `ok` lines in `drv.log`.
+`URL=http://127.0.0.1:8765/index.html?bundle=other.jsdos` picks another
+bundle, `CHROME=` another browser. Key names: Enter, Esc, Space, Left,
+Right, Up, Down, Ctrl, Alt, Shift, F1-F10, a letter, or a js-dos code.
+
+A scratch copy of the player's files with a changed level (C11: level 16's
+entrance next to the map's start, the heart reachable, an ankh next to
+Keen in level 1) reaches places that cannot be reached by script. Such
+copies stay in the scratchpad like everything else made from the files.
+
 ## Driving it (`javascript_tool` in the page)
 
 - `await K.wait(3500)` after loading (boot), then `await K.typeU("KEEN3\n")`.
