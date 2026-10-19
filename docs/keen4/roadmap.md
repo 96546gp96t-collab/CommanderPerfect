@@ -35,6 +35,10 @@ gebruiken zonder Keen 4 te veranderen.
   slagen zonder dat ze zijn aangepast, `gdlint` is schoon, de
   regressie-screenshots van Keen 1 en 2 (en 3 zodra die er zijn) zijn
   gelijk, en de bestanden van Keen 1-3 zijn niet veranderd.
+- **Vragen aan de gebruiker gaan altijd als keuzemenu** (de tool
+  AskUserQuestion: per vraag 2-4 opties, het advies als eerste met
+  "(Recommended)"), nooit als losse lijst in de tekst (wens van de
+  gebruiker, 19-10-2026).
 - De architect schrijft per mijlpaal de opdracht (hieronder). De developer
   bouwt die, met tests, en werkt `PROGRESS.md` bij. De architect controleert
   daarna de diff tegen de opdracht en de regels, en vult
@@ -331,4 +335,5 @@ start zonder rekenen).
 
 Volgende stap: zodra Keen 3 op `main` staat, `PROGRESS.md`,
 `docs/doorlooptijden.md` en `docs/new-episode-guide.md` bijwerken met D1
-(de lessen staan onderaan research.md), en D2 beginnen vanaf `main`.
+(de lessen staan onderaan research.md), de regel "vragen altijd als
+keuzemenu" in `CLAUDE.md` zetten, en D2 beginnen vanaf `main`.
