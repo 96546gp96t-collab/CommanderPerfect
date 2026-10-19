@@ -135,7 +135,7 @@ What Keen 3 needs from the shared code, and the additive change for each.
 | Start Keen 3 from the command line | `GameLaunch.wants_keen_2`, `scene_for` are two-way | `--game=3`; exception 2 above |
 | Data viewer, `tools/export_graphics.gd` | Two-way (`Keen2Files if keen_2 else GameFiles`) | Three-way, Keen 1 and Keen 2 the same as before; output `exported/keen3/` |
 | HUD | `Hud.raygun_tile`, `keycard_icons` | Set from `Keen2Icons`. The ankh time in the HUD: preferably a `Keen3Hud extends Hud`; if `Hud` cannot be extended without a change, one new member that is off by default |
-| Pictures behind levels | `BackdropPictures.create(files, folder)` | None: `Keen2BackdropPictures` with `res://assets/backgrounds/keen3` |
+| Pictures behind levels | `BackdropPictures.create(files, folder)` | None: `Keen2BackdropPictures` with `res://assets/backgrounds/keen3` (C9: `Keen3BackdropPictures` with its own rule instead, see "Deviations in C9") |
 | Online | `OnlineProtocol.GAME_IDS`, `GameCatalog.for_game_id`, scenes/events appended at the end of their enums | `GAME_ID_KEEN_3` in `GAME_IDS`; Keen 3 scenes and events at the end; the ankh time and the done levels in the snapshot through new optional fields (C10). Keen 1's and Keen 2's messages stay byte for byte the same |
 | Build scripts | Copy `game_data/keen1` and `keen2` | Same block for `keen3` |
 | Tests | `tests/run_tests.gd` lists the suites | One line per new suite |
@@ -657,3 +657,51 @@ else of Keen 1 or Keen 2 changed (`git diff 97b128f` on `src/keen2`,
   (title, menu, story, high scores in 4:3 and widescreen, a new game,
   saving and loading, the ending up to the name for a new high score,
   the menu in the ending, Choose Game).
+
+## Deviations in C9
+
+Written by the developer of C9. None of them changes Keen 1 or Keen 2; **no
+shared file changed** in C9 (`git diff ade258d` touches only `src/keen3/`,
+`tests/test_keen3_extras.gd`, one line in `tests/run_tests.gd` and docs;
+on `src/keen2`, `tests/test_keen2_*.gd`, `tests/keen2_fixtures.gd`,
+`src/actors`, `src/map` and `src/game/level_view.gd` it is empty).
+`keen1_regression.sh` and `keen2_regression.sh` against the C7 references
+(reset user folder): every picture the same, `launcher.png` too.
+
+- **xBRZ and smooth motion needed no Keen 3 code.** Everything Keen 3
+  draws goes through the shared paths: its sprites are `Actor`s in the
+  shared `ActorLayer` (interpolated), Keen and the map Keen are the shared
+  `Keen` node, the map's view blends in `Keen3MapScroll.center` with the
+  same fraction (`Keen3View._move_camera_anchor`), changing tiles go to
+  `LevelMap`, and the HUD, windows, pictures and FINALE take their
+  textures from `GraphicsTextures` (`Keen3Hud` keeps its own cache per
+  scaled graphics, since C4). Checked in code and with screenshots; the
+  new suite guards the two Keen 3 parts (the map view, the actors).
+- **Not `Keen2BackdropPictures`, but `Keen3BackdropPictures extends
+  BackdropPictures`** (`src/keen3/level/`). The plan (seams table: "None:
+  `Keen2BackdropPictures` with `res://assets/backgrounds/keen3`") used Keen
+  2's class, whose rule is "the plain background is the most used tile".
+  With the real files that rule picks levels 1-7, 10 and 14: level 10's
+  plain background is the dark gray inside its base (tile 195), whose
+  colour is also in the cave rock and patterned walls, and levels 8, 11,
+  13 and 15, which have sky beside a building or above a cave, would get
+  none. Keen 3's rule is "the plain background is the sky" (tile 143,
+  `SKY_TILE`): levels 1-8, 11, 13, 14 and 15 in version 1.00
+  (gameplay.md, "Extras (C9)"). It does not extend `Keen2BackdropPictures`
+  either, because that class's static `for_levels` and `suits` would have
+  to be shadowed; the few lines of `shows_level` and `picture` are
+  repeated instead.
+- **Made in `Keen3SceneScreen._load_data`** (`for_game` reads levels
+  1-16), so the shared `GameScreen._apply_backdrop` shows them; nothing
+  else in the view changed. Keen 3 has no darkness, so the pictures need
+  no `Keen2Darkness` as Keen 2's have.
+- **No pictures in `assets/backgrounds/keen3/`** (we have no artwork; git
+  keeps no empty folder, as for Keen 2). Tested with a made-up picture in
+  `game_data/keen3/backgrounds/` (ignored by git, removed afterwards).
+- **Builds:** `tools/build_macos.sh` and `tools/build_windows.sh` already
+  copy `game_data/keen3` (since C2), with a player's `backgrounds` folder
+  in it; pictures in `assets/backgrounds/keen3/` go into the export with
+  every other resource (`export_filter="all_resources"`). Nothing new to
+  add. Not run here: macOS only on the Mac, Windows needs Godot's export
+  templates.
+- **Real-ESRGAN** left out, as for Keen 2 (the user's decision).

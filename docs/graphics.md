@@ -176,6 +176,16 @@ stays as it was). A level without a picture looks as in the original.
   right edge at the right end (`LevelBackdrop`). A wider picture glides
   more and looks deeper; 3840x1080 or so suits a level like level 1 well.
   In a split screen each half has its own.
+- **Keen 2 and Keen 3** have their own folders, `assets/backgrounds/keen2/`
+  and `assets/backgrounds/keen3/` (both still empty), and the player's
+  `game_data/keen2/backgrounds/` and `game_data/keen3/backgrounds/`, with
+  the same file names; Keen 1's pictures are never shown behind their
+  levels. Each game decides which levels may show one, because a picture
+  shows through the background color in every tile: Keen 2 only where the
+  plain background is the level's most used tile (B8, level 12;
+  `docs/keen2/gameplay.md`), Keen 3 only where the plain background is the
+  sky (C9, levels 1-8, 11, 13, 14 and 15; `docs/keen3/gameplay.md`,
+  "Extras (C9)").
 
 ## Still open
 

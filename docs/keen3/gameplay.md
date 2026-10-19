@@ -612,9 +612,74 @@ SLAMSND, YORPBUMPSND, YORPBOPSND, GARGSCREAM, KEENCICLE and HISCORESND
   so the loaded game shows Keen as a new game does. The keys, the display
   settings and the sound setting are shared with Keen 1 and 2.
 
+## Extras (C9)
+
+- **xBRZ (F5), smooth motion (F6), widescreen with the HUD** work for Keen
+  3 through the shared code, as for Keen 1 and 2; both extras stay off by
+  default. Checked in C9 (code and screenshots with both on, widescreen
+  and 4:3): every sprite of Keen 3 is an `Actor` drawn by the shared
+  `ActorLayer` (the enemies, shots, splashes, waves, the ball, the jack,
+  the platforms with Keen riding them, the ankh's halo, Messie, the
+  sparks and the heart, the Vorticon and Keen of the ending) or Keen
+  himself, so all move smoothly between ticks; the map's view blends
+  between its last two corners (`Keen3MapScroll.center`) with the same
+  fraction as Keen's sprite, and a teleporter's or a new map's view jumps
+  without blending; the teleporters, the Mangling Machine, the done signs
+  and the camera flashes of the ending change tiles of the shared
+  `LevelMap`, which takes them from the xBRZ atlas; the HUD's item
+  pictures (`Keen3Hud`), the status screen and Mortimer's boxes
+  (`Keen3Window`), the title, the high scores and GAME OVER
+  (`PictureLayer`, `GameWindow`) and the picture of `FINALE.CK3` take
+  their textures from the shared `GraphicsTextures` and are drawn again
+  when F5 switches. The border flash and the ending's fades and flashes
+  are plain colours. Keen 3 has no screen shake (Choco; see the machine).
+  Nothing had to change. Real-ESRGAN (HD) is left out for Keen 3, as for
+  Keen 2 (the user's decision of 17-10-2026).
+- **Pictures behind the levels** (widescreen, the "Backgrounds" option,
+  on by default; never in 4:3): Keen 3's own pictures in
+  `assets/backgrounds/keen3/` (none yet: we have no artwork, and nothing
+  may come from the game files), or the player's in
+  `game_data/keen3/backgrounds/` (next to the game files; in the builds
+  `build/game_data/keen3/backgrounds/`), which win. Keen 1's and Keen 2's
+  pictures are never used. A picture takes the place of the level's plain
+  background, and of that colour around everything drawn on it
+  (`docs/graphics.md`). **Rule (`Keen3BackdropPictures`): a level gets
+  its picture only when its plain background is the sky** (tile 143,
+  light cyan). The other plain background of Keen 3 is the dark gray
+  inside the bases and caves (tile 195); its colour is also in the cave
+  rock and the patterned walls, so a picture would shine through the
+  rock as well (11-61% of all it would show, levels 9, 10, 12, 16). The
+  sky's colour only sits around clouds, trees, signs, grass and the items
+  in the sky (1-13% of all the picture shows), and an item picked up in
+  the sky leaves tile 143 (the first of its row), so the picture shows
+  there too. Keen 2's rule
+  (the plain background must be the most used tile) would give level 10
+  its picture behind the walls of its base (its sky is the smaller part)
+  and none to levels 8, 11, 13 and 15, whose sky lies beside a building
+  or above a cave.
+  - **Levels with a picture in version 1.00:** 1, 2, 3, 4, 5, 6, 7, 8, 11,
+    13, 14 and 15. Not: 9, 10, 12 (dark gray inside) and 16 (Mortimer's
+    machine). The world map, the ending's map 81 and the title's map 90
+    never have one.
+  - **Adding a picture:** a file `levelNN.png` (or `.webp`, `.jpg`), NN
+    the level number with two digits (`level01.png` ... `level15.png`), in
+    `game_data/keen3/backgrounds/` to try it without building, or in
+    `assets/backgrounds/keen3/` to ship it with the game (only our own
+    pictures, never anything made from the game files). Any size: the
+    picture is scaled to cover the view (in its own shape, 15% larger) with
+    its top at the top of the view, and glides from side to side through
+    the level, so a wide picture suits a wide level: about 3840x1080 for
+    levels 4, 5 and 14 (150-196 cells wide), 1920x1080 for the narrow ones
+    (6, 11). It does not move up and down: in the tall levels (13, 15) its
+    upper part shows where the sky is. A picture for a level without sky
+    is never shown.
+  - Checked with a made-up test picture (not committed) in levels 1, 8, 10
+    and 15, original and xBRZ, smooth motion on, widescreen and 4:3: shown
+    behind the sky of 1, 8 and 15, not in level 10 and not in 4:3.
+
 ## Not yet
 
-The pictures behind levels (C9; never Keen 1's or 2's), two players (C10).
+Two players (C10).
 
 ## Seen in the original (C3)
 
@@ -751,6 +816,14 @@ C11.
   named sounds, every shared sound found, Keen 3's four with their
   priorities, map 90's two screens without border tiles, the bitmaps and
   the font's second half, the story and the high score texts).
+- C9: `tests/test_keen3_extras.gd` (the rule with hand-made levels: sky
+  beside a building suits, a base whose dark gray is larger does not
+  although Keen 2's rule would take it, a cave without sky does not;
+  Keen 3's folder only, never Keen 1's picture; the player's own picture
+  only behind a level with sky; the map's view blended between ticks but
+  not across a teleporter's jump; Keen 3's moving things drawn half way
+  between ticks by `ActorLayer`; real files: the sky is light cyan and
+  levels 1-8, 11, 13, 14, 15 qualify).
 - The screen: `tools/scripted_play.gd` with
   `SCENE=res://src/keen3/keen3_view.tscn -- --game=3 --level=N`. With
   `--fixed-fps 60` the frames run much faster than real time, so a
