@@ -26,7 +26,7 @@ extends Keen3EndingScreen
 ## The game's clock (the timer interrupt that also plays the sounds).
 const CLOCK_TICKS_PER_SECOND := SoundFile.STEPS_PER_SECOND
 ## The title and the high scores stay 2400 clock ticks, 16.5 s (Choco; seen
-## in js-dos in C1: the title 16.8 s).
+## in the original, C11: the title 16.5 s, the high scores 16.4 s).
 const ATTRACT_SECONDS := 2400.0 / CLOCK_TICKS_PER_SECOND
 const HIGH_SCORES_PATH := "user://keen3/high_scores.json"
 const SAVE_FAILED_MESSAGE := "The game could not be saved."
@@ -73,7 +73,7 @@ func _set_up_texts() -> void:
 		_menus.story = TextDocument.layout(_data.story, MenuController.TEXT_WIDTH)
 	var score_texts := _data.score_texts
 	var names := score_texts.default_names if score_texts != null else PackedStringArray()
-	_high_scores = Keen2HighScores.load_from(HIGH_SCORES_PATH, names)
+	_high_scores = Keen2HighScores.load_from(HIGH_SCORES_PATH, Keen3Screens.default_names(names))
 
 
 ## Shows the title over the first screen of map 90, as the original does.

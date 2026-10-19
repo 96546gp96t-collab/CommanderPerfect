@@ -35,9 +35,12 @@ extends Keen2Body
 ## air bumps (KEENBLOKSND) every [constant AIR_BUMP_TICKS].
 
 ## How long one ankh protects: 1400 clock ticks of 145.65 Hz (Choco), 9.6
-## seconds, 577 of our ticks.
+## seconds, 577 of our ticks. Seen in the original (C11): the halo stayed
+## ~9.8 s (frames ~0.13 s apart), and the status screen showed 8 a second
+## and a half after the ankh was taken; not 15 s (KeenWiki) or 21 s (CG).
 const ANKH_TICKS := 577
-## The halo blinks in the last 250 clock ticks (Choco).
+## The halo blinks in the last 250 clock ticks (Choco; seen in the
+## original, C11: it blinked the last ~1.6 s).
 const ANKH_BLINK_TICKS := 103
 ## The halo changes its picture every 16 clock ticks (Choco).
 const HALO_FRAME_TICKS := 6.6
@@ -168,13 +171,14 @@ func step(input: KeenInput) -> void:
 
 
 ## The halo's sprite now, or -1 when none is drawn: no ankh, or the dark
-## half of a blink. When to blink is the original's; how the blink looks
-## (every other picture left out) is an estimate.
+## half of a blink. When to blink is Choco's; how the blink looks (every
+## other picture left out: ~0.11 s on, ~0.11 s off) was seen in the
+## original (C11), on and off every ~0.12 s.
 func halo_sprite() -> int:
 	if not is_protected():
 		return -1
 	var frame := floori(_halo_ticks / HALO_FRAME_TICKS) % HALO_FRAMES
-	if ankh_ticks <= ANKH_BLINK_TICKS and frame == 1:  # estimate
+	if ankh_ticks <= ANKH_BLINK_TICKS and frame == 1:
 		return -1
 	return SPRITE_HALO + frame
 

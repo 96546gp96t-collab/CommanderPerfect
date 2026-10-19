@@ -28,6 +28,9 @@ var mortimer_messages: Array[PackedStringArray] = []
 var ending_pages: Array[PackedStringArray] = []
 ## The box over the finale picture; empty when not found.
 var the_end := PackedStringArray()
+## The footer of the end text's reader ("ESC to Exit / ..."); empty when not
+## found.
+var reader_footer := ""
 ## The ship's four messages on the world map; empty when not found.
 var ship_messages: Array[PackedStringArray] = []
 ## The line under a ship's message; empty when not found.
@@ -76,6 +79,7 @@ static func _read_messages(data: Keen3GameData, executable: Keen3Executable) -> 
 	data.mortimer_messages = executable.mortimer_messages()
 	data.ending_pages = executable.ending_pages()
 	data.the_end = executable.the_end()
+	data.reader_footer = executable.reader_footer()
 	data.ship_messages = executable.ship_messages()
 	data.ship_prompt = executable.ship_prompt()
 	data.score_texts = executable.score_texts()

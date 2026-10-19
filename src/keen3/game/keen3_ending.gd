@@ -21,9 +21,11 @@ extends RefCounted
 ##                   with MORTIMER playing; a key ends it
 ##   FINISHED        the view goes on (GAME OVER, then the start screen)
 ## Choco gives the boxes' places in cells of the screen buffer, whose
-## visible part starts at the view's corner, tile (2,2): 4 cells right and
-## down. [constant SCREEN_ORIGIN] takes that off, which centres every box
-## (the y offset is our reading; to check in js-dos).
+## visible part starts 4 cells right of the picture's left edge
+## ([constant SCREEN_ORIGIN] takes that off, which centres every box). Its
+## rows are the picture's own: seen in the original (C11), the pages stand on
+## rows 18-23 (y 144) and the box over FINALE.CK3 on rows 20-24 (y 160);
+## C7's reading, 4 rows up as well, put them 32 pixels too high.
 
 ## Emitted when the stage, the typed text or the end text's position
 ## changes.
@@ -55,8 +57,9 @@ const VORTICON_CELL := Vector2(14, 6)
 const VORTICON_SPRITE := 67
 const KEEN_CELL := Vector2(15.5, 6.5)
 const KEEN_SPRITE := 0
-## Choco's text cells start this far left and up of the picture's.
-const SCREEN_ORIGIN := Vector2i(4, 4)
+## Choco's text cells start this far left of the picture's, on the same rows
+## (seen in the original, C11).
+const SCREEN_ORIGIN := Vector2i(4, 0)
 ## The frames of the four pages and of the box over the picture, top left
 ## and bottom right, in Choco's cells.
 const PAGE_FRAME_STARTS: Array[Vector2i] = [
@@ -65,6 +68,8 @@ const PAGE_FRAME_STARTS: Array[Vector2i] = [
 const PAGE_FRAME_ENDS: Array[Vector2i] = [
 	Vector2i(43, 23), Vector2i(43, 22), Vector2i(43, 22), Vector2i(30, 20)
 ]
+## Seen in the original (C11): ~1.9 s from a page's last letter to the next
+## page's first, its line end, these 120 retraces and the first letter.
 const PAGE_PAUSE_RETRACES := 120.0
 const THE_END_FRAME_START := Vector2i(18, 20)
 const THE_END_FRAME_END := Vector2i(29, 24)
@@ -78,14 +83,29 @@ const AFTER_FLASH_TILES: PackedInt32Array = [72, 61, 61, 72, 61]
 const FLASH_WAITS: PackedInt32Array = [20, 10, 5, 10, 15]
 const FLASH_RETRACES := 2.0
 const AFTER_FLASHES_RETRACES := 120.0
+## Seen in the original (C11): 5.71 s from FINALE.CK3 to the box.
 const PICTURE_WAIT_RETRACES := 400.0
+## Once the box over the picture is typed, a spinning ball waits for a key
+## in the middle of its last row (seen in the original, C11): font
+## characters 9-12, the next every 5 retraces, from a letter's time after
+## the last letter on.
+const CURSOR_FIRST_CHAR := 9
+const CURSOR_FRAMES := 4
+const CURSOR_FRAME_RETRACES := 5.0
 ## A fade: [constant FADE_STEPS] steps, [constant FADE_STEP_RETRACES] apart
-## (estimate: a death's fade in js-dos stepped ~114 ms apart).
+## (seen in the original, C11: the hall fades in in steps ~114 ms apart).
 const FADE_STEPS := 4
 const FADE_STEP_RETRACES := 8.0
-## The end text: as Keen 1's and Keen 2's, 38 characters by 23 lines.
+## The end text in the original's reader (seen in the original, C11): a
+## window filling the 320x200 picture, 38 characters wide; 21 lines of text,
+## then the window's bottom edge across it and a footer line from KEEN3.EXE
+## ([constant READER_FOOTER_ROW], red on gray). Keen 1's and Keen 2's show
+## 23 lines in the shared window.
 const TEXT_WIDTH := 38
-const TEXT_LINES := 23
+const TEXT_LINES := 21
+const READER_SIZE := Vector2i(TEXT_WIDTH, 23)
+const READER_EDGE_ROW := 21
+const READER_FOOTER_ROW := 22
 ## Seconds between two lines while up or down is held (Keen 2: 4 ticks).
 const SCROLL_SECONDS := 4.0 / 60.0
 
@@ -105,6 +125,8 @@ var _the_end := PackedStringArray()
 ## Retraces spent in the current wait.
 var _time := 0.0
 var _scroll_time := 0.0
+## Retraces since the box over the picture was typed.
+var _typed_time := 0.0
 
 
 ## The ending with the four [param pages], the box over the picture
@@ -117,7 +139,7 @@ static func create(
 	ending._pages = pages
 	ending._the_end = the_end
 	if not end_text_data.is_empty():
-		ending.end_text = TextDocument.layout(end_text_data, TEXT_WIDTH)
+		ending.end_text = Keen3EndText.layout(end_text_data, TEXT_WIDTH)
 	return ending
 
 
@@ -132,6 +154,12 @@ static func frame_on_picture(start: Vector2i, end: Vector2i) -> Rect2i:
 func advance(seconds: float, vertical := 0) -> void:
 	if stage == Stage.END_TEXT:
 		_scroll(seconds, vertical)
+		return
+	if stage == Stage.PICTURE_BOX and boxes.is_pausing():
+		var shown := cursor_char()
+		_typed_time += seconds * RETRACES_PER_SECOND
+		if cursor_char() != shown:
+			changed.emit()
 		return
 	if stage in [Stage.HALL_BOXES, Stage.PICTURE_BOX]:
 		boxes.advance(seconds)
@@ -189,6 +217,17 @@ func shows_picture() -> bool:
 
 func is_finished() -> bool:
 	return stage == Stage.FINISHED
+
+
+## The font character of the ball under the typed box over the picture,
+## or -1 while there is none.
+func cursor_char() -> int:
+	if stage != Stage.PICTURE_BOX or not boxes.is_pausing():
+		return -1
+	var waited := _typed_time - Keen3TypedBoxes.LETTER_RETRACES
+	if waited < 0.0:
+		return -1
+	return CURSOR_FIRST_CHAR + floori(waited / CURSOR_FRAME_RETRACES) % CURSOR_FRAMES
 
 
 ## The lines of the end text on the screen.

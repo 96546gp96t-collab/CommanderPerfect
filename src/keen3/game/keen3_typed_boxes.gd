@@ -4,16 +4,22 @@ extends RefCounted
 ## followed by a pause: Mortimer's messages in level 16 ([Keen3Mortimer])
 ## and the boxes of the ending ([Keen3Ending]). The original counts in VGA
 ## retraces (70.086 a second) and types a letter every
-## [constant LETTER_RETRACES] (Choco); every character of a line counts as a
-## letter, spaces too (estimate). Only the logic is here: the view draws
+## [constant LETTER_RETRACES] (Choco). Every character of a line counts as a
+## letter, its trailing spaces from KEEN3.EXE too, and so does the end of
+## every line ([constant LINE_END_LETTERS]): seen in the original (C11),
+## where the ending's pages took one letter time per stored character and
+## line end (a line of 31 letters and 7 trailing spaces waited 9 letter
+## times before the next line). Only the logic is here: the view draws
 ## [method current] with [method visible_lines].
 
 ## Emitted when another letter is shown or another box begins.
 signal changed
 
 const RETRACES_PER_SECOND := 70.086
-## 6 retraces per letter (Choco).
+## 6 retraces per letter (Choco; seen in the original, C11: 85.6 ms).
 const LETTER_RETRACES := 6.0
+## The end of a line takes a letter's time too (seen in the original, C11).
+const LINE_END_LETTERS := 1
 ## Times that add up to a whole number of retraces are taken as reached
 ## within this much (seconds turned into retraces are not exact).
 const TIME_TOLERANCE := 0.001
@@ -29,11 +35,12 @@ class Box:
 	var size := Vector2i.ONE
 	var pause_retraces := 0.0
 
-	## How many letters are typed in all.
+	## How many letter times typing takes: every character and every line
+	## end.
 	func letter_count() -> int:
 		var count := 0
 		for line in lines:
-			count += line.length()
+			count += line.length() + LINE_END_LETTERS
 		return count
 
 
@@ -47,7 +54,8 @@ var _time := 0.0
 
 
 ## Adds a box with [param lines] whose frame starts at [param cell], at
-## least [param size] cells inside (more when a line is longer), followed by
+## least [param size] cells inside (more when a line is longer; its trailing
+## spaces do not count), followed by
 ## [param pause_retraces].
 func add(lines: PackedStringArray, cell: Vector2i, size: Vector2i, pause_retraces: float) -> void:
 	var box := Box.new()
@@ -55,7 +63,7 @@ func add(lines: PackedStringArray, cell: Vector2i, size: Vector2i, pause_retrace
 	box.cell = cell
 	box.size = size
 	for line in lines:
-		box.size.x = maxi(box.size.x, line.length())
+		box.size.x = maxi(box.size.x, line.strip_edges(false, true).length())
 	box.size.y = maxi(box.size.y, lines.size())
 	box.pause_retraces = pause_retraces
 	boxes.append(box)
@@ -85,7 +93,7 @@ func visible_lines() -> PackedStringArray:
 	var left := typed
 	for line in box.lines:
 		shown.append(line.left(clampi(left, 0, line.length())))
-		left -= line.length()
+		left -= line.length() + LINE_END_LETTERS
 	return shown
 
 

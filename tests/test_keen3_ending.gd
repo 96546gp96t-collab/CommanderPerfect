@@ -64,7 +64,7 @@ func test_the_four_pages_in_their_boxes() -> void:
 	var boxes := ending.boxes.boxes
 	assert_equal(boxes.size(), 4, "four pages")
 	var expected: Array[Rect2i] = [
-		Rect2i(0, 14, 38, 4), Rect2i(0, 14, 38, 3), Rect2i(0, 14, 38, 3), Rect2i(13, 14, 12, 1)
+		Rect2i(0, 18, 38, 4), Rect2i(0, 18, 38, 3), Rect2i(0, 18, 38, 3), Rect2i(13, 18, 12, 1)
 	]
 	for index in boxes.size():
 		assert_equal(
@@ -127,7 +127,7 @@ func test_the_picture_waits_400_then_its_box() -> void:
 	var waited := _run_until(ending, Keen3Ending.Stage.PICTURE_BOX) / RETRACE
 	assert_true(absf(waited - 400.0) < 1.5, "400 retraces")
 	var box := ending.boxes.current()
-	assert_equal(Rect2i(box.cell, box.size), Rect2i(14, 16, 10, 3), "the box over the picture")
+	assert_equal(Rect2i(box.cell, box.size), Rect2i(14, 20, 10, 3), "the box over the picture")
 	assert_equal(box.lines, PackedStringArray(["The End?", "Not yet"]), "its lines")
 	ending.confirm()
 	assert_equal(ending.stage, Keen3Ending.Stage.PICTURE_BOX, "a key only once it is typed")
@@ -146,7 +146,7 @@ func test_the_end_text_scrolls_with_mortimer() -> void:
 	_run_until_typed(ending)
 	ending.confirm()
 	assert_equal(played[0], 1, "MORTIMER plays")
-	assert_equal(ending.end_text_lines().size(), Keen3Ending.TEXT_LINES, "23 lines")
+	assert_equal(ending.end_text_lines().size(), Keen3Ending.TEXT_LINES, "21 lines")
 	assert_true(ending.end_text_lines()[0].length() <= Keen3Ending.TEXT_WIDTH, "38 wide")
 	ending.advance(RETRACE, 1)
 	assert_equal(ending.text_offset, 1, "down a line")
@@ -170,7 +170,7 @@ func test_the_hall_and_the_sprites() -> void:
 	assert_equal(Keen3Ending.VORTICON_SPRITE, 67, "a Vorticon")
 	assert_equal(Keen3Ending.KEEN_CELL * 16, Vector2(248, 104), "Keen at (15.5, 6.5)")
 	var frame := Keen3Ending.frame_on_picture(Vector2i(4, 18), Vector2i(43, 23))
-	assert_equal(frame, Rect2i(0, 14, 38, 4), "Choco's cells less the view's corner")
+	assert_equal(frame, Rect2i(0, 18, 38, 4), "4 cells left of Choco's, on its rows (C11)")
 
 
 ## Runs the ending a retrace at a time until [param stage]; returns the

@@ -11,6 +11,8 @@ extends RefCounted
 ##     bitmaps, and per place a name and a score in the font's second half
 ##     (red letters on gray, as the original draws them); Keen 3 has no
 ##     third column
+##   Title and table were compared pixel for pixel with the original in C11:
+##   the same apart from the phase of the animated tiles.
 
 const TITLE_SCREEN := Rect2i(2, 2, 20, 13)
 const TITLE_BITMAP := Backdrops.TITLE_BITMAP
@@ -50,6 +52,19 @@ static func show_high_scores(layer: PictureLayer, table: Keen2HighScores) -> voi
 		var score_left := SCORE_RIGHT - score.length() * EgaGraphics.FONT_CHAR_SIZE
 		layer.put_text(Vector2(origin.x + NAME_LEFT, top), Keen3Window.label_text(entry.name))
 		layer.put_text(Vector2(origin.x + score_left, top), Keen3Window.label_text(score))
+
+
+## The names of a new high score table: the original fills all
+## [constant Keen2HighScores.PLACES] places with the names of KEEN3.EXE in
+## turn (Yorpy, Gargile, Zzapp!, Yorpy, ...), each with 100 points (seen in
+## the original, C11); Keen 2's table leaves the places after them empty.
+static func default_names(names: PackedStringArray) -> PackedStringArray:
+	var all := PackedStringArray()
+	if names.is_empty():
+		return all
+	for place in Keen2HighScores.PLACES:
+		all.append(names[place % names.size()])
+	return all
 
 
 ## The top left of the screen in the map made by [method Backdrops.screen]:

@@ -20,6 +20,10 @@ enum TextBlock { HELP, END_TEXT, PREVIEWS, STORY }
 ## The runs of line records that are searched for record by record.
 enum RecordShape { STATUS_BOX, SHIP_MESSAGES }
 
+## The words that the footer of the original's text reader starts with
+## ("ESC to Exit / <up> <down> to Read", red on gray; seen in the original,
+## C11).
+const READER_FOOTER_WORDS := "ESC to Exit /"
 ## Raw image positions of the text blocks, in the order of [enum TextBlock].
 const TEXT_OFFSETS_V1_00: PackedInt32Array = [0x17B00, 0x182D0, 0x18610, 0x18D00]
 const TEXT_OFFSETS_V1_31: PackedInt32Array = [0x179D0, 0x181A0, 0x184E0, 0x18BD0]
@@ -151,17 +155,19 @@ func status_box_lines() -> PackedStringArray:
 	return lines
 
 
-## Mortimer's nine boxes in level 16, each as its lines, in the order of
-## [constant MORTIMER_BOX_LINES]; empty when they are not found.
+## Mortimer's nine boxes in level 16, each as its lines ([method
+## typed_lines]), in the order of [constant MORTIMER_BOX_LINES]; empty when
+## they are not found.
 func mortimer_messages() -> Array[PackedStringArray]:
 	var start := find_mortimer_messages(image)
 	if start < 0:
 		return []
-	return _grouped(_records(image, start, _total(MORTIMER_BOX_LINES)), MORTIMER_BOX_LINES)
+	var records := _records(image, start, _total(MORTIMER_BOX_LINES))
+	return _grouped(records, MORTIMER_BOX_LINES, true)
 
 
-## The four pages of the ending, each as its lines; empty when they are not
-## found.
+## The four pages of the ending, each as its lines ([method typed_lines]);
+## empty when they are not found.
 func ending_pages() -> Array[PackedStringArray]:
 	var finale := find_finale_name(image)
 	if finale < 0:
@@ -172,15 +178,23 @@ func ending_pages() -> Array[PackedStringArray]:
 	var records := PackedStringArray()
 	for line in lines:
 		records.append(line + "\n")
-	return _grouped(records, ENDING_PAGE_LINES)
+	return _grouped(records, ENDING_PAGE_LINES, true)
 
 
-## The lines of the box over the finale picture; empty when not found.
+## The lines of the box over the finale picture ([method typed_lines]);
+## empty when not found.
 func the_end() -> PackedStringArray:
 	var start := find_the_end(image)
 	if start < 0:
 		return PackedStringArray()
-	return Keen2Executable.message_lines(ExeStrings.record_at(image, start))
+	return typed_lines(ExeStrings.record_at(image, start))
+
+
+## The footer of the text reader (the end text), as stored with its
+## spaces; empty when not found.
+func reader_footer() -> String:
+	var start := find_reader_footer(image)
+	return ExeStrings.record_at(image, start) if start >= 0 else ""
 
 
 ## The ship's four messages on the world map, each as its lines; empty when
@@ -305,6 +319,17 @@ static func find_finale_name(data: PackedByteArray) -> int:
 	return -1
 
 
+## Where the record with the text reader's footer starts in [param data]
+## (the record that holds [constant READER_FOOTER_WORDS]), or -1.
+static func find_reader_footer(data: PackedByteArray) -> int:
+	var position := ExeStrings.find(data, READER_FOOTER_WORDS.to_ascii_buffer())
+	if position < 0:
+		return -1
+	while position > 0 and data[position - 1] != 0:
+		position -= 1
+	return position
+
+
 ## Where the box over the finale picture starts in [param data] (the record
 ## after the finale name), or -1.
 static func find_the_end(data: PackedByteArray) -> int:
@@ -396,10 +421,21 @@ static func _records(data: PackedByteArray, start: int, count: int) -> PackedStr
 	return records
 
 
+## The lines of a typed text ([Keen3TypedBoxes]): as
+## [method Keen2Executable.message_lines], but a line keeps its trailing
+## spaces, because the original takes a letter's time for each of them
+## (seen in the original, C11).
+static func typed_lines(text: String) -> PackedStringArray:
+	var lines := text.replace("\r", "").split("\n")
+	while not lines.is_empty() and lines[-1].strip_edges().is_empty():
+		lines.remove_at(lines.size() - 1)
+	return lines
+
+
 ## The [param records] in groups of [param sizes], each group as the lines
-## of one message.
+## of one message; with [param typed] as [method typed_lines].
 static func _grouped(
-	records: PackedStringArray, sizes: PackedInt32Array
+	records: PackedStringArray, sizes: PackedInt32Array, typed := false
 ) -> Array[PackedStringArray]:
 	var groups: Array[PackedStringArray] = []
 	if records.size() != _total(sizes):
@@ -407,7 +443,8 @@ static func _grouped(
 	var first := 0
 	for size in sizes:
 		var group := records.slice(first, first + size)
-		groups.append(Keen2Executable.message_lines("".join(group)))
+		var text := "".join(group)
+		groups.append(typed_lines(text) if typed else Keen2Executable.message_lines(text))
 		first += size
 	return groups
 

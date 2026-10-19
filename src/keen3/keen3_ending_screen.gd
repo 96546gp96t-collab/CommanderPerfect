@@ -32,6 +32,7 @@ var _hall_sprites: Array[Actor] = []
 ## only drawn again when it changes.
 var _shown_box: Keen3TypedBoxes.Box
 var _shown_letters := -1
+var _shown_cursor := -1
 ## Seconds until MORTIMER starts under the end text; negative when it does
 ## not wait.
 var _mortimer_sound_in := -1.0
@@ -98,13 +99,15 @@ func _end_mortimer() -> void:
 
 
 ## Draws [param box] of [param boxes] as far as it is typed, when that
-## changed; no box closes the window.
-func _show_typed_box(box: Keen3TypedBoxes.Box, boxes: Keen3TypedBoxes) -> void:
+## changed, with font character [param cursor] (unless -1) in the middle of
+## its last row; no box closes the window.
+func _show_typed_box(box: Keen3TypedBoxes.Box, boxes: Keen3TypedBoxes, cursor := -1) -> void:
 	var letters := boxes.typed if box != null else -1
-	if box == _shown_box and letters == _shown_letters:
+	if box == _shown_box and letters == _shown_letters and cursor == _shown_cursor:
 		return
 	_shown_box = box
 	_shown_letters = letters
+	_shown_cursor = cursor
 	var window := _window as Keen3Window
 	if box == null or window == null:
 		_window.close()
@@ -113,6 +116,8 @@ func _show_typed_box(box: Keen3TypedBoxes.Box, boxes: Keen3TypedBoxes) -> void:
 	var lines := boxes.visible_lines()
 	for row in lines.size():
 		window.put_text(Vector2i(0, row), lines[row])
+	if cursor >= 0:
+		window.put_text(Vector2i(floori((box.size.x - 1) / 2.0), box.size.y - 1), char(cursor))
 
 
 ## Level 16 is won (or --ending): the ending, in the hall of map 81 first.
@@ -200,13 +205,41 @@ func _on_ending_changed() -> void:
 	_show_picture(_keen3_ending.shows_picture())
 	if _keen3_ending.stage == Keen3Ending.Stage.END_TEXT:
 		_shown_box = null
-		_window.show_lines(_keen3_ending.end_text_lines(), Keen3Ending.TEXT_WIDTH)
+		_show_end_text()
 		return
 	var typing := (
 		_keen3_ending.stage in [Keen3Ending.Stage.HALL_BOXES, Keen3Ending.Stage.PICTURE_BOX]
 	)
 	var boxes := _keen3_ending.boxes
-	_show_typed_box(boxes.current() if typing else null, boxes)
+	_show_typed_box(boxes.current() if typing else null, boxes, _keen3_ending.cursor_char())
+
+
+## The end text in the original's reader: the lines, and below them the
+## window's bottom edge across it and the footer from KEEN3.EXE; the
+## window's own bottom row is drawn with the top edge's pieces, as the
+## original's (seen in the original, C11).
+func _show_end_text() -> void:
+	var lines := _keen3_ending.end_text_lines()
+	_window.open(Keen3Ending.READER_SIZE)
+	for row in lines.size():
+		_window.put_text(Vector2i(0, row), lines[row])
+	if _data.reader_footer.is_empty():
+		return
+	var width := Keen3Ending.TEXT_WIDTH
+	var edge := _frame_row(GameWindow.BORDER_BOTTOM_LEFT, GameWindow.BORDER_BOTTOM, width)
+	edge += char(GameWindow.BORDER_BOTTOM_RIGHT)
+	_window.put_text(Vector2i(-1, Keen3Ending.READER_EDGE_ROW), edge)
+	var footer := _data.reader_footer.left(width).rpad(width)
+	_window.put_text(Vector2i(0, Keen3Ending.READER_FOOTER_ROW), Keen3Window.label_text(footer))
+	var bottom := _frame_row(GameWindow.BORDER_TOP_LEFT, GameWindow.BORDER_TOP, width)
+	bottom += char(GameWindow.BORDER_TOP_RIGHT)
+	_window.put_text(Vector2i(-1, Keen3Ending.READER_SIZE.y), bottom)
+
+
+## A row of the window's frame: [param left], then [param width] times
+## [param middle].
+static func _frame_row(left: int, middle: int, width: int) -> String:
+	return char(left) + char(middle).repeat(width)
 
 
 ## The ending is over: GAME OVER on a black screen, then the high scores.
