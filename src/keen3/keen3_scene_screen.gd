@@ -84,9 +84,9 @@ func _set_up_screen() -> void:
 
 
 ## Reads the Keen 3 files and gets the drawing ready. Returns the data, or
-## null (and shows why) when they cannot be read. No pictures behind the
-## levels yet (milestone C9): no [BackdropPictures] are made, so
-## [method GameScreen._apply_backdrop] shows none, never Keen 1's or 2's.
+## null (and shows why) when they cannot be read. The pictures behind the
+## levels are Keen 3's own, for the levels with sky (milestone C9,
+## [Keen3BackdropPictures]); Keen 1's and 2's are never shown.
 func _load_data() -> Keen3GameData:
 	if files == null:
 		files = Keen3Files.locate()
@@ -109,6 +109,7 @@ func _load_data() -> Keen3GameData:
 	_window.set_textures(_textures)
 	_hud.set_textures(_textures)
 	_set_up_hud_icons()
+	_backdrop_pictures = Keen3BackdropPictures.for_game(files, _properties, _graphics.tiles)
 	_graphics_loader = GraphicsLoader.create(files, _graphics, _finale_image)
 	_menus.hd_available = HdPack.exists(files)
 	_apply_graphics()

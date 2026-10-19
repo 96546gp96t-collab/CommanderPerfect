@@ -4,7 +4,10 @@ extends Keen3MenuScreen
 ## as it draws Keen 1 and 2: the World viewport, the graphics (original,
 ## xBRZ or HD, F5), widescreen with the HUD ([Keen3Hud], with the ankh
 ## time), the camera, and short messages. This plays a game of Keen 3 with
-## [Keen3LevelPlay].
+## [Keen3LevelPlay]. In widescreen, with the option on, a level with sky
+## can show a picture behind it (milestone C9, [Keen3BackdropPictures]).
+## Smooth motion (F6) needs nothing of its own: every sprite is an [Actor]
+## or Keen, and the map's view blends between its last two corners.
 ##
 ## The screen starts on the title (milestone C8, [Keen3MenuScreen]; from the
 ## start screen with the main menu open), or with
