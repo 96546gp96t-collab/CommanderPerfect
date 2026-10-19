@@ -3,11 +3,13 @@ extends RefCounted
 ## Turns a PC speaker sound ([member SoundFile.Entry.divisors]) into audio.
 ##
 ## The PC speaker can only be on or off, so it plays square waves. Each step
-## of a sound holds one frequency for 1/140 s; the wave keeps its phase from
-## one step to the next, as the timer chip does. A gentle low-pass filter
-## takes the harsh edge off the square, the way the small speaker in a PC
-## did. Frequencies too high to hear on a real speaker are left out, because
-## at the mix rate they would fold back into audible noise.
+## of a sound holds one frequency for one tick of the game's sound timer
+## ([constant SoundFile.STEPS_PER_SECOND], 145.65 a second); the wave keeps
+## its phase from one step to the next, as the timer chip does. A gentle
+## low-pass filter takes the harsh edge off the square, the way the small
+## speaker in a PC did. Frequencies too high to hear on a real speaker are
+## left out, because at the mix rate they would fold back into audible
+## noise.
 
 const MIX_RATE := 44100
 ## Loudness of the square wave, as a fraction of full scale.

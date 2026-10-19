@@ -61,9 +61,9 @@ raw 0x1EB92) and a lagged Fibonacci generator seeded from "fibs17" (raw
 sequence.
 
 Side note for the sounds of all three games: Choco plays one value per clock
-tick, so **145.65 Hz**, not the 140 Hz of `docs/sounds.md`. Keen 1 and 2 stay
-as they are (rule); Keen 3 plays at the rate the shared `SoundPlayer` uses.
-Changing that rate for all games is a question for the user.
+tick, so **145.65 Hz**, not the 140 Hz that `docs/sounds.md` had. The user
+decided on 17-10-2026 that all three games use 145.65 Hz; done in C8 (the
+shared `SoundFile.STEPS_PER_SECOND`).
 
 ---
 

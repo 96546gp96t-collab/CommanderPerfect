@@ -362,13 +362,16 @@ Table, one entry of 16 bytes per sound:
 
 Version 1.1 has 41 real sounds, followed by 22 slots called `__UnNamed__`
 that hold a single tone. The data of a sound is a list of u16 values ending
-with `0xFFFF`. Each value lasts one tick of the game's 140 Hz sound timer.
+with `0xFFFF`. Each value lasts one tick of the game's sound timer, 145.65 Hz.
 0 is silence; any other value is the divisor for the PC's timer chip
 (1193182 Hz), so the speaker plays a square wave of 1193182 / value Hz.
 Values go from 60 (about 20 kHz, inaudible) to about 10000 (120 Hz).
 
-The 140 Hz rate comes from the public documentation of the format (the
-"inverse frequency" sound format); it still has to be checked by ear
-against the original. Which sound belongs to which event is in
+The rate is the PC timer's clock divided by the 8192 that the game sets
+for its timer interrupt: 1193182 / 8192 = 145.65 Hz (Chocolate Keen and
+Commander Genius agree). Until milestone C8 we used 140 Hz, from the public
+documentation of the "inverse frequency" sound format; the user decided on
+17-10-2026 that all three games play at 145.65 Hz. It still has to be
+checked by ear against the original. Which sound belongs to which event is in
 [sounds.md](sounds.md).
 
