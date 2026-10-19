@@ -576,6 +576,24 @@ branches; the cheats and warp in §9 help):
     (davidgow.net; blocked in the cloud) would let us test both versions.
     Not required.
 
+### The user's answers (19-10-2026)
+
+1. **Omnispeak: yes.** Its facts and numbers may be used, marked `(Omni)`;
+   never its code. The reconstructed Keen 4-6 source is not used.
+2. **35 logic frames per second** (2 tics), smooth motion as the existing
+   option (off by default).
+3. **Widescreen**: the camera stops at scroll blocks; what lies beyond is
+   covered.
+4. **The score box is the HUD**, in 4:3 and widescreen; no extra HUD.
+5. **Sound**: our own OPL2 synthesiser in GDScript, rendered once into
+   `user://keen4/cache/`; AdLib sounds and music on by default.
+6. **Two players**: up/down are added to the shared two-player keys (D12).
+7. **Paddle War**: yes (D11).
+8. **Intro and the five demos**: yes (D8).
+9. **Real-ESRGAN**: skipped, as for Keen 2 and 3.
+10. **D2 starts after Keen 3 is on `main`.**
+11. Not asked; a 1.4 copy stays optional.
+
 ## Watching the original
 
 The js-dos tools from C1 (`tools/original/`, on the C branches) work for

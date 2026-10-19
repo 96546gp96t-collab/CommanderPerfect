@@ -154,7 +154,7 @@ most 20 public methods per file).
 |---|---|---|
 | Start screen icon | `GameCatalog.games()` lists three games; `Launcher._make_icon` always calls `EgaGraphics.load_from` and `KeenPhysics.SPRITE_WALK_RIGHT` | `GameCatalog.Game` gets an optional `icon_picture: Callable` (returns a `Texture2D` or null). `_make_icon` uses it when set, otherwise the old code. Keen 4 points it at a small `Keen4Icon` that decodes one sprite. The fourth icon must fit: the layout had room for three (608 of 1280 px); check `LauncherLayout` in D2 |
 | `--game=4`, scene, data viewer, export | Three-way `match` | A fourth branch (exception 2). The data viewer gets a Galaxy page (tiles back/fore, sprites with their boxes, pictures, maps with the three planes); `export_graphics.gd` writes `exported/keen4/` |
-| Input: up/down in levels | `KeenInput.vertical` is "only used on the world map"; `PLAYER_ACTIONS` (two players) has no up/down | One player: `KeenInput.vertical` is enough. Two players: new `p1_up`/`p1_down`/`p2_up`/`p2_down` **appended** to `PLAYER_ACTIONS`; this shows in the shared Controls menu for every game, so it needs the user's approval (question in research.md) |
+| Input: up/down in levels | `KeenInput.vertical` is "only used on the world map"; `PLAYER_ACTIONS` (two players) has no up/down | One player: `KeenInput.vertical` is enough. Two players: new `p1_up`/`p1_down`/`p2_up`/`p2_down` **appended** to `PLAYER_ACTIONS`; this shows in the shared Controls menu for every game, approved by the user (19-10-2026), in D12 |
 | Status key | Enter is the status key in Keen 2 and 3 | Same for Keen 4 (Enter shows the status window in the original too) |
 | A different logic rate | `KeenPhysics.TICKS_PER_SECOND` = 60 is read by the Keen 1-3 views | Keen 4 has its own clock (`GalaxyClock`, see "Time"); nothing shared changes |
 | Online game id | `OnlineProtocol.GAME_IDS` | `GAME_ID_KEEN_4` added at the end (D12) |
@@ -196,11 +196,9 @@ time by another session on the `milestone-c*` branches.
   `main`. It changes no existing file, so it cannot conflict with Keen 3.
 - **D2** is the first milestone that touches shared files (the launcher,
   `GameLaunch`, the data viewer, the build scripts, `run_tests.gd`). Keen 3
-  touches the same lines (the third icon, `--game=3`). Advice: start D2
-  **after Keen 3 is merged into `main`**, so Keen 4 becomes the fourth icon
-  on top of a finished Keen 3. If the user wants Keen 4 to start before
-  that, D2 starts from the newest C branch (as C1 started from B10), and
-  every D branch merges the newer C branches in; never the other way round.
+  touches the same lines (the third icon, `--game=3`). Decided by the user
+  (19-10-2026): D2 starts **after Keen 3 is merged into `main`**, so Keen 4
+  becomes the fourth icon on top of a finished Keen 3.
 - Most of D2-D5 lives in `src/galaxy/` and `src/keen4/`; only a handful of
   shared lines change, so the merges stay small.
 - `$REF` for the proof above is the commit the D branch started from.
@@ -259,7 +257,7 @@ The original never shows a part of the level beyond a **scroll block**
 original's, so it would show what is behind a horizontal scroll block:
 secret rooms, the next part of the level, or the empty edge of the map.
 
-Proposal (a question for the user, research.md): the camera stops at a
+Decided by the user (19-10-2026): the camera stops at a
 scroll block just as in 4:3; whatever the wider view would show beyond it
 is covered (black, or the picture behind the level). The level itself
 stays as wide as the original. The same for the world map.
@@ -269,7 +267,7 @@ stays as wide as the original. The same for the world map.
 The original has a **score box** (score, lives, ammo) in the top-left of
 the picture, which the player can turn off in the menu. In 4:3 we draw it
 as the original does. In widescreen the user's rule is "with the HUD" by
-default; for Keen 4 the score box *is* the HUD. Proposal: the score box,
+default; for Keen 4 the score box *is* the HUD. Decided by the user (19-10-2026): the score box,
 in the top-left of the visible picture, in 4:3 and in widescreen alike;
 nothing else.
 
@@ -290,7 +288,7 @@ nothing else.
   files, never shipped). Music plays as a looping stream.
 - A setting "Sound: PC speaker / AdLib" and "Music on/off" in the options
   (the original's own choices). Default as the original's default setup:
-  AdLib sounds and music when present (question for the user).
+  AdLib sounds and music on (decided by the user, 19-10-2026).
 
 ## The menus, texts and the status window
 
@@ -301,7 +299,7 @@ nothing else.
 - The status window (Enter) shows the level name, score, extra life at,
   keys, ammo, lives, drops, and the rescued elders (D7).
 - The original's **Paddle War** (the paddle game in the menu) is optional
-  and comes last (question for the user).
+  and comes in D11 (decided by the user, 19-10-2026).
 
 ## Testing
 

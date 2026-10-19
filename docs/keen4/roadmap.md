@@ -27,11 +27,9 @@ gebruiken zonder Keen 4 te veranderen.
   werkt aan Keen 3; daarom zijn `PROGRESS.md`, `docs/doorlooptijden.md` en
   `docs/new-episode-guide.md` nu niet bijgewerkt (zie "Voortgang" onderaan;
   bijwerken zodra Keen 3 op `main` staat).
-- **D2 begint bij voorkeur nadat Keen 3 op `main` staat** (vraag 10 in
-  research.md): dan wordt Keen 4 het vierde icoon bovenop een afgemaakt
-  Keen 3. Moet het eerder, dan begint D2 vanaf de nieuwste C-branch (zoals
-  C1 vanaf B10) en neemt elke D-branch nieuwere C-branches op, nooit
-  andersom.
+- **D2 begint nadat Keen 3 op `main` staat** (besluit van de gebruiker,
+  19-10-2026): dan wordt Keen 4 het vierde icoon bovenop een afgemaakt
+  Keen 3.
 - **Keen 1, 2 en 3 blijven zoals ze zijn.** Elke mijlpaal eindigt met de
   controle uit [architecture.md](architecture.md): alle bestaande tests
   slagen zonder dat ze zijn aangepast, `gdlint` is schoon, de
@@ -41,9 +39,11 @@ gebruiken zonder Keen 4 te veranderen.
   bouwt die, met tests, en werkt `PROGRESS.md` bij. De architect controleert
   daarna de diff tegen de opdracht en de regels, en vult
   `docs/doorlooptijden.md` aan.
-- Getallen komen eerst uit Omnispeak (`(Omni)`, als de gebruiker dat
-  toestaat, vraag 1), anders uit Commander Genius (`# estimate`). Nooit code
-  overnemen.
+- Getallen komen eerst uit Omnispeak (`(Omni)`, besluit van de gebruiker,
+  19-10-2026), anders uit Commander Genius (`# estimate`). Nooit code
+  overnemen. De gereconstrueerde Keen 4-6-broncode wordt niet gebruikt.
+- De besluiten van de gebruiker over framerate, widescreen, HUD, geluid,
+  co-op en extra's staan in research.md §13 ("The user's answers").
 - **Naast het origineel tijdens het werk:** elke mijlpaal met iets
   zichtbaars eindigt met een korte vergelijking in js-dos met de eigen
   Keen 4 v1.0 van de gebruiker (`tools/original/`, research.md "Watching
@@ -140,8 +140,7 @@ een Keen die stilstaat; je kunt rondkijken.
   de prioriteiten, met `Interpolation`.
 - De camera: `LevelCamera` met de regels van het origineel (Keen tussen
   33 en 167 px van boven) en de **scroll-blokken** (info 25/26). In
-  widescreen wordt wat voorbij een scroll-blok zou komen afgedekt (vraag
-  3).
+  widescreen wordt wat voorbij een scroll-blok zou komen afgedekt (besluit van de gebruiker).
 - xBRZ via een kleine `GalaxyScaledGraphics` die `XbrzScaler` gebruikt;
   plaatjes achter de levels (`BackdropPictures`) in widescreen.
 - Vrij rondkijken (`FreeLook`) zoals in Keen 1-3.
@@ -175,7 +174,7 @@ schieten; items, edelstenen en deuren werken. Nog geen vijanden.
 - De verdover (schot tegen muren, paalgaten), lading.
 - Items en tiles: punten, druppels (100 = leven), edelstenen, houders en de
   deur die opengaat, extra leven, lading; extra leven bij 20.000, 40.000 …
-- Het **scorebord** (score box) linksboven, in 4:3 en widescreen (vraag 4).
+- Het **scorebord** (score box) linksboven, in 4:3 en widescreen (besluit van de gebruiker).
 - Het einde van een level: uit beeld lopen links of rechts; voorlopig
   volgt het volgende level; dood → opnieuw; game over → startscherm.
 - `Keen4LevelSession`, `Keen4Inventory`.
@@ -242,7 +241,7 @@ Klaar als: je vanaf de kaart alle levels kunt spelen.
 - De **cheat E+N+D** werkt (handig om het einde te testen), B+A+T ook.
 - De titel: de intro-aftiteling, het verhaal, de highscores en de **vijf
   demo's** (3 tics per frame, de vaste toevalstabel, "two-button firing";
-  vraag 8).
+  besluit van de gebruiker).
 - Help (F1): de vijf onderwerpen uit de teksten (`GalaxyTextPages`, met
   `^G`-plaatjes).
 - Na deze mijlpaal kun je Keen 4 van begin tot eind uitspelen.
@@ -260,7 +259,7 @@ demo's lopen zoals in het origineel (in js-dos naast elkaar gelegd).
   de openbare documentatie van de YM3812, getest met zelfgemaakte
   registerreeksen.
 - AdLib-geluiden (140 Hz, één kanaal) en de zes liedjes (560 Hz),
-  gerenderd op de achtergrond naar `user://keen4/cache/` (vraag 5); het
+  gerenderd op de achtergrond naar `user://keen4/cache/` (besluit van de gebruiker); het
   lied per level, het lied van de raad, van het einde en van het verhaal.
 - Instellingen: geluid uit / PC-speaker / AdLib, muziek aan/uit.
 - In js-dos: een paar geluiden en het begin van een lied naast elkaar
@@ -286,14 +285,14 @@ start zonder rekenen).
 - Vloeiende beweging en xBRZ nakijken (gedeeld), de plaatjes achter de
   levels in `assets/backgrounds/keen4/` (alleen eigen plaatjes), de builds
   voor macOS en Windows.
-- **Paddle War** in het menu (vraag 7).
-- Real-ESRGAN: overslaan zoals bij Keen 2 en 3, tenzij de gebruiker het
-  anders wil (vraag 9).
+- **Paddle War** in het menu (besluit van de gebruiker).
+- Real-ESRGAN: overgeslagen, zoals bij Keen 2 en 3 (besluit van de
+  gebruiker, 19-10-2026).
 
 ## D12. Co-op (`milestone-d12-coop`)
 
 - Twee spelers op één toetsenbord met split-screen; de toetsen voor twee
-  spelers krijgen omhoog/omlaag (vraag 6).
+  spelers krijgen omhoog/omlaag (besluit van de gebruiker).
 - Online: `GAME_ID_KEEN_4`; meedoen met een host van een ander deel
   schakelt over, zoals bij Keen 1-3. Eigen berichten voor Galaxy (drie
   lagen, de inventaris van Keen 4, de raad, de kaart), achteraan de enums.
@@ -328,8 +327,8 @@ start zonder rekenen).
 
 | Mijlpaal | Datum | Status |
 |---|---|---|
-| D1 Onderzoek | 19-10-2026 | Klaar; wacht op de antwoorden op de vragen in research.md §13 |
+| D1 Onderzoek | 19-10-2026 | Klaar; de vragen zijn beantwoord (research.md §13) |
 
-Volgende stap: de gebruiker beantwoordt de vragen in
-[research.md](research.md) §13; daarna begint D2 (bij voorkeur nadat Keen 3
-op `main` staat).
+Volgende stap: zodra Keen 3 op `main` staat, `PROGRESS.md`,
+`docs/doorlooptijden.md` en `docs/new-episode-guide.md` bijwerken met D1
+(de lessen staan onderaan research.md), en D2 beginnen vanaf `main`.
