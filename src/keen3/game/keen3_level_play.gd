@@ -131,12 +131,20 @@ func start_map() -> bool:
 ## Advances one tick with the buttons in [param input], and moves on when
 ## Keen enters a level or his attempt is over.
 func step(input: KeenInput) -> void:
+	step_players([input])
+
+
+## The same with the buttons of each player in [param inputs] (milestone
+## C10, as Keen 2's B9): in a level each steers his own Keen ([member
+## LevelSession.keens]); on the map there is one Keen, which the buttons of
+## all of them steer together (also on Messie's back and in a teleporter).
+func step_players(inputs: Array[KeenInput]) -> void:
 	if state == State.MAP and map_session != null:
-		map_session.step(input)
+		map_session.step(inputs[0] if inputs.size() == 1 else KeenInput.combine(inputs))
 		if map_session.outcome == MapSession.Outcome.ENTER_LEVEL:
 			start(map_session.chosen_level)
 	elif state == State.PLAYING and session != null:
-		session.step(input)
+		session.step_players(inputs)
 		if session.outcome != LevelSession.Outcome.PLAYING:
 			_on_level_over(session.outcome)
 

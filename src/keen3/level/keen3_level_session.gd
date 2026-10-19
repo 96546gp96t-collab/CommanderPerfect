@@ -173,6 +173,18 @@ func step_players(inputs: Array[KeenInput]) -> void:
 		play_sound(Sound.Id.TANK_FIRE)
 
 
+## Player 2 leaves ([method LevelSession.remove_player]); his ankh's halo
+## goes with him (it would wait for a time that no longer runs out).
+func remove_player(body: KeenBody) -> void:
+	super.remove_player(body)
+	if keens.has(body):
+		return
+	for actor in actors:
+		var shield := actor as Keen3AnkhShield
+		if shield != null and shield.keen == body:
+			shield.removed = true
+
+
 ## Whether a sleeping sprite with its top left at [param point] wakes up.
 func wakes_at(point: Vector2) -> bool:
 	return Keen3ActiveArea.wakes(_views(), point)

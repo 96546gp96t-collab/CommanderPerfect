@@ -25,6 +25,10 @@ extends RefCounted
 ## rows 3-5 at column 19, rows 7-9 at column 11). They are written in the
 ## font's second half: red letters on gray bars, as in the original.
 ## Without the lines from the EXE the box has no labels.
+##
+## With two players on one keyboard (milestone C10) each Keen has his own
+## ankh: then the ankh time of each stands with his player's number,
+## player 1's ("1:9") on row 8 and player 2's ("2:4") on row 9 under it.
 
 const SIZE := Vector2i(28, 11)
 const LINE_COUNT := 11
@@ -56,8 +60,14 @@ const KEYCARD_CELLS: Array[Vector2i] = [
 ## Fills [param window] with what [param inventory] holds and
 ## [param ankh_seconds] (the ankh time as the status screen counts it).
 ## [param lines] are the box's lines from KEEN3.EXE, or empty.
+## [param partner_ankh_seconds] is player 2's ankh time when two play on one
+## keyboard, otherwise -1.
 static func fill(
-	window: Keen3Window, inventory: Inventory, ankh_seconds: int, lines: PackedStringArray
+	window: Keen3Window,
+	inventory: Inventory,
+	ankh_seconds: int,
+	lines: PackedStringArray,
+	partner_ankh_seconds := -1,
 ) -> void:
 	window.open(SIZE)
 	if lines.size() == LINE_COUNT:
@@ -69,7 +79,11 @@ static func fill(
 	window.put_tile_shifted(PISTOL_CELL, PISTOL_TILE, TILE_SHIFT)
 	window.put_text(CHARGES_CELL, str(inventory.charges))
 	window.put_tile_shifted(ANKH_CELL, ANKH_TILE, TILE_SHIFT)
-	window.put_text(ANKH_TIME_CELL, str(ankh_seconds))
+	if partner_ankh_seconds < 0:
+		window.put_text(ANKH_TIME_CELL, str(ankh_seconds))
+	else:
+		window.put_text(ANKH_TIME_CELL, "1:%d" % ankh_seconds)
+		window.put_text(ANKH_TIME_CELL + Vector2i.DOWN, "2:%d" % partner_ankh_seconds)
 	for color in KEYCARD_TILES.size():
 		if inventory.keycards[color]:
 			window.put_tile_shifted(KEYCARD_CELLS[color], KEYCARD_TILES[color], TILE_SHIFT)

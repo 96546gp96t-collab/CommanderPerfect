@@ -5,8 +5,9 @@ extends "res://tests/test_case.gd"
 ## Keen 3 game in its own folder ([Keen3SaveGames], [Keen3Progress] with the
 ## view's corner, Messie not saved), the place a save keeps on the map
 ## ([method Keen3MapSession.remember_place]) and the menus of
-## [Keen3MenuScreen]: no online game, second player or extra levels, saving
-## only on the map, loading starts the game, the attract time.
+## [Keen3MenuScreen]: a second player and (with [Keen3OnlineScreen]) an
+## online game since C10, no extra levels, saving only on the map, loading
+## starts the game, the attract time.
 
 const Maps := preload("res://tests/keen3_map_fixtures.gd")
 const TEST_DIRECTORY := "user://test_keen3_menus"
@@ -128,22 +129,20 @@ func test_a_save_keeps_keen_and_the_view_but_not_on_messie() -> void:
 	assert_true(not game.map_corner.is_finite(), "on Messie the view is not kept")
 
 
-func test_keen_3_menu_has_no_online_second_player_or_extra_levels() -> void:
+func test_keen_3_menu_offers_a_second_player_but_no_extra_levels() -> void:
 	var screen := StartingScreen.new()
 	screen._menus.window = GameWindow.new()
 	screen._set_up_menus()
-	assert_true(not screen._menus.offers_online, "no online game")
-	assert_true(not screen._menus.offers_second_player, "no second player")
+	assert_true(screen._menus.offers_second_player, "a second player (C10)")
 	assert_true(not screen._menus.offers_extra_levels, "no extra levels")
 	assert_equal(screen._menus.saves.directory, Keen3SaveGames.DIRECTORY, "Keen 3's saves")
 	screen._menus.open_main(true, true)
 	var labels := PackedStringArray()
 	for item in screen._menus._top().items:
 		labels.append(item.label)
-	for label in ["Online Game", "Add Player 2"]:
-		assert_true(not labels.has(label), "no %s" % label)
-	for label in ["New Game", "Continue Game", "Save Game", "High Scores", "Choose Game"]:
+	for label in ["Add Player 2", "New Game", "Continue Game", "Save Game", "High Scores"]:
 		assert_true(labels.has(label), label)
+	assert_true(labels.has("Choose Game"), "Choose Game")
 	screen._menus.window.free()
 	_free_screen(screen)
 
