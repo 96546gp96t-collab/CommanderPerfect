@@ -235,7 +235,7 @@ func test_catalog_lists_three_games() -> void:
 	assert_equal(games[2].scene, GameLaunch.KEEN_3_SCENE, "plays Keen 3")
 	assert_equal(games[2].data_folder, "game_data/keen3", "Keen 3's folder")
 	assert_equal(games[2].game_id, OnlineProtocol.GAME_ID_KEEN_3, "Keen 3's id")
-	assert_true(not OnlineProtocol.GAME_ID_KEEN_3 in OnlineProtocol.GAME_IDS, "not online yet")
+	assert_true(OnlineProtocol.GAME_ID_KEEN_3 in OnlineProtocol.GAME_IDS, "online since C10")
 	assert_true(ResourceLoader.exists(GameLaunch.KEEN_3_SCENE), "the Keen 3 scene exists")
 
 
