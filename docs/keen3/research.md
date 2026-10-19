@@ -738,39 +738,129 @@ frame:
 - Not seen: Mortimer, a spark or the heart being shot, the sweeps, the
   border flash, the ending.
 
+Watched again in C11 (19-10-2026; js-dos 8.5.3, KEEN3.EXE 1.00, run
+headless with `tools/original/headless.js`). Two scratch copies of the
+player's files reached what a script cannot: one with an ankh (tile 201)
+two cells right of level 1's start (and its Foob taken out), one with level
+1's entrance on the map leading to level 16 (info 16) and level 16 changed
+so that Keen starts on a ledge in front of the heart's row (the claws, the
+left arm, the Meeps and the wall guns taken out), so that one shot wins the
+level. Frames compared pixel for pixel with ours (`scripted_play.gd`, 4:3,
+no pixel correction):
+
+- **Attract loop:** title 16.5 s, id page 16.4 s, high scores 16.4 s,
+  ordering page 16.7 s (C1's "high scores ~21.3 s" was wrong); Choco's 2400
+  clock ticks (16.5 s) for each. The high score border animates the whole
+  time. (sure)
+- **Title:** pixel for pixel the same as ours, apart from the phase of the
+  animated tiles. (sure)
+- **High scores:** the same places and colours, but a new table has
+  **seven** names: Yorpy, Gargile, Zzapp!, Yorpy, Gargile, Zzapp!, Yorpy,
+  all 100 (ours had three and four empty places). (sure)
+- **Status screen** of a new game and the map's first view: pixel for pixel
+  the same. (sure)
+- **Level 1's first view:** the same as ours (the C3 question is answered).
+  (sure)
+- **Keen 3's jumps** (level 1's start, Keen standing; his box tracked):
+  a jump with the button held rises **53 px** (feet 167 → 114) after ~0.24 s
+  crouching, up 0.44 s, down 0.50 s; the pogo without the button **50 px**,
+  a bounce every 1.11 s; with the button held **105 px** (the first bounce
+  after pressing it mid-air 92 px), a bounce every 1.56 s. The same as the
+  user's Keen 2 measurements; ours (shared physics) 58, 58 and 109 px. Not
+  changed (C12, see choco-keen1-keen2.md). (sure)
+- **The ankh:** the halo shows for ~9.8 s (less the time the status screen
+  was open; frames ~0.13 s apart) and blinks on and off every ~0.12 s in the
+  last ~1.6 s; the status screen showed **8** 1.5 s after the pickup. So
+  Choco's 9.6 s, not 15 s (KeenWiki) or 21 s (Commander Genius). (sure)
+- **Mortimer** speaks when level 16 is entered from the map (his boxes typed
+  letter by letter, the level drawn behind them); not measured to the pixel
+  (the sparks animate, so the frame log does not give the letters).
+- **The ending** (one shot at the heart): the level fades ~3.6-4 s after the
+  shot and the hall fades in in steps ~114 ms apart (4 steps of 8
+  retraces). The pages are typed a letter every **85.6 ms** (6 retraces);
+  every stored character counts, the trailing spaces that KEEN3.EXE keeps
+  after some lines too, and so does every line end: page 1 (31 letters and
+  7 spaces, 36, 38, 38, and 4 line ends) takes 154 letter times, 13.1 s.
+  From a page's last letter to the next page's first ~1.9 s (its line end,
+  120 retraces, the first letter). The boxes stand on **Choco's rows**:
+  pages on rows 18-23 / 18-22 (y 144), "Thank you!" 18-20, the box over
+  FINALE.CK3 on rows 20-24 (x 112-207, y 160-199); Choco's columns less 4.
+  FINALE.CK3 shows 5.71 s (400 retraces) before its box. Once the box is
+  typed, a **ball spins** in the middle of its last row (font characters
+  9-12, the next every 5 retraces) until a key. (sure)
+- **The end text** is shown in a reader that fills the screen: lines that
+  start with `~` are red on a gray bar (the title "CONGRATULATIONS!" stands
+  as typed, 10 cells in), 21 lines of text, the window's bottom edge across
+  it on row 22, and a footer "ESC to Exit / ↑ ↓ to Read" (red on gray, a
+  record in KEEN3.EXE) on row 23; the screen's bottom row uses the top
+  edge's pieces. Two spaces after a full stop are kept when a paragraph is
+  wrapped. (sure)
+- **After the end text** (Escape): the hall comes back with a window "GAME
+  OVER" (the bitmap inside it at the top), "Score: 1000", "Congratulations!
+  You got first place!" and "Enter your name:" with the spinning ball as
+  cursor (x ~24-300, y ~40-160); after Enter the high scores (16.7 s) with
+  the new name on top, then the title. Our ending shows GAME OVER on a black
+  screen and then the shared name box over the high scores; left as it is
+  (see "Only the original can answer").
+
 ## Only the original can answer
 
-Collect the answers here (js-dos) during C3-C10; C11 finishes the list.
+Collect the answers here (js-dos) during C3-C10; C11 finished the list:
+**done** = seen in the original, **left** = still Choco's number or our
+estimate, with the reason.
 
-1. Ankh: 9.6 s (Choco), 21 s (CG) or 15 s (KeenWiki)? The halo's look.
-2. The raygun's amount (start charges: 5, seen in C1).
-3. Hit points: mother 5, ninja 4, the rest 1.
-4. The mother turning round before she spits; the fireball's speed.
-5. The Meep's wave through walls; the Meep singing in the air at a ledge.
-6. The ninja's jumps.
-7. The Foob: when it gets scared, its speed (~~that it dies when Keen
-   touches it~~: seen in C4).
-8. Ball and jack: 121/32 per axis, start direction toward Keen.
-9. The wall guns: every 2.75 s, all in step, heard off screen.
-10. Platforms: the waits (31 ticks), the vertical one turning at once at the
-    floor (~~the up-and-down platform's speed, its turn at the floor and,
-    roughly, its wait at the ceiling~~: seen in C5; the sideways one and
-    riding into a ceiling are still open).
-11. The machine: ~~arm and leg steps~~ (seen in C7, with level 16 copied
-    over level 1: see below), the sweeps, how long until the level is won;
-    what the border flash looks like.
-12. The Mortimer boxes: places, pauses, skipping.
-13. ~~Teleporters: the animation and the jump of the view~~ (seen in C6).
-14. Messie: ~~start (35,8), speed, the wait at the weed~~ (seen in C6),
-    getting on and off.
-15. ~~The ship's messages: at random?~~ (yes, seen in C6).
-16. The done signs on every kind of entrance.
-17. The ending: places, the flashes, the end text.
-18. Which of level 9's starts is used.
-19. The tile an opened door leaves.
-20. ~~The status screen's places~~ (measured in C1).
-21. Which enemies enemy shots kill.
-22. The 1.00 bugs in level 10 and 13.
+1. **Done (C11):** the ankh lasts 9.6 s (Choco); the halo blinks on and off
+   every ~0.12 s at the end. (Its look was seen in C4.)
+2. **Done (C1):** 5 start charges.
+3. **Left:** hit points (mother 5, ninja 4, the rest 1): counting shots
+   needs Keen steered to each enemy; Choco's numbers stay.
+4. **Left:** the mother's turn before she spits, the fireball's speed (her
+   house in level 1 could not be reached by script; a scratch level with her
+   next to Keen would do it, not done for time).
+5. **Left:** the Meep's wave through walls and its singing at a ledge (as 4).
+6. **Left:** the ninja's jumps (as 4).
+7. **Left:** when the Foob gets scared and its speed; partly seen in C1 (2
+   px a frame, then 6 px a frame) and C4 (it dies when Keen touches it).
+8. **Left:** ball and jack (121/32, start direction): levels 3 and 4 lie
+   beyond the block after level 2.
+9. **Left:** the wall guns (every 2.75 s): as 8.
+10. **Partly done (C5):** the up-and-down platform; the sideways one and
+    riding into a ceiling are left.
+11. **Partly done (C7, C11):** the arms and legs (C7); the heart shot and
+    the level's end (C11, the time to the hall); the sweeps and the border
+    flash were not measured (the sparks were not shot).
+12. **Left:** the places and pauses of Mortimer's boxes; seen that he speaks
+    and types letter by letter (C11), not measured to the pixel (the
+    animated sparks hide the letters' times in the frame log). The typing
+    rule of the ending (stored spaces and line ends count) is applied to his
+    boxes too.
+13. **Done (C6):** teleporters.
+14. **Partly done (C6):** Messie's course; getting on and off is left (her
+    loop is far from the start).
+15. **Done (C6):** the ship's messages are random.
+16. **Left:** the done signs: no level was finished from the map in js-dos
+    (the lab levels went to level 16 and the ending).
+17. **Done (C11):** the ending: the pages' places and timing, the hall's
+    fade, FINALE.CK3's wait, its box and the spinning ball, the end text's
+    reader. Left: the camera flashes' look (seen only at 0.1 s steps) and
+    the GAME OVER window with the name entry after it (see above; needs its
+    own name entry in the window, a larger change).
+18. **Left:** which of level 9's starts is used (level 9 not reached).
+19. **Left:** the tile an opened door leaves and its sinking speed (no
+    door was opened).
+20. **Done (C1, C6, C11):** the status screen, pixel for pixel.
+21. **Left:** which enemies enemy shots kill.
+22. **Left:** the 1.00 bugs in levels 10 and 13 (not reached; they stay as
+    they are anyway).
+23. **Done (C11):** title and high scores pixel for pixel; a new table has
+    seven names.
+24. **Done (C11), not changed:** Keen 3's jump heights (C12).
+25. **Left:** the first view of a level when Keen does not start low: level
+    1's matches ours, but in the scratch level 16 (Keen starting at (4,7))
+    the original's view stands 8 px lower than ours, and C7 saw the real
+    level 16 start much lower too. The original's rule for the first
+    vertical scroll differs from our centring; the camera is shared code,
+    so this waits for a Keen 3 camera rule (or C12).
 
 ## Notes for Keen 1 and Keen 2 (information only)
 

@@ -800,3 +800,46 @@ picture the same, `launcher.png` too.
   checked in screenshots.
 - **Not tested here:** Steam (no Steam library on Linux; the lobby logic
   is covered by the tests, as in B9).
+
+## Deviations in C11
+
+Written by the developer of C11 (next to the original). Keen 1 and Keen 2
+play as before: `git diff milestone-c10-coop` on `src/keen2`,
+`tests/test_keen2_*.gd`, `tests/keen2_fixtures.gd`, `src/actors`, `src/map`
+and `src/game/level_view.gd` is empty, and `keen1_regression.sh` and
+`keen2_regression.sh` against the C7 references (reset user folder) give
+every picture the same, `launcher.png` too.
+
+**No shared file changed** apart from the test list (`tests/run_tests.gd`
+registers `test_keen3_original`). New tooling: `tools/original/headless.js`
+(no game data). Everything recorded from the original, and the scratch
+copies of the player's files with changed levels, stayed in the
+scratchpad.
+
+**Keen 3 changes (all measured, research.md "Watched again in C11"):**
+
+- `Keen3Ending.SCREEN_ORIGIN` is (4, 0), not (4, 4): the ending's pages
+  and the box over FINALE.CK3 stand 32 px lower, on Choco's own rows, as in
+  the original. `test_keen3_ending` expected C7's places; its three
+  assertions now expect the measured ones.
+- `Keen3TypedBoxes` counts a letter's time for every line end too, and
+  `Keen3Executable` keeps the trailing spaces of Mortimer's and the
+  ending's lines (`typed_lines`; the ship's messages and every other text
+  are read as before). A box is still sized by its lines without those
+  spaces. `test_keen3_scenes`' typing test changed with it (a line end
+  now takes 6 retraces). Applied to Mortimer as well, whose own timing was
+  not measured.
+- A ball spins under the typed box over FINALE.CK3 (`Keen3Ending.cursor_char`).
+- The end text uses Keen 3's own layout (`Keen3EndText`) and the
+  original's reader (21 lines, the edge, the footer read from KEEN3.EXE by
+  content: `Keen3Executable.reader_footer`). The shared `TextDocument`
+  (used by Keen 1's and 2's end texts and every story) is unchanged, so
+  Keen 1 and 2 still centre `~` lines and show 23 lines; whether their
+  originals use the same reader is a question for C12.
+- A new high score table fills all seven places with the three names in
+  turn (`Keen3Screens.default_names`); Keen 2's `Keen2HighScores` is
+  unchanged, Keen 3 only passes it seven names.
+- Not changed although measured: Keen's jump heights (shared physics; the
+  user's decision: C12 changes them for all three games).
+- Not built: the original's GAME OVER window with the name entry over the
+  hall (research.md); our GAME OVER bitmap and the shared name box stay.

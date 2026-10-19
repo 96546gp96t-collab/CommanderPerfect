@@ -59,8 +59,11 @@ Every time level 16 starts (`Keen3Mortimer`, Choco
 `CVort3_handle_grand_intellect`): the level is drawn with its sprites, then
 MORTIMER plays to its end (its length from the sound block, also with the
 sound off) and his nine boxes from KEEN3.EXE are typed one after another
-(`Keen3TypedBoxes`), a letter every 6 retraces (70.086 a second; spaces
-count as letters, an estimate). Keen cannot move meanwhile. Escape, Space
+(`Keen3TypedBoxes`), a letter every 6 retraces (70.086 a second). Every
+stored character takes a letter's time, spaces too, and so does every line
+end (seen in the original's ending in C11 and applied to Mortimer too; his
+own boxes were not timed, so whether his last line end counts is an
+estimate). Keen cannot move meanwhile. Escape, Space
 (fire) or a button (jump, pogo, fire) skips everything that is left;
 during Mortimer, Escape does not leave the game.
 
@@ -153,29 +156,45 @@ drawing), Choco `CVort3_draw_win` and `CVort3_blink_camera_flash`:
 
 1. Map 81 with the view's top left at tile (2,2), a Vorticon (sprite 67) at
    tile (14,6) and Keen (sprite 0) at (15.5,6.5); it fades in (4 steps, 8
-   retraces apart, an estimate after the death fade seen in js-dos).
+   retraces apart; seen in the original, C11: steps ~114 ms apart).
 2. The four pages from KEEN3.EXE, typed one after another at 6 retraces a
-   letter, 120 retraces after each. Choco gives their frames as
-   (4,18)-(43,23), (4,18)-(43,22) twice and (17,18)-(30,20) in the cells
-   of its screen buffer, whose visible part starts at the view's corner
-   (2,2) = 4 cells right and down; less those 4 cells they are (0,14) with
-   38 x 4 inside, (0,14) 38 x 3 twice and (13,14) 12 x 1: every box
-   centred. (That the y offset is 4 cells too is our reading; to check in
-   js-dos.)
+   letter, 120 retraces after each. Every stored character counts, also
+   the trailing spaces KEEN3.EXE keeps after some lines, and every line
+   end: page 1 takes 154 letter times, 13.2 s (seen in the original, C11:
+   13.1 s; ~1.9 s from a page's last letter to the next one's first).
+   Choco gives their frames as (4,18)-(43,23), (4,18)-(43,22) twice and
+   (17,18)-(30,20) in the cells of its screen buffer, which starts 4 cells
+   left of the picture, on the same rows: on the picture they are (0,18)
+   with 38 x 4 inside, (0,18) 38 x 3 twice and (13,18) 12 x 1, every box
+   centred (seen in the original, C11, pixel for pixel; C7 had them 4 rows
+   higher).
 3. Five camera flashes: (19,5) → 58, (3,8) → 60, (5,8) → 60, (20,5) → 58,
    (8,8) → 60; each with CLICKSND and the whole picture lighter for 2
    retraces (`Keen3ScreenTint`, our reading of the camera-flash palette:
    all colours bright), then the tile back to 72 or 61 and a wait of 20,
    10, 5, 10, 15 retraces; then 120 and a fade out.
-4. FINALE.CK3 fades in; after 400 retraces the box from KEEN3.EXE is typed
-   in the frame (18,20)-(29,24), on the picture (14,16) with 10 x 3 inside;
-   a key goes on once it is typed.
-5. The end text (KEEN3.EXE), 38 columns by 23 lines in the shared window,
-   scrolled with up and down as Keen 1's and 2's; at its start keensleft
-   plays to its end and then MORTIMER (C8; C7 started MORTIMER at once); a
-   key ends it.
+4. FINALE.CK3 fades in; after 400 retraces (seen: 5.71 s) the box from
+   KEEN3.EXE is typed in the frame (18,20)-(29,24), on the picture (14,20)
+   with 10 x 3 inside (x 112-207, y 160-199, seen in the original, C11);
+   once it is typed (and a letter's time more) a ball spins in the middle
+   of its last row, font characters 9-12, the next every 5 retraces (seen
+   in the original, C11); a key goes on.
+5. The end text (KEEN3.EXE) in the original's reader (`Keen3EndText`,
+   seen in the original, C11, pixel for pixel): a window filling the
+   picture, 38 columns; lines that start with `~` are red letters on a gray
+   bar as wide as the window, their text where it is typed (not centred);
+   two spaces after a full stop stay when a paragraph is wrapped again; 21
+   lines of text, then the window's bottom edge across it, the footer from
+   KEEN3.EXE ("ESC to Exit / ↑ ↓ to Read", red on gray) and the top edge's
+   pieces as the screen's bottom row. Scrolled with up and down; at its
+   start keensleft plays to its end and then MORTIMER (C8); a key ends it
+   (Escape opens our main menu, C8).
 6. GAME OVER (the bitmap) on a black screen, 5.27 s or a key, then the
-   high scores (C8).
+   high scores (C8). The original (seen in C11) shows the hall again with
+   a window: the GAMEOVER bitmap at its top, "Score: n", "Congratulations!
+   You got first place!" and "Enter your name:" with the spinning ball as
+   the cursor; then the table for 16.7 s and the title. Not built yet: it
+   needs a name entry inside that window instead of the shared name box.
 
 Map 81 is 24x17; its playable part (20x13 tiles) is as wide as the 4:3
 view, so in widescreen black bars show beside it, never its border (the
@@ -466,14 +485,14 @@ stun (`is_protected()`), and every kill goes through `KeenBody.kill`, which
 
 | What | Value | Source |
 |---|---|---|
-| Protection per ankh | 577 ticks (1400 clock ticks, 9.6 s); another ankh adds its time | Choco |
+| Protection per ankh | 577 ticks (1400 clock ticks, 9.6 s); another ankh adds its time | Choco; seen in the original (C11): ~9.8 s at 0.13 s steps, the status screen showed 8 after 1.5 s |
 | Sound | ANKH (sound entry 41), played by `Keen3Sounds` on its own speaker | Choco |
 | At the start of every level | 0 (every attempt makes a new `Keen3Body`) | Choco |
 | Counts down | only while the game runs (one per tick in `Keen3Body.step`; not behind "Keens Left") | Choco |
 | Protects against | everything that kills through `KeenBody.kill` (deadly tiles, enemies, fireballs, waves) and the stun (`Keen3Body.is_protected`); not against a push | Choco |
 | Does not protect against | falling out of the level | Choco |
 | Halo | sprites 61 (GODHALO) and 62 (BYEHALO) in turn every 6.6 ticks, at Keen −8, −8 px (`Keen3AnkhShield`, drawn by the ActorLayer behind Keen; its middle is transparent) | Choco |
-| Blink | in the last 103 ticks; every other picture is left out (*estimate* of the look) | Choco (when), estimate (how) |
+| Blink | in the last 103 ticks; every other picture is left out: on and off ~0.11 s | Choco (when); seen in the original (C11): on and off every ~0.12 s in the last ~1.6 s |
 | Shown time | whole "seconds" of 144 clock ticks (59.3 of ours): a fresh ankh shows 9, as the status screen | Choco |
 
 The ankh time is Keen's own (`Keen3Body.ankh_ticks`), not part of the
@@ -582,14 +601,17 @@ SLAMSND, YORPBUMPSND, YORPBOPSND, GARGSCREAM, KEENCICLE and HISCORESND
   16 apart, names from x 80 and scores ending at x 240, in the font's
   second half (red letters on gray, as the original draws them, Choco
   `CVort_draw_string_80`); **no third column** (seen in js-dos in C1 and
-  Choco `CVort3_draw_scores`). A new table has the names of `KEEN3.EXE`
-  and 100 points everywhere (estimate, as Keen 1 and 2); a score that gets
+  Choco `CVort3_draw_scores`). A new table has the three names of
+  `KEEN3.EXE` in turn in all seven places (Yorpy, Gargile, Zzapp!, Yorpy,
+  ...) and 100 points everywhere (seen in the original, C11; title and
+  table match it pixel for pixel); a score that gets
   in asks for a name in the shared name box ("first" ... "last" from
   `KEEN3.EXE`), without HISCORESND. The table is Keen 2's
   (`Keen2HighScores`, the cities left at 0) in
   `user://keen3/high_scores.json`.
 - **The attract loop:** the title and the high scores take turns, 2400
-  clock ticks each, 16.5 s (Choco; the title was 16.8 s in js-dos). The
+  clock ticks each, 16.5 s (Choco; seen in the original, C11: title 16.5
+  s, high scores 16.4 s; C1's 21.3 s was wrong). The
   original also shows the id Software page and the ordering page with the
   Foob; those are not built (as for Keen 1 and 2).
 - **The main menu** is the shared one: New Game, Continue Game, Save Game
@@ -756,6 +778,20 @@ shows 8 pixels of the bottom border row (unlikely), or its view is less
 than 200 pixels high, or its first view is placed differently. To check in
 C11.
 
+*Answered in C11:* the original's first view of level 1 is the same as
+ours now (pixel for pixel, apart from the animation phase of a few
+sprites).
+
+## Seen in the original (C11)
+
+Pixel for pixel against the original in js-dos (research.md, "Watched
+again in C11"): the title, the high score table (after the fix of its
+names), the status screen of a new game, the map's first view, level 1's
+first view, the ending's four pages, FINALE.CK3 with its box and ball, and
+the end text's reader: no differing pixel apart from the phase of animated
+tiles and sprites. Keen 3's jumps were measured but not changed (C12):
+jump 53 px, pogo 50 px, pogo with the button 105 px (ours 58, 58, 109).
+
 ## Estimates to check against the original
 
 - C5: the head reach of 12 px (from below), the carrier that stops under a
@@ -774,8 +810,8 @@ C11.
   is Choco's and only partly seen in js-dos (research.md, "Watching the
   original").
 
-- The halo's blink (which pictures are left out) and whether it is drawn
-  in front of Keen or behind him.
+- ~~The halo's blink~~ (seen in C11: on and off ~0.12 s); whether it is
+  drawn in front of Keen or behind him (C4: behind foreground tiles).
 - The splash sprites per direction (105 right, 106 left).
 - The door sinking speed (shared: 1 px per tick; Choco: 1 px per 5 clock
   ticks).
@@ -786,9 +822,15 @@ C11.
   time on the map's status screen (0 here).
 - "Keens Left": the window's place (the original: x 88-231, y 72-119) and
   how many little Keens fit.
-- The ankh time itself: 9.6 s (Choco) against 15 s (KeenWiki) and 21 s (CG)
-  (research.md, "Only the original can answer", 1).
-- C8: 100 points in a new high score table (as Keen 1 and 2); that the
+- ~~The ankh time itself~~: 9.6 s, seen in C11.
+- C11 left: the GAME OVER window with the name entry after the ending (and
+  probably after the last life with a good score); Mortimer's boxes to the
+  pixel and whether his last line end counts; the camera flashes' look;
+  the enemies, the ball, the jack, the guns, the doors, the done signs,
+  Messie's riding, level 9's start, and the first view of level 16 (the
+  original's is lower; research.md, "Only the original can answer", with
+  the reasons).
+- C8: ~~100 points in a new high score table~~ (seen in C11); that the
   first bump against a wall in the air sounds at once (the original waits
   for an odd window of 16 clock ticks); all sounds by ear, also the 145.65
   Hz rate (no sound was recorded in js-dos). The places of the title and

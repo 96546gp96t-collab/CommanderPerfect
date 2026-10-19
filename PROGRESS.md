@@ -64,8 +64,74 @@ over Keen 3 bekend is in [docs/keen3/research.md](docs/keen3/research.md).
 | C8 | Geluid, menu's, opslaan, highscores | ✅ Klaar en gecontroleerd door de architect (branch `milestone-c8-geluid-menus`) |
 | C9 | Mooier maken (framerate, xBRZ, achtergronden, builds) | ✅ Gebouwd, wacht op controle architect (branch `milestone-c9-extras`); Real-ESRGAN bewust overgeslagen |
 | C10 | Co-op lokaal en online | ✅ Gebouwd, wacht op controle architect (branch `milestone-c10-coop`); Steam niet te testen hier |
-| C11 | Naast het origineel (wat nog geschat is) | ⬜ |
+| C11 | Naast het origineel (wat nog geschat is) | ✅ Gebouwd, wacht op controle architect (branch `milestone-c11-origineel`); een deel blijft geschat (research.md) |
 | C12 | Keen 1 en 2 bijwerken met de getallen uit Chocolate Keen (ook de sprongen) | ⬜ |
+
+## Mijlpaal C11: wat er nu is
+
+Keen 3 naast het origineel gelegd in js-dos (KEEN3.EXE 1.00), dit keer
+zonder browservenster: `tools/original/headless.js` stuurt de pagina in
+een onzichtbare Chromium. Twee kladkopieën van de spelbestanden (alleen in
+de scratchpad) brachten ons waar een script niet komt: een ankh naast
+Keens start in level 1, en de ingang van level 1 op de kaart naar level 16
+met Keen vlak voor het hart. Wat gemeten is staat in
+`docs/keen3/research.md` ("Watched again in C11"), de afwijkingen in
+`docs/keen3/architecture.md` ("Deviations in C11").
+
+- [x] **Pixel voor pixel gelijk aan het origineel** (4:3): de titel, de
+  highscores, het statusscherm van een nieuw spel, het eerste beeld van de
+  kaart en van level 1, de vier pagina's van het einde, FINALE.CK3 met
+  zijn vak, en de eindtekst. Alleen de stand van bewegende tiles en
+  sprites verschilt.
+- [x] **Gerepareerd na het meten:**
+  - de vakken van het einde stonden 32 pixels te hoog (rij 14 in plaats
+    van 18; het vak op FINALE.CK3 op rij 20);
+  - het typen: elk opgeslagen teken (ook de spaties achter een regel) en
+    elk regeleinde kost een letter (85,6 ms); pagina 1 duurt nu 13,2 s,
+    het origineel 13,1 s (was 12,2 s);
+  - onder het vak op FINALE.CK3 draait nu een balletje tot je een toets
+    indrukt (tekens 9-12, elke 5 retraces);
+  - de eindtekst staat nu in het leesvenster van het origineel: de titel
+    rood op een grijze balk, 21 regels, onderaan "ESC to Exit / ↑ ↓ to
+    Read" uit KEEN3.EXE, en twee spaties na een punt blijven staan;
+  - een nieuwe highscorelijst heeft zeven namen (Yorpy, Gargile, Zzapp!,
+    Yorpy, ...), niet drie.
+- [x] **Bevestigd** (getallen bleven, nu "seen in the original, C11"): de
+  ankh duurt 9,6 s (niet 15 of 21 s) en knippert aan het eind om de ~0,12
+  s; titel en highscores wisselen elke 16,5 s; het einde: fade in stappen
+  van ~114 ms, 120 retraces na een pagina, 400 retraces voor het vak op
+  FINALE.CK3.
+- [x] **Gemeten, niet veranderd (C12):** Keen 3 springt 53 px (wij 58), de
+  pogo 50 px (wij 58) en met springknop 105 px (wij 109): net als Keen 2.
+  Staat in `docs/keen3/choco-keen1-keen2.md`.
+- **Blijft geschat** (met de reden in research.md, "Only the original can
+  answer"): de vijanden (levenspunten, de moeder, de Meep, de ninja, de
+  Foob), bal, jack en wapens in de muur, deuren, de done-bordjes, Messie
+  op- en afstappen, level 9's start, Mortimers vakken op de pixel, de
+  camera-flitsen. Die zijn in levels die een script niet haalt; met meer
+  kladlevels (zoals de ankh) kan het later. Ook het eerste beeld van level
+  16: dat staat in het origineel lager dan bij ons (level 1 klopt wel); de
+  camera is gedeeld, dus dat wacht op een eigen regel voor Keen 3 of C12.
+- **Niet gebouwd:** na de eindtekst toont het origineel de hal weer met
+  een venster "GAME OVER", de score, "Congratulations! You got first
+  place!" en "Enter your name:" met het draaiende balletje. Wij tonen GAME
+  OVER op zwart en daarna het gedeelde naamvak. Dat vraagt een eigen
+  naaminvoer in dat venster: een grotere wijziging, voor later.
+- [x] **Tests:** nieuwe suite `test_keen3_original` (8 tests); drie
+  bestaande Keen 3-tests veranderd omdat C11 de getallen verandert
+  (`test_keen3_ending`: de plekken van de vakken; `test_keen3_scenes`: een
+  regeleinde kost een letter). 66 suites, 764 tests (was 65 en 756), alle
+  slagen, gdlint schoon.
+- [x] **Keen 1- en Keen 2-controle:** `keen1_regression.sh` en
+  `keen2_regression.sh` tegen de C7-referentie (lege gebruikersmap): alles
+  gelijk, ook `launcher.png`. `git diff milestone-c10-coop` op `src/keen2`,
+  `tests/test_keen2_*.gd`, `tests/keen2_fixtures.gd`, `src/actors`,
+  `src/map` en `src/game/level_view.gd` is leeg. Geen gedeeld bestand
+  veranderd (alleen de testlijst).
+- [x] **Bekeken in de app** (scratchpad `c11shots/`): titel, highscores,
+  statusscherm, kaart, level 1, het einde vanaf het hart (met dezelfde
+  kladkopie via `--data-dir-keen3`), FINALE.CK3 met het balletje, de
+  eindtekst; elk naast het frame van het origineel.
 
 ## Mijlpaal C10: wat er nu is
 
@@ -1732,11 +1798,20 @@ Keen 3:
    twee spelers; online met een vriend (via Steam, of IP op twee
    computers): Keen 3 hosten en meedoen, en meedoen met een Keen 3-host
    vanuit Keen 1 of 2 (het spel schakelt over).
-8. Daarna C11 (naast het origineel, branch `milestone-c11-origineel` vanaf
-   `milestone-c10-coop`): wat nog `# estimate` is in js-dos nakijken, en
-   het einde, de titel, de highscores en het statusscherm op de pixel
-   nameten.
-9. Later: Eigen achtergrondplaatjes voor Keen 1 en Keen 2, later in een
+8. **Architect:** C11 controleren (branch `milestone-c11-origineel`), de
+   app bouwen op de Mac met `tools/build_macos.sh` en `tools/build_windows.sh`.
+9. **Voor de gebruiker (C11):** in `build/` het einde van Keen 3 bekijken
+   (`-- --game=3 --ending`, of level 16 uitspelen): de vakken staan nu
+   onderaan zoals in het origineel, het balletje onder "The End... For
+   now!", de eindtekst met de grijze titelbalk en de regel "ESC to Exit";
+   en de highscores van een nieuwe lijst (zeven namen; eerst
+   `keen3/high_scores.json` in de gebruikersmap weggooien).
+10. Daarna C12 (Keen 1 en 2 bijwerken, branch `milestone-c12-keen1-keen2`):
+   de natuurkunde voor alle drie (Keen 3 gemeten: 53/50/105 px), en wat in
+   C11 aan Keen 3 is gezien om in Keen 1 en 2 na te kijken
+   (`docs/keen3/choco-keen1-keen2.md`). Eventueel ook het GAME OVER-venster
+   met naaminvoer (alle drie).
+11. Later: Eigen achtergrondplaatjes voor Keen 1 en Keen 2, later in een
    eigen branch (wens van de gebruiker, 19-10-2026).
 
 Keen 2:

@@ -45,6 +45,44 @@ In another session the user had Keen measured pixel by pixel in the original
   Keen 3 inherits the same jumps. The choices are in `PROGRESS.md` (open
   decisions).
 
+## Keen 3 next to these heights (measured in C11, 19-10-2026)
+
+The same measurement in the original `KEEN3.EXE` 1.00 (js-dos, Keen
+standing at level 1's start, his sprite's box tracked frame by frame):
+
+| Jump | Original Keen 3 | Ours (shared) |
+|---|---|---|
+| Normal jump, button held | 53 px (feet 167 → 114); ~0.24 s crouching, up 0.44 s, down 0.50 s | 58 px |
+| Pogo without the jump button | 50 px, a bounce every 1.11 s | 58 px |
+| Pogo with the jump button held | 105 px, a bounce every 1.56 s (92 px for the bounce in which the button was pressed) | 109 px |
+
+So Keen 3 jumps as Keen 2 does, and C12's change of `KeenPhysics` should
+give all three the same numbers. Keen 3 was not changed in C11.
+
+## Seen in Keen 3's original in C11, worth checking in Keen 1 and 2 (C12)
+
+Not checked in Keen 1 or 2; their code is unchanged. Keen 1 and 2 share
+these routines in the original as far as Choco shows.
+
+- **A new high score table** in Keen 3 fills all seven places with its
+  three names in turn (Yorpy, Gargile, Zzapp!, Yorpy, ...), 100 each. Keen
+  2's table (and probably Keen 1's) leaves places 4-7 empty.
+- **The end text's reader**: a full-screen window, lines starting with `~`
+  red on a gray bar (not centred), 21 lines, the window's edge on row 22, a
+  footer "ESC to Exit / ↑ ↓ to Read" on row 23; two spaces after a full
+  stop kept. Our shared `TextDocument` centres `~` lines, joins words with
+  one space and the shared window shows 23 lines.
+- **Typed boxes** take a letter's time for every stored character
+  (trailing spaces too) and every line end (Keen 2's ending texts are
+  typed as well).
+- **GAME OVER with a good score**: a window with the GAMEOVER bitmap,
+  "Score:", "Congratulations! You got first place!" and "Enter your
+  name:" with a spinning ball (font characters 9-12) as the cursor, over
+  the last picture; then the table. Ours: the bitmap, then the shared name
+  box over the table.
+- **The attract screens** stay 16.4-16.7 s each (title, id page, high
+  scores, ordering page), as Choco's 2400 clock ticks.
+
 ## Keen 2 (estimates in `docs/keen2/gameplay.md`)
 
 
