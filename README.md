@@ -1,7 +1,7 @@
 # CommanderPerfect
 
 A fan-made engine, built with [Godot](https://godotengine.org/), that plays
-Keen 1 ("Marooned on Mars", 1990) on modern computers, with optional modern
+Keen series on modern computers co-op(!!!) with optional modern
 extras: widescreen, smooth motion, xBRZ pixel-art scaling and AI-upscaled
 graphics. It runs on macOS and Windows.
 
@@ -12,8 +12,8 @@ graphics. It runs on macOS and Windows.
 ## Before you start: you need the original game
 
 **CommanderPerfect is only an engine. It does not include the game itself.**
-Like DOSBox, it needs the files of the original Keen 1 (episode 1, "Marooned
-on Mars"). Those files belong to the owners of the original game; they are
+Like DOSBox, it needs the files of the original Keen series. 
+Those files belong to the owners of the original game; they are
 not in this repository and may not be added to it.
 
 ### Step 1: get the files of Keen 1
