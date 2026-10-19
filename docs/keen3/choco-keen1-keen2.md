@@ -143,3 +143,18 @@ In another session the user had Keen measured pixel by pixel in the original
 - Ice chunks: 200 per axis (61/32) both straight and diagonal (doc 80/32
   straight) ✗.
 - Keens Left 0.86 s, GAME OVER 5.1 s, attract screens 16.5 s (shared code).
+
+## Sounds (found in C8, shared code of all three episodes)
+
+Keen 1 and 2 use Keen 1's sound choices (`docs/sounds.md`); Chocolate
+Keen's shared code differs (`game/enemies.c`, `game/physics.c`,
+`game/worldmap.c`). Keen 3 follows Choco since C8 (`Keen3Body`); Keen 1
+and 2 are unchanged.
+
+| Ours (Keen 1 and 2) | Choco | |
+|---|---|---|
+| KEENPOGOSND on every pogo bounce | **KEENJUMPSND**; KEENPOGOSND and POGOJUMPSND are never played | ✗ |
+| PLUMMETSND only when falling out of the level | also when walking off a ledge | ✗ |
+| KEENBLOKSND only when walking into a wall | also against a wall in the air (every 32 clock ticks) | ✗ |
+| HISCORESND when a name is asked (Keen 2) | none; the name is typed in the GAME OVER box | ✗ |
+| 140 Hz | 145.65 Hz (1193182 / 8192) | changed for all three in C8 (the user's decision) |

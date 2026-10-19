@@ -3,7 +3,9 @@
 What playing Keen 3 does in CommanderPerfect so far, and which numbers are
 estimates. Written in milestone C3; C4 added the enemies, C5 the ball, the
 jack, the platforms and the wall guns, C6 the world map, Messie, the
-teleporters and the status screen; later milestones add to it. The facts
+teleporters and the status screen, C7 Mortimer, the machine and the
+ending, C8 the sounds, the title, the menus, saving and the high scores;
+later milestones add to it. The facts
 and their sources are in [research.md](research.md), the code layout in
 [architecture.md](architecture.md). Numbers from Chocolate Keen are marked
 (Choco) and converted with the table at the top of research.md ("Units").
@@ -11,21 +13,25 @@ and their sources are in [research.md](research.md), the code layout in
 ## The course of the game (C6)
 
 Since C6 the course is the one Keen 2 has since B6: the world map and the
-levels (`Keen3LevelPlay`). There is no title or menu yet (C8).
+levels (`Keen3LevelPlay`). Since C8 it begins at the title, as Keen 2's
+after B7.
 
 | What | Then |
 |---|---|
-| Keen 3 picked on the start screen | A new game on the world map, with "Keens Left" |
-| `-- --game=3`, `-- --game=3 --level=80` | The same |
-| `-- --game=3 --level=N` | Level N (1-16), then the map; another number: the map, with a message |
+| Keen 3 picked on the start screen | The title with the main menu open (C8) |
+| `-- --game=3` | The title (C8) |
+| Title / high scores | They take turns every 16.5 s; a key opens the main menu |
+| "New Game" / "Continue Game" | A new or saved game on the world map, with "Keens Left" |
+| `-- --game=3 --level=80` | A new game on the world map |
+| `-- --game=3 --level=N` | Level N (1-16), then the map; another number: the title, with a message |
 | `-- --game=3 --ending` | The ending at once (C7), for testing; `--ending` without `--game=3` stays Keen 1's |
 | The jump or pogo button on an entrance | That level, unless it is done |
 | Keen walks out through an exit | The level is done (its sign on the map), the keycards are taken away, and Keen is back on the map where he entered it, with the same view |
-| Level 16 done (anything but a death ends it; the machine ends it 181 ticks after the heart is shot) | The ending (C7), then GAME OVER and the start screen (high scores in C8) |
+| Level 16 done (anything but a death ends it; the machine ends it 181 ticks after the heart is shot) | The ending (C7), then GAME OVER and the high scores (C8) |
 | Keen dies | One life less, back on the map where he entered the level, with "Keens Left" |
-| Keen dies without lives left | GAME OVER (the bitmap, bare over the level) for 5.27 s or until a key, then the start screen |
+| Keen dies without lives left | GAME OVER (the bitmap, bare over the level) for 5.27 s or until a key, then the high scores (C8) |
 | The status key (Enter) | The status screen, on the map and in a level |
-| Escape | Back to the start screen |
+| Escape | The main menu (C8); while Mortimer speaks it skips him |
 
 Every level starts fresh from its file (its items are back, Keen has no
 ankh); the map too, with the done signs put back. Messie and the view are
@@ -164,16 +170,17 @@ drawing), Choco `CVort3_draw_win` and `CVort3_blink_camera_flash`:
    in the frame (18,20)-(29,24), on the picture (14,16) with 10 x 3 inside;
    a key goes on once it is typed.
 5. The end text (KEEN3.EXE), 38 columns by 23 lines in the shared window,
-   scrolled with up and down as Keen 1's and 2's, with MORTIMER playing at
-   its start; a key ends it.
+   scrolled with up and down as Keen 1's and 2's; at its start keensleft
+   plays to its end and then MORTIMER (C8; C7 started MORTIMER at once); a
+   key ends it.
 6. GAME OVER (the bitmap) on a black screen, 5.27 s or a key, then the
-   start screen (the high scores come in C8).
+   high scores (C8).
 
 Map 81 is 24x17; its playable part (20x13 tiles) is as wide as the 4:3
 view, so in widescreen black bars show beside it, never its border (the
 camera keeps to the playable area). The map layer is hidden while the
-picture or the end text shows. Escape leaves for the start screen at any
-time.
+picture or the end text shows. Escape opens the main menu at any time
+(C8; it left for the start screen in C7).
 
 ## The world map (C6)
 
@@ -498,8 +505,11 @@ camera keeps to the playable area for views of 320, 426 and 480 pixels.
 Nothing had to change for Keen 3. The map (C6) keeps the border out of
 view with its own scrolling (`Keen3MapScroll` clamps to the playable
 area). Map 81 in the ending (C7): the camera keeps to its playable area,
-black bars in widescreen. Still to check in later milestones: map 90 (C8)
-and two players (C10).
+black bars in widescreen. Map 90 (C8): the title and high score screens
+are cut out of it with their own border (`Backdrops.screen`), so only
+their 20x13 cells show, with black bars in widescreen;
+`test_keen3_menus_data` checks that no border tile lies on them. Still to
+check: two players (C10).
 
 ## Masked tiles
 
@@ -514,11 +524,97 @@ the rest. Fixed after C7 in the shared `LevelMap` (architecture.md,
 fence of level 14 and at a table in level 1, original and xBRZ. None of
 them is animated.
 
+## Sounds (C8)
+
+All 45 named sounds of `KEEN3.EXE` are read; besides Keen 1's 41 names the
+block has ANKH, MEEP, MORTIMER and FOOTSLAM, which `Keen3Sounds` plays on
+a speaker of its own (`Keen2Sounds.find_entry`). Every sound plays at
+145.65 Hz since C8 (the shared `SoundFile.STEPS_PER_SECOND`, 1193182 /
+8192; for all three games). The original has one speaker: a sound only
+cuts off the one that plays when its priority is at least as high. The
+shared player keeps that rule among its own sounds; `Keen3Sounds` keeps it
+among Keen 3's four and gives way to a shared sound of at least its
+priority, and the shared player stops when one of Keen 3's four starts.
+
+Where Keen 3 plays which sound (Choco, `episodes/episode3.c`,
+`game/enemies.c`, `game/physics.c`, `game/worldmap.c`; research.md §2):
+
+| Sound | When |
+|---|---|
+| WLDWALKSND, WLDBLOCKSND | Keen walks on the map, or into something there |
+| WLDENTERSND | Keen enters a level |
+| KEENWALKSND, KEENWLK2SND, KEENBLOKSND | Walking, and walking into a wall |
+| KEENBLOKSND | Also pushing against a wall in the air: every 32 clock ticks (C8) |
+| KEENJUMPSND | A jump, and **every pogo bounce** (C8; Keen 3 never plays KEENPOGOSND) |
+| KEENLANDSND, BUMPHEADSND | Landing, hitting the ceiling |
+| PLUMMETSND | Walking off a ledge (C8), and falling out of the level |
+| KEENDIESND | Keen dies |
+| KEENFIRESND, GUNCLICK | Firing, without charges |
+| SHOTHIT | A shot splashes (also a fireball spat into a wall, after the spit), the machine's sweeps |
+| GOTBONUSSND, GOTITEMSND, GETCARDSND, EXTRAMANSND | Points, the raygun and a single charge, a keycard, an extra life |
+| ANKH | An ankh |
+| DOOROPENSND, LVLDONESND | A door opens, Keen walks out through the exit |
+| TANKFIRE | The mother spits; the wall guns fire |
+| VORTSCREAM | A grunt, youth, mother, Meep or ninja dies |
+| YORPSCREAM | A Foob is scared, or dies |
+| MEEP | A Meep sings |
+| TELEPORTSND, CRYSTALSND | A teleporter on the map; Keen gets on Messie |
+| MORTIMER | Level 16 starts; the end text (after keensleft has played to its end, C8) |
+| FOOTSLAM | A foot of the machine on the floor |
+| CLICKSND | Each camera flash in the ending |
+| KEENSLEFT, GAMEOVERSND | "Keens Left"; GAME OVER |
+
+Not used by Keen 3 (the original does not play them either): KEENPOGOSND,
+POGOJUMPSND, GOTPARTSND, CHUNKSMASH, GOINDOORSND, USEKEYSND, CANNONFIRE,
+SLAMSND, YORPBUMPSND, YORPBOPSND, GARGSCREAM, KEENCICLE and HISCORESND
+(the original's name entry is silent; Keen 2's plays it).
+
+## Title, menus, saving and high scores (C8)
+
+`Keen3MenuScreen`, as Keen 2's after B7 and B10:
+
+- **The title** is the first screen of map 90 (cells 2-21; map row 2 at
+  the top) with `TITLE` at (32, 1) and `F1HELP` at **(120, 182)** (Keen 1
+  and 2: 96), as seen in js-dos in C1.
+- **The high scores** are on cells 84-103 of map 90: `HIGHSCOR` at
+  (88, 7), `NAME` at (80, 44), `SCORE` at (192, 44), seven rows from y 64,
+  16 apart, names from x 80 and scores ending at x 240, in the font's
+  second half (red letters on gray, as the original draws them, Choco
+  `CVort_draw_string_80`); **no third column** (seen in js-dos in C1 and
+  Choco `CVort3_draw_scores`). A new table has the names of `KEEN3.EXE`
+  and 100 points everywhere (estimate, as Keen 1 and 2); a score that gets
+  in asks for a name in the shared name box ("first" ... "last" from
+  `KEEN3.EXE`), without HISCORESND. The table is Keen 2's
+  (`Keen2HighScores`, the cities left at 0) in
+  `user://keen3/high_scores.json`.
+- **The attract loop:** the title and the high scores take turns, 2400
+  clock ticks each, 16.5 s (Choco; the title was 16.8 s in js-dos). The
+  original also shows the id Software page and the ordering page with the
+  Foob; those are not built (as for Keen 1 and 2).
+- **The main menu** is the shared one: New Game, Continue Game, Save Game
+  (only on the world map, not while a teleporter runs), Story (from
+  `KEEN3.EXE`), High Scores, Controls, Options, Quit to Title, Choose Game
+  (back to the start screen), Quit. No Online Game, no second player and
+  no "Extra levels" option until co-op comes (C10). The game stands still
+  while a menu is open; in the ending its box comes back after the menu.
+- **GAME OVER** (after the last life, and after the ending) stays 5.27 s
+  or until a key, then the high scores (and the name), then the attract
+  loop. In the original the game over box itself asks for the name (Choco
+  `CVort_game_over`), and "Quit to Title" also passes through GAME OVER
+  and the high scores; we keep Keen 2's way (the name over the table,
+  Quit to Title straight to the title).
+- **Saving:** nine slots in `user://keen3/saves`, the shared format of
+  `SaveGames`: the inventory, the done levels, Keen's place on the map and
+  the view's corner (the original saves its screenX/Y too). Messie is not
+  saved: the original puts her at her start whenever the map starts from
+  the menu, also for a loaded game (Choco `CVort_draw_worldmap`). Saved on
+  Messie's back, Keen's place is where he got on and the view is left out,
+  so the loaded game shows Keen as a new game does. The keys, the display
+  settings and the sound setting are shared with Keen 1 and 2.
+
 ## Not yet
 
-Title, menus, saving and high
-scores (C8; the map's state, Messie included, is not saved yet), the pictures behind levels (C9; never Keen 1's or 2's),
-two players (C10).
+The pictures behind levels (C9; never Keen 1's or 2's), two players (C10).
 
 ## Seen in the original (C3)
 
@@ -563,6 +659,12 @@ C11.
   how many little Keens fit.
 - The ankh time itself: 9.6 s (Choco) against 15 s (KeenWiki) and 21 s (CG)
   (research.md, "Only the original can answer", 1).
+- C8: 100 points in a new high score table (as Keen 1 and 2); that the
+  first bump against a wall in the air sounds at once (the original waits
+  for an odd window of 16 clock ticks); all sounds by ear, also the 145.65
+  Hz rate (no sound was recorded in js-dos). The places of the title and
+  the table were seen in js-dos in C1, the colours of the names follow
+  Choco.
 
 ## Testing
 
@@ -635,6 +737,20 @@ C11.
   machine, the machine moving only in its own cells, the sixth spark and a
   real shot at the heart winning the game, the texts fitting their boxes,
   the sounds, map 81's camera tiles, the ending running to its end).
+- C8: `tests/test_keen3_sounds.gd` (145.65 Hz from 1193182 / 8192,
+  `Keen3Sounds`' priorities and lengths with a hand-made sound file, no
+  sounds without files, a pogo bounce as KEENJUMPSND, PLUMMETSND off a
+  ledge but not on a platform, the air bump every 13.2 ticks, the
+  mother's spit before its splash), `tests/test_keen3_menus.gd` (the
+  title's and the table's places, names and scores only in the font's
+  second half, Keen 3's own high score file, a save and load round trip
+  in a test folder with the view's corner and without Messie, what a save
+  keeps on Messie's back, the menu without online play, a second player
+  or extra levels, saving only on the map, the menu's save and load, the
+  attract time) and `tests/test_keen3_menus_data.gd` (real files: 45
+  named sounds, every shared sound found, Keen 3's four with their
+  priorities, map 90's two screens without border tiles, the bitmaps and
+  the font's second half, the story and the high score texts).
 - The screen: `tools/scripted_play.gd` with
   `SCENE=res://src/keen3/keen3_view.tscn -- --game=3 --level=N`. With
   `--fixed-fps 60` the frames run much faster than real time, so a

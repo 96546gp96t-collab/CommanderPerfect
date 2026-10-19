@@ -557,3 +557,103 @@ viewports of two players (one World shared), the online client
   game (Enter) and takes the map at frame 320, after the Keens Left box.
   Checked: the four pictures are the same at `a9d04cc` and after the fix
   (the map's start view has no masked tiles).
+
+## Deviations in C8
+
+Written by the developer of C8. **The one deliberate change to Keen 1 and
+Keen 2** is the sound rate (the user's decision of 17-10-2026); nothing
+else of Keen 1 or Keen 2 changed (`git diff 97b128f` on `src/keen2`,
+`tests/test_keen2_*.gd`, `tests/keen2_fixtures.gd`, `src/actors`,
+`src/map`, `src/game`, `src/keen`, `src/menu`, `src/launcher`,
+`src/level`, `src/online` is empty).
+
+- **The sound rate (shared).** `SoundFile.STEPS_PER_SECOND` was 140.0; it
+  is now `TIMER_FREQUENCY / SOUND_TIMER_DIVISOR` = 1193182 / 8192 = 145.65
+  (the new constant `SOUND_TIMER_DIVISOR`, named after its origin: the
+  divisor the game sets for its timer interrupt). `SpeakerSynth` only got
+  a new comment; it already read the rate from `SoundFile`. **Changed
+  140 Hz tests: none.** The only test that depends on the rate,
+  `tests/test_sounds.gd` `test_synth_plays_each_step_for_its_time`,
+  computes the length from `SoundFile.STEPS_PER_SECOND` and passes
+  unchanged; no Keen 1 or Keen 2 test assumed 140 Hz. The new
+  `tests/test_keen3_sounds.gd` checks 145.65 Hz. The regression
+  screenshots of Keen 1 and Keen 2 are the same (sound is not in them).
+  `docs/file-formats.md`, `docs/sounds.md` and research.md say 145.65 Hz
+  now.
+- **The screen chain** is `Keen3View` → `Keen3MenuScreen` →
+  `Keen3EndingScreen` → `Keen3SceneScreen` → `GameScreen` (the plan put
+  the menu screen right on `Keen3SceneScreen`; it sits on the ending
+  screen as Keen 2's menu screen sits on its space screen, so GAME OVER
+  after the ending can lead to the high scores). `play` moved from
+  `Keen3View` to `Keen3MenuScreen`, as in Keen 2; `_clear_screen` moved
+  there too and now also ends Mortimer and the ending and clears the
+  title's pictures.
+- **GAME OVER** no longer leaves for the start screen: `_leave_after` and
+  `_count_down_leaving` are gone; `Keen3MenuScreen._count_down_screen`
+  counts GAME OVER, the title and the high scores, as Keen 2's does.
+  `Keen3EndingScreen._finish_game` (the ending is over) is now
+  `_after_ending`; `_finish_game` is Keen 2's name for "GAME OVER is
+  over: the high scores".
+- **High scores:** `Keen2HighScores` unchanged in
+  `user://keen3/high_scores.json`, with the cities left at 0 and not
+  drawn (as planned). The names and scores are drawn by the shared
+  `PictureLayer` in the font's second half (`Keen3Window.label_text`):
+  red on gray, as the original draws them (Choco `CVort_draw_string_80`);
+  Keen 2's stay black. No HISCORESND for a new entry: the original has
+  none (Choco `CVort_game_over`); Keen 2 plays it.
+- **The attract loop** takes 2400 clock ticks per screen (16.5 s, Choco;
+  `Keen3MenuScreen.ATTRACT_SECONDS`), not Keen 2's estimated 8 s.
+- **Saving:** `Keen3SaveGames extends SaveGames` (`user://keen3/saves`)
+  overrides `read` to return a `Keen3Progress`: it calls the parent's
+  `read` (version check and all) and then reads the file once more for
+  the one key Keen 3 adds, `map_corner`, which `Keen3Progress.to_dict`
+  writes (the original saves the view's corner too). It uses the parent's
+  `_path`. Keen 1's reader ignores the extra key; Keen 1's and Keen 2's
+  files are unchanged. A loaded game's inventory is a plain `Inventory`,
+  as in Keen 2 (`Keen3Inventory` only sets start values). Messie is not
+  saved: the original puts her at her start for a loaded game as well
+  (Choco `CVort_draw_worldmap`). `Keen3MapSession.remember_place` keeps
+  Keen's place and the corner for a save; on Messie's back the corner is
+  left out (the view follows her, Keen's place is where he got on), so
+  the loaded game shows Keen as a new game does. Saving is not offered
+  while a teleporter runs.
+- **The menus** are the shared `MenuController` with `offers_online`,
+  `offers_second_player` and `offers_extra_levels` off (C10 turns on what
+  co-op needs). Escape in a game opens the main menu (C7: back to the
+  start screen); while Mortimer speaks it still skips him; without the
+  files it still leaves. The game stands still while a menu is open; a
+  menu opened in the ending closes the ending's box, and
+  `MenuController.closed` brings it back.
+- **"Choose Game"** goes back to the start screen (`_leave`). Started
+  with `-- --game=3`, the start screen opens Keen 3 again at once
+  (`GameLaunch.skips_launcher`, unchanged; Keen 2 does the same with
+  `--game=2`); from the app it shows the start screen.
+- **Sounds.** `Keen3Sounds` now knows the priorities and the lengths of
+  the whole sound block: one of its four sounds does not cut off a more
+  important one of its four, and `give_way_to` lets a shared sound cut
+  it off only with a priority at least as high (then it stops), so both
+  speakers act as one; every sound of the view goes through
+  `Keen3SceneScreen._play_game_sound` / `_play_keen3_sound`. The shared
+  `SoundPlayer` keeps its playing priority private, so one of Keen 3's
+  four still cuts off a shared sound of any priority (only MEEP, 200,
+  could cut off a more important one); the shared class is unchanged.
+- **Keen's sounds** differ from Keen 1's where Choco's code differs
+  (research.md §2, "Found in C8"): `Keen3Body` overrides `_stand` (PLUMMETSND
+  off a ledge) and `_move_horizontally` (KEENBLOKSND against a wall in the
+  air, every 13.2 ticks), and the session plays `Keen3Body.sound_for`
+  (a pogo bounce sounds as KEENJUMPSND). `KeenBody` is unchanged; the
+  same differences for Keen 1 and 2 are listed in
+  [choco-keen1-keen2.md](choco-keen1-keen2.md) for C12.
+- **The mother** plays TANKFIRE before her fireball is made, so its
+  splash in a wall (SHOTHIT) cuts it off, as in the original (C4 had the
+  order the other way round).
+- **The end text** plays keensleft to its end, then MORTIMER (C7 started
+  MORTIMER at once); the text can be scrolled meanwhile (the original
+  waits).
+- **Tests:** three new suites, `test_keen3_sounds`, `test_keen3_menus` and
+  `test_keen3_menus_data` (real files); `tests/keen3_fixtures.gd` got
+  `sound_file`. No existing test changed. The screens themselves need a
+  running scene tree; they were checked with `tools/scripted_play.gd`
+  (title, menu, story, high scores in 4:3 and widescreen, a new game,
+  saving and loading, the ending up to the name for a new high score,
+  the menu in the ending, Choose Game).

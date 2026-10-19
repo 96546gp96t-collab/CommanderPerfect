@@ -175,6 +175,30 @@ Notes:
 | GOTITEMSND | A single charge |
 | KEENFIRESND / GUNCLICK | Keen fires / has no charges |
 
+Found in C8 (Choco `game/enemies.c`, `game/physics.c`, `game/worldmap.c`,
+`episodes/episode3.c`; Choco's numbers count from 1):
+
+- A pogo bounce plays **KEENJUMPSND**; KEENPOGOSND and POGOJUMPSND are
+  never played. Walking off a ledge plays **PLUMMETSND** (as falling out
+  of the level does). Pushing against a wall in the air plays KEENBLOKSND
+  in every other window of 16 clock ticks, as walking into one does.
+- The mother plays TANKFIRE, then (when her fireball starts in a wall)
+  SHOTHIT, which cuts it off.
+- Level 16: MORTIMER, then DOOROPENSND, which cannot cut MORTIMER off
+  (230 < 255): only MORTIMER is heard.
+- The end text: it is drawn, then **keensleft** plays to its end, then
+  MORTIMER starts and the text can be scrolled (`CVort3_draw_win`).
+- GAME OVER plays GAMEOVERSND; the name for a new high score is typed in
+  the GAME OVER box (`CVort_game_over`), **without HISCORESND**. After it
+  the high scores stay 2400 clock ticks or until a key. "Quit to title"
+  during a game also goes through `CVort_game_over`.
+- The saved game (92 bytes) keeps the view's corner and Keen's place on
+  the map (`CVort_save_game`), not Messie; the map puts her at her start
+  whenever it starts from the menu, also for a loaded game
+  (`CVort_draw_worldmap`).
+- These are in the code that Chocolate Keen shares between the three
+  episodes, so they likely hold for Keen 1 and 2 too (C12).
+
 ## 3. Graphics
 
 - **624 tiles, but the tile table rows are 715 entries wide** (entries

@@ -81,6 +81,26 @@ number); "1.31" for a packed file of 61,599 bytes or an image of 127,104
 (127,616 with the header); otherwise "unknown". Nothing depends on the
 version. 1.31 could not be tested (the player has 1.00).
 
+**Sounds** (C8). The 45 names are Keen 1's 41 in Keen 1's order
+(`WLDWALKSND` ... `KEENSLEFT`, with `POGOJUMPSND`, `GOINDOORSND` and
+`USEKEYSND`, which the shared `Sound` does not name and Keen 3 never plays)
+and then `ANKH`, `MEEP`, `MORTIMER`, `FOOTSLAM` (upper case). The 18 slots
+after them all have the same name, `__UNNAMED__` (in upper case), so
+`SoundFile.sounds` holds 46 keys. Each value lasts one tick of the sound
+timer, 145.65 Hz (1193182 / 8192; [../file-formats.md](../file-formats.md)).
+Priorities, as Choco and the file agree: ANKH, MORTIMER, CRYSTALSND,
+VORTSCREAM, KEENSLEFT, EXTRAMANSND and others 255; FOOTSLAM, TELEPORTSND,
+YORPSCREAM, CLICKSND 250; GETCARDSND 240; DOOROPENSND 230; MEEP, SHOTHIT,
+TANKFIRE 200; GOTITEMSND 190.
+
+**Saved games and high scores.** The original writes `SAVEDn.CK3` (92
+bytes; among them the view's corner and Keen's place on the map, not
+Messie: Choco `CVort_save_game`) and `SCORES.CK3`. We do not read or write
+them: our saved games are JSON in `user://keen3/saves/slotN.json`, the
+shared format of `SaveGames` with one more key, `map_corner` (the view's
+top left in map pixels, or `[]`); the high scores are JSON in
+`user://keen3/high_scores.json` (Keen 2's format, with `cities` 0).
+
 **Failures.** Every finder returns −1 or an empty value when a piece is
 missing; `sounds()` and `text()` also say so with `push_error`. Nothing
 crashes on a damaged or foreign EXE.

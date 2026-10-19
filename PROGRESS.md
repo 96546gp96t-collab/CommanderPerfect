@@ -61,11 +61,81 @@ over Keen 3 bekend is in [docs/keen3/research.md](docs/keen3/research.md).
 | C5 | Bal, jack, platforms, wapens in de muur | ✅ Klaar en gecontroleerd door de architect (branch `milestone-c5-mechaniek`) |
 | C6 | Wereldkaart: teleporters, Messie, het schip, statusscherm | ✅ Klaar en gecontroleerd door de architect (branch `milestone-c6-kaart`) |
 | C7 | Mortimer, de Mangling Machine en het einde | ✅ Klaar en gecontroleerd door de architect (branch `milestone-c7-mortimer-einde`) |
-| C8 | Geluid, menu's, opslaan, highscores | ⬜ |
+| C8 | Geluid, menu's, opslaan, highscores | ✅ Gebouwd, wacht op controle architect (branch `milestone-c8-geluid-menus`) |
 | C9 | Mooier maken (framerate, xBRZ, achtergronden, builds) | ⬜ |
 | C10 | Co-op lokaal en online | ⬜ |
 | C11 | Naast het origineel (wat nog geschat is) | ⬜ |
 | C12 | Keen 1 en 2 bijwerken met de getallen uit Chocolate Keen (ook de sprongen) | ⬜ |
+
+## Mijlpaal C8: wat er nu is
+
+Gebouwd en getest met de echte Keen 3-bestanden van de gebruiker (1.00).
+Getallen uit Chocolate Keen (`(Choco)`), de plekken van titel en
+highscores uit js-dos (C1). De regels staan in `docs/keen3/gameplay.md`
+("Sounds (C8)", "Title, menus, saving and high scores (C8)");
+afwijkingen in `docs/keen3/architecture.md`, "Deviations in C8".
+
+- **Geluid op 145,65 Hz voor alle drie de delen** (besluit van de
+  gebruiker, 17-10-2026): de gedeelde `SoundFile.STEPS_PER_SECOND` is nu
+  1.193.182 / 8192 (`SOUND_TIMER_DIVISOR`), was 140. De enige bewuste
+  wijziging aan Keen 1 en 2 in de C-reeks. Geen enkele Keen 1- of Keen
+  2-test rekende op 140 Hz (de synth-test leest de snelheid uit
+  `SoundFile`), dus er is geen test aangepast.
+- **Alle geluiden van Keen 3** (`Keen3Sounds`, Choco): ANKH, MEEP, MORTIMER
+  en FOOTSLAM speelden al sinds C3-C7; nieuw volgens het origineel: een
+  pogo-stuit klinkt als KEENJUMPSND (niet KEENPOGOSND), van een rand
+  lopen geeft PLUMMETSND, tegen een muur in de lucht KEENBLOKSND (elke 32
+  klokticks), de moeder eerst TANKFIRE en dan de splash, de eindtekst eerst
+  keensleft tot het eind en dan MORTIMER, en geen HISCORESND bij een naam.
+  Keen 3's eigen speaker en de gedeelde speler gedragen zich als één
+  speaker (prioriteiten). Keen 1 en 2 houden hun eigen keuzes; de
+  verschillen staan voor C12 in `docs/keen3/choco-keen1-keen2.md`.
+- **Titel en highscores** (`Keen3MenuScreen`, `Keen3Screens`): de titel
+  op het eerste scherm van map 90 (`TITLE` op (32,1), `F1HELP` op
+  (120,182)), de highscores op cellen 84-103 (`HIGHSCOR`, `NAME`, `SCORE`,
+  naam vanaf x 80, score tot x 240, rood op grijs zoals het origineel,
+  geen derde kolom); ze wisselen elke 16,5 s (Choco). Een toets opent het
+  hoofdmenu.
+- **Hoofdmenu** (gedeelde `MenuController`): New Game, Continue Game, Save
+  Game (alleen op de kaart, niet tijdens een teleporter), Story (uit
+  KEEN3.EXE), High Scores, Controls, Options, Quit to Title, Choose Game
+  (terug naar het startscherm), Quit. Geen online, geen tweede speler,
+  geen extra levels (C10). Escape opent het menu in een spel (tijdens
+  Mortimer slaat Escape hem nog over).
+- **GAME OVER, ook na het einde,** leidt naar de highscores; een score die
+  erin komt vraagt eerst een naam. Highscores in
+  `user://keen3/high_scores.json`.
+- **Opslaan en laden** in `user://keen3/saves` (negen plekken, los van
+  Keen 1 en 2; toetsen en beeld gedeeld): score, levens, ladingen, de
+  gedane levels, Keens plek en het beeld op de kaart (zoals het origineel).
+  Messie wordt niet bewaard: het origineel zet haar bij een geladen spel
+  ook weer op haar begin.
+- **Gedeelde code:** alleen `src/data/sound_file.gd` (de snelheid) en een
+  commentaar in `src/sound/speaker_synth.gd`. `git diff 97b128f` op de
+  Keen 1- en Keen 2-mappen is leeg.
+- **Tests:** drie nieuwe suites: `test_keen3_sounds` (145,65 Hz,
+  prioriteiten, de nieuwe geluiden van Keen), `test_keen3_menus` (titel en
+  tabel, eigen bestanden, opslaan en laden in een testmap, het menu) en
+  `test_keen3_menus_data` (echte bestanden: 45 geluiden, map 90, de
+  bitmaps, het verhaal). 62 suites, 722 tests (was 59 en 698), alle
+  slagen, gdlint schoon.
+- **Keen 1- en Keen 2-controle:** `keen1_regression.sh` en
+  `keen2_regression.sh` tegen de C7-referentie: alles gelijk, ook
+  `launcher.png`.
+- **Bekeken in de app** (scratchpad `c8shots/`): titel, menu, verhaal,
+  highscores (4:3 en breedbeeld), de titel en highscores die wisselen, een
+  nieuw spel, opslaan en laden (zelfde plek en beeld), het einde tot GAME
+  OVER en de naam voor de highscores, het menu tijdens het einde, Choose
+  Game naar het startscherm.
+- **Niet gedaan:** de Windows-build (geen export templates in deze
+  omgeving) en de Mac-build (alleen op de Mac). Niet nagebouwd, zoals bij
+  Keen 1 en 2: de id-pagina en de bestelpagina met de Foob in de
+  titelreeks, F1-hulp, "About ID", "Ordering Info", "Previews!".
+- **Open punten:** alle geluiden met het oor naast het origineel (ook de
+  145,65 Hz); 100 punten in een nieuwe tabel (schatting zoals Keen 1 en
+  2); in het origineel vraagt het GAME OVER-venster zelf de naam en gaat
+  "Quit to Title" ook via GAME OVER en de highscores (wij doen het zoals
+  Keen 2).
 
 ## Mijlpaal C7: wat er nu is
 
@@ -1434,7 +1504,7 @@ het origineel. Details in `docs/world-map.md` onder "Extra levels".
 - De doelen van de teleporters staan in de code van `KEEN1.EXE`, niet in een tabel; ze zijn als vaste waarden in `MapSession` gezet (volgens de documentatie van Commander Genius wijst elk doel precies naar een andere teleporter). Mods met andere doelen werken dus niet.
 - In de EXE zijn de vraag van de ouders en Keens antwoord ("Aw, Mom...") één bericht; het origineel toont ze misschien als twee vensters.
 - In 4:3-beeld staat de hulpregel linksboven (levelnaam, beeldinstelling, score, levens, munitie) alleen nog onder F1 (besluit van de gebruiker, 16-10-2026); zonder F1 alleen korte meldingen in het midden. De regel bovenin en de toetsenregel onderin zijn hulpmiddelen; het origineel heeft alleen het statusscherm. De toetsenregel noemt de standaardtoetsen, ook als ze zijn veranderd.
-- De snelheid van de geluiden (140 Hz) komt uit openbare documentatie en is nog niet met het oor vergeleken. Een paar koppelingen van geluid aan gebeurtenis zijn gokken (zie `docs/sounds.md`); `CLICKSND`, `CRYSTALSND` en `GOINDOORSND` worden niet gebruikt.
+- De snelheid van de geluiden is sinds C8 145,65 Hz (1.193.182 / 8192, Chocolate Keen; besluit van de gebruiker, voor alle drie de delen) en is nog niet met het oor vergeleken. Een paar koppelingen van geluid aan gebeurtenis zijn gokken (zie `docs/sounds.md`); `CLICKSND`, `CRYSTALSND` en `GOINDOORSND` worden niet gebruikt.
 - Niet nagebouwd: de intro (Apogee- en id-schermen), de demo, "About ID...", "Ordering Info" en "Previews!". De helptekst (`HELPTEXT.CK1`) wordt niet getoond, omdat die de toetsen van het origineel beschrijft.
 - De scores in een nieuwe highscorelijst (100) en de plek van de tabel in de rode lijst zijn geschat.
 - Level overslaan (cheat of Page Up/Down) houdt de inventaris, en een level dat zo gekozen is telt wel mee als het wordt uitgespeeld.
@@ -1463,7 +1533,7 @@ het origineel. Details in `docs/world-map.md` onder "Extra levels".
 - **Keen 2: de knop op het startscherm** (besluit van de gebruiker, 16-10-2026): lettertype en Keen-mannetje komen altijd uit de Keen 2-data. Zonder die bestanden blijft de knop grijs met een gewoon lettertype (geen Keen 1-data als vervanging).
 - **Keen 2: speldata.** De gebruiker heeft Keen 2 op floppies maar geen floppylezer. Keen 2 is geen shareware en wordt nog verkocht, dus het wordt niet gedownload van onofficiële sites. Opties: de Complete Pack op Steam/GOG, of een USB-floppylezer. Tot dan: bouwen en testen met zelfgemaakte testdata; de suites met echte data slaan zich over, en de vragen die alleen de echte bestanden beantwoorden blijven open (research.md).
 - **Keen 2: sprong van de youth** (B4, architect): met de getallen uit Commander Genius (200/32 omhoog, zwaartekracht 4/32) springt hij ruim 10 tiles hoog. Dat lijkt te veel; vermoedelijk heeft de youth in het origineel een eigen zwaartekracht. Naast het origineel leggen in B10.
-- **Geluidssnelheid (ook Keen 1):** Commander Genius speelt de geluiden met 145,6 Hz, `docs/sounds.md` zegt 140 Hz. Niet aangepast (Keen 1 blijft zoals het is); naast het origineel leggen.
+- **Geluidssnelheid (ook Keen 1):** Commander Genius speelt de geluiden met 145,6 Hz, `docs/sounds.md` zei 140 Hz. *Besluit van de gebruiker (17-10-2026): alle drie de delen 145,65 Hz; gedaan in C8.* Nog naast het origineel leggen (met het oor).
 
 ### Toegevoegd op 15-10-2026 (op `milestone-10-menu`)
 
@@ -1486,9 +1556,22 @@ Keen 3:
    (Mac en Windows): level 16 met Mortimer (Spatie slaat over), de
    machine (vonken, armen, benen, het hart), de randflits, het einde; of
    direct met `-- --game=3 --level=16` en `-- --game=3 --ending`.
-3. Daarna C8, als de gebruiker dat vraagt (branch `milestone-c8-geluid-menus` vanaf
-   `milestone-c7-mortimer-einde`): geluid, titel, menu's, opslaan,
-   highscores (ook na het einde). De regressies weer in een venster.
+3. **Architect:** C8 controleren (branch `milestone-c8-geluid-menus`), de
+   app bouwen met `tools/build_macos.sh` en `tools/build_windows.sh` (kon
+   hier niet: geen export templates).
+4. **Voor de gebruiker (C8):** in `build/` proberen: de titel en de
+   highscores (wisselen elke 16,5 s, een toets opent het menu), het menu
+   (Story, High Scores, Controls, Options, Choose Game), een nieuw spel,
+   opslaan op de kaart (Escape, Save Game) en weer laden (Continue Game),
+   GAME OVER en de highscores met je naam (ook na het einde), en de
+   geluiden met het oor: alle drie de delen spelen nu op 145,65 Hz
+   (luister ook even naar Keen 1 en 2), een pogo-stuit klinkt als een
+   sprong, van een rand lopen, tegen een muur springen, de eindtekst
+   (eerst keensleft, dan MORTIMER).
+5. Daarna C9, als de gebruiker dat vraagt (branch `milestone-c9-extras`
+   vanaf `milestone-c8-geluid-menus`): hogere framerate en xBRZ nakijken,
+   plaatjes achter de levels in `assets/backgrounds/keen3/`, de builds.
+   De regressies weer in een venster.
 
 Keen 2:
 
