@@ -65,8 +65,8 @@ Hoe er gemeten wordt:
 | C7 Mortimer en het einde | 18-10 | ~42 min | 41 min | Armen en benen van de machine gemeten in js-dos (level 16 tijdelijk als level 1) |
 | Fix: gemaskeerde tiles (na C7) | 18-10 | ~30 min | 16 min | Bug van de gebruiker: Keen achter wolken, hekken en tafels; ook Keen 2 levels 6, 7, 9; plus de kaart-screenshot van de Keen 2-controle |
 | C8 Geluid, menu's, opslaan | 19-10 | ~42 min | 36 min + 4 min | In een cloud-sessie; Keen 2- en 3-bestanden geüpload door de gebruiker. Controle door de architect: een highscore-screenshot met zelfgemaakte testdata nagevraagd (geen fout). 145,65 Hz voor alle drie de delen |
-| C9 Extra's | | | | |
+| C9 Extra's | 19-10 | ~22 min | 19 min | Vloeiende beweging en xBRZ deden al alles; plaatjes achter de levels met een eigen regel (lucht); geen builds in de cloud |
 | C10 Co-op | | | | |
 | C11 Naast het origineel | | | | |
 | C12 Keen 1 en 2 bijwerken | | | | |
-| **Totaal tot nu toe** | 17-10 t/m 19-10 | **~6 u 15** | | C1-C8 en de fix: Keen 3 is uit te spelen, met geluid, menu's en opslaan |
+| **Totaal tot nu toe** | 17-10 t/m 19-10 | **~6 u 40** | | C1-C9 en de fix: Keen 3 is uit te spelen, met geluid, menu's, opslaan en de extra's |
