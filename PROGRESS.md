@@ -61,11 +61,75 @@ over Keen 3 bekend is in [docs/keen3/research.md](docs/keen3/research.md).
 | C5 | Bal, jack, platforms, wapens in de muur | ✅ Klaar en gecontroleerd door de architect (branch `milestone-c5-mechaniek`) |
 | C6 | Wereldkaart: teleporters, Messie, het schip, statusscherm | ✅ Klaar en gecontroleerd door de architect (branch `milestone-c6-kaart`) |
 | C7 | Mortimer, de Mangling Machine en het einde | ✅ Klaar en gecontroleerd door de architect (branch `milestone-c7-mortimer-einde`) |
-| C8 | Geluid, menu's, opslaan, highscores | ✅ Gebouwd, wacht op controle architect (branch `milestone-c8-geluid-menus`) |
-| C9 | Mooier maken (framerate, xBRZ, achtergronden, builds) | ⬜ |
+| C8 | Geluid, menu's, opslaan, highscores | ✅ Klaar en gecontroleerd door de architect (branch `milestone-c8-geluid-menus`) |
+| C9 | Mooier maken (framerate, xBRZ, achtergronden, builds) | ✅ Gebouwd, wacht op controle architect (branch `milestone-c9-extras`); Real-ESRGAN bewust overgeslagen |
 | C10 | Co-op lokaal en online | ⬜ |
 | C11 | Naast het origineel (wat nog geschat is) | ⬜ |
 | C12 | Keen 1 en 2 bijwerken met de getallen uit Chocolate Keen (ook de sprongen) | ⬜ |
+
+## Mijlpaal C9: wat er nu is
+
+Gebouwd en nagekeken met de echte Keen 3-bestanden van de gebruiker
+(1.00). De regels staan in `docs/keen3/gameplay.md` ("Extras (C9)"),
+afwijkingen in `docs/keen3/architecture.md`, "Deviations in C9".
+
+- **xBRZ (F5) en vloeiende beweging (F6)** werken voor alles van Keen 3
+  via de gedeelde code; er hoefde niets te veranderen. Nagekeken in de
+  code en met screenshots (beide aan, breedbeeld en 4:3): alle figuren
+  (vijanden, schoten, golven, bal, jack, platforms met Keen erop, het
+  schild van de ankh, Messie, de vonken en het hart, de Vorticon en Keen
+  van het einde) zijn `Actor`s in de gedeelde `ActorLayer` en bewegen
+  tussen de ticks door; het beeld op de kaart schuift mee met dezelfde
+  fractie als Keen, en springt zonder tussenstappen bij een teleporter;
+  de teleporters, de Mangling Machine, de bordjes en de flitsen van het
+  einde veranderen tiles in de gedeelde `LevelMap` (ook in xBRZ); de HUD,
+  het statusscherm, Mortimers vakken, titel, highscores, GAME OVER en
+  `FINALE.CK3` wisselen mee met F5. De randflits en de fades zijn effen
+  kleuren. Keen 3 heeft geen schudden van het scherm (Choco). Beide
+  opties blijven standaard uit.
+- **Plaatjes achter levels** (`Keen3BackdropPictures`): eigen map
+  `assets/backgrounds/keen3/` (nog leeg: geen eigen artwork) of die van de
+  speler `game_data/keen3/backgrounds/levelNN.png` (ook .webp of .jpg);
+  nooit die van Keen 1 of 2. Alleen in breedbeeld, met de optie
+  Backgrounds (standaard aan). **Regel:** een level krijgt alleen een
+  plaatje als zijn effen achtergrond de lucht is (tile 143, lichtblauw).
+  De andere effen achtergrond, het donkergrijs binnen de bases en grotten
+  (tile 195), zit ook in de rotsen en muren, dus daar zou het plaatje
+  doorheen schijnen. Keen 2's regel (meest gebruikte tile) zou level 10
+  een plaatje achter de muren van zijn basis geven en levels 8, 11, 13 en
+  15 geen. **In v1.00: levels 1-8, 11, 13, 14 en 15**; niet 9, 10, 12 en
+  16. Getest met een zelfgemaakt testplaatje (niet gecommit, weer
+  verwijderd) in levels 1, 8, 10 en 15: zichtbaar achter de lucht van 1,
+  8 en 15, niet in level 10 en niet in 4:3.
+- **Een plaatje toevoegen:** `levelNN.png` (NN = levelnummer met twee
+  cijfers) in `game_data/keen3/backgrounds/` om te proberen, of in
+  `assets/backgrounds/keen3/` om mee te leveren (alleen eigen plaatjes).
+  Elke maat werkt; het plaatje bedekt het beeld en schuift van links naar
+  rechts mee, dus breed voor brede levels (zo'n 3840x1080 voor levels 4,
+  5 en 14), 1920x1080 voor smalle (6, 11).
+- **Builds:** `tools/build_macos.sh` en `tools/build_windows.sh` nemen
+  `game_data/keen3` al mee (sinds C2), met een eventuele map
+  `backgrounds`; plaatjes in `assets/backgrounds/keen3/` gaan vanzelf mee
+  in de export. Niets nieuws nodig. **Niet gebouwd hier:** de Mac-build
+  kan alleen op de Mac, en voor Windows ontbreken de export templates.
+  De gebruiker moet de app op de Mac bouwen.
+- **Real-ESRGAN:** overgeslagen, zoals bij Keen 2 (besluit van de
+  gebruiker, 17-10-2026).
+- **Gedeelde code:** niets veranderd (alleen een regel in
+  `tests/run_tests.gd`). `git diff ade258d` op `src/keen2`,
+  `tests/test_keen2_*.gd`, `tests/keen2_fixtures.gd`, `src/actors`,
+  `src/map` en `src/game/level_view.gd` is leeg.
+- **Tests:** nieuwe suite `test_keen3_extras` (de regel, alleen Keen 3's
+  map, het eigen plaatje van de speler, het kaartbeeld en de figuren
+  tussen de ticks, de echte levels). 63 suites, 729 tests (was 62 en
+  722), alle slagen, gdlint schoon.
+- **Keen 1- en Keen 2-controle:** `keen1_regression.sh` en
+  `keen2_regression.sh` tegen de C7-referentie (lege gebruikersmap): alles
+  gelijk, ook `launcher.png`.
+- **Bekeken in de app** (scratchpad `c9shots/`, xBRZ en vloeiend aan):
+  levels 1, 8, 10, 15 en 16 (Mortimer, de machine), de kaart, het
+  statusscherm, het einde, titel, menu en highscores, in breedbeeld en
+  4:3; en level 1 met de standaardinstellingen en F2/F5/F6.
 
 ## Mijlpaal C8: wat er nu is
 
@@ -1556,9 +1620,9 @@ Keen 3:
    (Mac en Windows): level 16 met Mortimer (Spatie slaat over), de
    machine (vonken, armen, benen, het hart), de randflits, het einde; of
    direct met `-- --game=3 --level=16` en `-- --game=3 --ending`.
-3. **Architect:** C8 controleren (branch `milestone-c8-geluid-menus`), de
-   app bouwen met `tools/build_macos.sh` en `tools/build_windows.sh` (kon
-   hier niet: geen export templates).
+3. **Architect:** C9 controleren (branch `milestone-c9-extras`), de app
+   bouwen op de Mac met `tools/build_macos.sh` en `tools/build_windows.sh`
+   (kon hier niet: macOS alleen op de Mac, geen export templates).
 4. **Voor de gebruiker (C8):** in `build/` proberen: de titel en de
    highscores (wisselen elke 16,5 s, een toets opent het menu), het menu
    (Story, High Scores, Controls, Options, Choose Game), een nieuw spel,
@@ -1568,10 +1632,16 @@ Keen 3:
    (luister ook even naar Keen 1 en 2), een pogo-stuit klinkt als een
    sprong, van een rand lopen, tegen een muur springen, de eindtekst
    (eerst keensleft, dan MORTIMER).
-5. Daarna C9, als de gebruiker dat vraagt (branch `milestone-c9-extras`
-   vanaf `milestone-c8-geluid-menus`): hogere framerate en xBRZ nakijken,
-   plaatjes achter de levels in `assets/backgrounds/keen3/`, de builds.
-   De regressies weer in een venster.
+5. **Voor de gebruiker (C9):** in `build/` proberen: F5 (xBRZ) en F6
+   (vloeiende beweging) in een level, op de kaart (Messie, een
+   teleporter), in level 16 (de machine) en in het einde; en eventueel
+   een eigen plaatje achter een level met lucht (1-8, 11, 13, 14, 15):
+   `game_data/keen3/backgrounds/level01.png` (breedbeeld, optie
+   Backgrounds aan).
+6. Daarna C10 (co-op), als de gebruiker dat vraagt (branch
+   `milestone-c10-coop` vanaf `milestone-c9-extras`): twee spelers op één
+   toetsenbord en online, `GAME_ID_KEEN_3` in `GAME_IDS`. De regressies
+   weer in een venster.
 
 Keen 2:
 
