@@ -1,0 +1,288 @@
+# Keen 4: architecture
+
+How Keen 4 ("Secret of the Oracle") is added beside Keen 1, 2 and 3.
+Written in milestone D1 by the architect, with a code survey by the
+developer; the developer follows it in D2 and later and updates it when a
+decision changes (with the reason). The milestones are in
+[roadmap.md](roadmap.md), the facts about the game in
+[research.md](research.md), the file formats in
+[file-formats.md](file-formats.md). Read
+[../keen2/architecture.md](../keen2/architecture.md) and (on the Keen 3
+branches) `docs/keen3/architecture.md` first: the rules there still hold,
+but Keen 4 needs more than they describe.
+
+## What is different this time
+
+Keen 2 and Keen 3 were **the same engine** as Keen 1 with other enemies.
+Keen 4 is **another engine** (id's "Galaxy" engine, also used by Keen 5 and
+6). From the code survey in D1:
+
+| Part | Keen 1-3 code | For Keen 4 |
+|---|---|---|
+| Graphics files | `EgaHeader`, `EgaGraphics` (EGAHEAD/LATCH/SPRIT) | New: Huffman, the headers in the EXE, chunks, two 16×16 tile sets, 8×8 tiles, proportional fonts |
+| Levels | `LevelData`, `RlewDecompressor` (tag 0xFEFE fixed), one file per level, two planes | New: `GAMEMAPS` + `MAPHEAD`, Carmack + RLEW (tag 0xABCD), three planes |
+| Tile behaviour | `TileProperties` (six words per tile, behaviours up to 28) | New: `TILEINFO` (slopes, poles, ledges, deadly, front/back, animation timing) |
+| Drawing a level | `LevelMap` (one tile plane; foreground and masked tiles from the property table) | New map class with three layers; reuse the pattern (`TileMapLayer`, `set_tile` per cell, one atlas) |
+| Keen and physics | `KeenBody`, `LevelCollision` (boxes only, 60 Hz, 1/32 px) | New: slopes, poles, ledges, swimming; the original's units and tics |
+| Enemies | `Actor`, `Enemy`, Keen 2/3 subclasses | New: an action (state) machine like the original's; `Actor` and `ActorLayer` can still carry position and sprite |
+| World map | `MapSession`, `MapKeen` (a tile map with its own rules) | New: the world map is a level (map 0) with a Keen that walks in 8 directions |
+| Sound | `SpeakerSynth` (square wave at 140 steps/s), `SoundFile` | PC speaker: reuse `SpeakerSynth` with a converter. **New: an OPL2 (AdLib) synthesiser** for AdLib sounds and music |
+| Windows, HUD, font | `GameWindow`, `Hud`, 8×8 font | New look (Galaxy windows, proportional font, the score box) |
+| Menus | `Menu`, `MenuController` (logic) | Logic reused; a Galaxy-looking view |
+| Launcher, settings, saves, scaling, online transport, two-player view, tools | shared | Reused, with a few additive seams (below) |
+
+So the rule from Keen 2 and 3 ("subclass the older episode") does **not**
+carry over for the game itself. Subclassing `KeenBody`, `LevelCollision` or
+`LevelSession` would drag Vorticon rules into Keen 4; Keen 3 already showed
+that three levels of inheritance become brittle (`Keen3Ball` copies lines
+because it cannot extend two classes). Keen 4 is built as a **new tree that
+only uses the generic shared pieces**.
+
+## The rule: Keen 1, 2 and 3 stay as they are
+
+| Group | What | Allowed changes |
+|---|---|---|
+| **Keen 1 only** | As in `docs/keen2/architecture.md` | **None.** |
+| **Keen 2 only** | `src/keen2/**`, its tests and fixtures | **None.** |
+| **Keen 3 only** | `src/keen3/**`, its tests and fixtures (on the C branches until merged) | **None.** Keen 3 is still being built by another session: Keen 4 never touches it, not even in a merge (see "Branches") |
+| **Shared** | Decoders, graphics and scaling, `src/level/`, `src/keen/`, `src/sound/`, `src/menu/`, `src/online/`, `src/launcher/`, `GameScreen`, `LevelSession`, `Hud`, settings, saves, high scores, tools | **Only additive, behaviour-neutral changes** (a new optional parameter whose default is the old value, a new method or constant, an enum value at the end, an entry in a list of games) |
+| **Galaxy** (new) | `src/galaxy/**`: what Keen 5 and 6 will need too | Free during the D milestones. After Keen 4 is done it becomes **shared** for Keen 5 and 6 |
+| **Keen 4 only** (new) | `src/keen4/**` | Free |
+
+Exceptions, as for Keen 3 (decided by the architect, to be confirmed by the
+user):
+
+1. **The list of games**: the assertions on the number of games
+   (`tests/test_launcher.gd`, `tests/test_keen2_files.gd`,
+   `tests/test_keen3_files.gd`) grow by one.
+2. **`GameLaunch.game_number`/`scene_for`, the data viewer and
+   `tools/export_graphics.gd`** may change their bodies to know a fourth
+   game, as long as every argument list that worked before gives the same
+   answer.
+3. **The launcher icon** (below): `GameCatalog.Game` gets an optional way to
+   make its own icon picture; without it the launcher does what it does now.
+
+Proof at the end of every D milestone, as in the C series:
+
+1. Every existing test passes without changes to the test files (except
+   exception 1); new suites may be added.
+2. `gdlint` is clean.
+3. `tools/keen1_regression.sh` and `tools/keen2_regression.sh` (and, once it
+   exists, the Keen 3 one) give the same screenshots as the reference;
+   only `launcher.png` may differ, by the new icon.
+4. `git diff $REF -- <Keen 1 only files> src/keen2 src/keen3 tests/test_keen2_*.gd tests/test_keen3_*.gd`
+   is empty (apart from exception 1).
+
+`$REF` is the commit the D branch started from (see "Branches").
+
+## Two new folders: `src/galaxy/` and `src/keen4/`
+
+Keen 5 and 6 use the same engine as Keen 4. Everything that is "the Galaxy
+engine" goes into `src/galaxy/` with class names starting with `Galaxy`;
+everything that is "the game Keen 4" goes into `src/keen4/` with class
+names starting with `Keen4`. A rule of thumb: if Keen 5 would need the same
+class with other numbers, it is Galaxy, and the numbers are passed in (an
+episode table), not written as constants in the class.
+
+```
+src/galaxy/                 the Galaxy engine (class names Galaxy...)
+  data/                     GalaxyExecutable (finds the headers in the EXE by content),
+                            GalaxyHuffman, GalaxyCarmack, GalaxyRlew,
+                            GalaxyGraphicsFile (EGAGRAPH chunks), GalaxyGraphics (the
+                            decoded pictures, sprites, tiles, fonts, texts),
+                            GalaxySpriteInfo (origin, hit box), GalaxyMapFile (GAMEMAPS),
+                            GalaxyMap (three planes), GalaxyTileInfo, GalaxyAudioFile,
+                            GalaxyTextPages (the ^P/^G mark-up)
+  level/                    GalaxyLevelMap (TileMapLayers: back, fore, fore-in-front),
+                            GalaxyTileAnimator, GalaxyCamera rules (scroll blocks)
+  physics/                  GalaxyUnits, GalaxyClip (tile collision with slopes),
+                            GalaxyPhysics (gravity, friction helpers)
+  actors/                   GalaxyAction (one state: sprites, tics, velocity, think,
+                            react, contact, next), GalaxyObject (position in global
+                            units, box, action, timers), GalaxyObjectLayer (drawing,
+                            with Interpolation), GalaxyWorld (the object list, spawning,
+                            the active area)
+  keen/                     GalaxyKeen (the player's states that 4-6 share: walk,
+                            jump, pogo, poles, ledges, shoot, doors), GalaxyMapKeen
+  sound/                    GalaxyPcSound (bytes → SpeakerSynth), GalaxyOpl (OPL2
+                            synthesiser), GalaxyAdlibSound, GalaxyMusic (IMF at 560 Hz),
+                            GalaxySoundCache
+  ui/                       GalaxyFont, GalaxyWindow, GalaxyScoreBox, GalaxyMenuView,
+                            GalaxyTextScreen (help, story)
+src/keen4/                  Keen 4 only (class names Keen4...)
+  data/                     Keen4Files, Keen4Episode (the numbers of episode 4: chunk
+                            ranges, sprite numbers, sounds, music per level, strings)
+  actors/                   Keen4Slug, Keen4Mushroom, Keen4Lick, ... (one file per enemy)
+  level/                    Keen4LevelSession, Keen4Items, Keen4Council (the elders),
+                            Keen4Platforms, Keen4Switches
+  map/                      Keen4MapSession (entrances, flags, Miragia, swimming)
+  game/                     Keen4Inventory, Keen4Progress, Keen4StatusScreen,
+                            Keen4Ending, Keen4HighScores
+  keen4_*_screen.gd         the screen chain on top of GameScreen
+  keen4_view.gd/.tscn       Keen4View, the scene the start screen opens
+tests/test_galaxy_*.gd, tests/test_keen4_*.gd, tests/galaxy_fixtures.gd
+docs/keen4/
+assets/backgrounds/keen4/   pictures behind levels (our own pictures only)
+```
+
+The list is a plan; the developer may split or merge classes and writes the
+change down here. Keep every file under ~500 lines (gdlint also allows at
+most 20 public methods per file).
+
+## Reusing shared code
+
+| Shared class | For Keen 4 | Note |
+|---|---|---|
+| `GameFiles.locate_in` | **Use** (`Keen4Files`, `--data-dir-keen4=`) | `level_file(n)` does not apply (one `GAMEMAPS` file) |
+| `DosExecutable`, `LzexeDecompressor` | **Use** | v1.4 is not packed; other releases may be |
+| `EgaPalette`, `EgaPlanarDecoder` | **Use** | Galaxy stores planes one after another; check the plane order in D2 |
+| `XbrzScaler.scale`, `GraphicsLoader` threading, the shaders | **Use** | `ScaledGraphics`/`HdPack` are typed on `EgaGraphics`: Galaxy gets its own small `GalaxyScaledGraphics` that calls `XbrzScaler` |
+| `LevelCamera`, `FreeLook`, `LevelBackdrop`, `BackdropPictures` | **Use** | Scroll blocks are Keen 4's own rule on top (see "Widescreen") |
+| `DisplaySettings`, `UserSettings`, `KeyBindings` | **Use** | Galaxy needs up/down in levels; see "Input" |
+| `Interpolation` | **Use** | Already independent of the tick rate (`blend` 0-1) |
+| `GameScreen` | **Base of the screen chain** | Finds nodes by unique name: `keen4_view.tscn` copies the node layout of `level_view.tscn`, as Keen 2 and 3 did |
+| `Menu`, `MenuController` | **Use** | With a Galaxy view |
+| `SaveGames.in_directory`, `HighScores` pattern | **Use** | `user://keen4/` |
+| `SpeakerSynth.render` | **Use** | Galaxy PC sounds are bytes × 60 at 140 Hz: convert to divisors. If C8 changes the rate to 145.65 Hz, Galaxy needs the rate as an optional parameter (default the new rate) |
+| `SplitScreen`, `TwoPlayerView`, `PartnerArrow` | **Use** (D12) | |
+| Online transport and handshake | **Use** (D12) | New messages for Galaxy at the end of the enums |
+| `Actor`, `ActorLayer`, `Enemy`, `KeenBody`, `LevelCollision`, `LevelSession`, `LevelMap`, `MapSession`, `Hud`, `GameWindow`, `EgaGraphics` | **Not used** | Vorticon rules (see the table above) |
+
+## The seams in the shared code
+
+| Need | Today | Additive change |
+|---|---|---|
+| Start screen icon | `GameCatalog.games()` lists three games; `Launcher._make_icon` always calls `EgaGraphics.load_from` and `KeenPhysics.SPRITE_WALK_RIGHT` | `GameCatalog.Game` gets an optional `icon_picture: Callable` (returns a `Texture2D` or null). `_make_icon` uses it when set, otherwise the old code. Keen 4 points it at a small `Keen4Icon` that decodes one sprite. The fourth icon must fit: the layout had room for three (608 of 1280 px); check `LauncherLayout` in D2 |
+| `--game=4`, scene, data viewer, export | Three-way `match` | A fourth branch (exception 2). The data viewer gets a Galaxy page (tiles back/fore, sprites with their boxes, pictures, maps with the three planes); `export_graphics.gd` writes `exported/keen4/` |
+| Input: up/down in levels | `KeenInput.vertical` is "only used on the world map"; `PLAYER_ACTIONS` (two players) has no up/down | One player: `KeenInput.vertical` is enough. Two players: new `p1_up`/`p1_down`/`p2_up`/`p2_down` **appended** to `PLAYER_ACTIONS`; this shows in the shared Controls menu for every game, so it needs the user's approval (question in research.md) |
+| Status key | Enter is the status key in Keen 2 and 3 | Same for Keen 4 (Enter shows the status window in the original too) |
+| A different logic rate | `KeenPhysics.TICKS_PER_SECOND` = 60 is read by the Keen 1-3 views | Keen 4 has its own clock (`GalaxyClock`, see "Time"); nothing shared changes |
+| Online game id | `OnlineProtocol.GAME_IDS` | `GAME_ID_KEEN_4` added at the end (D12) |
+| Online snapshot | `Snapshot` sends a Keen 1 `Inventory`; the `TILE` message has one plane | Galaxy messages of its own appended to the enums (plane index, Keen 4 inventory) in D12; Keen 1-3 messages stay byte for byte the same |
+| `LevelFingerprint`, `OnlinePlay._original` | `files.level_file(n)` | A Galaxy fingerprint over the map's planes (D12) |
+| Build scripts | Copy `game_data/keen1..3` | Same block for `keen4` |
+| Tests | `tests/run_tests.gd` | One line per new suite |
+| Regression | `keen1_regression.sh`, `keen2_regression.sh` | New `tools/keen4_regression.sh` once Keen 4 draws something (D4) |
+
+## Branches
+
+The user asked to branch from `main`; Keen 3 is being built at the same
+time by another session on the `milestone-c*` branches.
+
+- **D1** (this research, documents only, in `docs/keen4/`) starts from
+  `main`. It changes no existing file, so it cannot conflict with Keen 3.
+- **D2** is the first milestone that touches shared files (the launcher,
+  `GameLaunch`, the data viewer, the build scripts, `run_tests.gd`). Keen 3
+  touches the same lines (the third icon, `--game=3`). Advice: start D2
+  **after Keen 3 is merged into `main`**, so Keen 4 becomes the fourth icon
+  on top of a finished Keen 3. If the user wants Keen 4 to start before
+  that, D2 starts from the newest C branch (as C1 started from B10), and
+  every D branch merges the newer C branches in; never the other way round.
+- Most of D2-D5 lives in `src/galaxy/` and `src/keen4/`; only a handful of
+  shared lines change, so the merges stay small.
+- `$REF` for the proof above is the commit the D branch started from.
+
+## Time: the original's tics
+
+(Filled in below from the research, §1.)
+
+## Drawing a level
+
+- **Three tile layers** in one atlas each: the background (unmasked tiles,
+  z below everything), the foreground (masked tiles, behind sprites) and
+  the foreground tiles whose `TILEINFO` misc has the high bit (drawn **in
+  front of** sprites, for example a door frame or the grass Keen walks
+  behind). This is the lesson of the masked-tile fix after C7: never
+  guess which tiles go in front; the table says it.
+- **Animated tiles** follow `TILEINFO` (time in tics and the offset of the
+  next tile), per layer; `GalaxyTileAnimator` calls `set_tile`, so the
+  xBRZ atlas follows.
+- **Sprites**: each sprite has an origin and a hit box from the sprite
+  table; an object's position is the original's (global units) and the
+  sprite is drawn at position + origin, rounded to the original's pixel
+  (the original draws sprites on whole pixels; smooth motion is the
+  existing option).
+- **Draw order**: the original gives every object a priority (0-3, Keen in
+  front of most things, some in front of the foreground). Map it onto
+  `z_index` between the three layers.
+
+## Widescreen and scroll blocks
+
+The original never shows a part of the level beyond a **scroll block**
+(info values 25 and 26 stop the camera horizontally or vertically). In
+4:3 we copy that exactly. In widescreen the picture is wider than the
+original's, so it would show what is behind a horizontal scroll block:
+secret rooms, the next part of the level, or the empty edge of the map.
+
+Proposal (a question for the user, research.md): the camera stops at a
+scroll block just as in 4:3; whatever the wider view would show beyond it
+is covered (black, or the picture behind the level). The level itself
+stays as wide as the original. The same for the world map.
+
+## The score box and the HUD
+
+The original has a **score box** (score, lives, ammo) in the top-left of
+the picture, which the player can turn off in the menu. In 4:3 we draw it
+as the original does. In widescreen the user's rule is "with the HUD" by
+default; for Keen 4 the score box *is* the HUD. Proposal: the score box,
+in the top-left of the visible picture, in 4:3 and in widescreen alike;
+nothing else.
+
+## Sound
+
+- **PC speaker sounds**: decode them (`GalaxyPcSound`) into divisors and
+  render them with the shared `SpeakerSynth`. This gives every sound with
+  no new synthesiser, and it is what the original plays without a sound
+  card.
+- **AdLib sounds and music**: the original's default with a sound card,
+  and the only way to hear the music. They need an **OPL2 (YM3812)
+  synthesiser**. We write our own from the public chip documentation (no
+  copied emulator code: DOSBox's and Nuked OPL's sources are GPL/LGPL).
+  GDScript is too slow to run nine channels at 49,716 Hz in real time, so
+  `GalaxyOpl` **renders** each sound and each song once, in a background
+  thread (as `GraphicsLoader` does for xBRZ), into an `AudioStreamWAV`, and
+  caches the result in `user://keen4/cache/` (made from the player's own
+  files, never shipped). Music plays as a looping stream.
+- A setting "Sound: PC speaker / AdLib" and "Music on/off" in the options
+  (the original's own choices). Default as the original's default setup:
+  AdLib sounds and music when present (question for the user).
+
+## The menus, texts and the status window
+
+- The menu logic is the shared `MenuController`; Keen 4 adds a
+  `GalaxyMenuView` with the look of the original's control panel.
+- The help, story and end texts are chunks in `EGAGRAPH` with their own
+  mark-up and pictures (`GalaxyTextPages`).
+- The status window (Enter) shows the level name, score, extra life at,
+  keys, ammo, lives, drops, and the rescued elders (D7).
+- The original's **Paddle War** (the paddle game in the menu) is optional
+  and comes last (question for the user).
+
+## Testing
+
+- `tests/galaxy_fixtures.gd`: hand-made Huffman dictionaries, chunks,
+  Carmack/RLEW planes, tileinfo tables and maps, so every decoder, the
+  clip code and the actions are tested without the game files.
+- `tests/test_keen4_data.gd` with the player's files (`Keen4Files.locate()`,
+  skip without them). Keen 4 **is** shareware (v1.4), so these suites can
+  run anywhere the shareware is present.
+- Physics against the original: the research gives jump heights, speeds and
+  times from Omnispeak; D3 adds tests that Keen's jump, pogo and fall cover
+  those distances in those tics.
+- The screens with `tools/scripted_play.gd`
+  (`SCENE=res://src/keen4/keen4_view.tscn -- --game=4 --level=N`) and
+  `tools/keen4_regression.sh` from D4 on.
+- `tools/original/` (js-dos) works for Keen 4 as it is: `KEEN4E` instead of
+  `KEEN3`.
+
+## Rules that carry over
+
+All hard rules in `CLAUDE.md` apply: never commit game data or anything
+derived from it (also no rendered AdLib audio or decoded pictures), never
+use the name "Commander Keen" or its logo as branding ("Keen 4" on the icon
+is fine), never decompile `KEEN4E.EXE` code (reading data tables and the
+headers out of it is fine), no copied code from Omnispeak, Commander Genius
+or the Keen Dreams source (all GPL; documentation only). Extras are off by
+default, with the user's exceptions (widescreen with the score box,
+pictures behind levels in widescreen). Talk to the user in Dutch; code,
+comments and commit messages in English.
