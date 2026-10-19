@@ -162,7 +162,30 @@ most 20 public methods per file).
 | `LevelFingerprint`, `OnlinePlay._original` | `files.level_file(n)` | A Galaxy fingerprint over the map's planes (D12) |
 | Build scripts | Copy `game_data/keen1..3` | Same block for `keen4` |
 | Tests | `tests/run_tests.gd` | One line per new suite |
-| Regression | `keen1_regression.sh`, `keen2_regression.sh` | New `tools/keen4_regression.sh` once Keen 4 draws something (D4) |
+| Regression | `keen1_regression.sh`, `keen2_regression.sh` | New `tools/keen4_regression.sh` once Keen 4 draws something (D3) |
+
+## The flow of Keen 4
+
+```
+Launcher ──click "Keen 4"──▶ keen4_view.tscn (Keen4View)
+   ▲                            │ intro credits, story, demos, high scores (D8)
+   │ "Choose Game"              │ main menu: New Game (Easy/Normal/Hard), Load (D10)
+   └─────────────────────────── ▼
+                         world map, map 0 (Keen4MapSession)
+                           │ walk, swim (wetsuit), Miragia, the Foot's flight
+                           │ enter level n (0xC000 + n), "Keen enters ..." box
+                           ▼
+                         level 1-17 (Keen4LevelSession)
+                           │ out of the scroll area left/right ─▶ level done, flag thrown
+                           │ council member rescued ─▶ message, level done
+                           │ death ─▶ "Try Again / Exit to Shadowlands", game over
+                           ▼
+              8th council member ─▶ end text pages ─▶ high scores (map 19)
+```
+
+Before the map exists (D3-D6), the flow is as in B3 and C3: level 1 (or
+`--level=N`), out of the level to the next one, death restarts the level,
+game over goes back to the start screen.
 
 ## Branches
 
@@ -184,7 +207,29 @@ time by another session on the `milestone-c*` branches.
 
 ## Time: the original's tics
 
-(Filled in below from the research, §1.)
+Keen 1-3 run 60 logic ticks per second in 1/32 px. The Galaxy engine counts
+**tics of 1/70 s** and **global units of 1/16 px**, and on any modern
+machine it runs **one logic frame per 2 tics (35 per second)**; demos use 3
+(research §2). Keen 4 keeps this, unconverted:
+
+- `GalaxyClock` collects real time in tics and runs a logic frame for every
+  2 tics (3 in demos), at most 5 tics' worth per frame, the way the
+  original slows down rather than skipping. A frame knows the absolute tic
+  numbers it covers, because gravity and acceleration act on odd tics.
+- Positions, velocities, boxes and timers are integers in the original's
+  units. The research's numbers go into the action tables unchanged.
+- The picture: without smooth motion, objects are drawn where the last
+  logic frame put them, on whole pixels (the original's 35 fps steps).
+  With smooth motion (the shared option, off by default) the shared
+  `Interpolation` draws between the last two logic frames, so a 120 Hz
+  screen shows smooth movement.
+- Sound effects (140 Hz) and music (560 Hz) are rendered to audio streams
+  and are independent of the logic rate.
+- The camera follows the logic frames as in the original (also drawn
+  through `Interpolation` when smooth).
+
+A "1 tic per frame" mode (70 logic frames per second) is **not** planned:
+the original's ledge grabbing breaks at 1 tic (research §2).
 
 ## Drawing a level
 
@@ -264,14 +309,18 @@ nothing else.
   Carmack/RLEW planes, tileinfo tables and maps, so every decoder, the
   clip code and the actions are tested without the game files.
 - `tests/test_keen4_data.gd` with the player's files (`Keen4Files.locate()`,
-  skip without them). Keen 4 **is** shareware (v1.4), so these suites can
-  run anywhere the shareware is present.
+  skip without them). The user has **v1.0**; Keen 4 is also shareware
+  (v1.4), so the real-data suites can run anywhere either is present. The
+  tests check what holds for both (397 sprites, 1296 + 2916 tiles, 20
+  maps) and, per version, the counts that differ (107 or 115 pictures).
+- A cloud session has no Keen 4 files unless the user uploads them (as in
+  D1); the fixtures carry the rest.
 - Physics against the original: the research gives jump heights, speeds and
-  times from Omnispeak; D3 adds tests that Keen's jump, pogo and fall cover
+  times from Omnispeak; D4 adds tests that Keen's jump, pogo and fall cover
   those distances in those tics.
 - The screens with `tools/scripted_play.gd`
   (`SCENE=res://src/keen4/keen4_view.tscn -- --game=4 --level=N`) and
-  `tools/keen4_regression.sh` from D4 on.
+  `tools/keen4_regression.sh` from D3 on.
 - `tools/original/` (js-dos) works for Keen 4 as it is: `KEEN4E` instead of
   `KEEN3`.
 
