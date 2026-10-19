@@ -62,6 +62,7 @@ const SUITES: Array[Script] = [
 	preload("res://tests/test_keen3_machine_data.gd"),
 	preload("res://tests/test_keen3_scenes.gd"),
 	preload("res://tests/test_keen3_ending.gd"),
+	preload("res://tests/test_keen3_sounds.gd"),
 	preload("res://tests/test_masked_tiles.gd"),
 ]
 

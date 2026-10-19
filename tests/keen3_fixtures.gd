@@ -175,6 +175,34 @@ static func sound_block() -> PackedByteArray:
 	return data
 
 
+## A sound file with [param sounds] (name: [priority, number of steps]),
+## every step a beep.
+static func sound_file(sounds: Dictionary) -> SoundFile:
+	var data := PackedByteArray()
+	data.resize(SoundFile.HEADER_SIZE + sounds.size() * SoundFile.ENTRY_SIZE)
+	data.encode_u32(0, 0x00444E53)  # "SND\0"
+	data.encode_u16(SoundFile.COUNT_OFFSET, sounds.size())
+	var index := 0
+	for sound_name: String in sounds:
+		var entry := SoundFile.HEADER_SIZE + index * SoundFile.ENTRY_SIZE
+		data[entry + 2] = sounds[sound_name][0]
+		data[entry + 3] = SOUND_UNKNOWN_BYTE
+		var name := sound_name.to_ascii_buffer()
+		for at in name.size():
+			data[entry + 4 + at] = name[at]
+		var steps: int = sounds[sound_name][1]
+		var sound := PackedByteArray()
+		sound.resize(2 * (steps + 1))
+		for step in steps:
+			sound.encode_u16(step * 2, BEEP_DIVISOR)
+		sound.encode_u16(sound.size() - 2, SoundFile.END_MARK)
+		data.encode_u16(entry, data.size())
+		data.append_array(sound)
+		index += 1
+	data.encode_u16(Keen2Executable.SOUND_SIZE_OFFSET, data.size())
+	return SoundFile.parse(data)
+
+
 ## A text in the layout of the .CK1 text files, ending in the end mark.
 static func text(title: String) -> PackedByteArray:
 	var content := "%s\r\n\r\nA paragraph that is long enough to be a text block,\r\n" % title

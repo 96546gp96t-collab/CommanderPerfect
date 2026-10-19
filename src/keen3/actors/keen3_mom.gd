@@ -101,8 +101,9 @@ func _spit(session: LevelSession) -> void:
 	if not _fired and _mode_ticks >= FIRE_TICKS:
 		_fired = true
 		var start := position + Vector2(0, FIREBALL_DROP)
-		session.add_actor(Keen3Fireball.spat(session, start, facing))
+		# First the spit, then (in a wall) the splash, which cuts it off (Choco).
 		session.play_sound(Sound.Id.TANK_FIRE)
+		session.add_actor(Keen3Fireball.spat(session, start, facing))
 	if _mode_ticks > SPIT_TICKS:
 		mode = Mode.WALKING
 		_mode_ticks = 0

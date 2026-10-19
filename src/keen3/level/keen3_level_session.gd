@@ -223,9 +223,14 @@ func _create_keen(start: Vector2) -> KeenBody:
 		# Keen 2's switches, which no Keen 3 level has; the session steps them.
 		switches = Keen2Switches.create(self)
 	var body := Keen3Body.spawned(_keen_collision, start)
-	body.sound_played.connect(play_sound)
+	body.sound_played.connect(_play_keen_sound)
 	keens.append(body)
 	return body
+
+
+## One of Keen's sounds, as Keen 3 plays it ([method Keen3Body.sound_for]).
+func _play_keen_sound(sound: Sound.Id) -> void:
+	play_sound(Keen3Body.sound_for(sound))
 
 
 func _create_shot(start: Vector2, direction: int) -> RaygunShot:

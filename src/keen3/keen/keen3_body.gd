@@ -27,6 +27,12 @@ extends Keen2Body
 ## [constant STUN_GETTING_UP_TICKS]. It is not Keen 2's stun: no knock up,
 ## and a shot does not cut it short but kills him ([Keen3LevelSession]). A
 ## stunned Keen still dies to everything deadly; the ankh prevents the stun.
+##
+## Three of Keen's sounds differ from what [KeenBody] plays (Choco
+## `CVort_think_keen_ground`, `_jump_air`, `_pogo_air`, `_pogo_ground`;
+## milestone C8): a pogo bounce sounds as a jump ([method sound_for]),
+## walking off a ledge plays PLUMMETSND, and pushing against a wall in the
+## air bumps (KEENBLOKSND) every [constant AIR_BUMP_TICKS].
 
 ## How long one ankh protects: 1400 clock ticks of 145.65 Hz (Choco), 9.6
 ## seconds, 577 of our ticks.
@@ -55,6 +61,10 @@ const STUN_FRICTION := 4.05 * KeenPhysics.SUBPIXEL
 ## Gravity while stunned, as for the enemies: 3 per clock tick (Choco).
 const STUN_GRAVITY := 4.05 * KeenPhysics.SUBPIXEL
 const STUN_MAX_FALL := 111 * KeenPhysics.SUBPIXEL
+## The original bumps against a wall in the air in every other window of 16
+## clock ticks (Choco): once per 32 clock ticks, 13.2 of our ticks. That the
+## first bump sounds at once is our reading.
+const AIR_BUMP_TICKS := 13.2
 
 ## Ticks of protection left; 0 without the ankh.
 var ankh_ticks := 0
@@ -62,6 +72,8 @@ var ankh_ticks := 0
 var _halo_ticks := 0
 ## Ticks since the stun began; -1 when Keen is not stunned.
 var _stunned_for := -1
+## Ticks until a bump against a wall in the air sounds again.
+var _air_bump_wait := 0.0
 
 
 ## Keen 3's Keen at [param start] (top left of the sprite), moving through
@@ -78,7 +90,14 @@ func reset(start: Vector2) -> void:
 	ankh_ticks = 0
 	_halo_ticks = 0
 	_stunned_for = -1
+	_air_bump_wait = 0.0
 	super.reset(start)
+
+
+## The sound Keen 3 plays for [param sound] of [KeenBody]: a pogo bounce
+## sounds as a jump (Choco plays KEENJUMPSND there, never KEENPOGOSND).
+static func sound_for(sound: Sound.Id) -> Sound.Id:
+	return Sound.Id.KEEN_JUMP if sound == Sound.Id.KEEN_POGO else sound
 
 
 ## Keen picked up an ankh: its time adds to what is left.
@@ -141,6 +160,7 @@ func step(input: KeenInput) -> void:
 	if is_protected():
 		ankh_ticks -= 1
 		_halo_ticks += 1
+	_air_bump_wait = maxf(_air_bump_wait - 1.0, 0.0)
 	if is_stunned():
 		_lie_stunned()
 		return
@@ -165,6 +185,22 @@ func sprite_index() -> int:
 	if _stunned_for >= STUN_LYING_TICKS:
 		return SPRITE_MELT
 	return SPRITE_STUNNED + floori(_stunned_for / DAZED_FRAME_TICKS) % STUNNED_FRAMES
+
+
+## Walking off a ledge plays PLUMMETSND (not on the pogo stick).
+func _stand(input: KeenInput) -> void:
+	if not on_pogo and collision.floor_under(hitbox()) == TileProperties.Floor.NONE:
+		sound_played.emit(Sound.Id.PLUMMET)
+	super._stand(input)
+
+
+## Moves Keen sideways; a wall in the way in the air bumps.
+func _move_horizontally() -> bool:
+	var free := super._move_horizontally()
+	if not free and state in [State.RISING, State.FALLING] and _air_bump_wait <= 0.0:
+		_air_bump_wait = AIR_BUMP_TICKS
+		sound_played.emit(Sound.Id.KEEN_BLOCKED)
+	return free
 
 
 ## One tick of the stun: slide, fall, and get up at the end.
