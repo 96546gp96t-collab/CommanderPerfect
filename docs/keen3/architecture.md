@@ -695,9 +695,13 @@ on `src/keen2`, `tests/test_keen2_*.gd`, `tests/keen2_fixtures.gd`,
   1-16), so the shared `GameScreen._apply_backdrop` shows them; nothing
   else in the view changed. Keen 3 has no darkness, so the pictures need
   no `Keen2Darkness` as Keen 2's have.
-- **No pictures in `assets/backgrounds/keen3/`** (we have no artwork; git
-  keeps no empty folder, as for Keen 2). Tested with a made-up picture in
-  `game_data/keen3/backgrounds/` (ignored by git, removed afterwards).
+- **Our own pictures in `assets/backgrounds/keen3/`** (added after C9 at the
+  user's request, 19-10-2026): `tools/make_keen3_backgrounds.py` paints one
+  per level with sky (1-8, 11, 13, 14, 15) from code, in chunky pixels
+  (216 rows blown up 5 times; 3840x1080 for the wide levels, 1920x1080 for
+  3, 11, 13 and 15), each with a scene that fits the level. Nothing in them
+  comes from the game files. `test_keen3_extras` checks that exactly those
+  levels have a picture.
 - **Builds:** `tools/build_macos.sh` and `tools/build_windows.sh` already
   copy `game_data/keen3` (since C2), with a player's `backgrounds` folder
   in it; pictures in `assets/backgrounds/keen3/` go into the export with

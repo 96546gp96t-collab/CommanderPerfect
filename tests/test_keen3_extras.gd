@@ -79,8 +79,23 @@ func test_keen_3_pictures_come_only_from_keen_3s_folder() -> void:
 	)
 	assert_true(pictures.shows_level(1), "level 1 has sky")
 	assert_true(not pictures.shows_level(2) and not pictures.shows_level(3), "2 and 3 not")
-	assert_true(pictures.picture(1) == null, "Keen 1's picture of level 1 is not used")
-	assert_true(BackdropPictures.create(null).picture(1) != null, "Keen 1 keeps it")
+	var own := pictures.picture(1)
+	var keen_1 := BackdropPictures.create(null).picture(1)
+	assert_true(keen_1 != null, "Keen 1 keeps its picture of level 1")
+	assert_true(
+		own == null or own.get_size() != keen_1.get_size(),
+		"Keen 1's picture of level 1 is not used"
+	)
+	assert_true(pictures.picture(2) == null, "no picture behind a base level")
+
+
+func test_every_level_with_sky_has_its_own_picture() -> void:
+	for number in range(Keen3Files.FIRST_LEVEL, Keen3Files.LAST_LEVEL + 1):
+		var path := Keen3BackdropPictures.FOLDER_KEEN_3.path_join(
+			BackdropPictures.picture_name(number) + ".webp"
+		)
+		var expected := SKY_LEVELS.has(number)
+		assert_equal(ResourceLoader.exists(path), expected, "a picture for level %d" % number)
 
 
 func test_the_players_own_picture_shows_only_behind_a_level_with_sky() -> void:

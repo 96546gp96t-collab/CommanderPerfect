@@ -177,7 +177,8 @@ stays as it was). A level without a picture looks as in the original.
   more and looks deeper; 3840x1080 or so suits a level like level 1 well.
   In a split screen each half has its own.
 - **Keen 2 and Keen 3** have their own folders, `assets/backgrounds/keen2/`
-  and `assets/backgrounds/keen3/` (both still empty), and the player's
+  and `assets/backgrounds/keen3/` (Keen 2's still empty; Keen 3's painted by
+  `tools/make_keen3_backgrounds.py`), and the player's
   `game_data/keen2/backgrounds/` and `game_data/keen3/backgrounds/`, with
   the same file names; Keen 1's pictures are never shown behind their
   levels. Each game decides which levels may show one, because a picture

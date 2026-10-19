@@ -88,7 +88,7 @@ afwijkingen in `docs/keen3/architecture.md`, "Deviations in C9".
   kleuren. Keen 3 heeft geen schudden van het scherm (Choco). Beide
   opties blijven standaard uit.
 - **Plaatjes achter levels** (`Keen3BackdropPictures`): eigen map
-  `assets/backgrounds/keen3/` (nog leeg: geen eigen artwork) of die van de
+  `assets/backgrounds/keen3/` (twaalf eigen plaatjes, zie hieronder) of die van de
   speler `game_data/keen3/backgrounds/levelNN.png` (ook .webp of .jpg);
   nooit die van Keen 1 of 2. Alleen in breedbeeld, met de optie
   Backgrounds (standaard aan). **Regel:** een level krijgt alleen een
@@ -101,6 +101,18 @@ afwijkingen in `docs/keen3/architecture.md`, "Deviations in C9".
   16. Getest met een zelfgemaakt testplaatje (niet gecommit, weer
   verwijderd) in levels 1, 8, 10 en 15: zichtbaar achter de lucht van 1,
   8 en 15, niet in level 10 en niet in 4:3.
+- **Eigen plaatjes (na C9, op verzoek van de gebruiker, 19-10-2026):**
+  `tools/make_keen3_backgrounds.py` tekent er twaalf vanuit code, in grove
+  pixels zoals het spel, één per level met lucht, elk passend bij het
+  level: 1 zonsondergang met paarse pieken, 2 de stad bij avond met een
+  grote maan, 3 twee manen boven bergen, 4 een heldere dag met wolken, de
+  stad en de aarde aan de hemel, 5 gouden uur met bomen en torens, 6
+  huisjes in de avond, 7 een rode dreigende lucht met een fort, 8 de
+  zonsondergang boven groene heuvels (het testplaatje dat de gebruiker
+  mooi vond), 11 een bos bij volle maan, 13 een roze dageraad met
+  rotsen, 14 kastelen in de zonsondergang, 15 besneeuwde bergen. Samen
+  ~110 KB (lossless WebP). Niets komt uit de spelbestanden. Opnieuw maken:
+  `python3 tools/make_keen3_backgrounds.py`.
 - **Een plaatje toevoegen:** `levelNN.png` (NN = levelnummer met twee
   cijfers) in `game_data/keen3/backgrounds/` om te proberen, of in
   `assets/backgrounds/keen3/` om mee te leveren (alleen eigen plaatjes).

@@ -637,8 +637,9 @@ SLAMSND, YORPBUMPSND, YORPBOPSND, GARGSCREAM, KEENCICLE and HISCORESND
   Keen 2 (the user's decision of 17-10-2026).
 - **Pictures behind the levels** (widescreen, the "Backgrounds" option,
   on by default; never in 4:3): Keen 3's own pictures in
-  `assets/backgrounds/keen3/` (none yet: we have no artwork, and nothing
-  may come from the game files), or the player's in
+  `assets/backgrounds/keen3/` (twelve pictures painted by
+  `tools/make_keen3_backgrounds.py`, one per level with sky; nothing in
+  them comes from the game files), or the player's in
   `game_data/keen3/backgrounds/` (next to the game files; in the builds
   `build/game_data/keen3/backgrounds/`), which win. Keen 1's and Keen 2's
   pictures are never used. A picture takes the place of the level's plain
