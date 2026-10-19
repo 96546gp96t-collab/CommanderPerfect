@@ -67,7 +67,7 @@ Hoe er gemeten wordt:
 | C8 Geluid, menu's, opslaan | 19-10 | ~42 min | 36 min + 4 min | In een cloud-sessie; Keen 2- en 3-bestanden geüpload door de gebruiker. Controle door de architect: een highscore-screenshot met zelfgemaakte testdata nagevraagd (geen fout). 145,65 Hz voor alle drie de delen |
 | C9 Extra's | 19-10 | ~22 min | 19 min | Vloeiende beweging en xBRZ deden al alles; plaatjes achter de levels met een eigen regel (lucht); geen builds in de cloud |
 | Plaatjes achter de levels (na C9) | 19-10 | ~35 min | | Op verzoek van de gebruiker: twaalf eigen plaatjes vanuit code (`tools/make_keen3_backgrounds.py`), door de architect zelf |
-| C10 Co-op | | | | |
+| C10 Co-op | 19-10 | ~40 min | 36 min | Split-screen en online (ook overschakelen van en naar Keen 3); online getest met twee xvfb-vensters; Steam niet te testen in de cloud |
 | C11 Naast het origineel | | | | |
 | C12 Keen 1 en 2 bijwerken | | | | |
-| **Totaal tot nu toe** | 17-10 t/m 19-10 | **~6 u 40** | | C1-C9 en de fix: Keen 3 is uit te spelen, met geluid, menu's, opslaan en de extra's |
+| **Totaal tot nu toe** | 17-10 t/m 19-10 | **~7 u 55** | | C1-C10, de fix en de plaatjes: Keen 3 is uit te spelen, met geluid, menu's, opslaan, extra's en co-op |
