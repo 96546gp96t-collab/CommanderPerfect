@@ -63,9 +63,83 @@ over Keen 3 bekend is in [docs/keen3/research.md](docs/keen3/research.md).
 | C7 | Mortimer, de Mangling Machine en het einde | ✅ Klaar en gecontroleerd door de architect (branch `milestone-c7-mortimer-einde`) |
 | C8 | Geluid, menu's, opslaan, highscores | ✅ Klaar en gecontroleerd door de architect (branch `milestone-c8-geluid-menus`) |
 | C9 | Mooier maken (framerate, xBRZ, achtergronden, builds) | ✅ Gebouwd, wacht op controle architect (branch `milestone-c9-extras`); Real-ESRGAN bewust overgeslagen |
-| C10 | Co-op lokaal en online | ⬜ |
+| C10 | Co-op lokaal en online | ✅ Gebouwd, wacht op controle architect (branch `milestone-c10-coop`); Steam niet te testen hier |
 | C11 | Naast het origineel (wat nog geschat is) | ⬜ |
 | C12 | Keen 1 en 2 bijwerken met de getallen uit Chocolate Keen (ook de sprongen) | ⬜ |
+
+## Mijlpaal C10: wat er nu is
+
+Gebouwd en getest met de echte Keen 3-bestanden van de gebruiker (1.00).
+De regels en besluiten staan in `docs/keen3/gameplay.md` ("Two players
+(C10)"), afwijkingen in `docs/keen3/architecture.md`, "Deviations in C10".
+
+- [x] **Twee spelers op één toetsenbord:** F7 of "Add Player 2" in het
+  menu, zoals bij Keen 1 en 2: speler 2 (blauwe helm) in het level, eigen
+  toetsen (speler 1 WASD, speler 2 de pijltjes), split screen als ze uit
+  elkaar gaan, gedeelde inventaris, één dood geldt voor beiden, één uitgang
+  voor beiden. Op de kaart is er één Keen die door de toetsen van allebei
+  wordt bestuurd.
+- [x] **Online:** hosten en meedoen via IP of Steam, zoals bij Keen 1 en 2.
+  `GAME_ID_KEEN_3` staat nu in `GAME_IDS`: wie met Keen 1 of 2 meedoet met
+  een Keen 3-host, schakelt over naar Keen 3, en andersom (getest via IP
+  op deze machine: een Keen 1-speler naar een Keen 3-host, een Keen
+  3-speler naar een Keen 2-host). De snapshot stuurt Keen 3's eigen
+  getallen mee (`Keen3OnlineState`): de gedane levels, de ankh-tijd van
+  beide Keens, Keen 3's eigen geluiden, het beeld van de kaart en Messie.
+  Ladingen en sleutelkaarten gaan al mee in de gedeelde inventaris, het
+  schild van de ankh als figuur.
+- [x] **Besluiten voor wat alleen Keen 3 heeft** (tabel in gameplay.md):
+  - *Messie:* er is één Keen op de kaart, die rijdt; de toetsen van
+    beide spelers zetten hem erop en eraf. Online rijdt de Keen van de
+    host en ziet de meespeler Messie met Keen op haar rug.
+  - *Teleporters en ingangen:* de ene Keen gaat; in het level begint
+    speler 2 waar speler 1 begint. Online gaat de host, de meespeler ziet
+    het flikkeren en het beeld springen.
+  - *Het schip:* lokaal één bericht; online hetzelfde bericht op beide
+    schermen, dat na 6 s vanzelf sluit.
+  - *De ankh per speler:* wie hem pakt, is beschermd en krijgt het schild;
+    de HUD toont een paneel per Keen ("1:9", "2:4"), het statusscherm
+    beide tijden. Online ziet ieder zijn eigen tijd.
+  - *Level 16:* Mortimer spreekt voor beiden (overslaan met Escape of een
+    knop van een speler); online krijgt de meespeler Mortimer uit zijn
+    eigen bestanden en ziet hij beide Keens eronder. De machine: beide
+    Keens kunnen de vonken en het hart raken, en beide gaan dood door de
+    armen en benen.
+  - *Het einde:* speler 2 stopt, één Keen in de hal (zoals Keen 2);
+    online kijkt ieder in zijn eigen tempo, en de meespeler wacht daarna
+    bij zijn titel.
+  - *Highscores, opslaan, laden:* zoals Keen 2: één score en één naam;
+    opslaan op de kaart, speler 2 wordt niet bewaard; online alleen de
+    host.
+- [x] **Gedeelde code (alleen toevoegingen, Keen 1 en 2 byte voor byte
+  gelijk):** `GAME_ID_KEEN_3` in `GAME_IDS`, drie gebeurtenissen achteraan
+  (`SHIP_MESSAGE`, `MORTIMER`, `BORDER_FLASH`), geen nieuwe scène, en een
+  optioneel deel `Snapshot.extra` (alleen verstuurd als het niet leeg is)
+  met `OnlinePlay.extra`. Een test vergelijkt de snapshot en een
+  gebeurtenis van Keen 1/2 byte voor byte met de vorm van vóór C10.
+- [x] **Code:** nieuw `Keen3OnlineScreen` (tussen `Keen3MenuScreen` en
+  `Keen3View`) en `Keen3OnlineState`; `Keen3LevelPlay.step_players`,
+  `Keen3LevelSession.remove_player` (het schild gaat mee),
+  `Keen3Hud.show_ankh_times`, het statusscherm met twee tijden.
+- [x] **Tests:** nieuwe suites `test_keen3_coop` en `test_keen3_online`
+  (o.a. een echte host en meespeler via ENet op deze machine). Twee Keen
+  3-tests veranderd omdat C10 ze verandert (`test_keen3_files`: Keen 3
+  staat nu in `GAME_IDS`; `test_keen3_menus`: het menu biedt nu speler 2).
+  65 suites, 756 tests (was 63 en 730), alle slagen, gdlint schoon.
+- [x] **Keen 1- en Keen 2-controle:** `keen1_regression.sh` en
+  `keen2_regression.sh` tegen de C7-referentie (lege gebruikersmap): alles
+  gelijk, ook `launcher.png`. `git diff ccdea53` op `src/keen2`,
+  `tests/test_keen2_*.gd`, `tests/keen2_fixtures.gd`, `src/actors`,
+  `src/map` en `src/game/level_view.gd` is leeg.
+- [x] **Bekeken in de app** (scratchpad `c10shots/`): twee spelers in
+  levels 1, 3 en 16 en op de kaart (split screen, twee ankh-panelen, het
+  statusscherm); online met een host en een meespeler in twee vensters
+  (level 1 met de ankh van de meespeler, zijn statusscherm, de kaart met
+  Messie en een teleporter, het schip, Mortimer, het einde) en het
+  overschakelen van Keen 1 naar Keen 3 en van Keen 3 naar Keen 2.
+- **Niet gedaan:** Steam kon hier niet getest worden (geen Steam op
+  Linux; de logica is gedeeld en met tests gedekt). De Mac-build kan
+  alleen op de Mac.
 
 ## Mijlpaal C9: wat er nu is
 
@@ -1650,10 +1724,20 @@ Keen 3:
    een eigen plaatje achter een level met lucht (1-8, 11, 13, 14, 15):
    `game_data/keen3/backgrounds/level01.png` (breedbeeld, optie
    Backgrounds aan).
-6. Daarna C10 (co-op), als de gebruiker dat vraagt (branch
-   `milestone-c10-coop` vanaf `milestone-c9-extras`): twee spelers op één
-   toetsenbord en online, `GAME_ID_KEEN_3` in `GAME_IDS`. De regressies
-   weer in een venster.
+6. **Architect:** C10 controleren (branch `milestone-c10-coop`), de app
+   bouwen op de Mac met `tools/build_macos.sh` en `tools/build_windows.sh`.
+7. **Voor de gebruiker (C10):** in `build/` proberen: F7 in een level
+   (split screen, de ankh per speler in de HUD en op het statusscherm),
+   op de kaart met twee spelers (Messie, een teleporter), level 16 met
+   twee spelers; online met een vriend (via Steam, of IP op twee
+   computers): Keen 3 hosten en meedoen, en meedoen met een Keen 3-host
+   vanuit Keen 1 of 2 (het spel schakelt over).
+8. Daarna C11 (naast het origineel, branch `milestone-c11-origineel` vanaf
+   `milestone-c10-coop`): wat nog `# estimate` is in js-dos nakijken, en
+   het einde, de titel, de highscores en het statusscherm op de pixel
+   nameten.
+9. Later: Eigen achtergrondplaatjes voor Keen 1 en Keen 2, later in een
+   eigen branch (wens van de gebruiker, 19-10-2026).
 
 Keen 2:
 

@@ -4,8 +4,9 @@ What playing Keen 3 does in CommanderPerfect so far, and which numbers are
 estimates. Written in milestone C3; C4 added the enemies, C5 the ball, the
 jack, the platforms and the wall guns, C6 the world map, Messie, the
 teleporters and the status screen, C7 Mortimer, the machine and the
-ending, C8 the sounds, the title, the menus, saving and the high scores;
-later milestones add to it. The facts
+ending, C8 the sounds, the title, the menus, saving and the high scores,
+C9 the extras, C10 two players (on one keyboard and online); later
+milestones add to it. The facts
 and their sources are in [research.md](research.md), the code layout in
 [architecture.md](architecture.md). Numbers from Chocolate Keen are marked
 (Choco) and converted with the table at the top of research.md ("Units").
@@ -594,9 +595,11 @@ SLAMSND, YORPBUMPSND, YORPBOPSND, GARGSCREAM, KEENCICLE and HISCORESND
 - **The main menu** is the shared one: New Game, Continue Game, Save Game
   (only on the world map, not while a teleporter runs), Story (from
   `KEEN3.EXE`), High Scores, Controls, Options, Quit to Title, Choose Game
-  (back to the start screen), Quit. No Online Game, no second player and
-  no "Extra levels" option until co-op comes (C10). The game stands still
-  while a menu is open; in the ending its box comes back after the menu.
+  (back to the start screen), Quit; since C10 also "Add Player 2" /
+  "Remove Player 2" during a game and Online Game (see "Two players
+  (C10)"). Never Keen 1's "Extra levels" option. The game stands still
+  while a menu is open (not while two play online); in the ending its box
+  comes back after the menu.
 - **GAME OVER** (after the last life, and after the ending) stays 5.27 s
   or until a key, then the high scores (and the name), then the attract
   loop. In the original the game over box itself asks for the name (Choco
@@ -678,9 +681,69 @@ SLAMSND, YORPBUMPSND, YORPBOPSND, GARGSCREAM, KEENCICLE and HISCORESND
     and 15, original and xBRZ, smooth motion on, widescreen and 4:3: shown
     behind the sky of 1, 8 and 15, not in level 10 and not in 4:3.
 
+## Two players (C10)
+
+As Keen 1 and Keen 2 have them ([../two-players.md](../two-players.md),
+[../online.md](../online.md), Keen 2's B9 in
+[../keen2/gameplay.md](../keen2/gameplay.md)); `Keen3OnlineScreen` between
+`Keen3MenuScreen` and `Keen3View`.
+
+**On one keyboard.** F7, or "Add Player 2" / "Remove Player 2" in the menu
+during a game. Player 2's Keen (blue helmet) appears in the level where
+player 1's is; on the map he plays along from the next level. In a level
+each has his own keys (player 1 WASD, player 2 the arrows; Enter and
+Escape are shared) and the shared split screen (`TwoPlayerView`) splits
+when they move apart. The inventory is shared (score, lives, charges,
+keycards), one death ends the attempt for both and costs one life, one
+exit completes the level for both (levels 12, 13 and 15: either exit, for
+both), enemies go after the nearest Keen and wake in either player's view.
+Not saved with a game (as Keen 1 and 2).
+
+**Online.** "Online Game" in the main menu: hosting and joining by IP or
+through Steam, as Keen 1 and 2. Keen 3 has its own game id
+(`commanderperfect-keen3`, now in `OnlineProtocol.GAME_IDS`) and its own
+fingerprint (`LEVELxx.CK3`); a player of Keen 1 or 2 who joins a Keen 3
+host switches to Keen 3 (and a Keen 3 player who joins a host of Keen 1
+or 2 switches to that game), by IP or from the Steam list, where a Keen 3
+host is listed with "Keen 3" after his name. The joined player's Keen
+appears beside the host's in a level; on the world map only the host
+walks; nothing pauses while two play (a window closes by itself after 6
+s); an arrow points to the other player when he is out of sight; cheats
+and F7 are off for the joined player, F7 for the host while hosting. Each
+uses his own game files. The snapshot carries Keen 3's own numbers
+(`Keen3OnlineState`, in the new optional `Snapshot.extra`): the done
+levels, the ankh time of both Keens, Keen 3's own sounds of the tick
+(ANKH, MEEP, MORTIMER, FOOTSLAM, which the shared sounds cannot name), the
+middle of the host's view of the map and Messie (place and picture). The
+charges and keycards already travel in the shared inventory, the halo of
+an ankh as an actor. Events at the end of the shared list: the ship's
+message (which of the four), Mortimer starting and ending, the border
+flash; "Keens Left" is the shared event.
+
+**Decisions for what only Keen 3 has** (as close to Keen 2's choices as
+the game allows):
+
+| What | Two on one keyboard | Online |
+|---|---|---|
+| **The world map** | One Keen, as in Keen 1 and 2: the keys of playing alone and of both players steer him together | Only the host walks ("Only the host can walk on the world map"); the joined player sees the host's map with the host's view (`Keen3MapScroll`'s middle, blended between ticks) |
+| **An entrance** | Whoever presses the button with the one Keen on it: both play that level, player 2 starting where player 1 starts | The host enters; the joined player's Keen appears beside the host's |
+| **Messie** | The one Keen rides her: either player's keys take him on (walking into her) and off (a direction toward a landing); nobody is left on the shore | The host's Keen rides; the joined player sees her with Keen on her back (her picture travels in the snapshot) and the view following her |
+| **The teleporters** | The one Keen goes, with either player's button | The host goes; the joined player sees both teleporters flicker (tile events) and the view jump with the host's |
+| **The ship's messages** | One of the four at random, until any key | The same message on both screens (the event names which), closing by itself after 6 s or with a key |
+| **The ankh** | Per Keen: whoever touches it is protected and gets the halo; the other is not. A second ankh adds to the time of whoever takes it. The HUD shows a panel per Keen whose ankh runs ("1:9", "2:4"), the status screen both times ("1:9" on row 8, "2:4" on row 9). When player 2 leaves, his halo goes with him | The halo is an actor and shows on both screens; each player's HUD and status screen show his own Keen's ankh time (the joined player's comes in the snapshot) |
+| **Level 16: Mortimer** | Both wait while he speaks; Escape or any player's jump, pogo or fire skips him | The host's level waits; the joined player gets his own Mortimer from his own files when the host's starts, and it ends when the host's ends (the host skips for both; the joined player's skip only clears his own screen). The host keeps sending the still level, so the joined player sees both Keens under the boxes |
+| **The Mangling Machine** | Either Keen can shoot the sparks and the heart (the 1000 points go to the shared score); its arms and legs kill either, which ends the attempt for both | Runs at the host; tiles, sprites, FOOTSLAM and the border flash reach the joined player |
+| **The ending** | Player 2 stops: one Keen in the hall of map 81, as in Keen 2 | Each watches the ending at his own pace; the host's GAME OVER after it does not cut the joined player's ending short, he waits at his title afterwards |
+| **GAME OVER, high scores** | One score, one name (as Keen 1 and 2) | The host's table; the joined player waits at his title |
+| **Saving and loading** | As alone, on the map; player 2 is not saved | Only the host saves and loads (the joined player's menu has none) |
+
 ## Not yet
 
-Two players (C10).
+- Two players: the controller steers player 1 only; on the world map player
+  2's keys only walk left and right (`KeenInput.for_player` has no up and
+  down), the keys of playing alone do all directions (as in Keen 1 and 2).
+- Online: Steam could not be tried here (no Steam on Linux); the logic is
+  shared with Keen 1 and 2 and tested without the plug-in.
 
 ## Seen in the original (C3)
 
@@ -825,6 +888,27 @@ C11.
   not across a teleporter's jump; Keen 3's moving things drawn half way
   between ticks by `ActorLayer`; real files: the sky is light cyan and
   levels 1-8, 11, 13, 14, 15 qualify).
+- C10: `tests/test_keen3_coop.gd` (hand-made levels and maps: player 2 is
+  a Keen 3 Keen with his own buttons and his own ankh and halo, which
+  leaves with him; one death ends the attempt, his exit completes it; he
+  shoots a spark of the machine; on the map either player's keys walk the
+  one Keen, take him onto Messie and off at a landing, and into a
+  teleporter; the HUD's and the status screen's two ankh times; the game
+  screen hands player 2 to the split screen in a level and lets every key
+  steer on the map, with a stand-in for the split screen's nodes) and
+  `tests/test_keen3_online.gd` (Keen 3 in `GAME_IDS`, the handshake for
+  Keen 3, switching to and from Keen 1 and 2, Steam's list, Keen 1's and
+  Keen 2's snapshots and events byte for byte as before, Keen 3's events
+  at the end, a level's and the map's `Keen3OnlineState` there and back,
+  broken numbers refused, a Keen 3 host and joiner over ENet on this
+  machine with Keen 3's numbers in a snapshot, a Keen 1 player at a Keen
+  3 host told to switch, the fingerprint of the `.CK3` levels).
+  The screens were checked with screenshots: two players in levels 1, 3
+  and 16 and on the map, and online with a host and a joiner in two
+  windows on this machine (level 1 with the joiner's ankh, the status
+  screen, the map with Messie and a teleporter, the ship, Mortimer, the
+  ending) and a Keen 1 joiner and a Keen 3 joiner switching to a Keen 3
+  and a Keen 2 host.
 - The screen: `tools/scripted_play.gd` with
   `SCENE=res://src/keen3/keen3_view.tscn -- --game=3 --level=N`. With
   `--fixed-fps 60` the frames run much faster than real time, so a

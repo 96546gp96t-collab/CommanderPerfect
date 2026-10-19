@@ -136,7 +136,7 @@ What Keen 3 needs from the shared code, and the additive change for each.
 | Data viewer, `tools/export_graphics.gd` | Two-way (`Keen2Files if keen_2 else GameFiles`) | Three-way, Keen 1 and Keen 2 the same as before; output `exported/keen3/` |
 | HUD | `Hud.raygun_tile`, `keycard_icons` | Set from `Keen2Icons`. The ankh time in the HUD: preferably a `Keen3Hud extends Hud`; if `Hud` cannot be extended without a change, one new member that is off by default |
 | Pictures behind levels | `BackdropPictures.create(files, folder)` | None: `Keen2BackdropPictures` with `res://assets/backgrounds/keen3` (C9: `Keen3BackdropPictures` with its own rule instead, see "Deviations in C9") |
-| Online | `OnlineProtocol.GAME_IDS`, `GameCatalog.for_game_id`, scenes/events appended at the end of their enums | `GAME_ID_KEEN_3` in `GAME_IDS`; Keen 3 scenes and events at the end; the ankh time and the done levels in the snapshot through new optional fields (C10). Keen 1's and Keen 2's messages stay byte for byte the same |
+| Online | `OnlineProtocol.GAME_IDS`, `GameCatalog.for_game_id`, scenes/events appended at the end of their enums | `GAME_ID_KEEN_3` in `GAME_IDS`; Keen 3 scenes and events at the end; the ankh time and the done levels in the snapshot through new optional fields (C10). Keen 1's and Keen 2's messages stay byte for byte the same. *Done in C10:* three events at the end, no new scene, one optional field `Snapshot.extra` (see "Deviations in C10") |
 | Build scripts | Copy `game_data/keen1` and `keen2` | Same block for `keen3` |
 | Tests | `tests/run_tests.gd` lists the suites | One line per new suite |
 
@@ -709,3 +709,94 @@ on `src/keen2`, `tests/test_keen2_*.gd`, `tests/keen2_fixtures.gd`,
   add. Not run here: macOS only on the Mac, Windows needs Godot's export
   templates.
 - **Real-ESRGAN** left out, as for Keen 2 (the user's decision).
+
+## Deviations in C10
+
+Written by the developer of C10. Keen 1 and Keen 2 play as before; `git
+diff ccdea53` on `src/keen2`, `tests/test_keen2_*.gd`,
+`tests/keen2_fixtures.gd`, `src/actors`, `src/map` and
+`src/game/level_view.gd` is empty. `keen1_regression.sh` and
+`keen2_regression.sh` against the C7 references (reset user folder): every
+picture the same, `launcher.png` too.
+
+**Shared files changed (additive, behaviour-neutral for Keen 1 and 2):**
+
+- `src/online/online_protocol.gd`: `GAME_ID_KEEN_3` is in `GAME_IDS` (the
+  assignment). The one visible effect on Keen 1 and 2 is the intended
+  one: a Keen 1 or 2 player who knocks at a Keen 3 host is told
+  `OTHER_GAME` (and switches to Keen 3) instead of `NOT_OURS`, and the
+  Steam list of Keen 1 and 2 shows Keen 3 hosts with "Keen 3" after them.
+  Between Keen 1 and Keen 2 nothing changes.
+- `src/online/online_messages.gd`: three events at the end of `Event`
+  (`SHIP_MESSAGE`, `MORTIMER`, `BORDER_FLASH`); the old ones keep their
+  numbers. **No new scene:** Keen 3's map, levels, GAME OVER and ending
+  are the shared scenes, and Mortimer speaks inside the level scene (an
+  event), so `Scene` is unchanged.
+- `src/online/snapshot.gd`: a new member `extra` (a game's own numbers, at
+  most `MAX_EXTRA` = 32), sent as an eighth part of the message **only
+  when it is not empty**; `from_message` accepts seven or eight parts
+  (`PARTS`). Keen 1 and 2 never fill it, so their snapshots are byte for
+  byte the same (`test_keen3_online` compares `var_to_bytes` with a
+  message built by hand as before C10).
+- `src/game/online_play.gd`: a new member `extra` (empty), handed to every
+  snapshot in `_send_snapshot`, as `progress_bits` is.
+- `GameCatalog`, `GameLaunch`, `JoinTicket`, `OnlineSession`,
+  `SteamLobby`, `RemoteGame`, `SnapshotMaker`, `TwoPlayerView` and the
+  menus did not change: the switching between games of B9 works for a
+  third game through `GameCatalog.for_game_id` (Keen 3's entry and id
+  exist since C2).
+
+**Keen 3 code:**
+
+- **The screen chain** is `Keen3View` → `Keen3OnlineScreen` →
+  `Keen3MenuScreen` → `Keen3EndingScreen` → `Keen3SceneScreen` →
+  `GameScreen`, as Keen 2's B9 put `Keen2OnlineScreen` under
+  `Keen2View`. `Keen3OnlineScreen` has both the second player on the
+  keyboard (`_toggle_second_player`, `_inputs`, `_view_rects`) and the
+  online play; `Keen3MenuScreen` only got `_two_players`, the menu choice,
+  and the joined player's way to his title after GAME OVER.
+- **`Keen3OnlineState`** (`src/keen3/game/`) packs Keen 3's numbers into
+  `Snapshot.extra` and checks them when they arrive (the layout is in
+  its doc comment). The plan said "the ankh time and the done levels";
+  it also carries Keen 3's own sounds (the snapshot's sounds are
+  `Sound.Id`s, which do not name ANKH, MEEP, MORTIMER and FOOTSLAM), the
+  middle of the host's map view and Messie: `SnapshotMaker.of_map` only
+  takes the map Keen, and `RemoteGame` only draws actors in a level, so
+  Messie travels in the extra numbers and the joined player draws her
+  with a `MirrorActors.Copy`; the shared classes stay as they are. On
+  the map the joined player's camera stands on the host's view (exactly,
+  blended between ticks), not on the host's Keen as `RemoteGame` would
+  put it: Keen 3's map has a view of its own, and Keen is hidden on
+  Messie's back and in a teleporter.
+- **Mortimer online:** the host's level waits while Mortimer speaks, so it
+  sends no ticks; `Keen3OnlineScreen._run_mortimer` sends the still
+  picture every frame, and the joined player runs his own Mortimer and
+  the host's picture together, so both Keens show under the boxes.
+- **The ending online** is not cut short for the joined player by the
+  host's GAME OVER or title after it (Keen 2's B9 lets the host's next
+  scene end it); every new map or level of the host still takes him
+  there.
+- **`Keen3LevelPlay.step_players`** (Keen 2's B9 has the same): the map
+  steps with the combined keys. **`Keen3LevelSession.remove_player`**
+  also removes player 2's halo: the halo waits for its Keen's ankh to run
+  out, which never happens once that Keen is out of the session.
+- **`Keen3Hud.show_ankh_times`** (a panel per Keen whose ankh runs, with
+  the player's number when two play) and an optional
+  `partner_ankh_seconds` for `Keen3StatusScreen.fill` (row 9); one player
+  looks exactly as before.
+- **Skipping Mortimer and closing "Keens Left"** also take the jump, pogo
+  and fire keys of the two players (`Keen3View.PLAYER_BUTTONS`), since
+  two players do not use the keys of playing alone.
+- **Tests:** two new suites, `test_keen3_coop` and `test_keen3_online`.
+  Two Keen 3 tests changed because C10 changes what they expect:
+  `test_keen3_files`'s catalog test now asserts that Keen 3 *is* in
+  `GAME_IDS`, and `test_keen3_menus`'s "no online game, second player or
+  extra levels" is now "offers a second player but no extra levels" (the
+  online game is switched on by `Keen3OnlineScreen._connect_online`). The
+  game screen cannot be put into a running scene tree inside the test
+  runner (`_initialize` runs before the root is in the tree), so the
+  screen tests use a stand-in for the split screen's nodes; the split
+  screen itself is Keen 1's, tested in `test_split_screen`, and it was
+  checked in screenshots.
+- **Not tested here:** Steam (no Steam library on Linux; the lobby logic
+  is covered by the tests, as in B9).

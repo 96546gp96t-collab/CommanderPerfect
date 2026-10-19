@@ -89,7 +89,10 @@ it. See `src/online/` and `OnlinePlay`, `RemoteGame` in `src/game/`.
 - **The picture of every tick** (`Snapshot`, made by `SnapshotMaker`): the
   Keens (place, sprite, how much of him shows at the exit, dying), every
   other actor with an id of its own (place, sprite), the doors sinking into
-  the floor, the inventory and the sounds of that tick. Sent unreliably, 60
+  the floor, the inventory and the sounds of that tick; and, only for a
+  game that needs them, up to 32 numbers of its own (`Snapshot.extra`,
+  milestone C10: Keen 3's done levels, ankh times, own sounds, map view
+  and Messie). Without them the message is exactly Keen 1's and Keen 2's. Sent unreliably, 60
   times a second (a few hundred bytes); a lost one is replaced by the next.
   The joiner keeps a small reserve of two (`SnapshotBuffer`) and shows one
   per tick, with the usual smooth motion.
@@ -143,11 +146,15 @@ the host headless (`godot --headless --max-fps 60 ...` with a script that
 hosts), or play on two computers.
 
 Keen 2 plays online too (milestone B9, [keen2/gameplay.md](keen2/gameplay.md)),
-with its own game id.
+with its own game id, and so does Keen 3 (milestone C10,
+[keen3/gameplay.md](keen3/gameplay.md), "Two players (C10)").
 
 ## Joining another game
 
-A player can join a host who plays the other Keen: his game switches over.
+A player can join a host who plays another Keen: his game switches over.
+Since C10 this goes for all three (`OnlineProtocol.GAME_IDS`): a Keen 1 or
+Keen 2 player who joins a Keen 3 host switches to Keen 3, and the other
+way round.
 
 - **By IP:** the host's challenge names his game. When it is another of
   ours, the player's game remembers the address and password
