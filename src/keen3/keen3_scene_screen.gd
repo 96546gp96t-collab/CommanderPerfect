@@ -8,9 +8,14 @@ extends GameScreen
 ##
 ## Planned like Keen 2's chain (docs/keen3/architecture.md): on this class
 ## [Keen3EndingScreen] has the scenes that are no plain level (Mortimer, the
-## border flash, the ending; milestone C7), a Keen3MenuScreen will get the
-## title and the menus (C8), and [Keen3View] plays the game. Generic parts are copied from
-## Keen 2's screens, which are not used: they hold Keen 2 types and numbers.
+## border flash, the ending; milestone C7), [Keen3MenuScreen] the title, the
+## high scores and the menus (C8), and [Keen3View] plays the game. Generic
+## parts are copied from Keen 2's screens, which are not used: they hold
+## Keen 2 types and numbers.
+##
+## Every sound goes through [method _play_game_sound] or
+## [method _play_keen3_sound], so that the shared player and Keen 3's own
+## speaker sound as the one speaker of the original ([Keen3Sounds]).
 
 const MISSING_DATA_MESSAGE := (
 	"Keen 3 data not found. Put the files in game_data/keen3 "
@@ -44,8 +49,8 @@ const LIFE_SPRITE := Keen3Hud.KEEN_3_LIFE_SPRITE
 ## set before the view enters the tree.
 var files: GameFiles
 var _time_left := 0.0
-## Counts down while GAME OVER (or the last message) is shown.
-var _leave_time_left := 0.0
+## Counts down while GAME OVER is shown.
+var _game_over_time_left := 0.0
 var _keen_3_sounds := Keen3Sounds.new()
 
 
@@ -124,15 +129,21 @@ func _set_up_hud_icons() -> void:
 
 ## Plays one of Keen 3's own sounds ([Keen3Sounds]) alone.
 func _play_keen3_sound(sound_name: String) -> void:
-	if _keen_3_sounds.has_sound(sound_name):
+	if _keen_3_sounds.play(sound_name):
 		_sounds.stop()
-	_keen_3_sounds.play(sound_name)
+
+
+## Plays a sound of the shared player, unless one of Keen 3's own sounds
+## with a higher priority is playing (which it otherwise cuts off).
+func _play_game_sound(sound: Sound.Id) -> void:
+	if _keen_3_sounds.give_way_to(Sound.FILE_NAMES.get(sound, "")):
+		_sounds.play(sound)
 
 
 ## "Keens Left", with a little Keen per life; a button closes it and it
 ## closes by itself. The game waits meanwhile.
 func _show_lives(lives: int) -> void:
-	_sounds.play(Sound.Id.KEENS_LEFT)
+	_play_game_sound(Sound.Id.KEENS_LEFT)
 	_window.open(LIVES_CELLS)
 	_window.put_text(Vector2i(LIVES_TITLE_COLUMN, 0), LIVES_TITLE)
 	for life in clampi(lives, 0, MAX_LIVES_SHOWN):
@@ -141,32 +152,20 @@ func _show_lives(lives: int) -> void:
 	_buttons_close_window = true
 
 
-## The last life is gone: GAME OVER over the level, then the start screen.
+## The game is over (the last life is gone, or the ending is over): GAME
+## OVER over what the screen shows, for [constant GAME_OVER_SECONDS] or
+## until a key; [Keen3MenuScreen] then shows the high scores.
 func _show_game_over() -> void:
 	_actor_layer.clear()
-	_sounds.play(Sound.Id.GAME_OVER)
+	_play_game_sound(Sound.Id.GAME_OVER)
 	if _textures.bitmap(GAME_OVER_BITMAP) != null:
 		_window.open(GAME_OVER_CELLS)
 		_window.framed = false
 		_window.put_bitmap(Vector2i.ZERO, GAME_OVER_BITMAP)
 	else:
 		_window.show_lines(PackedStringArray([GAME_OVER_TEXT]))
-	_leave_after("", GAME_OVER_SECONDS)
-
-
-## Shows [param message] (if any) for [param seconds], then goes back to the
-## start screen; a key goes back sooner.
-func _leave_after(message: String, seconds: float) -> void:
 	_mode = Mode.GAME_OVER
-	if not message.is_empty():
-		_show_message(message)
-	_leave_time_left = seconds
-
-
-func _count_down_leaving(delta: float) -> void:
-	_leave_time_left -= delta
-	if _leave_time_left <= 0.0:
-		_leave()
+	_game_over_time_left = GAME_OVER_SECONDS
 
 
 ## Back to the start screen. Deferred: this runs inside the handling of a

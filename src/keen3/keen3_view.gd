@@ -1,28 +1,29 @@
 class_name Keen3View
-extends Keen3EndingScreen
+extends Keen3MenuScreen
 ## The Keen 3 game screen that the start screen opens. [GameScreen] draws it
 ## as it draws Keen 1 and 2: the World viewport, the graphics (original,
 ## xBRZ or HD, F5), widescreen with the HUD ([Keen3Hud], with the ankh
 ## time), the camera, and short messages. This plays a game of Keen 3 with
 ## [Keen3LevelPlay].
 ##
-## There is no title or menu yet (milestone C8): the start screen, and
-## [code]-- --game=3[/code] with or without [code]--level=80[/code], start a
-## new game on the world map (milestone C6) with "Keens Left";
-## [code]--level=N[/code] (1-16) starts that level, after which the map
-## comes. A level that is done, or a death, brings Keen back to the map;
-## after the last life GAME OVER, then the start screen. Level 16 starts
-## with Mortimer's messages and has his Mangling Machine; when it is won the
-## ending follows ([Keen3EndingScreen], milestone C7), then GAME OVER and
-## the start screen. [code]-- --game=3 --ending[/code] starts the ending at
-## once. Escape goes back to the start screen at once.
+## The screen starts on the title (milestone C8, [Keen3MenuScreen]; from the
+## start screen with the main menu open), or with
+## [code]-- --game=3 --level=N[/code] in level N (1-16), after which the map
+## comes; [code]--level=80[/code] starts a new game on the map. A game
+## starts on the world map (milestone C6) with "Keens Left". A level that is
+## done, or a death, brings Keen back to the map; after the last life GAME
+## OVER, then the high scores. Level 16 starts with Mortimer's messages and
+## has his Mangling Machine; when it is won the ending follows
+## ([Keen3EndingScreen], milestone C7), then GAME OVER and the high scores.
+## [code]-- --game=3 --ending[/code] starts the ending at once. Escape opens
+## the main menu (while Mortimer speaks it skips him).
 ##
 ## On the map the view moves as the original's ([Keen3MapScroll], with the
 ## camera exactly on it), Messie swims ([Keen3Messie], drawn as an actor),
 ## and the ship shows one of its four messages at random. The status key
 ## opens the status screen ([Keen3StatusScreen]) on the map and in a level;
-## the game stands still while it, or any other window, is open, and any
-## key closes it.
+## the game stands still while it, any other window or a menu is open, and
+## any key closes it.
 ##
 ## The border of every level (2 cells, tile 245, an "OH no!" picture) is
 ## never drawn: [LevelMap] only draws the playable area and the camera never
@@ -37,21 +38,20 @@ const NOT_PLAYABLE_MESSAGE := "Keen 3 has no level %d"
 ## (Choco).
 const SHIP_WINDOW := Vector2i(32, 6)
 
-## The game being played; null when the files could not be read.
-var play: Keen3LevelPlay
 ## Whether any key closes the open window (the status screen, the ship).
 var _any_key_closes := false
 
 
 func _ready() -> void:
-	# The start screen asks every game to open its main menu; Keen 3 has
-	# none yet (milestone C8).
-	GameLaunch.take_menu_request()
+	# Picked on the start screen: straight on to the main menu.
+	var wants_menu := GameLaunch.take_menu_request()
 	_set_up_screen()
 	_set_up_effects()
+	_set_up_menus()
 	_data = _load_data()
 	if _data == null:
 		return
+	_set_up_texts()
 	play = Keen3LevelPlay.create(files, _properties)
 	play.level_started.connect(_on_level_started)
 	play.map_started.connect(_on_map_started)
@@ -64,22 +64,31 @@ func _ready() -> void:
 		play.new_game()
 		_progress = play.progress
 		_start_ending()
-	elif first == 0 or first == Keen3Files.WORLD_MAP_LEVEL:
-		_start_game()
+	elif first == Keen3Files.WORLD_MAP_LEVEL:
+		_start_game(null)
 	elif Keen3LevelPlay.is_playable(first):
 		_progress = play.progress
 		_start_level(first)
 	else:
-		_show_message(NOT_PLAYABLE_MESSAGE % first)
-		_start_game()
+		if first != 0:
+			_show_message(NOT_PLAYABLE_MESSAGE % first)
+		_show_title()
+		if wants_menu:
+			_open_main_menu()
 
 
 func _process(delta: float) -> void:
 	_message_time_left -= delta
 	if _graphics_loader != null and _graphics_loader.poll():
 		_apply_graphics()
-	_count_down_window(delta)
 	_keep_view_size()
+	# The game stands still while a menu is open.
+	if _menus.is_open():
+		_update_effects()
+		_update_status()
+		return
+	_count_down_window(delta)
+	_count_down_screen(delta)
 	# The game waits while a window ("Keens Left", the status screen) is
 	# open, and while Mortimer speaks.
 	if _is_mortimer_speaking():
@@ -88,8 +97,6 @@ func _process(delta: float) -> void:
 		_run_ticks(delta)
 	elif _mode == Mode.ENDING:
 		_run_ending(delta)
-	elif _mode == Mode.GAME_OVER:
-		_count_down_leaving(delta)
 	_move_camera_anchor()
 	_update_backdrops()
 	_update_effects()
@@ -97,23 +104,30 @@ func _process(delta: float) -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	if _handle_display_keys(event):
+	if play == null:
+		# Without the files there is only the message: Escape goes back.
+		if event.is_action_pressed("menu"):
+			_leave()
+		return
+	if _menus.is_open():
+		_menus.handle_input(event)
+	elif _handle_display_keys(event):
 		pass
 	elif _is_mortimer_speaking():
 		if not event.is_action_pressed("menu") and not _is_button(event):
 			return
 		_skip_mortimer()
+	elif _mode in [Mode.TITLE, Mode.HIGH_SCORES, Mode.GAME_OVER]:
+		if not _is_any_press(event):
+			return
+		_on_screen_key()
 	elif event.is_action_pressed("menu"):
-		_leave()
+		_open_main_menu()
 	elif _mode == Mode.ENDING:
 		# Any key goes on, but up and down scroll the end text.
 		if not _is_any_press(event) or _is_scroll_key(event):
 			return
 		_keen3_ending.confirm()
-	elif _mode == Mode.GAME_OVER:
-		if not _is_any_press(event):
-			return
-		_leave()
 	elif _window.visible and _any_key_closes:
 		if not _is_any_press(event):
 			return
@@ -132,9 +146,10 @@ static func _is_scroll_key(event: InputEvent) -> bool:
 	return event.is_action_pressed("move_up") or event.is_action_pressed("move_down")
 
 
-## A new game on the world map, with "Keens Left".
-func _start_game() -> void:
-	play.new_game()
+## A new game (or [param game], a loaded one) on the world map, with
+## "Keens Left".
+func _start_game(game: Keen3Progress) -> void:
+	play.new_game(game)
 	# The HUD and the cheats look at GameScreen's progress.
 	_progress = play.progress
 	_god_mode = false
@@ -189,7 +204,7 @@ func _on_level_started(number: int) -> void:
 	_level = play.level
 	_session = play.session
 	_session.tile_changed.connect(_level_map.set_tile)
-	_session.sound_played.connect(_sounds.play)
+	_session.sound_played.connect(_play_game_sound)
 	play.session.keen3_sound_played.connect(_play_keen3_sound)
 	play.session.border_flashed.connect(_flash_border)
 	_session.set_invincible(_god_mode)
@@ -215,7 +230,7 @@ func _on_map_started() -> void:
 	_level = play.level
 	_map_session = play.map_session
 	_map_session.tile_changed.connect(_level_map.set_tile)
-	_map_session.sound_played.connect(_sounds.play)
+	_map_session.sound_played.connect(_play_game_sound)
 	_map_session.ship_used.connect(_show_ship_message)
 	_level_map.show_level(_level, _properties)
 	_mode = Mode.MAP
@@ -226,14 +241,6 @@ func _on_map_started() -> void:
 	_camera.follow_exactly(true)
 	_move_camera_anchor()
 	_camera.reset_smoothing()
-
-
-func _clear_screen() -> void:
-	_actor_layer.clear()
-	_close_window()
-	_time_left = 0.0
-	_session = null
-	_map_session = null
 
 
 ## On the map the camera shows the map's own view; elsewhere as

@@ -9,8 +9,9 @@ extends Keen3SceneScreen
 ##              picture ([Keen3BorderFlash], the original's EGA border)
 ##   ending     after level 16 ([Keen3Ending]): map 81 with a Vorticon and
 ##              Keen, the four pages, the camera flashes, FINALE.CK3 with
-##              its box, the end text; then GAME OVER and the start screen
-##              (the high scores come in C8)
+##              its box, the end text (keensleft to its end, then
+##              MORTIMER, as Choco `CVort3_draw_win`); then GAME OVER and
+##              the high scores ([Keen3MenuScreen], milestone C8)
 ## As Keen 2's [Keen2SpaceScreen], it overrides the two places where
 ## [GameScreen] knows Keen 1's ending: [method _show_picture] and
 ## [method _move_camera_anchor]. Map 81 is narrower than a widescreen view:
@@ -31,6 +32,9 @@ var _hall_sprites: Array[Actor] = []
 ## only drawn again when it changes.
 var _shown_box: Keen3TypedBoxes.Box
 var _shown_letters := -1
+## Seconds until MORTIMER starts under the end text; negative when it does
+## not wait.
+var _mortimer_sound_in := -1.0
 
 
 ## Puts the border flash over the screen (under the messages) and the fade
@@ -121,8 +125,8 @@ func _start_ending() -> void:
 	_keen3_ending = Keen3Ending.create(_data.ending_pages, _data.the_end, _data.end_text)
 	_keen3_ending.changed.connect(_on_ending_changed)
 	_keen3_ending.tile_changed.connect(_set_hall_tile)
-	_keen3_ending.flashed.connect(_sounds.play.bind(Sound.Id.CLICK))
-	_keen3_ending.end_text_started.connect(_play_keen3_sound.bind(Keen3Sounds.MORTIMER))
+	_keen3_ending.flashed.connect(_play_game_sound.bind(Sound.Id.CLICK))
+	_keen3_ending.end_text_started.connect(_start_end_text_sounds)
 	_show_hall()
 	_on_ending_changed()
 
@@ -167,12 +171,26 @@ func _set_hall_tile(cell: Vector2i, tile: int) -> void:
 
 func _run_ending(delta: float) -> void:
 	_keen3_ending.advance(delta, KeenInput.from_actions().vertical)
+	if _mortimer_sound_in < 0.0:
+		return
+	_mortimer_sound_in -= delta
+	if _mortimer_sound_in <= 0.0:
+		_mortimer_sound_in = -1.0
+		_play_keen3_sound(Keen3Sounds.MORTIMER)
+
+
+## The end text begins: keensleft plays to its end, then MORTIMER (Choco
+## `CVort3_draw_win`; the original shows the text meanwhile).
+func _start_end_text_sounds() -> void:
+	var keens_left := Sound.FILE_NAMES[Sound.Id.KEENS_LEFT]
+	_play_game_sound(Sound.Id.KEENS_LEFT)
+	_mortimer_sound_in = _keen_3_sounds.seconds_of(keens_left)
 
 
 ## Shows the stage of the ending that has just begun, or its text.
 func _on_ending_changed() -> void:
 	if _keen3_ending.is_finished():
-		_finish_game()
+		_after_ending()
 		return
 	var hall := _keen3_ending.shows_hall()
 	# Hidden, not only covered: the picture lies behind the map's tiles.
@@ -191,10 +209,10 @@ func _on_ending_changed() -> void:
 	_show_typed_box(boxes.current() if typing else null, boxes)
 
 
-## The ending is over: GAME OVER on a black screen, then the start screen
-## (C8: the high scores).
-func _finish_game() -> void:
+## The ending is over: GAME OVER on a black screen, then the high scores.
+func _after_ending() -> void:
 	_keen3_ending = null
+	_mortimer_sound_in = -1.0
 	_level_map.visible = false
 	_actor_layer.clear()
 	_show_picture(false)

@@ -119,6 +119,15 @@ func is_teleporting() -> bool:
 	return _keen_3_teleport != null
 
 
+## Keeps where Keen stands and the view's corner in the game, for saving
+## (milestone C8). On Messie's back the view follows her while Keen's place
+## stays where he got on; the corner is left out then, so that a loaded
+## game shows Keen as a new game does.
+func remember_place() -> void:
+	progress.map_position = keen.position
+	(progress as Keen3Progress).map_corner = Vector2.INF if is_riding() else scroll.corner
+
+
 ## The info value that the button uses where Keen stands now.
 func info_under_keen() -> int:
 	var cells := LevelCollision.cells_under(keen.hitbox())
