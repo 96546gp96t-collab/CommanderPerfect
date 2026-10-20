@@ -170,6 +170,34 @@ Drie bugs die de gebruiker vond, op dezelfde branch.
   Keen 2-controle tegen `9fa77d0`: alles gelijk; geen gedeelde code
   veranderd (alleen de testlijst).
 
+### Fix na C11 (20-10): schot door de muur
+
+Bug van de gebruiker, op dezelfde branch.
+- [x] **Oorzaak:** Keens schot begint vlak vóór hem
+  (`KeenBody.shot_position`). Staat hij minder dan 16 px van een muur, dan
+  begint het schot al ín de muur, en de zijwaartse sweep kijkt alleen naar
+  de tiles vóór het schot: in een dikke muur spatte het in de muur, door
+  een dunne muur (één rotsblok) vloog het gewoon verder. Nagebootst in
+  level 1 (Keen tegen een rotsblok: het schot vloog erachter verder).
+- [x] **Oplossing (alleen Keen 3-code):** `Keen3Shot.fired_by_keen` (via
+  `Keen3LevelSession._create_shot`) veegt het schot van Keens midden naar
+  zijn begin; zit er een muur tussen, dan komt het schot tegen de voorkant
+  van de muur en spat het meteen (KEENFIRE, dan SHOTHIT), zoals in het
+  origineel (Choco). Staand, springend en op de pogo, beide kanten op.
+- [x] **Vijandschoten nagelopen:** de vuurbal van de moeder begint binnen
+  haar box en spatte al als hij in een muur begint; het schot van een
+  wapen in de muur begint in zijn eigen cel (zo bedoeld); de golf van de
+  Meep gaat bewust door muren. Niets veranderd.
+- [x] **Keen 1 en 2 hebben dezelfde bug** (gedeelde `RaygunShot`): met
+  dezelfde zelfgemaakte test (alleen in de scratchpad) vliegt het schot
+  door een dunne muur en spat het in een dikke muur, in 60 van de 66
+  gevallen per muur. **Niet opgelost**: vraag voor de gebruiker (past bij
+  C12).
+- [x] **Tests:** nieuwe suite `test_keen3_shot_wall` (faalt op de oude
+  code: 120 gevallen); 68 suites, alle slagen, gdlint schoon. Keen 1- en
+  Keen 2-controle tegen `cd8be97`: alles gelijk; geen gedeelde code
+  veranderd (alleen de testlijst). Apps opnieuw gebouwd.
+
 ## Mijlpaal C10: wat er nu is
 
 Gebouwd en getest met de echte Keen 3-bestanden van de gebruiker (1.00).
@@ -1847,7 +1875,9 @@ Keen 3:
    de natuurkunde voor alle drie (Keen 3 gemeten: 53/50/105 px), en wat in
    C11 aan Keen 3 is gezien om in Keen 1 en 2 na te kijken
    (`docs/keen3/choco-keen1-keen2.md`). Eventueel ook het GAME OVER-venster
-   met naaminvoer (alle drie).
+   met naaminvoer (alle drie). **Vraag aan de gebruiker:** het schot dat
+   vlak bij een muur door die muur gaat (in Keen 3 opgelost na C11) zit
+   ook in Keen 1 en 2; daar ook oplossen (in C12)?
 11. Later: Eigen achtergrondplaatjes voor Keen 1 en Keen 2, later in een
    eigen branch (wens van de gebruiker, 19-10-2026).
 

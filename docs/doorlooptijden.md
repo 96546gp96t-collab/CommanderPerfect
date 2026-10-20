@@ -70,5 +70,6 @@ Hoe er gemeten wordt:
 | C10 Co-op | 19-10 | ~40 min | 36 min | Split-screen en online (ook overschakelen van en naar Keen 3); online getest met twee xvfb-vensters; Steam niet te testen in de cloud |
 | C11 Naast het origineel | 19-10 | ~65 min | 63 min | Het origineel in js-dos in een headless Chromium (nieuw: `tools/original/headless.js`); einde, eindtekst en highscores op de pixel gelijk; ankh 9,6 s bevestigd; sprongen gemeten voor C12 |
 | Fix: lift, achtergronden, level 10 (na C11) | 20-10 | ~30 min | 24 min | Bugs van de gebruiker: Keen opzij gegooid bij springen van een lift; zwevende dingen in de plaatjes, level 14 nieuw; levels 9 en 10 een plaatje door alleen de lucht |
+| Fix: schot door de muur (na C11) | 20-10 | ~11 min | 11 min | Bug van de gebruiker: vlak bij een muur ging Keens schot erdoor; Keen 1 en 2 hebben hem ook (niet opgelost, vraag voor C12) |
 | C12 Keen 1 en 2 bijwerken | | | | |
-| **Totaal tot nu toe** | 17-10 t/m 20-10 | **~9 u 30** | | C1-C11, de fixes en de plaatjes; C12 (Keen 1 en 2 bijwerken) volgt nog |
+| **Totaal tot nu toe** | 17-10 t/m 20-10 | **~9 u 40** | | C1-C11, de fixes en de plaatjes; C12 (Keen 1 en 2 bijwerken) volgt nog |

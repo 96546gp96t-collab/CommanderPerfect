@@ -55,6 +55,7 @@ const SUITES: Array[Script] = [
 	preload("res://tests/test_keen3_objects.gd"),
 	preload("res://tests/test_keen3_riding.gd"),
 	preload("res://tests/test_keen3_lift_jump.gd"),
+	preload("res://tests/test_keen3_shot_wall.gd"),
 	preload("res://tests/test_keen3_map.gd"),
 	preload("res://tests/test_keen3_messie.gd"),
 	preload("res://tests/test_keen3_status.gd"),

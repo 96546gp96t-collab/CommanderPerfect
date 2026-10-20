@@ -245,8 +245,9 @@ func _play_keen_sound(sound: Sound.Id) -> void:
 	play_sound(Keen3Body.sound_for(sound))
 
 
+## Keen's shot; close to a wall it splashes at that wall at once.
 func _create_shot(start: Vector2, direction: int) -> RaygunShot:
-	return Keen3Shot.fired(start, direction)
+	return Keen3Shot.fired_by_keen(self, start, direction)
 
 
 ## The carriers move their riders first, as in Keen 2; then Keen 3's own

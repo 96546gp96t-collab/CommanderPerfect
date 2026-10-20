@@ -371,6 +371,21 @@ per kind), the rules in `Keen3LevelSession`.
 - **Keen's shot** (`Keen3Shot`): 121 (Keen 1 and 2: 124), splashes on every
   awake sprite but Keen and the corpses; a splash stays 8 ticks (20 clock
   ticks). SHOTHIT whenever a shot splashes.
+- **A shot at a wall close by** (fix after C11): the shot starts just in
+  front of Keen, so with his front less than 16 px from a wall it would
+  start inside the wall, and the sideways sweep only looks at the tiles
+  ahead of the shot: it splashed inside a thick wall and flew on behind a
+  thin one (a single rock). In the original a shot that starts against a
+  wall splashes at once (Choco). `Keen3Shot.fired_by_keen` sweeps the
+  shot's box from Keen's middle to its start; a wall on the way puts the
+  shot against the wall's near side, where it splashes at once (KEENFIRE,
+  then SHOTHIT), standing, jumping or on the pogo stick, both ways
+  (`tests/test_keen3_shot_wall.gd`). The enemies' shots needed nothing:
+  the mother's fireball starts within her box (only 2 px stick out at her
+  left) and already splashes when it starts in a wall; a wall gun's shot
+  starts in the gun's own cell, which it is meant to leave; the Meep's
+  wave flies through walls on purpose. Keen 1 and 2 have the same bug
+  (shared `RaygunShot`, `KeenBody.shot_position`); not changed here.
 - **Dying:** the first dying frame, the next after 16.5 ticks (alternately 17
   and 16 of ours), the last stays as the corpse, which falls. Grunt 75-76,
   youth 55-56, mother 91-92, Meep 124-125, ninja 83-84 (all vortscream),
