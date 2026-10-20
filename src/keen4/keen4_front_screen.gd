@@ -170,7 +170,9 @@ func _start_demo(index: int, high_scores: bool) -> void:
 	if _demo == null:
 		_next_title_step()
 		return
-	var screens: Array[Image] = [] if high_scores else _boxes.demo_entering()
+	var screens: Array[Image] = []
+	if not high_scores:
+		screens = _boxes.demo_entering()
 	_queue.clear()
 	_queue_loading(screens, _begin_demo.bind(high_scores))
 	_after_queue(Callable())
@@ -358,7 +360,8 @@ func _game_ended() -> void:
 		return
 	_high_scores.insert(place, "", _inventory.score, _game_progress.rescued)
 	_queue.clear()
-	_queue_loading([], _begin_name_entry.bind(place))
+	var no_box: Array[Image] = []
+	_queue_loading(no_box, _begin_name_entry.bind(place))
 	_after_queue(Callable())
 
 
