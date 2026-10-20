@@ -105,6 +105,65 @@ const OBJECTS: Dictionary[StringName, int] = {
 	&"EXTRA_LIFE_SPLASH": 94,
 	&"SCOREBOX": 129,
 }
+## Keen on the world map and the flags (Omni SPR_MAPKEEN_*, SPR_FLAGFLIP*,
+## SPR_FLAGFALL1, SPR_FLAGFLAP*; checked on v1.0's sprites 130-184, D7):
+## walking (two pictures and standing) in eight directions, waving,
+## swimming (two pictures per direction), on the Foot; the flags.
+const MAP: Dictionary[StringName, int] = {
+	&"MAP_N_WALK_1": 136,
+	&"MAP_N_WALK_2": 137,
+	&"MAP_N_STAND": 138,
+	&"MAP_NE_WALK_1": 151,
+	&"MAP_NE_WALK_2": 152,
+	&"MAP_NE_STAND": 153,
+	&"MAP_E_WALK_1": 133,
+	&"MAP_E_WALK_2": 134,
+	&"MAP_E_STAND": 135,
+	&"MAP_SE_WALK_1": 142,
+	&"MAP_SE_WALK_2": 143,
+	&"MAP_SE_STAND": 144,
+	&"MAP_S_WALK_1": 139,
+	&"MAP_S_WALK_2": 140,
+	&"MAP_S_STAND": 141,
+	&"MAP_SW_WALK_1": 145,
+	&"MAP_SW_WALK_2": 146,
+	&"MAP_SW_STAND": 147,
+	&"MAP_W_WALK_1": 130,
+	&"MAP_W_WALK_2": 131,
+	&"MAP_W_STAND": 132,
+	&"MAP_NW_WALK_1": 148,
+	&"MAP_NW_WALK_2": 149,
+	&"MAP_NW_STAND": 150,
+	&"MAP_WAVE_1": 154,
+	&"MAP_WAVE_2": 155,
+	&"MAP_SWIM_N_1": 156,
+	&"MAP_SWIM_N_2": 157,
+	&"MAP_SWIM_NE_1": 164,
+	&"MAP_SWIM_NE_2": 165,
+	&"MAP_SWIM_E_1": 158,
+	&"MAP_SWIM_E_2": 159,
+	&"MAP_SWIM_SE_1": 166,
+	&"MAP_SWIM_SE_2": 167,
+	&"MAP_SWIM_S_1": 160,
+	&"MAP_SWIM_S_2": 161,
+	&"MAP_SWIM_SW_1": 168,
+	&"MAP_SWIM_SW_2": 169,
+	&"MAP_SWIM_W_1": 162,
+	&"MAP_SWIM_W_2": 163,
+	&"MAP_SWIM_NW_1": 170,
+	&"MAP_SWIM_NW_2": 171,
+	&"MAP_FOOT_1": 172,
+	&"MAP_FOOT_2": 173,
+	&"FLAG_FLIP_1": 174,
+	&"FLAG_FLIP_2": 175,
+	&"FLAG_FLIP_3": 176,
+	&"FLAG_FLIP_4": 177,
+	&"FLAG_FALL_1": 179,
+	&"FLAG_WAVE_1": 181,
+	&"FLAG_WAVE_2": 182,
+	&"FLAG_WAVE_3": 183,
+	&"FLAG_WAVE_4": 184,
+}
 ## Items 0-11 ([GalaxyInventory]): the first of their two frames, and the
 ## shadow that rises when Keen takes one (Omni CK_ItemSpriteChunks,
 ## ck_itemShadows): four gems (red, yellow, blue, green), the 100 … 5000
@@ -119,6 +178,7 @@ const ITEM_SHADOWS: PackedInt32Array = [126, 126, 126, 126, 95, 96, 97, 98, 99, 
 static func all() -> Dictionary[StringName, int]:
 	var sprites: Dictionary[StringName, int] = KEEN.duplicate()
 	sprites.merge(OBJECTS)
+	sprites.merge(MAP)
 	sprites.merge(Keen4CreatureSprites.SPRITES)
 	for item in ITEM_FIRST_FRAMES.size():
 		sprites[StringName("ITEM_%d" % item)] = ITEM_FIRST_FRAMES[item]
