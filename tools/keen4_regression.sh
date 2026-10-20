@@ -1,6 +1,7 @@
 #!/bin/sh
 # Takes a fixed set of Keen 4 screenshots (level 1 and level 11, each in
-# widescreen and in 4:3), so that a later milestone can show that Keen 4
+# widescreen and in 4:3; since D7 also the world map in both and its
+# status window in 4:3), so that a later milestone can show that Keen 4
 # still looks exactly the same. The same shape as
 # tools/keen2_regression.sh: it needs the player's own Keen 4 files in
 # game_data/keen4 and a display (on Linux it uses xvfb-run). The title
@@ -40,9 +41,14 @@ shoot() {
 
 shoot "40:shot_keen4_level1_wide,41:F2,50:shot_keen4_level1,51:F2" --level=1
 shoot "40:shot_keen4_level11_wide,41:F2,50:shot_keen4_level11,51:F2" --level=11
+shoot "40:shot_keen4_map_wide,41:F2,50:shot_keen4_map,52:Enter,80:shot_keen4_map_status,81:Space,110:F2" --level=0
 
 if [ -n "$BASE" ]; then
 	status=0
+	for picture in "$OUT"/*.png; do
+		name=$(basename "$picture")
+		[ -f "$BASE/$name" ] || echo "NEW        $name"
+	done
 	for picture in "$BASE"/*.png; do
 		name=$(basename "$picture")
 		if cmp -s "$picture" "$OUT/$name"; then
