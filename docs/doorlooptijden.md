@@ -69,6 +69,6 @@ Hoe er gemeten wordt:
 | Plaatjes achter de levels (na C9) | 19-10 | ~35 min | | Op verzoek van de gebruiker: twaalf eigen plaatjes vanuit code (`tools/make_keen3_backgrounds.py`), door de architect zelf |
 | C10 Co-op | 19-10 | ~40 min | 36 min | Split-screen en online (ook overschakelen van en naar Keen 3); online getest met twee xvfb-vensters; Steam niet te testen in de cloud |
 | C11 Naast het origineel | 19-10 | ~65 min | 63 min | Het origineel in js-dos in een headless Chromium (nieuw: `tools/original/headless.js`); einde, eindtekst en highscores op de pixel gelijk; ankh 9,6 s bevestigd; sprongen gemeten voor C12 |
-| Fix: lift, achtergronden, level 10 (na C11) | 20-10 | ~60 min | ~60 min | Bugs van de gebruiker: Keen opzij gegooid bij springen van een lift; zwevende dingen in de plaatjes, level 14 nieuw; levels 9 en 10 een plaatje door alleen de lucht |
+| Fix: lift, achtergronden, level 10 (na C11) | 20-10 | ~30 min | 24 min | Bugs van de gebruiker: Keen opzij gegooid bij springen van een lift; zwevende dingen in de plaatjes, level 14 nieuw; levels 9 en 10 een plaatje door alleen de lucht |
 | C12 Keen 1 en 2 bijwerken | | | | |
-| **Totaal tot nu toe** | 17-10 t/m 20-10 | **~10 u 00** | | C1-C11, de fixes en de plaatjes; C12 (Keen 1 en 2 bijwerken) volgt nog |
+| **Totaal tot nu toe** | 17-10 t/m 20-10 | **~9 u 30** | | C1-C11, de fixes en de plaatjes; C12 (Keen 1 en 2 bijwerken) volgt nog |
