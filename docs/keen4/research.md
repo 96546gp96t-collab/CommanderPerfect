@@ -59,6 +59,11 @@ git) for this session only.
   `4keen14.zip`) by content search. A test that compares both versions
   needs a 1.4 copy; until the user has one, the 1.4 positions from CG are
   only the first place to look.
+- **D13**: the user uploaded the shareware **v1.4** too (sign-on
+  "Copyright 1992 Id Software Inc. (v1.4)", `KEEN4E.EXE` LZEXE-packed,
+  105,108 bytes, image 251,712 bytes = CG's 0x3D740; `EGAGRAPH.CK4`
+  520,581 bytes; `GAMEMAPS.CK4` and `AUDIO.CK4` byte for byte 1.0's). CG's
+  positions were right; the differences are in "1.0 and 1.4" below.
 
 ## 1. Files and the EXE (files)
 
@@ -960,6 +965,71 @@ frame (70 frames a second).
 | Score-box message | | the card behind still says (ON) until the key | the same |
 | Music | StopMusic before the panel in a game, StartMusic after | stops at once (also from the story in the title loop); Return to Game: the map's song from its start; Return to Demo: the next demo with its song | the same |
 | Cursors | selectedItem per card | Configure keeps its cursor between visits | Configure, Options, keys |
+
+## 1.0 and 1.4 (D13)
+
+Both versions side by side: the user's v1.0 and shareware v1.4 (files),
+the original 1.4 in js-dos (headless, every changed frame recorded, its
+help, end, menu and map screens snapped) against our engine running 1.4
+(`--data-dir-keen4=`), whole frames compared pixel by pixel.
+
+**The same in both** (files): `GAMEMAPS.CK4` and `AUDIO.CK4` (byte for
+byte), TILEINFO, the random table, every EXE text we read (level names,
+entry texts, the janitor, council and Lindsey, the status window, the game
+texts, the cheat box, the story) and the high-score defaults; all 397
+sprites and their table, all 1296 background tiles, the 8×8 tiles, the
+fonts, the three masked pictures, the four misc chunks (text screens,
+intro words), the last 33 pictures (control panel, watch, credits, title,
+story picture, message pictures), the end text, "not available" and
+demos 1-4. So levels, creatures, sounds, music, the map, the menus and the
+boxes are the same; only the program's places and these differ:
+
+| What | 1.0 | 1.4 |
+|---|---|---|
+| Program | LZEXE, 102,355 bytes, image 246,288 | LZEXE, 105,108 bytes, image 251,712 (CG: unpacked 263,488) |
+| Headers in the image | AUDIOHED 0x1FB80, EGAHEAD 0x1FE10, MAPHEAD 0x235B0, TILEINFO 0x23742, AUDIODCT 0x33FF6, EGADICT 0x343F6 | 0x20DF0, 0x21080, 0x24830, 0x249C2, 0x354F6, 0x358F6 (CG had the four graphics and map ones) |
+| EXE texts | random 0x1DA32, names 0x1DD40, … | each 0x1300-0x1398 bytes later (file-formats.md, "Texts and tables in KEEN4E.EXE") |
+| Pictures | 107 | 115: eight more at 74-81 (the page frame, a bar, two pictures of the order text); sprites from chunk 124 instead of 116, every later range 8 chunks on |
+| Pictures 0-73 | | 0-5 (help menu, the help's keys and the 8 × 8 dummy in place of 1.0's page bar), 14-22, 37, 39 (the hand), 41-42 (the arrows, 16 × 8 instead of 16 × 16) and 73 look different (drawn for red) |
+| Foreground tiles 1-88 | empty | pictures (no map uses them) |
+| Help texts | grey colours (`^c4`, `^c8`), the page bar as `^G` | other colours (`^cE`, `^cF`, `^cB` …), no bar; pages 13, 21, 9, 18, 2 → 15, 21, 9, 20, 2; "About Id" picture at (224, 20) instead of (200, 10) |
+| Help and end pages | light grey, dark grey text, "pg n of m" at (248, 190) in dark grey | red, yellow text, a frame of five pictures, the help's bar at the bottom with "pg n of m" at (218, 186) in light red |
+| Demo 0 (map 1) | 744 frames | another recording: 812 frames, Keen goes into the first hut |
+| Sign-on | "Copyright 1991 … (v1.0)" | "Copyright 1992 … (v1.4)", the same text-mode screen and "Ready - Press a Key" (not built, as in D8) |
+
+**Watched (js-dos, the shareware v1.4; ours running 1.4):**
+
+| What | Result |
+|---|---|
+| Control panel (main and new-game card) | the same as 1.0's; ours: 26 pixels differ, the blinking dot in another phase |
+| "Keen enters" box, map, status window, the elder's and Keen's boxes after E+N+D | the same as 1.0's; ours equal but for map animations (11-47 pixels) and the box's count-down phase |
+| Help (menu, the first page of each topic, page 2 of the first) | 0 pixels differ (with the frame of D13) |
+| End (E+N+D on the map) | 16 pages; every whole page 0 pixels differ (two snaps fell inside a `^T` pause) |
+| Title loop | the same order as 1.0 (intro, demo 0, story, demo 1, high scores, demo 2, demo 3) |
+
+**The demos in whole frames** (as D8.1; aligned locally on Keen's track,
+because the recorder's timing drifted at doors and while the machine was
+busy; each original frame against our frames n − 2 … n + 2):
+
+| Demo | Compared | Identical | What differs |
+|---|---|---|---|
+| 0 (map 1, 1.4's own) | 724 | **75.0 %** (63.0 % before the fix below) | Keen and the view in sync to the end; a Bounder and poison slugs elsewhere (their random choices), stunned stars in another phase |
+| 1 (map 9) | 653 | **99.1 %** | the first frames (the fade in) and the last |
+| 2 (map 11) | 721 | 79.3 % | drops and inchworms in another phase or place (as 1.0: 85.2 %) |
+| 3 (map 15) | 600 | 41.7 % | the slugs walk elsewhere (as 1.0: 41.7 %); Keen in sync |
+
+**Fixed (D13)**: in 1.4's demo 0 Keen walks left and, in one frame, lets
+go of the direction and jumps. The original keeps the walk's step of that
+frame (the view moved 4 pixels with him); ours dropped it, so from frame
+176 our view stood 4 pixels off until the next door. Omni does the same
+as the original: `CK_HandleInputOnGround` resets only the vertical step on
+a jump (`CK_KeenRunningThink`, jumping while walking on, resets both).
+None of 1.0's demos stops and jumps in one frame, so this is not a
+difference between the versions but a case 1.0's demos never showed.
+
+**Nothing in 1.4's behaviour differs from 1.0's** in what was watched:
+Keen's moves, the creatures, the boxes and the panel; the version shows
+in its pictures, its help texts and its first demo.
 
 ## Lessons for the new-episode guide
 

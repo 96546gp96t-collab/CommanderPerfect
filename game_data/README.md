@@ -62,11 +62,16 @@ Keen 4 (episode 4) is a different engine ("Galaxy"), with other files. Put
 them in a folder called `keen4` next to `keen1`: `EGAGRAPH.CK4`,
 `GAMEMAPS.CK4`, `AUDIO.CK4` and the program, `KEEN4E.EXE` (or
 `KEEN4.EXE`). The headers of the other files are inside the program and are
-found there by their content. Version 1.0 is tested (the program says
-"(v1.0)" when it starts); 1.4 (the shareware release, Steam and GOG) should
-work as well. Header files next to the game (`EGAHEAD.CK4`, `EGADICT.CK4`,
-`MAPHEAD.CK4`, `AUDIOHED.CK4`, `AUDIODCT.CK4`), as mods have, are used
-instead of the ones in the program. `CONFIG.CK4` and saved games are not
-read. You can also start with `-- --game=4 --data-dir-keen4=/path/to/keen4`.
-For now Keen 4's icon on the start screen opens a "coming soon" screen; the
+found there by their content. Both versions are tested: 1.0 (the program
+says "(v1.0)" when it starts) and the shareware 1.4 ("(v1.4)"; Steam and
+GOG sell 1.4 as well). The game looks like the version you have: 1.4's
+help and end pages are red with a frame, 1.0's light grey. Header files
+next to the game (`EGAHEAD.CK4`, `EGADICT.CK4`, `MAPHEAD.CK4`,
+`AUDIOHED.CK4`, `AUDIODCT.CK4`), as mods have, are used instead of the ones
+in the program. `CONFIG.CK4` and the original's saved games are not read.
+You can also start with `-- --game=4 --data-dir-keen4=/path/to/keen4`. The
 data viewer (`-- --game=4`) shows everything that is read.
+
+For the developers' tests a second copy in `keen4-v14` (or the folder in
+the environment variable `KEEN4_V14_DIR`) is checked as v1.4 by
+`tests/test_keen4_v14.gd`, next to the copy in `keen4`.
