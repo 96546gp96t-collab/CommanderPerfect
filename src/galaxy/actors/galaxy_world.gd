@@ -61,6 +61,8 @@ var random_index := 0
 ## Called as (cell, tile) instead of writing the foreground plane, so the
 ## view draws the change too ([GalaxyLevelMap.set_tile]).
 var tile_writer: Callable
+## The same for the background plane (Keen 4's Miragia).
+var back_tile_writer: Callable
 ## The first frame after a level starts puts everything far from the view
 ## to sleep at once (the original's screen is still faded in).
 var _starting := true
@@ -169,6 +171,27 @@ func set_fore_tile(cell: Vector2i, tile: int) -> void:
 		tile_writer.call(cell, tile)
 	else:
 		map.planes[GalaxyMap.Layer.FOREGROUND][cell.y * map.width + cell.x] = tile
+
+
+## Puts background [param tile] in [param cell] (through [member
+## back_tile_writer] when the view draws the map).
+func set_back_tile(cell: Vector2i, tile: int) -> void:
+	if back_tile_writer.is_valid():
+		back_tile_writer.call(cell, tile)
+	else:
+		map.planes[GalaxyMap.Layer.BACKGROUND][cell.y * map.width + cell.x] = tile
+
+
+## Copies the block of [param size] tiles at [param from] to [param to], in
+## all three planes (Omni RF_ReplaceTileBlock).
+func copy_block(from: Vector2i, to: Vector2i, size: Vector2i) -> void:
+	for y in size.y:
+		for x in size.x:
+			var source := from + Vector2i(x, y)
+			var cell := to + Vector2i(x, y)
+			set_back_tile(cell, map.tile(GalaxyMap.Layer.BACKGROUND, source.x, source.y))
+			set_fore_tile(cell, fore_tile(source.x, source.y))
+			set_info(cell, info_at(source.x, source.y))
 
 
 func set_info(cell: Vector2i, value: int) -> void:

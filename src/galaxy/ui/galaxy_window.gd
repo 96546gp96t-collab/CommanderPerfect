@@ -108,17 +108,34 @@ func skip(pixels: int) -> void:
 func print_centred(text: String) -> void:
 	if _font == null:
 		return
-	var lines := text.split("\n")
-	if text.ends_with("\n"):
-		lines.resize(lines.size() - 1)
-	for line in lines:
+	for line in _lines(text):
 		var width := _font.text_width(line)
-		var left := text_area.position.x + (text_area.size.x - width) / 2
-		var picture := _font.render(line, TEXT)
-		_image.blend_rect(
-			picture, Rect2i(Vector2i.ZERO, picture.get_size()), Vector2i(left, print_y)
-		)
-		print_y += _font.height
+		_print_line(line, text_area.position.x + (text_area.size.x - width) / 2)
+
+
+## Prints one line of [param text] in the middle of the window, both ways
+## (Omni US_PrintCentered).
+func print_in_middle(text: String) -> void:
+	if _font == null:
+		return
+	var size := Vector2i(_font.text_width(text), _font.height)
+	var at := inside.position + (inside.size - size) / 2
+	print_y = at.y
+	_print_line(text, at.x)
+
+
+## How many pixels [param text] takes from top to bottom.
+func text_height(text: String) -> int:
+	return _lines(text).size() * (_font.height if _font != null else 0)
+
+
+## A frame [param thickness] pixels wide just inside [param rect] (screen
+## pixels) in [param color].
+func outline(rect: Rect2i, thickness: int, color: Color) -> void:
+	_image.fill_rect(Rect2i(rect.position, Vector2i(rect.size.x, thickness)), color)
+	_image.fill_rect(Rect2i(rect.position.x, rect.end.y - thickness, rect.size.x, thickness), color)
+	_image.fill_rect(Rect2i(rect.position, Vector2i(thickness, rect.size.y)), color)
+	_image.fill_rect(Rect2i(rect.end.x - thickness, rect.position.y, thickness, rect.size.y), color)
 
 
 ## The screen as it is now: the window on a see-through picture.
@@ -129,6 +146,20 @@ func image() -> Image:
 ## Clears the screen picture (no window).
 func clear() -> void:
 	_image.fill(Color.TRANSPARENT)
+
+
+## The lines of [param text]; a newline at its end starts none.
+static func _lines(text: String) -> PackedStringArray:
+	var lines := text.split("\n")
+	if text.ends_with("\n"):
+		lines.resize(lines.size() - 1)
+	return lines
+
+
+func _print_line(line: String, left: int) -> void:
+	var picture := _font.render(line, TEXT)
+	_image.blend_rect(picture, Rect2i(Vector2i.ZERO, picture.get_size()), Vector2i(left, print_y))
+	print_y += _font.height
 
 
 func _tile(index: int, at: Vector2i) -> void:
