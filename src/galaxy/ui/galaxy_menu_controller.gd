@@ -82,6 +82,11 @@ const PRESS_ANY_KEY := "Press any key"
 const PADDLE_WON_LINES: PackedStringArray = ["You won!", PRESS_ANY_KEY]
 const PADDLE_LOST_LINES: PackedStringArray = ["You lost!", PRESS_ANY_KEY]
 
+## The cards that keep their cursor from one visit to the next (seen in
+## v1.0 for Configure; Omni keeps every card's selectedItem); the main
+## card, New Game and the Sound and Music cards set theirs anew.
+const REMEMBERED_CARDS: Array[StringName] = [CONFIGURE, OPTIONS, KEY_SET]
+
 ## The saved games.
 var slots := GalaxySaveSlots.new()
 ## Whether a game is being played (the menu was opened from one).
@@ -106,6 +111,8 @@ var _confirm_choice := &""
 var _confirm_value := 0
 ## Paddle War while it is played.
 var _paddle_war: GalaxyPaddleWar
+## The cursor each remembered card had when it was left.
+var _cursors: Dictionary[StringName, int] = {}
 ## The Options card shows the score box's old state until its message is
 ## gone (seen in v1.0).
 var _options_stale := false
@@ -446,6 +453,19 @@ func _choose(id: StringName, value: int) -> void:
 	_stack.clear()
 	closed.emit()
 	chosen.emit(id, value)
+
+
+## A remembered card comes back with its cursor where it was.
+func _push(menu: Menu) -> void:
+	if menu.kind in REMEMBERED_CARDS and _cursors.has(menu.kind):
+		menu.cursor = clampi(_cursors[menu.kind], 0, maxi(0, menu.items.size() - 1))
+	super(menu)
+
+
+func _pop() -> void:
+	if is_open() and _top().kind in REMEMBERED_CARDS:
+		_cursors[_top().kind] = _top().cursor
+	super()
 
 
 func _redraw() -> void:

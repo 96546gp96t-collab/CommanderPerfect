@@ -17,10 +17,10 @@ extends Keen4FrontScreen
 ##     the quiet AdLib sounds in [Keen4Settings]), the score box (Keen 4's
 ##     own setting), the shared display settings and keys;
 ##   - F1 on a card opens the help; leaving it shows the panel again.
-## While the panel is open the game and the title loop stand still; in a
-## game the music stops, and Return to Game starts the map's song from its
-## beginning (Omni CK_PlayLoop: StopMusic, US_RunCards, StartMusic; heard in
-## v1.0).
+## While the panel is open the game and the title loop stand still and the
+## music stops; Return to Game starts the map's song from its beginning
+## (Omni CK_PlayLoop: StopMusic, US_RunCards, StartMusic; heard in v1.0),
+## Return to Demo goes on with the title loop's next step and its song.
 
 const PRESS_ANY_KEY := GalaxyMenuController.PRESS_ANY_KEY
 const SAVE_FAILED_LINES: PackedStringArray = ["The game could not be saved", PRESS_ANY_KEY]
@@ -93,8 +93,8 @@ func _open_panel() -> void:
 		_on_map = null
 		_stop_front()
 		_show_step()
-	else:
-		_audio.stop_music()
+	# The music stops, in a game and in the title loop (heard in v1.0).
+	_audio.stop_music()
 	# The player can also switch with F4 and Shift+S/M: the cards show what
 	# is so.
 	_user_settings.fullscreen = _is_fullscreen()
