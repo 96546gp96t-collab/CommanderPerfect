@@ -10,6 +10,9 @@ extends RefCounted
 ## speaker in a PC did. Frequencies too high to hear on a real speaker are
 ## left out, because at the mix rate they would fold back into audible
 ## noise.
+##
+## The step rate can be given: Keen 4 and later play their PC speaker sounds
+## at about 140 steps a second.
 
 const MIX_RATE := 44100
 ## Loudness of the square wave, as a fraction of full scale.
@@ -22,19 +25,24 @@ const FULL_SCALE := 32767.0
 const BYTES_PER_SAMPLE := 2
 
 
-## The sound with timer divisors [param divisors] as 16-bit mono audio.
-static func render(divisors: PackedInt32Array) -> AudioStreamWAV:
+## The sound with timer divisors [param divisors] as 16-bit mono audio, one
+## divisor per step of 1 / [param steps_per_second] s.
+static func render(
+	divisors: PackedInt32Array, steps_per_second := SoundFile.STEPS_PER_SECOND
+) -> AudioStreamWAV:
 	var stream := AudioStreamWAV.new()
 	stream.format = AudioStreamWAV.FORMAT_16_BITS
 	stream.mix_rate = MIX_RATE
 	stream.stereo = false
-	stream.data = render_samples(divisors)
+	stream.data = render_samples(divisors, steps_per_second)
 	return stream
 
 
 ## The raw 16-bit little-endian samples of the sound.
-static func render_samples(divisors: PackedInt32Array) -> PackedByteArray:
-	var samples_per_step := MIX_RATE / SoundFile.STEPS_PER_SECOND
+static func render_samples(
+	divisors: PackedInt32Array, steps_per_second := SoundFile.STEPS_PER_SECOND
+) -> PackedByteArray:
+	var samples_per_step := MIX_RATE / steps_per_second
 	var total := ceili(divisors.size() * samples_per_step)
 	var bytes := PackedByteArray()
 	bytes.resize(total * BYTES_PER_SAMPLE)
