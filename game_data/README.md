@@ -55,3 +55,18 @@ As with Keen 2, the sounds and the texts are inside `KEEN3.EXE`. Version
 1.00 is tested; 1.31 (Steam/GOG) should work as well, because everything is
 found by its content. You can also start with
 `-- --data-dir-keen3=/path/to/keen3`.
+
+## Keen 4
+
+Keen 4 (episode 4) is a different engine ("Galaxy"), with other files. Put
+them in a folder called `keen4` next to `keen1`: `EGAGRAPH.CK4`,
+`GAMEMAPS.CK4`, `AUDIO.CK4` and the program, `KEEN4E.EXE` (or
+`KEEN4.EXE`). The headers of the other files are inside the program and are
+found there by their content. Version 1.0 is tested (the program says
+"(v1.0)" when it starts); 1.4 (the shareware release, Steam and GOG) should
+work as well. Header files next to the game (`EGAHEAD.CK4`, `EGADICT.CK4`,
+`MAPHEAD.CK4`, `AUDIOHED.CK4`, `AUDIODCT.CK4`), as mods have, are used
+instead of the ones in the program. `CONFIG.CK4` and saved games are not
+read. You can also start with `-- --game=4 --data-dir-keen4=/path/to/keen4`.
+For now Keen 4's icon on the start screen opens a "coming soon" screen; the
+data viewer (`-- --game=4`) shows everything that is read.

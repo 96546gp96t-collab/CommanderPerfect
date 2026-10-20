@@ -6,18 +6,24 @@ extends SceneTree
 ## it is ignored by git and must not be shared.
 ##
 ## Usage:
-##   godot --headless --path . --script res://tools/export_graphics.gd -- [--out=PATH] [--game=2|3]
+##   godot --headless --path . --script res://tools/export_graphics.gd --
+##       [--out=PATH] [--game=2|3|4]
 ##
 ## Without --out the files are written to the exported/ folder of the project
 ## (exported/keen2/ for Keen 2, chosen with --game=2; exported/keen3/ for
-## Keen 3, chosen with --game=3).
+## Keen 3, chosen with --game=3; exported/keen4/ for Keen 4, chosen with
+## --game=4, which has files of another kind: see [method _export_galaxy]).
 
 const OUT_OPTION := "--out="
 const DEFAULT_OUT := "res://exported"
 const KEEN_2_DEFAULT_OUT := "res://exported/keen2"
 const KEEN_3_DEFAULT_OUT := "res://exported/keen3"
+const KEEN_4_DEFAULT_OUT := "res://exported/keen4"
+## Keen 4's tile sets are laid out as wide as TED5 shows them.
+const GALAXY_ATLAS_COLUMNS := 18
 const TILE_ATLAS_COLUMNS := 16
 const FONT_ATLAS_COLUMNS := 32
+const FONT_SAMPLE := "ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz 0123456789"
 
 
 func _initialize() -> void:
@@ -26,6 +32,8 @@ func _initialize() -> void:
 
 func _export() -> bool:
 	var game := GameLaunch.game_number(OS.get_cmdline_user_args())
+	if game == 4:
+		return _export_galaxy()
 	var keen_2 := game == 2
 	var keen_3 := game == 3
 	var files: GameFiles
@@ -68,6 +76,45 @@ func _export() -> bool:
 
 	print("Exported graphics to %s" % out)
 	return true
+
+
+## Keen 4: both tile sets, every sprite, picture and masked picture, the
+## fonts, and every map with its three planes.
+func _export_galaxy() -> bool:
+	var files := Keen4Files.locate()
+	if files == null:
+		push_error("No Keen 4 game data found. See game_data/README.md.")
+		return false
+	var data := Keen4Episode.load_data(files)
+	if data == null:
+		return false
+	var graphics := data.graphics
+	var out := _output_directory(KEEN_4_DEFAULT_OUT)
+	for folder in ["sprites", "pictures", "maps", "fonts"]:
+		DirAccess.make_dir_recursive_absolute(out.path_join(folder))
+	graphics.tile_atlas(false, GALAXY_ATLAS_COLUMNS).save_png(out.path_join("tiles_back.png"))
+	graphics.tile_atlas(true, GALAXY_ATLAS_COLUMNS).save_png(out.path_join("tiles_fore.png"))
+	for i in graphics.ranges.sprite_count:
+		_save(graphics.sprite(i), out.path_join("sprites/%03d.png" % i))
+	for i in graphics.ranges.picture_count:
+		_save(graphics.picture(i), out.path_join("pictures/%03d.png" % i))
+	for i in graphics.ranges.masked_picture_count:
+		_save(graphics.masked_picture(i), out.path_join("pictures/masked_%d.png" % i))
+	for i in graphics.ranges.font_count:
+		var font := graphics.font(i)
+		if font != null:
+			_save(font.render(FONT_SAMPLE, Color.WHITE), out.path_join("fonts/font%d.png" % i))
+	for number in data.maps.map_count():
+		var map := data.maps.load_map(number) if data.maps.has_map(number) else null
+		if map != null:
+			_save(GalaxyMapImage.build(map, graphics), out.path_join("maps/map%02d.png" % number))
+	print("Exported graphics to %s" % out)
+	return true
+
+
+func _save(image: Image, path: String) -> void:
+	if image != null:
+		image.save_png(path)
 
 
 ## Where game [param game] (1, 2 or 3) is exported without --out.
