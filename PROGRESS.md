@@ -93,7 +93,47 @@ bestanden in [docs/keen4/file-formats.md](docs/keen4/file-formats.md).
 | D10 | Menu's en opslaan | ✅ Klaar en gecontroleerd door de architect (branch `milestone-d10-menus`; developer + tester) |
 | D11 | Mooier maken en Paddle War | ✅ Klaar en gecontroleerd door de architect (branch `milestone-d11-extras`; menu-developer + tester en een tekenaar tegelijk) |
 | D12 | Co-op | ✅ Klaar en gecontroleerd door de architect (branch `milestone-d12-coop`; developer + tester) |
-| D13 | Naast het origineel | 🔶 Bezig |
+| D13 | Naast het origineel | ✅ Klaar en gecontroleerd door de architect (branch `milestone-d13-origineel`; drie developers en een tester) |
+
+## Mijlpaal D13: wat er nu is
+
+Gebouwd door vier agents (A: de demo's, B en B2: de metingen, C: versie
+1.4 en de laatste controle), gecontroleerd en samengevoegd door de
+architect in `milestone-d13-origineel`. Keen 4 is hiermee af.
+
+**A, de demo's.** Alle vijf demo's van v1.0 zijn nu in hele 4:3-beelden
+100 % gelijk aan het origineel. Drie oorzaken gevonden: alle wezens slapen
+bij de start van een level (en worden wakker binnen een tile van het
+beeld), de gedeelde stap van het origineel (een wezen dat een ander
+object maakt, zet de stap van het lopende object terug) en een deur zet
+het beeld al in Keens eigen beurt op hem. Een nieuwe suite speelt de vijf
+demo's en controleert 67 sprites op 24 frames.
+
+**B en B2, de schattingen.** Naast het origineel gelegd (js-dos, v1.0):
+wachtanimaties en het boek, de edelsteendeur, het vallende platform, het
+statusvenster en "Game Over!" (0 pixels verschil), de Dopefish, de sprite
+onder water, de mijn, de slak, de Wormmouth, de wolk, de inchworms, de
+dartguns, de Berkeloid en omhoog kijken. Aangepast: "Game Over!" blijft
+333 tics staan (gemeten 4,758 s), Keen eindigt na het optrekken aan een
+richel naar rechts een stap eerder (zoals het origineel), platforms en
+mijnen stuiteren terug bij een keerpunt, en het wetsuitvenster wacht tot
+het geluid van het wetsuit klaar is (1,9 s).
+
+**C, versie 1.4.** De shareware 1.4 van de gebruiker werkt: de headers
+worden op inhoud gevonden, de help- en eindpagina's zijn rood met een
+lijst (0 pixels verschil met het origineel), de rest (levels, wezens,
+geluid, menu's) is gelijk aan 1.0. Bij de controle nog twee fouten
+opgelost: Keen houdt de stap van zijn loop als hij in hetzelfde frame
+stopt en springt (demo 0 van 1.4: 63 % → 75 % gelijk), en F1 opende de
+help onder het "PAUSED"-venster na het laden van een spel.
+
+- [x] Alle vijf demo's van v1.0 100 % gelijk in hele beelden.
+- [x] De schattingen nagemeten; vier dingen aangepast, de rest vastgelegd in `test_keen4_d13_seen`.
+- [x] Versie 1.4 ondersteund en getest (`test_keen4_v14`, slaat over zonder 1.4).
+- [x] 121 suites groen, gdlint schoon, regressies Keen 1, 2 en 4: 0 verschillen.
+- Let op: een opgeslagen spel midden in een level van vóór D13 begint dat level opnieuw (de terugvaloptie van D10); opslag op de kaart blijft werken.
+- Open (gezien, niet aangepast): de plaatjes tijdens het optrekken aan een richel (geen regel past), de beet van de Dopefish (2 px / 2 tics), het schot van de sprite een frame later, de Wormmouth-beet, de Foot, een schakelaar met een platform en het teleporteren van Smirky niet gevangen; de demo's van 1.4 (75/99/79/42 %) en demo 2 en 3 van 1.0 in de oude meting verschillen alleen in wezens met toevalskeuzes.
+- Open: twee tests zijn onder zware CPU-belasting soms traag (`test_keen4_coop_screen`, `test_keen4_online_play` met de echte poort 24800).
 
 ## Mijlpaal D12: wat er nu is
 
@@ -2663,13 +2703,14 @@ Keen 3:
 
 Keen 4:
 
-1. **D13** (naast het origineel): de wezens die in demo 0, 2 en 3 uit de
-   pas lopen, de overige schattingen (rand, edelsteendeur, vallend platform,
-   schakelaars, Dopefish, Smirky, wachtanimaties, onder water, Game Over), en
-   versie 1.4 (de gebruiker uploadde de shareware 1.4 op 20-10-2026; in deze
-   sessie staat hij in `game_data/keen4-v14/`, buiten git).
-2. **Voor de gebruiker:** Keen 4 helemaal spelen in `build/` (bouw vanaf
-   `milestone-d12-coop`): ook F7 voor twee spelers en online.
+1. **Voor de gebruiker:** Keen 4 helemaal spelen in `build/` (bouw vanaf
+   `milestone-d13-origineel`, dat alle D-branches bevat): ook F7 voor twee
+   spelers, online, en met de bestanden van 1.4 als je die hebt.
+2. `milestone-d13-origineel` kan in één keer naar `main`.
+3. Eventueel later: de open punten van D13 (de plaatjes van het optrekken
+   aan een richel, de Dopefish-beet, de Foot, Smirky's teleport).
+4. Daarna Keen 5 en 6 (zelfde Galaxy-engine; zie de lessen in
+   `docs/keen4/research.md`).
 
 Keen 2:
 

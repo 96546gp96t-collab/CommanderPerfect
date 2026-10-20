@@ -95,3 +95,9 @@ Keen 4 is een andere engine (Galaxy); de schatting per mijlpaal staat in
 | Samenvoegen D8.1 + D9 + D10 | 20-10 | ~15 min | | Door de architect: twee kleine conflicten in de documenten en in `keen4_view.gd`; 101 suites groen |
 | D11 Extra's, Paddle War, plaatjes | 20-10 | ~70 min | dev 50 min, tester 52 min, tekenaar 50 min (tegelijk) | Paddle War, Choose Game onder Quit, geluidskaarten, F1, xBRZ-fixes, tien eigen achtergronden; samengevoegd, 108 suites groen |
 | D12 Co-op | 20-10 | ~60 min | dev 55 min, tester 57 min (tegelijk) | Split-screen, gedeelde toetsen omhoog/omlaag, online met eigen Galaxy-berichten, overschakelen; 118 suites groen |
+| D13 A Demo's | 20-10 | ~65 min | 63 min | Alle vijf demo's van v1.0 in hele beelden 100 % gelijk (slapen bij de start, de gedeelde stap, de deur) |
+| D13 B Metingen | 20-10 | ~52 min | 50 min (tegelijk met A en C) | Wachtanimaties, edelsteendeur, vallend platform, Game Over 333 tics, richel naar rechts |
+| D13 B2 Metingen | 20-10 | ~50 min | 48 min | Dopefish, onder water, mijn, slak, wolk, dartguns; platforms stuiteren, het wetsuit wacht op zijn geluid |
+| D13 C Versie 1.4 | 20-10 | ~1 u 43 | 100 min (tegelijk met A en B) | 1.4 naast 1.0, rode help- en eindpagina's, sprong na stoppen, F1 onder PAUSED |
+| Samenvoegen D13 | 20-10 | ~20 min | | Door de architect: conflicten in drie documenten en `run_tests.gd`; 121 suites groen, regressies 0 verschillen |
+| **Totaal** | 19-10 t/m 20-10 | **~19 u 15** opgeteld | | D1-D13; vanaf D9 werkten agents deels tegelijk, dus de klok liep korter. Iets meer dan de schatting (13-15 u) door co-op, online, 1.4 en de metingen naast het origineel |
