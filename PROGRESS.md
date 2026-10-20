@@ -92,8 +92,35 @@ bestanden in [docs/keen4/file-formats.md](docs/keen4/file-formats.md).
 | D9 | Geluid en muziek (eigen OPL2-synthesizer) | ✅ Klaar en gecontroleerd door de architect (branch `milestone-d9-geluid`; developer + tester) |
 | D10 | Menu's en opslaan | ✅ Klaar en gecontroleerd door de architect (branch `milestone-d10-menus`; developer + tester) |
 | D11 | Mooier maken en Paddle War | ✅ Klaar en gecontroleerd door de architect (branch `milestone-d11-extras`; menu-developer + tester en een tekenaar tegelijk) |
-| D12 | Co-op | 🔶 Bezig |
-| D13 | Naast het origineel | ⬜ |
+| D12 | Co-op | ✅ Klaar en gecontroleerd door de architect (branch `milestone-d12-coop`; developer + tester) |
+| D13 | Naast het origineel | 🔶 Bezig |
+
+## Mijlpaal D12: wat er nu is
+
+Gebouwd door een developer en een tester tegelijk, gecontroleerd door de
+architect.
+
+Keen 4 kan nu met twee spelers. Op één toetsenbord voegt F7 (of Configure >
+Two Players) speler 2 toe. Hij speelt met de toetsen voor twee spelers, die
+nu ook omhoog en omlaag hebben (W/S en de pijltjes, goedgekeurd door de
+gebruiker; dat zie je ook in het Controls-menu van Keen 1-3, die verder
+precies hetzelfde spelen). Het beeld splitst zoals in Keen 1-3, maar nooit
+voorbij een scroll-blok. De inventaris en de levens zijn gedeeld, er is één
+scorebord en op de kaart loopt één Keen die door allebei bestuurd wordt.
+Onder water zwemmen er twee. Gaat één Keen dood, dan is de poging voor
+beiden voorbij; uitlopen terwijl de ander sterft kan niet. Speler 2 wordt
+niet opgeslagen. Online gaat via Configure > Online Game, via IP of Steam,
+met eigen Galaxy-berichten (de kaart met gewijzigde tiles van drie lagen,
+per frame de sprites, geluid, muziek en vakjes, die de meespeler uit zijn
+eigen bestanden tekent). Wie bij een host van een andere episode aanklopt,
+schakelt over (getest: Keen 1 naar een Keen 4-host en andersom). De
+berichten van Keen 1-3 zijn byte voor byte gelijk gebleven (getest tegen
+29 opgenomen berichten).
+
+- [x] Twee spelers op één toetsenbord met split-screen; gedeelde toetsen omhoog/omlaag erbij.
+- [x] Online (IP en Steam), overschakelen tussen de delen; getest met twee vensters via IP.
+- [x] Tests van de tester: 10 suites, 98 tests; twee fouten gevonden en opgelost.
+- Open: Steam met twee echte accounts (niet te testen in de cloud); online pauzeren het menu, het statusvenster en de vakjes van de host het spel voor beiden; `test_keen4_online_play` gebruikt de echte poort 24800 (botst met een draaiend spel op dezelfde Mac).
 
 ## Mijlpaal D11: wat er nu is
 
@@ -129,7 +156,7 @@ Samen ~56 KB, alleen in breedbeeld.
 - [x] Paddle War, Choose Game onder Quit, SOUND- en MUSIC-kaarten, F1 in het menu, muziek in het menu.
 - [x] xBRZ- en vloeiende-beweging-fixes; tests die een draaiend scherm nodig hebben lopen nu mee (`TREE_SUITES` in de testrunner).
 - [x] Tien achtergronden en `test_keen4_backgrounds`.
-- Open: of de berichtvensters in Keen 4 ook xBRZ moeten krijgen (vraag aan de gebruiker).
+- Besluit van de gebruiker (20-10-2026): de vensters, het menu en de volle schermen van Keen 4 blijven in originele pixels, ook met xBRZ aan.
 
 ## Mijlpaal D10: wat er nu is
 
@@ -2636,13 +2663,13 @@ Keen 3:
 
 Keen 4:
 
-1. **D12** (co-op): twee spelers met split-screen (omhoog/omlaag bij de
-   gedeelde toetsen) en online (`GAME_ID_KEEN_4`).
-2. Daarna D13 (naast het origineel: de wezens die in demo 0, 2 en 3 uit de
-   pas lopen, de rest van de schattingen).
-3. **Voor de gebruiker:** Keen 4 helemaal spelen in `build/` (bouw vanaf
-   `milestone-d11-extras`): menu, Paddle War, geluid en muziek, opslaan, de
-   plaatjes in breedbeeld.
+1. **D13** (naast het origineel): de wezens die in demo 0, 2 en 3 uit de
+   pas lopen, de overige schattingen (rand, edelsteendeur, vallend platform,
+   schakelaars, Dopefish, Smirky, wachtanimaties, onder water, Game Over), en
+   versie 1.4 (de gebruiker uploadde de shareware 1.4 op 20-10-2026; in deze
+   sessie staat hij in `game_data/keen4-v14/`, buiten git).
+2. **Voor de gebruiker:** Keen 4 helemaal spelen in `build/` (bouw vanaf
+   `milestone-d12-coop`): ook F7 voor twee spelers en online.
 
 Keen 2:
 

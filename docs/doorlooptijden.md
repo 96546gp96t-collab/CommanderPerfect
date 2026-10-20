@@ -94,3 +94,4 @@ Keen 4 is een andere engine (Galaxy); de schatting per mijlpaal staat in
 | D10 Menu's en opslaan | 20-10 | ~70 min | dev 38 min, tester 68 min (tegelijk) | Menu pixel gelijk aan v1.0, moeilijkheid, opslaan overal (level als begin + frames) |
 | Samenvoegen D8.1 + D9 + D10 | 20-10 | ~15 min | | Door de architect: twee kleine conflicten in de documenten en in `keen4_view.gd`; 101 suites groen |
 | D11 Extra's, Paddle War, plaatjes | 20-10 | ~70 min | dev 50 min, tester 52 min, tekenaar 50 min (tegelijk) | Paddle War, Choose Game onder Quit, geluidskaarten, F1, xBRZ-fixes, tien eigen achtergronden; samengevoegd, 108 suites groen |
+| D12 Co-op | 20-10 | ~60 min | dev 55 min, tester 57 min (tegelijk) | Split-screen, gedeelde toetsen omhoog/omlaag, online met eigen Galaxy-berichten, overschakelen; 118 suites groen |
