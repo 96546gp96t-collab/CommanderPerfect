@@ -16,6 +16,8 @@ const UP := 27
 const RIGHT := 28
 const DOWN := 29
 const FALLING := 32
+## A platform's move in one frame (12 a tic, 2 tics).
+const FRAME_MOVE := 24
 ## Open space with Keen on a ledge at the top left.
 const SPACE: PackedStringArray = [
 	"....................",
@@ -67,12 +69,17 @@ func test_a_platform_moves_12_a_tic_and_turns_at_turn_points() -> void:
 		if platform.direction.x == -1:
 			turned = true
 	assert_true(turned, "it turned")
-	assert_equal(rightmost, (9 + 2) * TILE, "its edge stops on the turn point's tile")
+	# It bounces off the turn point's tile (seen in the original, D13): its
+	# edge comes within a frame's move of the tile, never onto it.
+	assert_true(_within_a_frame(rightmost, (9 + 2) * TILE), "it turns before the turn point")
 	var leftmost := platform.box.left
 	for frame in 80:
 		Creatures.wait(world, 1)
 		leftmost = mini(leftmost, platform.box.left)
-	assert_equal(leftmost, (2 + 3) * TILE, "and on the left one's far edge")
+	var left_edge := (2 + 3) * TILE
+	assert_true(
+		leftmost >= left_edge and leftmost < left_edge + FRAME_MOVE, "and before the left one"
+	)
 
 
 func test_a_vertical_platform_turns_at_turn_points() -> void:
@@ -225,7 +232,7 @@ func test_a_switched_turn_point_turns_the_platform() -> void:
 	for frame in 50:
 		Creatures.wait(world, 1)
 		rightmost = maxi(rightmost, platform.box.right)
-	assert_equal(rightmost, 10 * TILE, "it turns at the new turn point")
+	assert_true(_within_a_frame(rightmost, 10 * TILE), "it turns at the new turn point")
 
 
 func test_a_bridge_switch_extends_the_bridge() -> void:
@@ -300,3 +307,8 @@ func _press(world: GalaxyWorld, up: Callable) -> void:
 		if keen.action.name == &"press_switch_2":
 			break
 	Fixtures.run(world, 6, Fixtures.nothing)
+
+
+## Whether [param edge] lies less than a frame's move before [param tile_edge].
+static func _within_a_frame(edge: int, tile_edge: int) -> bool:
+	return edge < tile_edge and edge >= tile_edge - FRAME_MOVE

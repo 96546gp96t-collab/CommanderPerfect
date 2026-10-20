@@ -37,6 +37,11 @@ const ONE_MOMENT_TICS := 28
 ## the box was up 4,758 ms before the fade (seen in the original, D13;
 ## Omnispeak's CK_GameOver waits 4 seconds).
 const GAME_OVER_TICS := 333
+## Taking the wetsuit, the game stands still until its sound ("foot
+## appear", 1.05 seconds) has played, then shows Keen's box; the exit sound
+## comes after the box (seen in the original, D13: 1.9 seconds with the
+## pictures loading; Omni CK4_ShowWetsuitMessage, SD_WaitSoundDone).
+const WETSUIT_SOUND_TICS := 73
 ## The choices after a death.
 const TRY_AGAIN := 0
 const EXIT_TO_MAP := 1
@@ -190,17 +195,18 @@ func _finish_level() -> void:
 	_game_progress.mark_done(_map_number)
 	_game_progress.last_finished = _map_number
 	_game_progress.foot_flight = ending == Keen4Inchworm.FOOT_ENDING
-	_audio.play(&"level_exit")
 	match ending:
 		Keen4Council.RESCUED:
+			_audio.play(&"level_exit")
 			_audio.play_council_song()
 			var before := _game_progress.rescue()
 			_show_screens(_messages.council(_map_number, before), _after_rescue)
 		Keen4Wetsuit.TAKEN:
 			_game_progress.wetsuit = true
-			_show_screens(_messages.wetsuit(), _back_to_map)
+			_queue.add(null, WETSUIT_SOUND_TICS)
+			_show_screens(_messages.wetsuit(), _exit_to_map)
 		_:
-			_back_to_map()
+			_exit_to_map()
 
 
 func _after_rescue() -> void:
@@ -208,6 +214,12 @@ func _after_rescue() -> void:
 		_start_ending()
 	else:
 		_back_to_map()
+
+
+## The exit sound, then the map.
+func _exit_to_map() -> void:
+	_audio.play(&"level_exit")
+	_back_to_map()
 
 
 func _back_to_map() -> void:

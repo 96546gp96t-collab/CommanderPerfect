@@ -6,8 +6,11 @@ extends GalaxyCreature
 ##   - it moves 12 units a tic up, right, down or left (seen in the
 ##     original, D6: 52 pixels a second);
 ##   - when its leading edge is about to enter a tile whose info value is a
-##     **turn point** (0x1F, the "B-block"), it stops on that tile's edge
-##     and turns round;
+##     **turn point** (0x1F, the "B-block"), it turns round; moving
+##     sideways, the part of its move that would have gone past the
+##     tile's edge takes it back (seen in the original, D13: the mines
+##     of level 17 bounce off the edge; Omnispeak stops on the edge and
+##     loses that part); moving up or down it stops on the edge (Omni);
 ##   - moving up or down, a second turn point two tiles back from the one
 ##     ahead (two tiles below it going up, above it going down) stops it
 ##     instead: a switch that adds that turn point holds it;
@@ -28,6 +31,9 @@ const HEADINGS: Array[Vector2i] = [Vector2i.UP, Vector2i.RIGHT, Vector2i.DOWN, V
 ## A vertical platform stops when there is a turn point this many tiles
 ## back from the one ahead (Omni).
 const STOP_DISTANCE := 2
+## Turning sideways, the move past the edge counts this many times: once
+## to reach the edge, once back (seen in the original, D13).
+const BOUNCE := 2
 const TILE := GalaxyUnits.PER_TILE
 const TILE_MASK := 0xFF
 
@@ -74,12 +80,12 @@ func _think_axis() -> void:
 		var edge := box.right + step.x
 		if _turn_point_entered(GalaxyUnits.to_tile(edge), box.tile_right, true):
 			direction.x = -1
-			step.x -= edge & TILE_MASK
+			step.x -= BOUNCE * (edge & TILE_MASK)
 	elif direction.x == -1:
 		var edge := box.left + step.x
 		if _turn_point_entered(GalaxyUnits.to_tile(edge), box.tile_left, true):
 			direction.x = 1
-			step.x += (TILE - edge) & TILE_MASK
+			step.x += BOUNCE * ((TILE - edge) & TILE_MASK)
 	elif direction.y == 1:
 		var edge := box.bottom + step.y
 		var row := GalaxyUnits.to_tile(edge)
