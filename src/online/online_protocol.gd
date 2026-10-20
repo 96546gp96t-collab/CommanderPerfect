@@ -21,6 +21,14 @@ enum Message {
 	INPUT,
 	## joiner -> host: the part of the level he sees, to wake the enemies.
 	VIEW,
+	## The Galaxy engine's own (Keen 4, milestone D12; [GalaxyOnlineMessages]):
+	## host -> joiner: the map on the screen with its changed tiles of the
+	## three planes ...
+	GALAXY_SCENE,
+	## ... one tile of a plane changed ...
+	GALAXY_TILE,
+	## ... and the state of one logic frame ([GalaxySnapshot]).
+	GALAXY_SNAPSHOT,
 }
 
 ## Marks a session as one of ours, in the handshake and in Steam lobbies:
@@ -30,9 +38,11 @@ const GAME_ID := "commanderperfect"
 const GAME_ID_KEEN_2 := "commanderperfect-keen2"
 ## Keen 3's id (milestone C2), online since milestone C10.
 const GAME_ID_KEEN_3 := "commanderperfect-keen3"
+## Keen 4's id ([constant Keen4Files.GAME_ID]), online since milestone D12.
+const GAME_ID_KEEN_4 := "commanderperfect-keen4"
 ## Every game of ours: a player who knocks at a host of another one of
 ## these is told so, and switches to that game (see [OnlinePlay]).
-const GAME_IDS: Array[String] = [GAME_ID, GAME_ID_KEEN_2, GAME_ID_KEEN_3]
+const GAME_IDS: Array[String] = [GAME_ID, GAME_ID_KEEN_2, GAME_ID_KEEN_3, GAME_ID_KEEN_4]
 ## Raised whenever a message changes: a host and a player with another
 ## version cannot play together.
 const VERSION := 1

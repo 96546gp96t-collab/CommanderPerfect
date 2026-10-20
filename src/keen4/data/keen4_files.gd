@@ -16,9 +16,8 @@ const SUBFOLDER := "game_data/keen4"
 const EXTENSION := "CK4"
 const EXECUTABLES: PackedStringArray = ["KEEN4E.EXE", "KEEN4.EXE"]
 const REQUIRED_FILES: PackedStringArray = ["EGAGRAPH.CK4", "GAMEMAPS.CK4", "AUDIO.CK4"]
-## Keen 4's id online. Keen 4 cannot be played online yet (D12), so this
-## is not in [constant OnlineProtocol.GAME_IDS] and no host matches it.
-const GAME_ID := "commanderperfect-keen4"
+## Keen 4's id online (since D12 in [constant OnlineProtocol.GAME_IDS]).
+const GAME_ID := OnlineProtocol.GAME_ID_KEEN_4
 
 
 ## The Keen 4 files in the first folder that holds all of them, or null.

@@ -250,7 +250,7 @@ func test_keen_4_is_the_fourth_icon() -> void:
 	assert_equal(games[3].title, "Keen 4", "the name on the icon")
 	assert_equal(games[3].scene, GameLaunch.KEEN_4_SCENE, "plays Keen 4")
 	assert_equal(games[3].data_folder, Keen4Files.SUBFOLDER, "its folder")
-	assert_true(not OnlineProtocol.GAME_IDS.has(games[3].game_id), "not online yet")
+	assert_true(OnlineProtocol.GAME_IDS.has(games[3].game_id), "online since D12")
 	assert_true(GameCatalog.for_game_id("") == null, "no game for an unknown lobby")
 	assert_true(games[3].icon_picture.is_valid(), "its own picture")
 	for index in 3:
