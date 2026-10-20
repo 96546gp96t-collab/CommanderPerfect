@@ -81,19 +81,74 @@ bestanden in [docs/keen4/file-formats.md](docs/keen4/file-formats.md).
 | # | Mijlpaal | Status |
 |---|---|---|
 | D1 | Onderzoek: code in kaart, Keen 4 v1.0 van de gebruiker uitgelezen, Omnispeak, architectuur, mijlpalen | ✅ Klaar (branch `milestone-d1-onderzoek`); vragen beantwoord op 19-10-2026 |
-| D2 | De bestanden van Keen 4 inlezen, data viewer, vierde icoon | ✅ Klaar, wacht op controle door de architect (branch `milestone-d2-bestanden`) |
-| D3 | Een level tekenen | ✅ Klaar, wacht op controle door de architect (branch `milestone-d3-level`) |
-| D4 | Keen beweegt (klok, acties, hellingen, palen, randen) | ✅ Klaar, wacht op controle door de architect (branch `milestone-d4-keen`) |
-| D5 | Vijanden | ✅ Klaar, wacht op controle door de architect (branch `milestone-d5-vijanden`) |
-| D6 | Platforms, schakelaars, de raad, onder water | ✅ Klaar, wacht op controle door de architect (branch `milestone-d6-mechaniek`) |
-| D7 | De wereldkaart | ✅ Klaar, wacht op controle door de architect (branch `milestone-d7-kaart`) |
-| D8 | Het einde, de titel en de demo's | ✅ Klaar, wacht op controle door de architect (branch `milestone-d8-einde-titel`) |
-| D8.1 | Fix: tekenen op de pixelstappen van het origineel | ✅ Klaar, wacht op controle door de architect (branch `milestone-d8.1-pixelstappen`) |
-| D9 | Geluid en muziek (eigen OPL2-synthesizer) | ⬜ |
-| D10 | Menu's en opslaan | ⬜ |
-| D11 | Mooier maken en Paddle War | ⬜ |
+| D2 | De bestanden van Keen 4 inlezen, data viewer, vierde icoon | ✅ Klaar en gecontroleerd door de architect (branch `milestone-d2-bestanden`) |
+| D3 | Een level tekenen | ✅ Klaar en gecontroleerd door de architect (branch `milestone-d3-level`) |
+| D4 | Keen beweegt (klok, acties, hellingen, palen, randen) | ✅ Klaar en gecontroleerd door de architect (branch `milestone-d4-keen`) |
+| D5 | Vijanden | ✅ Klaar en gecontroleerd door de architect (branch `milestone-d5-vijanden`) |
+| D6 | Platforms, schakelaars, de raad, onder water | ✅ Klaar en gecontroleerd door de architect (branch `milestone-d6-mechaniek`) |
+| D7 | De wereldkaart | ✅ Klaar en gecontroleerd door de architect (branch `milestone-d7-kaart`) |
+| D8 | Het einde, de titel en de demo's | ✅ Klaar en gecontroleerd door de architect (branch `milestone-d8-einde-titel`) |
+| D8.1 | Fix: tekenen op de pixelstappen van het origineel | ✅ Klaar en gecontroleerd door de architect (branch `milestone-d8.1-pixelstappen`) |
+| D9 | Geluid en muziek (eigen OPL2-synthesizer) | ✅ Klaar en gecontroleerd door de architect (branch `milestone-d9-geluid`; developer + tester) |
+| D10 | Menu's en opslaan | ✅ Klaar en gecontroleerd door de architect (branch `milestone-d10-menus`; developer + tester) |
+| D11 | Mooier maken en Paddle War | 🔶 Bezig (branch `milestone-d11-extras`: D8.1, D9 en D10 samengevoegd) |
 | D12 | Co-op | ⬜ |
 | D13 | Naast het origineel | ⬜ |
+
+## Mijlpaal D10: wat er nu is
+
+Gebouwd door een developer en een tester tegelijk (in een eigen worktree,
+naast D9), gecontroleerd door de architect en daarna samengevoegd met D8.1
+en D9 in `milestone-d11-extras`.
+
+Keen 4 heeft nu het menu van het origineel: het polshorloge met de kaarten,
+pixel voor pixel gelijk aan v1.0 (hoofdmenu, nieuw spel, laden, opslaan, de
+vragen, het PAUSED-vak). Een toets in de titellus of Escape in een spel
+opent het. Je kiest Easy, Normal of Hard, laadt of bewaart in zes slots met
+een eigen naam, stelt het scorebord, het beeld en de toetsen in, beëindigt
+het spel (highscores, dan de titellus), gaat terug naar het startscherm
+(Choose Game, op de plek van Paddle War) of stopt. Op Easy geeft de
+verdover 8 schoten en valt Keen na een sprong langzamer (75 in plaats van
+67 pixels, nagemeten in het origineel). Opslaan kan overal, net als in het
+origineel: op de kaart en midden in een level. Een level wordt bewaard als
+zijn begin plus alle frames sinds dat begin; bij laden worden die frames
+achter een zwart scherm opnieuw afgespeeld, dus alles staat precies waar
+het was. De regels staan in `docs/keen4/gameplay.md`, de afwijkingen in
+`docs/keen4/architecture.md` ("Deviations in D10").
+
+- [x] Menu (`GalaxyMenuController`, `GalaxyMenuView`): kaarten, knipperende cursor, vragen; 0 pixels verschil met v1.0.
+- [x] Moeilijkheidsgraad overal: info-laag, verdover +8 op Easy, zwaartekracht midden op Easy.
+- [x] Opslaan en laden (`GalaxySaveSlots`, `Keen4SavedGame`) in `user://keen4/saves`, los van Keen 1-3; scorebord aan/uit (`Keen4Settings`).
+- [x] Tests van de tester: `test_galaxy_menus`, `test_keen4_save`, `test_keen4_save_play`.
+- Open: een lang level laden duurt seconden (0,5-2 s per minuut in het level); F1 in het menu (help) en de "(ON)"-tekst onder de scorebord-melding wijken nog af; geluid en muziek in het menu en Paddle War volgen in D11.
+
+## Mijlpaal D9: wat er nu is
+
+Gebouwd door een developer en een tester tegelijk (in een eigen worktree,
+naast D10), gecontroleerd door de architect.
+
+Keen 4 heeft geluid en muziek. Een eigen OPL2-synthesizer (`GalaxyOpl`,
+geschreven vanuit de handleiding van de YM3812: negen kanalen met twee
+operatoren, vier golfvormen, envelopes met key-scale rate, feedback, FM en
+additief, tremolo en vibrato) rendert de 52 AdLib-geluiden en de zes liedjes
+één keer op de achtergrond en bewaart ze in `user://keen4/cache/`. Bij de
+eerste start zijn alle geluiden na 3 s klaar, het lied van de kaart na 9 s
+en alles na 42 s; de tweede start leest alles in 0,5 s. De
+PC-speakergeluiden gaan door de gedeelde `SpeakerSynth`, die alleen een
+optionele snelheid kreeg (Keen 1 klinkt byte voor byte hetzelfde). Elke
+kaart speelt haar eigen lied (de tabel van Omnispeak), de raad en de
+conciërge hun eigen lied, het einde het lied van map 7 en het verhaal dat
+van map 12; de help en Lindsey zetten de muziek stil. Elk geluid uit het
+origineel klinkt op zijn plek, met de prioriteiten van het origineel.
+Standaard staan AdLib en muziek aan (nieuwe instellingen); Shift+S kiest
+AdLib, PC-speaker of uit en Shift+M zet de muziek aan of uit (in het menu
+in D11). In js-dos opgenomen: dezelfde noten en klank, dezelfde volgorde
+van de geluiden in demo 0.
+
+- [x] `GalaxyOpl` en de geluids- en muziekformaten, cache, achtergrondtaken.
+- [x] Alle geluiden en liedjes op hun plek; prioriteiten.
+- [x] Tests van de tester (84): de chip tegen het datasheet, envelopes, formaten, muziek, cache, speler, de wereld; vijf fouten gevonden en opgelost.
+- Open: muziek zelf is niet in de testrunner af te spelen (alleen de boekhouding); de absolute snelheid is alleen tegen Omnispeak nagekeken.
 
 ## Fix D8.1: wat er nu is
 
@@ -2545,14 +2600,14 @@ Keen 3:
 
 Keen 4:
 
-1. **D9** (branch `milestone-d9-geluid`, vanaf `milestone-d8.1-pixelstappen`):
-   geluid en muziek; zie `docs/keen4/roadmap.md`.
-2. **Architect:** D8.1 controleren (branch `milestone-d8.1-pixelstappen`).
-3. **Voor de gebruiker:** D7 proberen (`godot --path . -- --game=4`, zie
-   "Mijlpaal D7"): de kaart lopen, levels in en uit, de vlaggen, zwemmen
-   na het wetsuit, Miragia, de Foot, het statusvenster (Enter), Try Again;
-   zeg wat anders voelt dan het origineel. (D6: platforms, de raad,
-   Lindsey, level 17.)
+1. **D11** (branch `milestone-d11-extras`, D8.1 + D9 + D10 samengevoegd):
+   vloeiende beweging en xBRZ nakijken, plaatjes achter de levels, geluid en
+   muziek in het menu, F1 in het menu, Paddle War.
+2. Daarna **D12** (co-op), dan D13 (naast het origineel).
+3. **Voor de gebruiker:** Keen 4 van titel tot highscore spelen in `build/`
+   (bouw vanaf `milestone-d11-extras` als D11 klaar is, of nu vanaf die
+   branch): het menu, Easy/Normal/Hard, opslaan midden in een level, het
+   geluid en de muziek (Shift+S, Shift+M).
 
 Keen 2:
 
