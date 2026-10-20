@@ -98,11 +98,15 @@ static func radio(kind: StringName, labels: PackedStringArray, checked: int) -> 
 	return menu
 
 
-## The keys of one player: the action, and its key in a box.
-static func keys() -> Menu:
+## The keys of one player: the action, and its key in a box. With
+## [param key_set] 1 or 2 the keys of that player when two play (D12).
+static func keys(key_set := 0) -> Menu:
 	var menu := Menu.create(MenuController.KEY_SET)
-	for action: String in KeyBindings.ACTIONS:
-		var label: String = KeyBindings.ACTIONS[action].to_upper()
+	var actions: Dictionary = (
+		KeyBindings.ACTIONS if key_set <= 0 else KeyBindings.PLAYER_ACTIONS[key_set - 1]
+	)
+	for action: String in actions:
+		var label: String = actions[action].to_upper()
 		# The original's box holds one key: the first (the one that changes).
 		var key_name := KeyBindings.describe(action).get_slice(KEY_NAME_SEPARATOR, 0).capitalize()
 		menu.add(label + GalaxyMenuController.VALUE_SEPARATOR + key_name, StringName(action))

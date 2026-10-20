@@ -15,7 +15,9 @@ extends RefCounted
 ##     the question, a line, and the answer lines;
 ##   - the Sound and Music cards with a ring before the unchecked choices
 ##     (Omni us_menu_itemChecked*: the icons after the normal ones);
-##   - Paddle War through [GalaxyPaddleWarView].
+##   - Paddle War through [GalaxyPaddleWarView];
+##   - ours (D12): a card without a title picture shows its first line as
+##     its title; the online pages through [GalaxyOnlinePageView].
 ## The colours were checked against the original (v1.0) pixel for pixel.
 
 ## EGA colours of the panel (seen in v1.0).
@@ -81,6 +83,7 @@ var _cards: GalaxyMenuCards
 var _font: GalaxyFont
 var _image: Image
 var _paddle_war: GalaxyPaddleWarView
+var _online_pages: GalaxyOnlinePageView
 ## The game the Paddle War picture shows.
 var _paddle_game: GalaxyPaddleWar
 
@@ -91,6 +94,7 @@ static func create(graphics: GalaxyGraphics, cards: GalaxyMenuCards) -> GalaxyMe
 	view._cards = cards
 	view._font = graphics.font(cards.font)
 	view._paddle_war = GalaxyPaddleWarView.create(graphics, cards)
+	view._online_pages = GalaxyOnlinePageView.create(graphics, view._font)
 	return view
 
 
@@ -103,6 +107,9 @@ func draw(menus: GalaxyMenuController) -> Image:
 	var menu := menus.top()
 	if menu == null:
 		return _image
+	var coop := menus as GalaxyCoopMenuController
+	if coop != null and coop.shows_online_page():
+		return _online_pages.draw(coop)
 	if menu.kind == GalaxyMenuController.PADDLE_WAR:
 		return _draw_paddle_war(menus.paddle_war())
 	var below := menus.below()
@@ -143,6 +150,9 @@ func _card(menu: Menu, menus: GalaxyMenuController, depth: int) -> void:
 	if card.picture >= 0:
 		_line(TITLE_LINE_Y, BRIGHT)
 		_picture(_graphics.picture(card.picture), TITLE_AT)
+	elif not menu.header.is_empty():
+		_line(TITLE_LINE_Y, BRIGHT)
+		_text(menu.header[0], Vector2i(TITLE_AT.x, TITLE_LINE_Y - _font.height), BRIGHT)
 	_footer(menus, depth)
 	var left := ceili(float(ITEMS_AT.x + card.offset.x) / BYTE) * BYTE
 	if kind in [MenuController.SLOTS_LOAD, MenuController.SLOTS_SAVE]:

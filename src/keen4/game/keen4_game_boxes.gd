@@ -77,8 +77,8 @@ var _council := PackedStringArray()
 var _picture_count := 0
 
 
-static func create(data: GalaxyData) -> Keen4GameBoxes:
-	var boxes := Keen4GameBoxes.new()
+static func create(data: GalaxyData, into: Keen4GameBoxes = null) -> Keen4GameBoxes:
+	var boxes := into if into != null else Keen4GameBoxes.new()
 	boxes._graphics = data.graphics
 	boxes._names = data.executable.level_names()
 	boxes._entries = data.executable.entry_texts()

@@ -30,7 +30,7 @@ const REPLAY_MILLISECONDS := 50
 ## The Sound card's choices as the settings name them.
 const SOUND_DEVICES: Array[String] = ["off", "pc", "adlib", "adlib"]
 
-var _panel := GalaxyMenuController.new()
+var _panel := GalaxyCoopMenuController.new()
 var _panel_view: GalaxyMenuView
 var _saves := GalaxySaveSlots.new()
 var _keen4_settings := Keen4Settings.load_from()

@@ -1,5 +1,5 @@
 class_name Keen4View
-extends Keen4MenuScreen
+extends Keen4OnlineScreen
 ## The Keen 4 game screen that the start screen opens (milestones D3-D10):
 ## the flow of a game on top of [Keen4MenuScreen] (docs/keen4/architecture.md,
 ## "The flow of Keen 4"; Omni `ck_game.c:CK_GameLoop`, facts only):
@@ -56,6 +56,8 @@ func _ready() -> void:
 	_set_up_play()
 	_set_up_front()
 	_set_up_panel()
+	_set_up_coop()
+	_set_up_online()
 	var requested := _requested_map()
 	if requested < 0:
 		_start_title_loop()
@@ -232,7 +234,7 @@ func _choose(event: InputEvent) -> void:
 	if not _is_new_press(event):
 		return
 	get_viewport().set_input_as_handled()
-	var input := KeenInput.from_actions()
+	var input := _choice_input()
 	if event.is_action_pressed("ui_cancel"):
 		_take_choice(EXIT_TO_MAP)
 	elif input.jump or input.pogo or event.is_action_pressed("ui_accept"):
@@ -250,6 +252,7 @@ func _take_choice(choice: int) -> void:
 
 ## The choice's frame blinks while the box waits.
 func _waiting(tics: int) -> void:
+	super(tics)
 	if _choice < 0:
 		return
 	var before := Keen4GameBoxes.blink_color(_choice_tic)

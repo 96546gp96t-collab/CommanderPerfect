@@ -66,8 +66,8 @@ var _picture_count := 0
 
 
 ## The boxes of Keen 4 with the texts and pictures of [param data].
-static func create(data: GalaxyData) -> Keen4Messages:
-	var messages := Keen4Messages.new()
+static func create(data: GalaxyData, into: Keen4Messages = null) -> Keen4Messages:
+	var messages := into if into != null else Keen4Messages.new()
 	messages._graphics = data.graphics
 	messages._council = data.executable.messages(Keen4Episode.COUNCIL_MESSAGES)
 	messages._janitor = data.executable.messages(Keen4Episode.JANITOR_MESSAGES)

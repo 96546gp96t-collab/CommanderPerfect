@@ -145,7 +145,7 @@ func shows_status() -> bool:
 ## stopped it).
 func _run_frame(tics: int) -> bool:
 	if _played != null:
-		_played.run_frame(_frame_input(tics), tics, _clock.tic)
+		_played.run_frame(_frame_input(tics), tics, _clock.tic, _partner_input())
 	elif _on_map != null:
 		_on_map.run_frame(_frame_input(tics), tics, _clock.tic)
 	else:
@@ -161,6 +161,17 @@ func _run_frame(tics: int) -> bool:
 ## What Keen is steered by in a frame of [param tics] tics: the keys
 ## ([Keen4FrontScreen]: a demo's recorded input).
 func _frame_input(_tics: int) -> KeenInput:
+	return KeenInput.from_actions()
+
+
+## What player 2 holds in a level, when he plays ([Keen4CoopScreen]);
+## null alone.
+func _partner_input() -> KeenInput:
+	return null
+
+
+## The keys that make the choice after a death ([Keen4View]).
+func _choice_input() -> KeenInput:
 	return KeenInput.from_actions()
 
 
