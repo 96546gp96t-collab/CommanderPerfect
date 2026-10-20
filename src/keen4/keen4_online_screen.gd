@@ -76,6 +76,12 @@ func _on_panel_chosen(id: StringName, value: int) -> void:
 	super(id, value)
 
 
+## The panel knows whether this player hosts or joined.
+func _open_panel() -> void:
+	_panel.online = _online.menu_info()
+	super()
+
+
 func _may_toggle_partner() -> bool:
 	return super() and not _online.is_active()
 

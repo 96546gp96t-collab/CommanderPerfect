@@ -36,6 +36,10 @@ const TITLE_AT := Vector2i(80, 48)
 const LINE_LEFT := 77
 const LINE_RIGHT := 231
 const TITLE_LINE_Y := 55
+## A title without a picture (ours, D12): its text this far in, with a gap
+## to the line on either side.
+const TEXT_TITLE_INDENT := 8
+const TEXT_TITLE_GAP := 3
 const FOOTER_LINE_Y := 133
 const FOOTER_Y := 135
 const FOOTER_LEFT := 78
@@ -151,14 +155,22 @@ func _card(menu: Menu, menus: GalaxyMenuController, depth: int) -> void:
 		_line(TITLE_LINE_Y, BRIGHT)
 		_picture(_graphics.picture(card.picture), TITLE_AT)
 	elif not menu.header.is_empty():
-		_line(TITLE_LINE_Y, BRIGHT)
-		_text(menu.header[0], Vector2i(TITLE_AT.x, TITLE_LINE_Y - _font.height), BRIGHT)
+		_text_title(menu.header[0])
 	_footer(menus, depth)
 	var left := ceili(float(ITEMS_AT.x + card.offset.x) / BYTE) * BYTE
 	if kind in [MenuController.SLOTS_LOAD, MenuController.SLOTS_SAVE]:
 		_slots(menu, menus, Vector2i(left, ITEMS_AT.y + card.offset.y))
 	else:
 		_rows(menu, menus, Vector2i(left, ITEMS_AT.y + card.offset.y))
+
+
+## A title as text on the title's line, as the pictures put theirs.
+func _text_title(title: String) -> void:
+	var left := TITLE_AT.x + TEXT_TITLE_INDENT
+	var right := left + _font.text_width(title) + TEXT_TITLE_GAP
+	_bar(Rect2i(LINE_LEFT, TITLE_LINE_Y, left - TEXT_TITLE_GAP - LINE_LEFT, 1), BRIGHT)
+	_bar(Rect2i(right, TITLE_LINE_Y, LINE_RIGHT - right + 1, 1), BRIGHT)
+	_text(title, Vector2i(left, TITLE_LINE_Y - _font.height / 2), BRIGHT)
 
 
 func _footer(menus: GalaxyMenuController, depth: int) -> void:
