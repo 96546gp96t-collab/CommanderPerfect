@@ -34,8 +34,11 @@ const INSTRUMENT_REGISTERS: PackedInt32Array = [
 const MODULATOR := 0
 const CARRIER := 3
 const BLOCK_SHIFT := 2
-## The longest release rendered after the last note.
-const MAX_TAIL_SECONDS := 1.0
+## The longest release rendered after the last note (in the original it
+## rings until the next sound); a release still sounding then fades out
+## over the last [constant FADE_SECONDS], so it does not click off.
+const MAX_TAIL_SECONDS := 3.0
+const FADE_SECONDS := 0.03
 const TAIL_PIECE := 512
 
 var priority := 0
@@ -90,10 +93,20 @@ func render_samples(connection := 0) -> PackedFloat32Array:
 	chip.write(GalaxyOpl.KEY_BLOCK, 0)
 	var tail := 0
 	var max_tail := int(MAX_TAIL_SECONDS * GalaxyOpl.CHIP_RATE)
-	while tail < max_tail and not chip.is_channel_silent(0):
+	while tail < max_tail and not chip.is_channel_quiet(0):
 		samples.append_array(chip.generate(TAIL_PIECE))
 		tail += TAIL_PIECE
+	if tail >= max_tail:
+		_fade_out(samples)
 	return samples
+
+
+## Fades the end of [param samples] out linearly.
+static func _fade_out(samples: PackedFloat32Array) -> void:
+	var count := mini(int(FADE_SECONDS * GalaxyOpl.CHIP_RATE), samples.size())
+	var first := samples.size() - count
+	for index in count:
+		samples[first + index] *= 1.0 - float(index + 1) / count
 
 
 static func _sample_at(step: int) -> int:

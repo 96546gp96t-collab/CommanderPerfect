@@ -160,7 +160,10 @@ func _after_map_frame() -> void:
 func _after_level_frame() -> void:
 	var asked := _played.take_conversation()
 	if asked == Keen4Lindsey.MESSAGE:
-		_show_screens(_messages.lindsey(_map_number), Callable())
+		# Her message stops the music; the map's song starts again after it
+		# (Omni CK4_ShowPrincessMessage).
+		_audio.stop_music()
+		_show_screens(_messages.lindsey(_map_number), _audio.play_map_song.bind(_map_number))
 	elif asked == Keen4Council.JANITOR:
 		_audio.play_council_song()
 		_show_screens(_messages.janitor(), _audio.play_map_song.bind(_map_number))

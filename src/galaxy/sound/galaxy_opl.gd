@@ -54,8 +54,8 @@ const FULL_OUTPUT := 4096.0
 const FEEDBACK_SHIFT_BASE := 9
 ## One channel at full volume is this part of 16-bit full scale: the AdLib
 ## sounds then sound about as loud as the PC speaker's, and the loudest
-## song stays below full scale.
-const CHANNEL_SHARE := 0.5
+## song with a sound on top stays below full scale.
+const CHANNEL_SHARE := 0.4
 ## Tremolo: 3.7 Hz, 1 dB or 4.8 dB deep; vibrato: 6.4 Hz, 7 or 14 cents
 ## (manual).
 const TREMOLO_HZ := 3.7
@@ -66,6 +66,8 @@ const CENTS_PER_OCTAVE := 1200.0
 ## The attenuation table covers twice the silent level, so a sum of
 ## envelope, total level, key scaling and tremolo never runs off its end.
 const GAIN_SIZE := 1024
+## 60 dB down, in envelope steps: inaudible under anything else.
+const QUIET_ATTENUATION := 320.0
 const AMPLITUDE_DB := 20.0
 const BYTES_PER_SAMPLE := 2
 const PCM_FULL_SCALE := 32767.0
@@ -165,6 +167,20 @@ func is_channel_silent(channel: int) -> bool:
 		_operators[channel * 2].stage == GalaxyOplOperator.Stage.OFF
 		and _operators[channel * 2 + 1].stage == GalaxyOplOperator.Stage.OFF
 	)
+
+
+## Whether what [param channel] sends out is too quiet to hear (60 dB
+## down) or over: the carrier, and in additive mode the modulator too (in
+## FM the modulator is not heard itself).
+func is_channel_quiet(channel: int) -> bool:
+	var ops: Array[GalaxyOplOperator] = [_operators[channel * 2 + 1]]
+	if _additive[channel] == 1:
+		ops.append(_operators[channel * 2])
+	for op in ops:
+		var quiet := op.attenuation + op.base_attenuation >= QUIET_ATTENUATION
+		if op.stage != GalaxyOplOperator.Stage.OFF and not quiet:
+			return false
+	return true
 
 
 ## The modulator (0) or carrier (1) of [param channel]; for the voice
