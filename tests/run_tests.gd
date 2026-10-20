@@ -1,5 +1,7 @@
 extends SceneTree
-## Runs all test suites and exits with code 1 if any test fails.
+## Runs all test suites and exits with code 1 if any test fails. The
+## suites of [constant TREE_SUITES] need a running scene tree (a screen that
+## loads its files when it is ready) and run in the first frame.
 ##
 ## Usage:  godot --headless --path . --script res://tests/run_tests.gd
 
@@ -105,12 +107,37 @@ const SUITES: Array[Script] = [
 	preload("res://tests/test_galaxy_menus.gd"),
 	preload("res://tests/test_keen4_save.gd"),
 	preload("res://tests/test_keen4_save_play.gd"),
+	preload("res://tests/test_galaxy_paddle_war.gd"),
+	preload("res://tests/test_galaxy_paddle_points.gd"),
+	preload("res://tests/test_galaxy_paddle_menus.gd"),
+	preload("res://tests/test_keen4_d11_quiet.gd"),
 ]
+const TREE_SUITES: Array[Script] = [
+	preload("res://tests/test_keen4_d11_screen.gd"),
+	preload("res://tests/test_keen4_d11_xbrz.gd"),
+]
+
+var _failure_count := 0
+var _tree_suites_run := false
 
 
 func _initialize() -> void:
-	var failure_count := 0
-	for suite_script in SUITES:
+	_run(SUITES)
+	if TREE_SUITES.is_empty():
+		_finish()
+
+
+func _process(_delta: float) -> bool:
+	if _tree_suites_run:
+		return false
+	_tree_suites_run = true
+	_run(TREE_SUITES)
+	_finish()
+	return false
+
+
+func _run(suites: Array[Script]) -> void:
+	for suite_script in suites:
 		var suite = suite_script.new()  # Untyped: the members come from test_case.gd.
 		suite.run_all()
 		var suite_name := suite_script.resource_path.get_file().get_basename()
@@ -122,7 +149,9 @@ func _initialize() -> void:
 			print("FAIL  %s" % suite_name)
 			for failure in suite.failures:
 				print("      " + failure)
-			failure_count += suite.failures.size()
+			_failure_count += suite.failures.size()
 
-	print("%d failure(s)" % failure_count)
-	quit(1 if failure_count > 0 else 0)
+
+func _finish() -> void:
+	print("%d failure(s)" % _failure_count)
+	quit(1 if _failure_count > 0 else 0)
