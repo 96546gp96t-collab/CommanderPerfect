@@ -147,6 +147,11 @@ func _think_walk() -> void:
 		facing = way
 	walk_step = (walk_step + 1) % WALK_CYCLE.size()
 	sprite = picture(facing, WALK_CYCLE[walk_step])
+	# A step on the second and the fourth picture (Omni CK_MapKeenWalk).
+	if walk_step == 1:
+		world.play_sound(&"keen_walk_1")
+	elif walk_step == 3:
+		world.play_sound(&"keen_walk_2")
 
 
 ## An entrance under his box: the map ends (Omni CK_ScanForLevelEntry).
@@ -157,6 +162,7 @@ func _scan_for_entry() -> void:
 			if level >= first_entry and level <= last_entry:
 				map_position = position
 				entered = level
+				world.play_sound(&"enter_level")
 				world.complete(ENTERED)
 				return
 

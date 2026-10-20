@@ -63,6 +63,9 @@ var random_index := 0
 var tile_writer: Callable
 ## The same for the background plane (Keen 4's Miragia).
 var back_tile_writer: Callable
+## Called as (name, interrupt) to play a sound ([GalaxySoundPlayer.play]);
+## the episode gives the names their numbers. Unset: silent (tests).
+var sound_player: Callable
 ## The first frame after a level starts puts everything far from the view
 ## to sleep at once (the original's screen is still faded in).
 var _starting := true
@@ -100,6 +103,14 @@ func complete(how: StringName) -> void:
 ## Asks for message [param name] to be shown after this frame.
 func ask(name: StringName) -> void:
 	conversation = name
+
+
+## Plays the sound called [param name] (Omni SD_PlaySound); with
+## [param interrupt] the sound playing is stopped first, so any priority
+## plays (Omni SD_StopSound).
+func play_sound(name: StringName, interrupt := false) -> void:
+	if sound_player.is_valid():
+		sound_player.call(name, interrupt)
 
 
 ## Takes [param object] out at the end of the frame.
@@ -355,6 +366,9 @@ func _leave_at_bottom() -> void:
 		if not is_awake(object) or object.box.tile_bottom < map.height - 1:
 			continue
 		if object == keen:
+			# Omni CK_KeenCheckSpecialTileInfo: the fall, then the death.
+			play_sound(&"keen_fall")
+			play_sound(&"keen_die")
 			state = LevelState.DIED
 		else:
 			remove(object)

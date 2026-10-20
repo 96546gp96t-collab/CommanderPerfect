@@ -67,6 +67,7 @@ func _think_move() -> void:
 		return
 	var ahead := BITE_RIGHT if direction.x == 1 else BITE_LEFT
 	if dx > ahead.x and dx < ahead.y:
+		world.play_sound(&"wormmouth_bite")
 		_continue_as(&"bite_1")
 
 

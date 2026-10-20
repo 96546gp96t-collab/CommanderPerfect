@@ -76,6 +76,9 @@ func _think_aim() -> void:
 ## Think: the shot (Omni CK4_SpriteShoot).
 func _think_shoot() -> void:
 	var at := position + Vector2i(0, SHOT_DROP)
+	# Two sounds at once: the second (of higher priority) is heard (Omni).
+	world.play_sound(&"keen_shoot")
+	world.play_sound(&"sprite_shoot")
 	var shot := GalaxyEnemyShot.fire(
 		world, at, Vector2i(direction.x, 0), SHOT_ROWS, sprites, &"fly_1"
 	)

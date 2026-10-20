@@ -129,6 +129,7 @@ func is_thrown() -> bool:
 ## Think before the throw: off it goes (Omni CK_MapFlagThrown; the
 ## original waits until the map has faded in, the view does that).
 func _think_thrown() -> void:
+	world.play_sound(&"flag_flip", true)
 	action = action.next
 
 
@@ -142,6 +143,7 @@ func _think_fall() -> void:
 ## Think when it lands: in its holder (Omni CK_MapFlagLand).
 func _think_land() -> void:
 	position = target + Vector2i(0, LANDING_DROP)
+	world.play_sound(&"flag_land")
 
 
 static func _corner(cell: Vector2i) -> Vector2i:

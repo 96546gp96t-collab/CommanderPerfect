@@ -57,5 +57,7 @@ func _react_hop() -> void:
 	if hops == HOPS_PER_LEAP:
 		hops = 0
 		velocity.y = LEAP_SPEED
+		world.play_sound(&"mushroom_leap")
 	else:
+		world.play_sound(&"mushroom_hop")
 		velocity.y = HOP_SPEED

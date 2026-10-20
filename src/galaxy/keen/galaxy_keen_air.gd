@@ -86,6 +86,7 @@ func _think_jump() -> void:
 
 ## Think: a pogo bounce from the ground (Omni CK_KeenPogoBounceThink).
 func _think_pogo_bounce() -> void:
+	world.play_sound(&"keen_pogo")
 	velocity.y = POGO_SPEED
 	step.y = POGO_FIRST_LIFT * velocity.y
 	jump_timer = POGO_TICS
@@ -143,6 +144,7 @@ func _react_jump() -> void:
 				_become(&"run_1")
 			else:
 				_become(&"stand")
+			world.play_sound(&"keen_land")
 	elif moved.y > 0:
 		_grab_ledge()
 
@@ -160,6 +162,7 @@ func _react_pogo() -> void:
 	elif top_hit != GalaxyObject.ON_PLATFORM or jump_timer == 0:
 		velocity.y = POGO_SPEED
 		jump_timer = POGO_TICS
+		world.play_sound(&"keen_pogo")
 		_become(&"pogo_2")
 
 
@@ -217,6 +220,7 @@ func _bump_head() -> void:
 		velocity.x = 0
 		position.x = GalaxyUnits.from_tile(box.tile_middle) + POLE_HOLE_X
 		return
+	world.play_sound(&"keen_hit_ceiling")
 	if bottom_hit > FLAT:
 		velocity.y = maxi(velocity.y + CEILING_SLOW, 0)
 	else:

@@ -70,6 +70,7 @@ func rescue() -> void:
 		world.ask(JANITOR)
 		world.remove(self)
 	else:
+		world.play_sound(&"council_saved")
 		world.complete(RESCUED)
 
 

@@ -60,6 +60,7 @@ static func fire(
 
 ## It hits something: it stops and shows where (Omni CK_ShotHit).
 func hit() -> void:
+	world.play_sound(&"shot_hit")
 	spent = true
 	set_action(_actions[&"hit_1"])
 

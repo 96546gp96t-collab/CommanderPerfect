@@ -48,6 +48,7 @@ func _think_crawl() -> void:
 	if world.random() < SLIME_CHANCE:
 		direction.x = side_of_player()
 		_continue_as(&"sliming")
+		world.play_sound(&"slug_slime")
 
 
 ## Think: the slime it leaves (Omni CK4_SlugSlime).

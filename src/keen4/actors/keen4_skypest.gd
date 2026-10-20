@@ -106,6 +106,7 @@ func _contact_preening(other: GalaxyObject) -> void:
 	if other.action != null and other.action.name in POGO_ACTIONS and is_player(other):
 		squashed = true
 		_become(&"squashed")
+		world.play_sound(&"skypest_squish")
 
 
 ## React while flying: ceilings, walls and floors (Omni CK4_SkypestDraw).

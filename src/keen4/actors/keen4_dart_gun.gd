@@ -58,3 +58,4 @@ func _think_shoot() -> void:
 		world, position, HEADINGS[aim], DART_ROWS, sprites, DART_ACTIONS[aim]
 	)
 	dart.priority = 0
+	world.play_sound(&"dart_shoot")

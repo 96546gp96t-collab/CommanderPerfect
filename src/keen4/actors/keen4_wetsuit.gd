@@ -31,4 +31,5 @@ static func spawn(
 ## Contact: Keen standing on something takes it (Omni CK4_WetsuitCol).
 func _contact_wetsuit(other: GalaxyObject) -> void:
 	if is_player(other) and other.top_hit != 0 and world.ending != TAKEN:
+		world.play_sound(&"foot_appear")
 		world.complete(TAKEN)
