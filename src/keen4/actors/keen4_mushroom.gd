@@ -44,7 +44,7 @@ func _contact_mushroom(other: GalaxyObject) -> void:
 	if shot != null:
 		shot.hit()
 	elif is_player(other):
-		kill_player()
+		kill_player(other)
 
 
 ## React: a ceiling stops it; the floor bounces it (Omni CK4_MushroomDraw).

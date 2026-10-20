@@ -55,7 +55,7 @@ func is_caught() -> bool:
 
 ## Think: after Keen (Omni CK4_SchoolfishMove, CK4_DopefishMove).
 func _think_move() -> void:
-	var keen := world.player()
+	var keen := nearest_player()
 	if not bumped:
 		direction.x = 1 if position.x < keen.position.x else -1
 	GalaxyPhysics.accelerate_x_only(self, direction.x * ACCEL, top_speed)

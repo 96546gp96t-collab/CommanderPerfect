@@ -89,7 +89,7 @@ func _think_take_off() -> void:
 ## CK4_SkypestAirCol).
 func _contact_flying(other: GalaxyObject) -> void:
 	if is_player(other):
-		kill_player()
+		kill_player(other)
 	var shot := live_shot(other)
 	if shot == null:
 		return

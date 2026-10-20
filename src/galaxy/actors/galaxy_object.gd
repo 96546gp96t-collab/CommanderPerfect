@@ -194,7 +194,7 @@ func touched_by_player(_player: GalaxyObject, _holding: bool) -> void:
 
 ## Contact: it kills the player (Omni CK_LethalCol).
 func _contact_lethal(other: GalaxyObject) -> void:
-	if other == world.player() and other.has_method(&"kill"):
+	if world.is_player(other) and other.has_method(&"kill"):
 		other.call(&"kill")
 
 

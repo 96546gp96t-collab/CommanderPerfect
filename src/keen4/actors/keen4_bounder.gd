@@ -92,13 +92,22 @@ func _react_bounce() -> void:
 		velocity.x = -velocity.x
 
 
+## The Keen riding it (the first found when two play), or null.
+func _rider() -> GalaxyKeenBody:
+	for player in world.players():
+		var keen := player as GalaxyKeenBody
+		if keen != null and keen.platform == self:
+			return keen
+	return null
+
+
 func _bounce() -> void:
 	if world.on_screen(self):
 		world.play_sound(&"mushroom_leap")
 	bounces += 1
 	velocity.y = BOUNCE_SPEED
-	var keen := world.player() as GalaxyKeenBody
-	if keen != null and keen.platform == self:
+	var keen := _rider()
+	if keen != null:
 		bounces = 0
 		if keen.box.left < box.left - STEER_MARGIN:
 			direction.x = -1

@@ -53,7 +53,7 @@ static func spawn(
 
 ## Whether Keen's box is level with its own.
 func sees_player() -> bool:
-	var keen := world.player()
+	var keen := nearest_player()
 	return keen.box.top < box.bottom and keen.box.bottom > box.top
 
 
@@ -62,7 +62,7 @@ func sees_player() -> bool:
 func _think_patrol() -> void:
 	Keen4Lindsey.bob(self, home, BOB_ACCEL, BOB_MAX, BOB_REACH)
 	if sees_player():
-		direction.x = -1 if world.player().position.x < position.x else 1
+		direction.x = -1 if nearest_player().position.x < position.x else 1
 		_continue_as(&"aim")
 
 

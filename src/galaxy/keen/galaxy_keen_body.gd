@@ -218,11 +218,11 @@ func _shoot(offset: Vector2i, heading: Vector2i) -> void:
 
 
 ## Think while dying: he flies on under gravity mid; once out of the view
-## the level is lost (Omni CK_KeenDeathThink).
+## (his own, when two play) the level is lost (Omni CK_KeenDeathThink).
 func _think_dying() -> void:
 	GalaxyPhysics.gravity_mid(self)
 	step.x = velocity.x * world.tics
-	if not world.on_screen(self):
+	if not world.on_own_screen(self):
 		world.state = GalaxyWorld.LevelState.DIED
 
 

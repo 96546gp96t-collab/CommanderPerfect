@@ -21,7 +21,8 @@ extends Node2D
 ##
 ## The objects themselves ([GalaxyObject], run by [GalaxyWorld]) are shown
 ## with [method show_objects] after every logic frame; this layer only
-## knows what to draw where.
+## knows what to draw where. An object can be drawn with a material of its
+## own ([method tint]: the second player's Keen in his colours, D12).
 
 
 ## One sprite on the layer.
@@ -56,6 +57,8 @@ var _textures: Dictionary[int, Texture2D] = {}
 var _shown: Dictionary[GalaxyObject, Item] = {}
 ## The items of the overlays of every object shown ([GalaxyObject.Overlay]).
 var _overlays: Dictionary[GalaxyObject, Array] = {}
+## The materials objects are drawn with, when not the plain one.
+var _tints: Dictionary[GalaxyObject, Material] = {}
 
 
 ## The z index of a sprite of [param priority]: 0-2 above the tiles and
@@ -154,6 +157,7 @@ func show_objects(objects: Array[GalaxyObject]) -> void:
 			if not shown:
 				continue
 			item = add(object.sprite, object.position + object.draw_offset, object.priority)
+			item.node.material = _tints.get(object)
 			_shown[object] = item
 		_show(item, shown, object.sprite, object.position + object.draw_offset, object.priority)
 		_show_overlays(object, shown)
@@ -162,10 +166,24 @@ func show_objects(objects: Array[GalaxyObject]) -> void:
 			remove(_shown[object])
 			_shown.erase(object)
 			_show_overlays(object, false)
+	for object in _tints.keys():
+		if not present.has(object):
+			_tints.erase(object)
 
 
 func items() -> Array[Item]:
 	return _items
+
+
+## Draws [param object] with [param material] from now on (null: plainly).
+func tint(object: GalaxyObject, material: Material) -> void:
+	if material == null:
+		_tints.erase(object)
+	else:
+		_tints[object] = material
+	var item: Item = _shown.get(object)
+	if item != null:
+		item.node.material = material
 
 
 ## Puts every sprite [param blend] of the way from the previous logic frame

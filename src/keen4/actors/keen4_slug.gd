@@ -63,7 +63,7 @@ func _think_slime() -> void:
 ## Contact: it kills Keen; a shot stuns it (Omni CK4_SlugCol).
 func _contact_slug(other: GalaxyObject) -> void:
 	if is_player(other):
-		kill_player()
+		kill_player(other)
 		return
 	var shot := live_shot(other)
 	if shot == null:

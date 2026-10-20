@@ -77,10 +77,10 @@ func holds(keen: GalaxyObject) -> bool:
 ## Think at the end of the hidden tics: it appears, unless Keen is there
 ## (Omni CK4_Miragia0).
 func _think_appear() -> void:
-	var keen := world.player()
-	if keen != null and holds(keen):
-		action = _actions[&"fade_3"]
-		return
+	for keen in world.players():
+		if holds(keen):
+			action = _actions[&"fade_3"]
+			return
 	_show_column(COLUMNS[&"hidden"])
 
 

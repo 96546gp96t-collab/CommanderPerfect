@@ -45,7 +45,7 @@ func _contact_arachnut(other: GalaxyObject) -> void:
 	if live_shot(other) != null:
 		_contact_stunned(other)
 	elif is_player(other):
-		kill_player()
+		kill_player(other)
 
 
 ## Contact while stunned: a shot stuns it again (Omni

@@ -57,7 +57,7 @@ static func spawn(
 ## Think while moving: peek when Keen is far, bite when he is close in
 ## front (Omni CK4_WormmouthMove).
 func _think_move() -> void:
-	var keen := world.player()
+	var keen := nearest_player()
 	var dx := keen.position.x - position.x
 	var dy := keen.box.bottom - box.bottom
 	if absi(dx) > PEEK_DISTANCE and world.random() < PEEK_CHANCE:
@@ -74,19 +74,19 @@ func _think_move() -> void:
 ## Think: Keen on the left: it goes left at once (Omni
 ## CK4_WormmouthLookLeft).
 func _think_look_left() -> void:
-	if world.player().position.x < position.x:
+	if nearest_player().position.x < position.x:
 		direction.x = -1
 		_continue_as(&"move")
 
 
 func _think_look_right() -> void:
-	if world.player().position.x > position.x:
+	if nearest_player().position.x > position.x:
 		direction.x = 1
 		_continue_as(&"move")
 
 
 func _think_go_to_player() -> void:
-	direction.x = 1 if world.player().position.x > position.x else -1
+	direction.x = 1 if nearest_player().position.x > position.x else -1
 
 
 ## Contact while peeking: a shot stuns it (Omni CK4_WormmouthCheckShot).
@@ -104,6 +104,6 @@ func _contact_bite(other: GalaxyObject) -> void:
 			or (direction.x == -1 and position.x >= other.position.x)
 		)
 		if in_front:
-			kill_player()
+			kill_player(other)
 			return
 	_contact_shot(other)

@@ -52,7 +52,7 @@ static func spawn(
 ## Think while sitting: Keen looking away makes it sneak after him (Omni
 ## CK4_MimrockWait).
 func _think_wait() -> void:
-	var keen := world.player()
+	var keen := nearest_player()
 	if absi(box.bottom - keen.box.bottom) > SEE_HEIGHT:
 		return
 	if absi(position.x - keen.position.x) <= SNEAK_DISTANCE:
@@ -66,7 +66,7 @@ func _think_wait() -> void:
 ## Think while sneaking: close behind Keen it leaps; once he turns round it
 ## sits again (Omni CK4_MimrockCheckJump).
 func _think_sneak() -> void:
-	var keen := world.player()
+	var keen := nearest_player()
 	var near := absi(box.bottom - keen.box.bottom) <= SEE_HEIGHT
 	if not near or direction.x != keen.direction.x:
 		_continue_as(&"sit")
@@ -92,7 +92,7 @@ func _contact_mimrock(other: GalaxyObject) -> void:
 ## Contact while leaping: Keen dies (Omni CK4_MimrockAirCol).
 func _contact_leaping(other: GalaxyObject) -> void:
 	if is_player(other):
-		kill_player()
+		kill_player(other)
 	else:
 		_contact_mimrock(other)
 

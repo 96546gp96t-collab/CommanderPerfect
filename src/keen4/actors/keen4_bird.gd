@@ -70,7 +70,7 @@ static func _new_bird(
 	var bird := Keen4Bird.new()
 	bird.priority = shown_at
 	bird.simple_box_size = FLYING_BOX
-	bird.direction = Vector2i(1 if at.x < world.player().position.x else -1, 1)
+	bird.direction = Vector2i(1 if at.x < world.nearest_player(at).position.x else -1, 1)
 	bird.enter(world, at, ROWS, sprites, &"hatched")
 	return bird
 
@@ -79,7 +79,7 @@ static func _new_bird(
 ## it and it fits in the air (Omni CK4_BirdWalk).
 func _think_walk() -> void:
 	direction.x = side_of_player()
-	var keen := world.player()
+	var keen := nearest_player()
 	if box.bottom < keen.box.bottom + FLY_HEIGHT or keen.top_hit == 0:
 		return
 	if _fits(actions[&"fly_1"]):
@@ -94,7 +94,7 @@ func _think_fly() -> void:
 	if not bumped:
 		direction.x = side_of_player()
 	GalaxyPhysics.accelerate_x_only(self, direction.x * FLY_ACCEL, FLY_SPEED)
-	var down := position.y < world.player().position.y
+	var down := position.y < nearest_player().position.y
 	GalaxyPhysics.accelerate_y(self, FLY_ACCEL if down else -FLY_ACCEL, FLY_SPEED)
 
 
@@ -106,7 +106,7 @@ func _think_recover() -> void:
 ## CK4_BirdCol).
 func _contact_bird(other: GalaxyObject) -> void:
 	if is_player(other):
-		kill_player()
+		kill_player(other)
 	elif live_shot(other) != null:
 		clip = Clip.NORMAL
 		_contact_hatched(other)
@@ -142,7 +142,7 @@ func _react_fly() -> void:
 	if (right_hit != 0 and velocity.x < 0) or (left_hit != 0 and velocity.x > 0):
 		velocity.x = 0
 		direction.x = -direction.x
-	if top_hit == FLAT and world.player().box.bottom - box.bottom < LAND_DEPTH:
+	if top_hit == FLAT and nearest_player().box.bottom - box.bottom < LAND_DEPTH:
 		_try_landing()
 		return
 	if bottom_hit == 0 and top_hit == 0:

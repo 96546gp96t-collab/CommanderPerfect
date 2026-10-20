@@ -83,7 +83,7 @@ static func spawn(
 ## Think while floating: it turns to Keen, throws now and then, and
 ## throws when he is ahead (Omni CK4_BerkeloidMove).
 func _think_move() -> void:
-	var keen := world.player()
+	var keen := nearest_player()
 	if world.random() < TURN_CHANCE:
 		direction.x = -1 if keen.position.x < position.x else 1
 	if world.random() < THROW_CHANCE:
@@ -122,7 +122,7 @@ func _contact_berkeloid(other: GalaxyObject) -> void:
 	if shot != null:
 		shot.hit()
 	elif is_player(other):
-		kill_player()
+		kill_player(other)
 
 
 ## React of a fireball in the air: walls stop it, the ground sets it

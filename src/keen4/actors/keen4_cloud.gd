@@ -62,7 +62,7 @@ func is_awake_cloud() -> bool:
 
 ## Think: after Keen, and over him it aims (Omni CK4_CloudMove).
 func _think_move() -> void:
-	var keen := world.player()
+	var keen := nearest_player()
 	if world.random() < world.tics:
 		direction.x = -1 if keen.position.x < position.x else 1
 	GalaxyPhysics.accelerate_x(self, direction.x * ACCEL, SPEED)

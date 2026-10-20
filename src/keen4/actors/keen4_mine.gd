@@ -36,4 +36,4 @@ func _contact_mine(other: GalaxyObject) -> void:
 		return
 	_become(&"explode_1")
 	world.play_sound(&"mine_explode")
-	kill_player()
+	kill_player(other)

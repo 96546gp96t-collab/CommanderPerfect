@@ -82,19 +82,26 @@ static func live_shot(other: GalaxyObject) -> GalaxyStunnerShot:
 	return shot if shot != null and not shot.spent else null
 
 
-## Whether [param other] is the player.
+## Whether [param other] is a player's Keen.
 func is_player(other: GalaxyObject) -> bool:
-	return other == world.player()
+	return world.is_player(other)
 
 
-## Kills the player (Omni CK_KillKeen).
-func kill_player() -> void:
-	_contact_lethal(world.player())
+## Kills [param keen], the first player's when not given (Omni
+## CK_KillKeen).
+func kill_player(keen: GalaxyObject = null) -> void:
+	_contact_lethal(keen if keen != null else world.player())
 
 
-## 1 when the player is to its right, otherwise -1.
+## The Keen it goes after: the player's; with two players the nearest
+## ([method GalaxyWorld.nearest_player]).
+func nearest_player() -> GalaxyObject:
+	return world.nearest_player(position)
+
+
+## 1 when the Keen it goes after is to its right, otherwise -1.
 func side_of_player() -> int:
-	return 1 if position.x < world.player().position.x else -1
+	return 1 if position.x < nearest_player().position.x else -1
 
 
 ## Right (1) or left (-1), by a coin toss of [param world]'s random table.

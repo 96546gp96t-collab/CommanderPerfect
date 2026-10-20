@@ -60,7 +60,7 @@ static func spawn(
 ## Think before a hop: fire when Keen is close in front, otherwise hop
 ## after him (Omni CK4_LickMove).
 func _think_hop() -> void:
-	var keen := world.player()
+	var keen := nearest_player()
 	direction.x = -1 if position.x > keen.position.x else 1
 	var dx := keen.position.x - position.x
 	var dy := keen.position.y - position.y
@@ -90,7 +90,7 @@ func _contact_flame(other: GalaxyObject) -> void:
 			or (direction.x == -1 and other.position.x < position.x)
 		)
 		if in_front:
-			kill_player()
+			kill_player(other)
 			return
 	_contact_shot(other)
 

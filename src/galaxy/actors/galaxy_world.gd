@@ -1,5 +1,5 @@
 class_name GalaxyWorld
-extends RefCounted
+extends GalaxyWorldPlayers
 ## The objects of a Galaxy level and one logic frame of them, in the
 ## original's order (Omni `ck_play.c:CK_PlayLoop`, facts only;
 ## docs/keen4/research.md §3):
@@ -18,6 +18,11 @@ extends RefCounted
 ##   6. every object that moved or changed reacts (its [code]react[/code]).
 ## The camera follows afterwards ([GalaxyCamera], by the level session).
 ## The player is the first object; the original keeps at most 100.
+## Two players (ours, milestone D12): the second Keen is [member partner],
+## with a camera of his own ([member partner_camera]); objects wake up in
+## either view and fall asleep only far from both, steps 2, 4 and 5 are
+## done for each Keen, and the creatures go after the nearest one
+## ([method nearest_player]). Alone everything is as the original's.
 
 enum LevelState { PLAYING, DIED, COMPLETED }
 
@@ -30,16 +35,11 @@ const SLEEP_MARGIN := 4
 const RANDOM_RANGE := 256
 const SLEEP_CHANCE_PER_TIC := 2
 const RANDOM_MASK := 0xFF
-## The original's view, in tiles (320 × 208 pixels).
-const VIEW_TILES := GalaxyCamera.VIEW_TILES
 
 var map: GalaxyMap
 var tile_info: GalaxyTileInfo
 var sprite_infos: Array[GalaxySpriteInfo] = []
 var clip: GalaxyClip
-## Where the view is (for waking up, and for what is on the screen).
-var camera: GalaxyCamera
-var objects: Array[GalaxyObject] = []
 ## The tics of the frame being run, and the absolute tic it ends on (it
 ## covers [code]tic - tics[/code] … [code]tic - 1[/code]).
 var tics := GalaxyClock.NORMAL_TICS
@@ -82,9 +82,21 @@ static func create(
 	return world
 
 
-## The player: the first object.
-func player() -> GalaxyObject:
-	return objects[0] if not objects.is_empty() else null
+## Puts [param keen] in the world as the second player's Keen, right after
+## the first, with his own [param view].
+func add_partner(keen: GalaxyObject, view: GalaxyCamera) -> void:
+	keen.world = self
+	objects.insert(mini(1, objects.size()), keen)
+	partner = keen
+	partner_camera = view
+
+
+## The second player leaves.
+func remove_partner() -> void:
+	if partner != null:
+		objects.erase(partner)
+	partner = null
+	partner_camera = null
 
 
 ## Puts [param object] in the world (after the others); returns it.
@@ -130,12 +142,14 @@ func run_frame(frame_tics: int, end_tic: int) -> void:
 		if not object.removed and _wake_or_sleep(object):
 			_run_action(object)
 	_starting = false
-	var keen := player()
-	if keen != null and keen.has_method(&"_ride_platform"):
-		keen.call(&"_ride_platform")
+	var keens := players()
+	for keen in keens:
+		if keen.has_method(&"_ride_platform"):
+			keen.call(&"_ride_platform")
 	_contacts()
-	if keen != null and keen.has_method(&"_touch_tiles"):
-		keen.call(&"_touch_tiles")
+	for keen in keens:
+		if keen.has_method(&"_touch_tiles"):
+			keen.call(&"_touch_tiles")
 	_leave_at_bottom()
 	_react()
 	objects = objects.filter(func(object: GalaxyObject) -> bool: return not object.removed)
@@ -209,50 +223,18 @@ func set_info(cell: Vector2i, value: int) -> void:
 	map.planes[GalaxyMap.Layer.INFO][cell.y * map.width + cell.x] = value
 
 
-## Whether [param object]'s box lies (partly) in the view (Omni
-## CK_ObjectVisible).
-func on_screen(object: GalaxyObject) -> bool:
-	var view := _view_tiles()
-	var box := object.box
-	return not (
-		box.tile_right < view.position.x
-		or box.tile_bottom < view.position.y
-		or box.tile_left > view.end.x
-		or box.tile_top > view.end.y
-	)
-
-
-## The view as tiles: its first tile and (as end) the tile after its
-## last whole one, as the original counts.
-func _view_tiles() -> Rect2i:
-	var scroll := camera.scroll if camera != null else Vector2i.ZERO
-	var first := Vector2i(GalaxyUnits.to_tile(scroll.x), GalaxyUnits.to_tile(scroll.y))
-	return Rect2i(first, VIEW_TILES)
-
-
-## Wakes [param object] up near the view, puts it to sleep far from it;
-## returns whether it runs this frame.
+## Wakes [param object] up near the view (either view), puts it to sleep
+## far from it (from both); returns whether it runs this frame.
 func _wake_or_sleep(object: GalaxyObject) -> bool:
-	var view := _view_tiles()
-	var box := object.box
+	var views: Array[Rect2i] = [_view_tiles(camera)]
+	if partner_camera != null:
+		views.append(_view_tiles(partner_camera))
 	if object.activity == GalaxyObject.Activity.INACTIVE:
-		var near := (
-			box.tile_right >= view.position.x - WAKE_MARGIN
-			and box.tile_left <= view.end.x + WAKE_MARGIN
-			and box.tile_top <= view.end.y + WAKE_MARGIN
-			and box.tile_bottom >= view.position.y - WAKE_MARGIN
-		)
-		if not near:
+		if not _near_any(object.box, views):
 			return false
 		object.activity = GalaxyObject.Activity.ACTIVE
 		object.needs_react = true
-	var far := (
-		box.tile_right < maxi(view.position.x - SLEEP_MARGIN, 0)
-		or box.tile_left > view.end.x + SLEEP_MARGIN
-		or box.tile_top > view.end.y + SLEEP_MARGIN
-		or box.tile_bottom < maxi(view.position.y - SLEEP_MARGIN, 0)
-	)
-	if far:
+	if _far_from_all(object.box, views):
 		match object.activity:
 			GalaxyObject.Activity.ON_SCREEN_ONLY:
 				remove(object)
@@ -262,6 +244,38 @@ func _wake_or_sleep(object: GalaxyObject) -> bool:
 					object.activity = GalaxyObject.Activity.INACTIVE
 					return false
 	return true
+
+
+static func _near_any(box: GalaxyObject.Box, views: Array[Rect2i]) -> bool:
+	for view in views:
+		if _is_near(box, view):
+			return true
+	return false
+
+
+static func _far_from_all(box: GalaxyObject.Box, views: Array[Rect2i]) -> bool:
+	for view in views:
+		if not _is_far(box, view):
+			return false
+	return true
+
+
+static func _is_near(box: GalaxyObject.Box, view: Rect2i) -> bool:
+	return (
+		box.tile_right >= view.position.x - WAKE_MARGIN
+		and box.tile_left <= view.end.x + WAKE_MARGIN
+		and box.tile_top <= view.end.y + WAKE_MARGIN
+		and box.tile_bottom >= view.position.y - WAKE_MARGIN
+	)
+
+
+static func _is_far(box: GalaxyObject.Box, view: Rect2i) -> bool:
+	return (
+		box.tile_right < maxi(view.position.x - SLEEP_MARGIN, 0)
+		or box.tile_left > view.end.x + SLEEP_MARGIN
+		or box.tile_top > view.end.y + SLEEP_MARGIN
+		or box.tile_bottom < maxi(view.position.y - SLEEP_MARGIN, 0)
+	)
 
 
 ## Runs [param object]'s action for the frame's tics (Omni CK_RunAction):
@@ -359,13 +373,12 @@ func _contacts() -> void:
 				other.call(other.action.contact, one)
 
 
-## An object at the last row of the map is gone; the player dies there.
+## An object at the last row of the map is gone; a player dies there.
 func _leave_at_bottom() -> void:
-	var keen := player()
 	for object in objects:
 		if not is_awake(object) or object.box.tile_bottom < map.height - 1:
 			continue
-		if object == keen:
+		if is_player(object):
 			# Omni CK_KeenCheckSpecialTileInfo: the fall, then the death.
 			play_sound(&"keen_fall")
 			play_sound(&"keen_die")

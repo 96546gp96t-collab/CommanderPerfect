@@ -40,10 +40,13 @@ static func spawn(
 	return platform
 
 
-## Whether Keen stands on it now.
+## Whether Keen (either, when two play) stands on it now.
 func carries_player() -> bool:
-	var keen := world.player() as GalaxyKeenBody
-	return keen != null and keen.platform == self
+	for player in world.players():
+		var keen := player as GalaxyKeenBody
+		if keen != null and keen.platform == self:
+			return true
+	return false
 
 
 ## Think while floating: under Keen it sinks, and past half a tile it

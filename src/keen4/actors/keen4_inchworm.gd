@@ -90,7 +90,7 @@ func is_worm() -> bool:
 
 ## Think: towards Keen (Omni CK4_InchwormMove).
 func _think_creep() -> void:
-	direction.x = -1 if position.x > world.player().position.x else 1
+	direction.x = -1 if position.x > nearest_player().position.x else 1
 
 
 ## Contact: worms count the worms they touch (Omni CK4_InchwormCol).
