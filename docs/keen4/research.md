@@ -574,7 +574,10 @@ branches; the cheats and warp in §9 help):
    next to Keen, 25 s) he hopped about and against the edge of the view
    but no teleport was caught; ours teleports to the last item still lying
    in the level and is gone only when there is none (architecture.md,
-   "Deviations in D5", 9). Still open.
+   "Deviations in D5", 9). D13: watched 70 s (level 6, Smirky put next to
+   Keen): he stood 40 tics, hopped left to the wall, jumped for the items
+   above, hopped right and left the view after 11 s; no puff in the view.
+   Still open (a teleport off screen cannot be seen).
 5. ~~**Info 13**: an egg on every difficulty (Omnispeak) or a bird on
    Normal/Hard (CG)?~~ Done in D5: an egg on Normal (the shot broke it: the
    shell, the bits and the bird appeared), as Omnispeak.
@@ -594,13 +597,17 @@ branches; the cheats and warp in §9 help):
    was not reached in level 17 within the time; a scratch map with it
    next to Keen is the way), the sprites under water and the mines: all
    Omnispeak's numbers. Also open: after the wetsuit's first box the
-   first key press seemed not to be taken (one try).
+   first key press seemed not to be taken (one try). D13: the falling
+   platform seen (as ours, "Watched in D13: estimates"); the switch, the
+   horizontal turn, the Dopefish, the sprites under water, the mines and
+   the wetsuit's key still open.
 10. **The speeds and timers of every enemy**, as far as Omnispeak's numbers
    are not trusted; looking at an enemy while Keen stands still is enough
    for most. D5: the Bounder, Mad Mushroom, bird, Arachnut, Skypest,
    Lick, Berkeloid and Mimrock watched (see "Watched in D5"); all as
    Omnispeak. Not watched: the slug's slime, Wormmouth, cloud, inchworms
-   and the Foot, the dart guns, Smirky's teleport.
+   and the Foot, the dart guns, Smirky's teleport. D13: Smirky's stand
+   (40 tics) and hops seen; the others still open (time).
 
 ## 13. Questions for the user
 
@@ -961,6 +968,60 @@ frame (70 frames a second).
 | Music | StopMusic before the panel in a game, StartMusic after | stops at once (also from the story in the title loop); Return to Game: the map's song from its start; Return to Demo: the next demo with its song | the same |
 | Cursors | selectedItem per card | Configure keeps its cursor between visits | Configure, Options, keys |
 
+### Watched in D13: estimates (js-dos, the user's v1.0)
+
+Headless js-dos as before (port 8782), Normal, debug keys, god mode, warp,
+"free items" (F10+I: the four gems, 99 charges, 3,000 points, the
+wetsuit). A scratch `GAMEMAPS.CK4` (scratchpad only) moved Keen's start in
+levels 2 (over a falling platform put two tiles below him, a turn point
+under it), 3 (in the air beside a ledge, facing right), 4 (two tiles left
+of a gem holder) and 5 (beside a ledge, facing left), and put Smirky next
+to Keen in level 6. Every changed frame recorded; Keen, the platform and
+Smirky found in each frame by matching our decoded sprites exactly
+(anchored on the sprite's rarest colour in the frame: a second for a
+recording); the view's movement by matching the background; our engine
+played the same scratch levels headless with the same keys and printed
+each sprite's screen pixel (`GalaxyObjectLayer.pixel_of`) for the
+comparison. Boxes laid over the original's frames pixel by pixel.
+
+| What | Omnispeak | The original (v1.0) | Ours | |
+|---|---|---|---|---|
+| Bored (after looking up) | 90, 10, 90, 10, 90, 70 tics | WAIT_2 / WAIT_1 pictures 1,283, 143, 1,285, 142, 1,285 and 998 ms: exactly 90, 10, 90, 10, 90, 70 tics | the same | done |
+| The book | 700 tics after the boredom began; SIT 4 × 16, READ 300, 16, 16; stowing 3 × 12 | the book 10,015 ms (701 tics) after the boredom began (its own 360 tics count); 235, 221, 230, 228 ms; READ_1 4,281 ms (300), READ_2 and 3 228 ms (16); a key: three pictures of 172 ms (12), then he runs | the same | done |
+| Looking up after 200 tics | 60 tics | not caught (it went by before the recording began) | 200 / 60 (Omni) | left (time) |
+| Moon (level 11) | instead of the boredom | not watched | Omni | left (time) |
+| Gem door (level 4) | Keen walks to the holder; the door's tiles + 1 three times, 10 tics apart | from the first step to the holder to Keen standing again 405 ms (28 tics); the door's tiles change at that frame, then 142 and 142 ms later (10 tics) | 26-28 tics (frame steps), the door at the same frame, 10 tics apart | done |
+| Falling platform (level 2) | sinks 16 a tic for 128 units, then gravity high; stops on a turn point; rises 32 a tic | Keen lands, then the platform's top at +8 / +18 / +26 / +30 / +34 tics: 8, 15, 30, 41, 48 pixels down, standing from 34 tics; Keen jumps off: it rises 4 px a frame (32 a tic) back to its place, the first move ~10 tics after the jump | the same track to the pixel (8, 16, 31, 41, 48 at those tics, standing from 36); the rise 32 a tic, the first move 6 tics after the jump | done (the rise starts ~4 tics later in the original: one try, within the recording's frame steps; not changed) |
+| Pulling up a ledge, facing right (level 3, two recordings) | hang 12 tics; pulls 4 × 10 tics: (0, −256), (+128, 0), (+128, −128), (0, −128), (0, +128) | the four climbing pictures 579 ms (40.5 tics): 4 × 10 as Omnispeak; the pictures sit at hang + (0, 0), (+128, −128), (+256, −256), (+128, ≈ −495) and Keen **stands at hang + 128** sideways, then runs on 176, 178, 182, 184, 188, 190, 192 px (both recordings the same) | was: stands at hang + 256 (8 px further on); **now** the first pull does not move him sideways: he stands at hang + 128 and runs on over the same pixels (one frame later); the pictures in between still differ (below) | **fixed: the end** |
+| Pulling up a ledge, facing left (level 5, second recording) | hang (0, −128); pulls (0, −128), (−128, −128), (0, −128), (0, +128) | hang pictures equal to ours to the pixel; climbing pictures at hang + (0, 0), (0, −128), (−256, ≈ −288), (−128, −512); stands at hang − 128 | the same hang, the same end (hang − 128) and the same run; the first three climbing pictures 128 units higher (and the third 128 less far) | done (end); the pictures left |
+| A ledge's lip, facing left (level 5) | — | Keen started over the gap beside the ledge with left held: he **landed on the ledge** in the first frames and ran on | he falls into the gap and grabs the ledge (hang, pull) | left (below) |
+| Status window with items | CK_DrawStatusWindow | four gems, 99 charges, 3,000 points, the wetsuit, "Chasm of Chills", Normal | **0 pixels differ** (`Keen4StatusWindow.window` over the original's frame) | done |
+| "Game Over!" | 4 s or a key (IN_UserInput) | the window (**0 pixels differ** with ours) over the last picture of the level, up **4,758 ms** (333 tics), then the fade (three steps of 6 tics), black, the high scores and the title | 4 s | **fixed: 333 tics** |
+| Smirky's teleport (level 6) | after two misses | 70 s watched: stood 40 tics (two pictures of 20), hopped left to the wall, jumped for the items above, hopped right out of the view after 11 s; no puff in the view | Omni with our teleport rule | left (§12 point 4) |
+| Dopefish, the sprites under water, mines | Omni | not watched (the scratch level 17 with the Dopefish was not reached in the time) | Omni | left (time) |
+| Slug, Wormmouth, cloud, inchworms, the Foot, dart guns, fireball's burn | Omni | not watched | Omni | left (time) |
+| A switch and a platform, a horizontal turn | Omni | not watched | Omni | left (time) |
+| The wetsuit's first key press | — | not watched | — | left (time) |
+| The load timings of "Keen enters" | — | D7: the fingers 130-630 ms apart (the time to read the files) | 4 × 20 tics | left as decided in D7 |
+| High-score entry, the end | — | compared in D8 (0 pixels differ) | — | done in D8 |
+
+**The ledge.** Three recordings with a full pull (two facing right, one
+facing left) agree on the timings (Omnispeak's) and on where Keen ends:
+one step (128 units) from where he hung, towards the ledge, facing either
+way. Omnispeak's first pull moves him a step sideways when he faces right
+(and lifts him when he faces left), which ends him 128 units further on;
+ours now lifts him only when he faces left and leaves him in place when he
+faces right (his hang already lifted him twice as far), so both
+directions end as the original and his walk afterwards is the original's
+to the pixel. The climbing pictures in between are drawn elsewhere in the
+original (the first at the hang's height, then up 128 a picture, and the
+third one step further sideways than the end) by a rule that does not fit
+Omnispeak's moves in either order; left as they are (each picture is up
+for 10 tics). Facing left, starting in the air right beside the ledge's
+top with left held, the original lands on the ledge where ours
+(Omnispeak's clipping) catches the wall and hangs: a lip case of the
+clipping, left open.
+
 ## Lessons for the new-episode guide
 
 
@@ -1036,3 +1097,11 @@ file is not changed now because another session is working on it.)
 - D10: a deterministic engine can save a level as its start plus the
   frames since and play them again when loading; a save-and-load
   screenshot pair (identical outside the box) proves it.
+- D13: to find a sprite in a recorded frame fast, anchor the exact match
+  on the sprite's colour that is rarest in that frame (a second for a
+  whole recording instead of minutes); and move Keen's *start* in a
+  scratch map next to what is to be measured (a ledge, a gem holder, over
+  a falling platform), then play the same scratch map in our engine with
+  the same keys and print each sprite's screen pixel for the comparison.
+- D13: the debug key F10+I ("Free items!") gives the gems, 99 charges,
+  3,000 points and the wetsuit, enough for gem doors and the status window.

@@ -1127,3 +1127,40 @@ Two players and online (docs/keen4/gameplay.md, "Two players (D12)",
     `OnlineProtocol.GAME_ID_KEEN_4` (the same text).
 12. New folders: `src/galaxy/online/` (fingerprint, messages, snapshot)
     and `src/keen4/online/` (box names, Keen 4's numbers).
+
+## Deviations in D13 B
+
+What D13 part B (the remaining estimates next to the original) changed,
+and why (developer, D13 B); the measurements are in research.md,
+"Watched in D13: estimates":
+
+1. **Measured and kept**: Keen's idle animations (boredom, the book,
+   stowing it), the four 10-tic pulls up a ledge, the gem door (its three
+   10-tic steps, the first when Keen stands again), the falling platform's
+   whole track (sinking, falling, the turn point, rising 32 a tic), the
+   status window with items (0 pixels differ) and the "Game Over!" window
+   (0 pixels differ). No code changed for them; `test_keen4_d13_seen`
+   pins their numbers (and the ledge's end, 3).
+2. **Changed: "Game Over!" stays 333 tics** (`Keen4View.GAME_OVER_TICS`;
+   seen 4,758 ms, Omnispeak's CK_GameOver waits 4 s), still ended by a
+   key. It is outside a level's logic frames, so it does not touch saved
+   games.
+3. **Changed: the end of a pull up a ledge facing right.** Three
+   recordings show Keen ending one step (128 units) from where he hung,
+   facing either way; Omnispeak's first pull moves him a step sideways
+   when he faces right, so he ended 8 pixels further on. `GalaxyKeen
+   _think_pull_1` now lifts him only when he faces left and does nothing
+   when he faces right; his walk afterwards matches the original's pixel
+   for pixel. A logic change: an in-level save made before it restarts
+   its level when loaded (the designed fallback of D10). Seen but not
+   built: the climbing pictures in between (drawn elsewhere by a rule that
+   fits neither order of Omnispeak's moves) and the ledge's lip (the
+   original lands where ours hangs); ours stays Omnispeak's there until a
+   rule fits, since a wrong one would put Keen inside walls elsewhere.
+4. **Not measured (time)**: looking up (it went by before the recording),
+   the moon, the switch and the platforms' turn, the Dopefish, the
+   sprites under water and the mines, the slug's slime, the Wormmouth, the
+   cloud and its bolt, the inchworms and the Foot, the dart guns, the
+   fireball's burn, the wetsuit's first key press, Smirky's teleport (70 s
+   watched, no puff in the view). They stay Omnispeak's numbers.
+5. **Shared files changed**: only `tests/run_tests.gd` (one suite).
