@@ -1,11 +1,12 @@
 #!/bin/sh
 # Takes a fixed set of Keen 4 screenshots (level 1 and level 11, each in
 # widescreen and in 4:3; since D7 also the world map in both and its
-# status window in 4:3), so that a later milestone can show that Keen 4
-# still looks exactly the same. The same shape as
+# status window in 4:3; since D8 the intro credits in both, the help menu
+# and a help page), so that a later milestone can show that Keen 4 still
+# looks exactly the same. The same shape as
 # tools/keen2_regression.sh: it needs the player's own Keen 4 files in
-# game_data/keen4 and a display (on Linux it uses xvfb-run). The title
-# follows once Keen 4 has one (D8). Run it with an empty user folder: F2
+# game_data/keen4 and a display (on Linux it uses xvfb-run). Run it with
+# an empty user folder: F2
 # switches between widescreen and 4:3 and is remembered (each run switches
 # back at the end).
 #
@@ -42,6 +43,7 @@ shoot() {
 shoot "40:shot_keen4_level1_wide,41:F2,50:shot_keen4_level1,51:F2" --level=1
 shoot "40:shot_keen4_level11_wide,41:F2,50:shot_keen4_level11,51:F2" --level=11
 shoot "40:shot_keen4_map_wide,41:F2,50:shot_keen4_map,52:Enter,80:shot_keen4_map_status,81:Space,110:F2" --level=0
+shoot "300:shot_keen4_intro_wide,301:F2,310:shot_keen4_intro,311:F1,320:shot_keen4_help,321:Enter,330:shot_keen4_help_page,331:F2"
 
 if [ -n "$BASE" ]; then
 	status=0
