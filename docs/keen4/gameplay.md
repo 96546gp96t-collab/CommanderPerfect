@@ -4,7 +4,8 @@ What a Keen 4 level does in CommanderPerfect so far, and where its numbers
 come from. Written in milestone D3 (drawing a level), D4 (Keen moves), D5 (the
 creatures), D6 (platforms, the council, under water), D7 (the world map,
 the boxes between the levels, the status window) and D8 (the title loop,
-the demos, the help, the end, the high scores, the cheats); later
+the demos, the help, the end, the high scores, the cheats) and D9 (sound
+and music); later
 milestones add to it. The facts and their sources are in
 [research.md](research.md), the code layout in
 [architecture.md](architecture.md), the files in
@@ -164,6 +165,65 @@ It hangs from Keen's arm (a masked picture at 40, 0) and a strap (at 136,
 0.3 s), waits for a key, then rises from 152, 8 a tic. The strap shows only
 while the whole window is in the picture, the arm once its bottom is 72
 down. The game stands still meanwhile.
+
+## Sound and music (D9)
+
+`Keen4Audio` plays them (`GalaxySoundPlayer`, `GalaxySoundLibrary`; Omni
+`id_sd.c`, facts only). The setting is AdLib with music unless the player
+chose otherwise (Shift+S: AdLib, PC speaker, off; Shift+M: music; stored in
+the settings).
+
+- **One sound at a time.** A sound starts only when its priority is at
+  least the priority of the sound still playing; a sound counts as playing
+  for its number of steps at 140.2 a second, then its priority is 0. The PC
+  speaker and AdLib versions of a sound have the same priority (files, 1.0:
+  20 for the steps, 50 for the jump, 99 for the death, the extra life, the
+  rescue, the status window, the flag; 0 for Paddle War's).
+- **One song at a time**, AdLib only, looping. Starting a song starts it
+  from its beginning.
+
+| Song (chunk − first song) | Plays | One round (delay sum + 1 ticks at 560.7 Hz) |
+|---|---|---|
+| 0 | the world map | 11689 ticks, 20.85 s |
+| 1 | levels 8-10, 17 | 29942 ticks, 53.40 s |
+| 2 | levels 4, 5, 11-16; the story | 9058 ticks, 16.15 s |
+| 3 | levels 2, 3, 7, 18; the end pages | 25385 ticks, 45.27 s |
+| 4 | levels 1, 6 | 18355 ticks, 32.74 s |
+| 5 | the council's and the janitor's boxes | 7188 ticks, 12.82 s |
+
+The high-score map (19) has none; the help and Lindsey's box stop the
+music (in a game the map's song starts again after them); the story stops
+it at its end.
+
+| Event | Sound (number) | Where |
+|---|---|---|
+| Jump, pogo from the ground, leap off a pole | keen_jump (2) | `GalaxyKeen` |
+| Landing from a jump | keen_land (3) | `GalaxyKeenAir` |
+| Pogo bounce | keen_pogo (7) | `GalaxyKeenAir` |
+| Head on a ceiling (not a pole hole) | keen_hit_ceiling (15) | `GalaxyKeenAir` |
+| Walking: the 1st and 3rd picture of the walk, once each | keen_walk_1, keen_walk_2 (0, 1) | `GalaxyKeen` |
+| Falling off a ledge or a pole, through a thin floor | keen_fall (20) | `GalaxyKeen` |
+| A shot / no charges / the shot hits | keen_shoot (4) / keen_out_of_ammo (21) / shot_hit (25) | `GalaxyKeenBody`, `GalaxyStunnerShot` |
+| Gem / points / extra life / stunner | got_gem (19) / got_item (8) / got_extra_life (17) / got_stunner (9) | `GalaxyKeenBody._collect` |
+| A drop; the 100th drop and points over the next extra life also extra life | got_drop (10), got_extra_life (17) | `GalaxyKeenBody` |
+| A switch | keen_out_of_ammo (21) | `GalaxyKeen` |
+| Into a door | keen_walk_1 (0) | `GalaxyKeen` |
+| Gem in its holder | open_gem_door (18) | `GalaxyKeen` |
+| Death; falling out of the level | keen_die (23); keen_fall then keen_die | `GalaxyKeenBody`, `GalaxyWorld` |
+| A level done (walked out, the Foot, a rescue, the wetsuit) | level_exit (13) | `Keen4View` |
+| The council member reached | council_saved (31) | `Keen4Council` |
+| Lindsey, the wetsuit | foot_appear (45) | `Keen4Lindsey`, `Keen4Wetsuit` |
+| Status window down / up | status_down (34) / status_up (35) | `Keen4PlayScreen`, `Keen4View` |
+| Map: steps (2nd and 4th picture), swimming (high, low by turns), the water without the wetsuit, entering a level | keen_walk_1/2, keen_swim_high/low (26, 27), need_key (14), enter_level (12) | `GalaxyMapKeen`, `Keen4MapKeen` |
+| Map: a flag thrown (stops the sound playing) / in its holder | flag_flip (43) / flag_land (44) | `GalaxyMapFlag` |
+| Slug slimes, Mushroom hops / leaps, Bounder bounces on the screen | slug_slime (46), mushroom_hop (28), mushroom_leap (16) | the creatures |
+| Skypest squashed, Wormmouth bites, Lick flames | skypest_squish (22), wormmouth_bite (5), lick_flame (32) | |
+| Cloud's bolt, Berkeloid's aimed throw, the fireball lands | lightning_bolt (39), berkeloid_throw (33), fireball_land (40) | |
+| Smirky steals / teleports | smirky_steal (29), smirky_teleport (30) | |
+| Mimrock lands (twice) | keen_hit_ceiling (15) | |
+| The worms become the Foot | foot_appear (45) | |
+| Under water: Keen's bubble, the Dopefish burps / eats Keen, the sprite shoots, a mine | keen_bubble (36), dopefish_burp (42), keen_die (23), keen_shoot + sprite_shoot (4, 38), mine_explode (37) | |
+| A dart gun | dart_shoot (41) | |
 
 ## Keen's moves (D4)
 
