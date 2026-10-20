@@ -64,10 +64,16 @@ func on_screen(object: GalaxyObject) -> bool:
 	return partner_camera != null and _in_view(object, _view_tiles(partner_camera))
 
 
+## Player [param keen]'s own view (the second player's when he is the
+## [member partner]); null without a view (tests).
+func view_of(keen: GalaxyObject) -> GalaxyCamera:
+	return partner_camera if keen == partner and partner_camera != null else camera
+
+
 ## Whether player [param keen] is in his own view (his death ends when he
 ## left it).
 func on_own_screen(keen: GalaxyObject) -> bool:
-	var view := partner_camera if keen == partner and partner_camera != null else camera
+	var view := view_of(keen)
 	return _in_view(keen, _view_tiles(view))
 
 

@@ -4,7 +4,9 @@ extends "res://tests/test_case.gd"
 ## 10 tics), the second sprite and the draw offset on the object layer, a
 ## hidden object, the enemy shot that is gone at a wall, and Keen pushed
 ## out by a creature, landing on it and riding it (Omni CK_StunCreature,
-## CK_BasicDrawFunc4, CK_PhysPushXY, CK_PhysPushY, CK_KeenRidePlatform).
+## CK_BasicDrawFunc4, CK_PhysPushXY, CK_PhysPushY, CK_KeenRidePlatform);
+## and (D13) a creature that starts another object's action in its think
+## loses its own step of that frame (the original's shared step).
 
 const Fixtures := preload("res://tests/galaxy_keen_fixtures.gd")
 const Creatures := preload("res://tests/keen4_creature_fixtures.gd")
@@ -75,6 +77,21 @@ func test_the_layer_draws_overlays_offsets_and_hides() -> void:
 	assert_equal(layer.items().size(), before, "the stars go")
 	assert_true(not drawn[0].node.visible, "a hidden object is not drawn")
 	layer.free()
+
+
+func test_a_slug_leaving_its_slime_keeps_its_place() -> void:
+	var world := Creatures.world(FIELD, 22, [Vector2i(10, 3)])
+	var slug := Creatures.first(world, Keen4Slug) as Keen4Slug
+	Creatures.wait(world, 1)
+	slug.direction.x = -1
+	slug.action = slug.actions[&"sliming"]
+	slug.action_timer = slug.action.timer - 1
+	var x := slug.position.x
+	var before := world.objects.size()
+	Creatures.wait(world, 1)
+	assert_equal(world.objects.size(), before + 1, "the slime is left")
+	assert_true(slug.action == slug.actions[&"crawl_1"], "it crawls on")
+	assert_equal(slug.position.x, x, "the slime's start took its step back (seen in D13)")
 
 
 func test_an_enemy_shot_ends_at_a_wall() -> void:

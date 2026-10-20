@@ -98,6 +98,7 @@ const SUITES: Array[Script] = [
 	preload("res://tests/test_keen4_map_play.gd"),
 	preload("res://tests/test_galaxy_front.gd"),
 	preload("res://tests/test_keen4_front_play.gd"),
+	preload("res://tests/test_keen4_demo_sync.gd"),
 	preload("res://tests/test_galaxy_sound_opl.gd"),
 	preload("res://tests/test_galaxy_sound_envelope.gd"),
 	preload("res://tests/test_galaxy_sound_formats.gd"),

@@ -179,13 +179,11 @@ func take_conversation() -> StringName:
 	return asked
 
 
-## After the frame: [param body]'s camera [param view] follows him, a door
-## puts it on him, and the edges of the level count.
+## After the frame: [param body]'s camera [param view] follows him, and
+## the edges of the level count (a door puts the view on him itself,
+## [GalaxyKeen]).
 func _after_frame(body: GalaxyKeenBody, view: GalaxyCamera, tics: int) -> void:
 	var walker := body as GalaxyKeen
-	if walker != null and walker.went_through_door:
-		walker.went_through_door = false
-		view.centre_on(walker.position.x, walker.box.bottom)
 	if walker == null:
 		_follow_swimmer(body, view)
 	else:
@@ -242,7 +240,10 @@ static func _target(keen: GalaxyKeen, tics: int) -> GalaxyCamera.Target:
 	return target
 
 
-## The items and creatures of the info plane, row by row.
+## The items and creatures of the info plane, row by row; then all of them
+## but the ever-awake ones sleep until the view comes near (Omni
+## CK4_ScanInfoLayer; seen in the original, D13: a creature between one
+## and four tiles beyond the view stays still at the start).
 func _place_objects(sprites: Dictionary[StringName, int]) -> void:
 	var actions := player.item_actions()
 	for y in map.height:
@@ -255,3 +256,6 @@ func _place_objects(sprites: Dictionary[StringName, int]) -> void:
 				GalaxyItem.place(world, cell, info - FIRST_ITEM_INFO, sprites, actions)
 			else:
 				Keen4Creatures.place_info(world, info, cell, difficulty, sprites)
+	for object in world.objects:
+		if object.activity != GalaxyObject.Activity.ALWAYS:
+			object.activity = GalaxyObject.Activity.INACTIVE

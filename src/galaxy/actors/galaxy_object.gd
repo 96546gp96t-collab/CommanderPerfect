@@ -150,6 +150,7 @@ func start(new_action: GalaxyAction) -> void:
 		world.clip.update_simple_box(self)
 	elif clip == Clip.NORMAL:
 		world.clip.update_normal(self)
+	_share_step()
 
 
 ## Switches to [param new_action] from a think or react (Omni
@@ -163,6 +164,21 @@ func set_action(new_action: GalaxyAction) -> void:
 	step = Vector2i.ZERO
 	if top_hit != ON_PLATFORM:
 		world.clip.update_normal(self)
+	_share_step()
+
+
+## The original keeps the step of the object whose action runs in one
+## shared place, which starting an action resets: an object that starts
+## one on another (a slug its slime, Keen his shot) loses its own step of
+## this frame and goes on with what is left of this one's (seen in the
+## original, D13: the slug does not step back when it leaves its slime).
+func _share_step() -> void:
+	var in_world := world
+	if in_world == null:
+		return
+	var running := in_world.acting
+	if running != null and running != self:
+		running.step = step
 
 
 ## Puts the box where the sprite puts it at [member position] (Omni
