@@ -41,6 +41,33 @@ const JANITOR_V1_0 := 0x1E280
 const KEEN_WALK_RIGHT_SPRITE := 7
 ## The font of the original's menus and windows (the first of three).
 const MENU_FONT := 0
+## Keen standing, facing right and left (Omni SPR_KEENSTANDR and
+## SPR_KEENSTANDL, sprites 6 and 14 in v1.0 and v1.4).
+const KEEN_STAND_RIGHT_SPRITE := 6
+const KEEN_STAND_LEFT_SPRITE := 14
+## The world map, the levels and the last map (the high scores).
+const WORLD_MAP := 0
+const FIRST_LEVEL := 1
+const LAST_LEVEL := 17
+const LAST_MAP := 19
+## Info values (Omni `ck4_misc.c:CK4_ScanInfoLayer`, research.md §6): Keen
+## facing right or left, Keen on the world map, Keen swimming (level 17).
+const KEEN_RIGHT_INFO := 1
+const KEEN_LEFT_INFO := 2
+const MAP_KEEN_INFO := 3
+const SWIMMING_KEEN_INFO := 42
+## Scroll blocks: 25 is a row the view never scrolls over (Omni calls it a
+## vertical block), 26 a column.
+const ROW_BLOCK_INFO := 25
+const COLUMN_BLOCK_INFO := 26
+## The plain sky tiles (one colour, nothing on them; files, v1.0): light
+## cyan 1085-1088, 1104 and 1105, and the light blue 478 (the sky of level
+## 5, but also water in levels 8 and 10 and on the world map: a level's sky
+## is the one in its top row; docs/keen4/gameplay.md).
+const SKY_TILES: PackedInt32Array = [478, 1085, 1086, 1087, 1088, 1104, 1105]
+## Keen 4's own pictures behind the levels (none yet; the player can add
+## his own in game_data/keen4/backgrounds).
+const BACKDROP_FOLDER := "res://assets/backgrounds/keen4"
 
 
 ## The numbers above as a [GalaxyEpisode].
