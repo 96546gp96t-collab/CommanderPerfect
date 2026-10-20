@@ -62,10 +62,63 @@ over Keen 3 bekend is in [docs/keen3/research.md](docs/keen3/research.md).
 | C6 | Wereldkaart: teleporters, Messie, het schip, statusscherm | ✅ Klaar en gecontroleerd door de architect (branch `milestone-c6-kaart`) |
 | C7 | Mortimer, de Mangling Machine en het einde | ✅ Klaar en gecontroleerd door de architect (branch `milestone-c7-mortimer-einde`) |
 | C8 | Geluid, menu's, opslaan, highscores | ✅ Klaar en gecontroleerd door de architect (branch `milestone-c8-geluid-menus`) |
-| C9 | Mooier maken (framerate, xBRZ, achtergronden, builds) | ✅ Gebouwd, wacht op controle architect (branch `milestone-c9-extras`); Real-ESRGAN bewust overgeslagen |
-| C10 | Co-op lokaal en online | ✅ Gebouwd, wacht op controle architect (branch `milestone-c10-coop`); Steam niet te testen hier |
-| C11 | Naast het origineel (wat nog geschat is) | ✅ Gebouwd, wacht op controle architect (branch `milestone-c11-origineel`); een deel blijft geschat (research.md) |
+| C9 | Mooier maken (framerate, xBRZ, achtergronden, builds) | ✅ Klaar en gecontroleerd door de architect, met eigen plaatjes achter de levels (branch `milestone-c9-extras`); Real-ESRGAN bewust overgeslagen |
+| C10 | Co-op lokaal en online | ✅ Klaar en gecontroleerd door de architect (branch `milestone-c10-coop`); Steam niet te testen in de cloud |
+| C11 | Naast het origineel (wat nog geschat is) | ✅ Klaar en gecontroleerd door de architect; C8-C11 gemerged naar `main` (PR #15); een deel blijft geschat (research.md) |
 | C12 | Keen 1 en 2 bijwerken met de getallen uit Chocolate Keen (ook de sprongen) | ⬜ |
+
+## Keen 4: mijlpalen D
+
+Het vierde deel is een **andere engine** (Galaxy): nieuwe bestanden,
+natuurkunde, klok en geluid. De Galaxy-engine komt in `src/galaxy/` (ook
+voor Keen 5 en 6), Keen 4 zelf in `src/keen4/`; Keen 1-3 blijven zoals ze
+zijn. Wat elke mijlpaal inhoudt staat in
+[docs/keen4/roadmap.md](docs/keen4/roadmap.md), de opzet in
+[docs/keen4/architecture.md](docs/keen4/architecture.md), wat er over Keen 4
+bekend is in [docs/keen4/research.md](docs/keen4/research.md) en de
+bestanden in [docs/keen4/file-formats.md](docs/keen4/file-formats.md).
+
+| # | Mijlpaal | Status |
+|---|---|---|
+| D1 | Onderzoek: code in kaart, Keen 4 v1.0 van de gebruiker uitgelezen, Omnispeak, architectuur, mijlpalen | ✅ Klaar (branch `milestone-d1-onderzoek`); vragen beantwoord op 19-10-2026 |
+| D2 | De bestanden van Keen 4 inlezen, data viewer, vierde icoon | 🔶 Bezig (branch `milestone-d2-bestanden`) |
+| D3 | Een level tekenen | ⬜ |
+| D4 | Keen beweegt (klok, acties, hellingen, palen, randen) | ⬜ |
+| D5 | Vijanden | ⬜ |
+| D6 | Platforms, schakelaars, de raad, onder water | ⬜ |
+| D7 | De wereldkaart | ⬜ |
+| D8 | Het einde, de titel en de demo's | ⬜ |
+| D9 | Geluid en muziek (eigen OPL2-synthesizer) | ⬜ |
+| D10 | Menu's en opslaan | ⬜ |
+| D11 | Mooier maken en Paddle War | ⬜ |
+| D12 | Co-op | ⬜ |
+| D13 | Naast het origineel | ⬜ |
+
+## Mijlpaal D1: wat er nu is
+
+- **Onderzoek in `docs/keen4/`** (19-10-2026), alleen documenten, geen code.
+  Een developer-agent bracht de code in kaart (wat Keen 4 kan gebruiken:
+  startscherm, menu's, instellingen, opslaan, xBRZ, `Interpolation`,
+  online-transport, split-screen, tools; wat Vorticons-specifiek is:
+  decoders, `LevelMap`, `KeenBody`, `LevelCollision`, actoren, kaart,
+  `GameWindow`, `Hud`), een onderzoeksagent las Omnispeak en de
+  Galaxy-code van Commander Genius.
+- **De Keen 4 van de gebruiker is versie 1.0** (geüpload 19-10-2026;
+  Omnispeak en Commander Genius kennen 1.4). De EXE is LZEXE-ingepakt;
+  alle zes headers (`AUDIOHED`, `EGAHEAD`, `MAPHEAD`, `TILEINFO`,
+  `AUDIODCT`, `EGADICT`) zijn **op inhoud** gevonden. 1.0 heeft 107
+  plaatjes (1.4: 115), dus alle chunknummers daarna verschillen: nooit
+  vaste chunknummers. 397 sprites, 1296 + 2916 tiles, 20 maps die alle
+  goed uitpakken, de tileinfo-volgorde nagekeken.
+- **Besluiten van de gebruiker (19-10-2026):** Omnispeak-getallen mogen
+  (`(Omni)`), de gereconstrueerde broncode niet; 35 logische frames per
+  seconde zoals het origineel; in breedbeeld wordt wat achter een
+  scroll-blok ligt afgedekt; het scorebord is de HUD; een eigen
+  OPL2-synthesizer in GDScript met cache, AdLib en muziek standaard aan;
+  omhoog/omlaag voor twee spelers; Paddle War en de demo's wel,
+  Real-ESRGAN niet; D2 pas als Keen 3 op `main` staat (20-10-2026: zo).
+- **Vragen aan de gebruiker gaan altijd als keuzemenu** (wens van de
+  gebruiker, 19-10-2026; nu ook in `CLAUDE.md`).
 
 ## Mijlpaal C11: wat er nu is
 
@@ -1894,6 +1947,14 @@ Keen 3:
    `Keen2Shot.put_against_wall`)?
 11. Later: Eigen achtergrondplaatjes voor Keen 1 en Keen 2, later in een
    eigen branch (wens van de gebruiker, 19-10-2026).
+
+
+Keen 4:
+
+1. **D2** (branch `milestone-d2-bestanden`, vanaf `milestone-d1-onderzoek`
+   met `main` erin): de bestanden van Keen 4 inlezen, de data viewer en het
+   vierde icoon; zie `docs/keen4/roadmap.md`.
+2. Daarna D3 (een level tekenen).
 
 Keen 2:
 

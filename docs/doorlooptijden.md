@@ -73,3 +73,13 @@ Hoe er gemeten wordt:
 | Fix: schot door de muur (na C11) | 20-10 | ~18 min | 18 min | Bug van de gebruiker: vlak bij een muur ging Keens schot erdoor; eerst Keen 3 (11 min), daarna op verzoek ook Keen 2, ook de vijandschoten (7 min); Keen 1 heeft hem nog (vraag voor C12) |
 | C12 Keen 1 en 2 bijwerken | | | | |
 | **Totaal tot nu toe** | 17-10 t/m 20-10 | **~9 u 47** | | C1-C11, de fixes en de plaatjes; C12 (Keen 1 en 2 bijwerken) volgt nog |
+
+## Keen 4 (mijlpalen D1-D13)
+
+Keen 4 is een andere engine (Galaxy); de schatting per mijlpaal staat in
+`docs/keen4/roadmap.md` (in totaal ~13-15 uur, ongeveer als Keen 1).
+
+| Mijlpaal | Datum | Werktijd | Agent | Opmerking |
+|---|---|---|---|---|
+| D1 Onderzoek | 19-10 | ~1 u 30 | developer-agent 5 min, onderzoeksagent 13 min | In een cloud-sessie; Keen 4 v1.0 geüpload door de gebruiker en zelf uitgelezen door de architect; vragen als keuzemenu |
+| D2 Bestanden | | | | |
