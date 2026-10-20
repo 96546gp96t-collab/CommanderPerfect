@@ -291,7 +291,9 @@ func _place_overlays() -> void:
 	if not dropping:
 		return
 	var shift := Vector2(left, _status_drop.shift())
-	_status_sprites[StatusPart.WINDOW].position = Vector2(Keen4StatusWindow.WINDOW_AT) + shift
+	# The window is drawn on a whole screen; the arm and the strap are only
+	# their own pictures.
+	_status_sprites[StatusPart.WINDOW].position = shift
 	_status_sprites[StatusPart.ARM].position = Vector2(Keen4StatusWindow.ARM_AT) + shift
 	_status_sprites[StatusPart.STRAP].position = Vector2(Keen4StatusWindow.STRAP_AT) + shift
 	_status_sprites[StatusPart.ARM].visible = _status_drop.shows_arm()

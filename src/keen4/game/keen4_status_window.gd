@@ -112,7 +112,8 @@ static func create(data: GalaxyData) -> Keen4StatusWindow:
 	return window
 
 
-## The window for map [param map] with what Keen carries
+## The window, on a see-through picture of the whole screen (320 × 200)
+## where it hangs when it is down, for map [param map] with what Keen carries
 ## ([param inventory]), the [param progress] of the game and its
 ## [param difficulty] (Omni CK_DrawStatusWindow).
 func window(
