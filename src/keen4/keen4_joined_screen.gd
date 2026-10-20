@@ -187,7 +187,10 @@ func _apply_remote(snapshot: GalaxySnapshot) -> void:
 		_frame_view()
 		_objects.show_objects(_mirror(snapshot))
 		Keen4OnlineState.unpack(snapshot.extra, _inventory, _game_progress)
-		_update_score_box()
+		# The host's score box stands still behind a box (a death takes the
+		# life before the next frame shows it).
+		if snapshot.box.is_empty():
+			_update_score_box()
 		_point_at_host(snapshot)
 	for sound in snapshot.sounds:
 		if sound & GalaxySnapshot.INTERRUPT:
