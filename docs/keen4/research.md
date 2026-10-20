@@ -918,6 +918,28 @@ audio stream (its pitches are right), so the absolute tempo cannot be read
 from it, but the music's tempo relative to the game is ours. The 560.7 Hz
 stays Omnispeak's PIT divisor (1192030 / 560).
 
+### Watched in D10 (js-dos, the user's v1.0)
+
+Headless js-dos as before (the developer on port 8768, the tester on
+8769 with a bundle without CONFIG.CK4); every card, dialog and step
+snapshotted, ours drawn on a 320 × 200 picture and laid over it.
+
+| What | Omnispeak | The original (v1.0) | Ours (D10) |
+|---|---|---|---|
+| Opening | a key in the demo loop, Escape in a game | the same; the cursor on NEW GAME (demo) or RETURN TO GAME (game) | the same |
+| Main card | NEW GAME … PADDLE WAR, QUIT | the same 8 choices; SAVE GAME and END GAME with the "x" icon out of a game; "RETURN TO DEMO" out of a game; "Press F1 for Help and Order Info" is part of the watch picture | **0 pixels differ** (apart from our CHOOSE GAME in PADDLE WAR's row) |
+| Colours | foreground 10, "disabled" 2 (EPISODE.CK4) | the other way round: a choice dark green (2), the one under the cursor light green (10); footer 2; lines and frames 10 | as the original |
+| Cursor | blinks every 35 tics | the icon blinks; a slot's box (its icon) blinks too | the same |
+| New game | cursor on the second choice | BEGIN NORMAL GAME under the cursor, also in a game | **0 pixels differ** |
+| Load / save | six boxes 11 px apart, "Empty" at x + 60 | the same; typing empties the box, footer "Type name / Enter accepts", the cursor (0x80) on the text's last column; after Enter the save card stays with the name, no message | **0 pixels differ** (card, empty box, "TEST" typed) |
+| Dialogs | USL_CtlDialog | the watch's screen dots out the card (masked picture 0 at x **72**, whole bytes); box, line, answer lines; REALLY QUIT? (also Escape on the main card), REALLY END CURRENT GAME?, YOU'RE IN A GAME | **0 pixels differ** (end, new game; quit apart from the card behind) |
+| End Game | load_game_error | Y: the panel closes, the map fades, the high scores, the title loop; no Game Over | the same |
+| Loading | "GAME LOADED" pause | black, then the game with a **PAUSED** box (US_CenterWindow) until a key | the same; the box **0 pixels differ** |
+| Configure | SOUND, MUSIC, OPTIONS, KEYBOARD, JOYSTICK #1/#2 | SOUND, MUSIC, OPTIONS, (gap) USE KEYBOARD, USE JOYSTICK #1, #2 (disabled), "CONTROL: KEYBOARD" | OPTIONS, (gap) KEYBOARD, RESET KEYS (architecture.md, "Deviations in D10", 5) |
+| Options | four options | SCORE BOX (ON), SVGA COMPATIBILITY (OFF), TWO-BUTTON FIRING (OFF); Enter: "Score box now off / Press any key" | SCORE BOX and the display settings, the same message |
+| Keyboard | MOVEMENT, BUTTONS cards | KEYBOARD MENU (MOVEMENT, BUTTONS), MOVEMENT SETUP, BUTTON SETUP: each key in a box at x + 90 | one list on the BUTTON SETUP card, the same boxes |
+| Easy jump | gravity mid after the push | frame for frame as ours with gravity mid: 75 px held (Normal 67) | the same |
+
 ## Lessons for the new-episode guide
 
 
@@ -985,3 +1007,11 @@ file is not changed now because another session is working on it.)
   `Array`; assigning it to an `Array[Image]` stops the function with a
   script error at run time. Screenshots of a whole flow catch what the
   suites (without a running scene tree) cannot.
+- D10: Omnispeak's colour names can be swapped against the original's
+  data (foreground / disabled): measure the colours in a snapshot before
+  trusting the names.
+- D10: the original puts pictures (also masked ones) on whole bytes: a
+  picture asked at x 74 is drawn at 72.
+- D10: a deterministic engine can save a level as its start plus the
+  frames since and play them again when loading; a save-and-load
+  screenshot pair (identical outside the box) proves it.

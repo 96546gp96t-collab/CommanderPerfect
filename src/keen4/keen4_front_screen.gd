@@ -481,8 +481,8 @@ func _place_overlays() -> void:
 	)
 
 
-## A new game from the title loop ([Keen4View]).
-func _new_game() -> void:
+## A new game on [param _level] ([Keen4MenuScreen]).
+func _new_game(_level := GalaxyDifficulty.DEFAULT) -> void:
 	pass
 
 

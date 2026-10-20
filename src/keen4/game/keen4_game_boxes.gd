@@ -23,6 +23,10 @@ extends RefCounted
 ## the picture range.
 
 const WINDOW_CELLS := Vector2i(26, 8)
+## The box after a game is loaded (Omni).
+const PAUSED_TEXT := "PAUSED"
+const PAUSED_MARGIN_CELLS := 2
+const PAUSED_CELLS_HIGH := 3
 const PICTURE_WIDTH := 0x30
 ## Keen counting down, from the end of the picture range: the whole
 ## picture (5), then the fingers 4 … 0 (Omni PIC_COUNTDOWN5-0).
@@ -109,6 +113,16 @@ func _loading(text: String) -> Array[Image]:
 		window.draw_picture(_picture(COUNTDOWN_FROM_END - 1 - finger), FINGERS_AT)
 		screens.append(window.image())
 	return screens
+
+
+## "PAUSED" after a game is loaded, until a key (Omni CK_PlayLoop: a window
+## two cells wider than the word and three high, the word in its middle;
+## v1.0 says PAUSED, seen in D10).
+func paused() -> Image:
+	var window := _window()
+	window.open_centred(Vector2i(PAUSED_TEXT.length() + PAUSED_MARGIN_CELLS, PAUSED_CELLS_HIGH))
+	window.print_in_middle(PAUSED_TEXT)
+	return window.image()
 
 
 ## "One moment", when Keen leaves the world map (Omni CK_GameLoop; centred

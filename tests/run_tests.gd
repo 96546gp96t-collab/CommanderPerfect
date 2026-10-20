@@ -102,6 +102,9 @@ const SUITES: Array[Script] = [
 	preload("res://tests/test_galaxy_sound_player.gd"),
 	preload("res://tests/test_galaxy_sound_world.gd"),
 	preload("res://tests/test_keen4_sound.gd"),
+	preload("res://tests/test_galaxy_menus.gd"),
+	preload("res://tests/test_keen4_save.gd"),
+	preload("res://tests/test_keen4_save_play.gd"),
 ]
 
 

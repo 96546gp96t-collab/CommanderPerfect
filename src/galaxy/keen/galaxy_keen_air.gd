@@ -45,6 +45,10 @@ const PULL_FIRST_LEFT := -128
 const FALL_SIDEWAYS := 8
 const FLAT := 1
 
+## On Easy he falls under gravity mid after a jump or a pogo bounce
+## instead of high (Omni CK_KeenJumpThink, CK_KeenPogoThink).
+var easy_jumps := false
+
 
 ## Think: jumping and falling (Omni CK_KeenJumpThink).
 func _think_jump() -> void:
@@ -60,7 +64,7 @@ func _think_jump() -> void:
 		if jump_timer == 0 and action.next != null:
 			action = action.next
 	else:
-		GalaxyPhysics.gravity_high(self)
+		_fall()
 		if velocity.y > 0 and not _is_in([&"fall_1", &"fall_2"]):
 			action = action.next
 	if input.direction != 0:
@@ -84,6 +88,14 @@ func _think_jump() -> void:
 		_grab_pole()
 
 
+## Gravity once the jump's or the bounce's push is over.
+func _fall() -> void:
+	if easy_jumps:
+		GalaxyPhysics.gravity_mid(self)
+	else:
+		GalaxyPhysics.gravity_high(self)
+
+
 ## Think: a pogo bounce from the ground (Omni CK_KeenPogoBounceThink).
 func _think_pogo_bounce() -> void:
 	world.play_sound(&"keen_pogo")
@@ -95,7 +107,7 @@ func _think_pogo_bounce() -> void:
 ## Think: on the pogo (Omni CK_KeenPogoThink).
 func _think_pogo() -> void:
 	if jump_timer == 0:
-		GalaxyPhysics.gravity_high(self)
+		_fall()
 	else:
 		if input.jump or jump_timer <= POGO_LOW_TICS:
 			GalaxyPhysics.gravity_low(self)
