@@ -799,3 +799,109 @@ try them elsewhere), then `godot --headless --path . --import` for the
   at 120 frames a second: a running Keen takes 175 different places in 4
   s instead of 26; swimming 420 instead of 77, the view 54 instead of 13).
   The front screens and the panel keep the original's steps.
+
+## Two players (D12)
+
+As Keen 1-3 have them ([../two-players.md](../two-players.md)), on top of
+the Galaxy engine. An extra of ours: the original is for one player, and
+playing alone stays exactly as it was (the demos still match). The code:
+`Keen4CoopScreen` (between `Keen4MenuScreen` and the online screens),
+`GalaxySplitView`, the second Keen in `GalaxyWorld` (`partner`,
+`partner_camera`; `GalaxyWorldPlayers`) and `Keen4LevelSession`
+(`add_player`, `remove_player`, `camera_2`).
+
+**Joining.** F7, or in the control panel Configure > Two Players > Add
+Player 2 (Remove Player 2), only in a game (not in the title loop, a
+demo, the end or the name entry). The original's cards stay as they
+were; Configure gets two rows after a gap: Two Players (adding and
+removing player 2, each player's keys) and Online Game. In a level that
+is being played his Keen appears where player 1's is, facing the same
+way (a walking Keen, or a swimmer in level 17), in player 2's colours
+(the shared hue shift: a blue helmet, a green shirt); otherwise (on the
+map, behind a box, while player 1 dies) from the next level on.
+
+**Keys.** The shared two-player keys, which got up and down in D12
+(approved by the user): player 1 A/D, W/S, Left Shift (jump), ` (pogo),
+Z (fire); player 2 the arrows, . (jump), / (pogo), Right Shift (fire).
+Enter (status) and Escape (panel) are shared. Each player's keys are on
+their own card (Configure > Two Players > Player 1 Keys / Player 2 Keys).
+
+| Question | Decision (D12) |
+|---|---|
+| Score box | **One**, as the original's, in the top left of the picture: the inventory is shared, so a box per half would show the same numbers |
+| Inventory | **Shared** (Keen 1-3's choice): one score, one stock of lives, one stunner with its charges, the drops, the gems. Either Keen picks things up, puts gems in holders and opens gem doors |
+| The world map | **One map Keen**, steered by the keys of playing alone and of both players (Keen 3's choice): either player enters a level, swims (wetsuit), meets Miragia and flies with the Foot |
+| Under water (level 17) | **Two swimmers**; the Dopefish and the school fish go after the nearer one; one eaten swimmer ends the attempt for both |
+| Platforms, Bounders, poles, ledges, doors | Each Keen on his own: both can ride one platform (a falling platform sinks under either), either steers a Bounder he rides; a door takes only the Keen who went in, and puts his own view on him |
+| Enemies | Go after the **nearest living Keen** (`GalaxyWorld.nearest_player`), kill the one they touch; they wake up in **either view** and fall asleep only far from both |
+| Death | As in Keen 1-3: as soon as one Keen dies, the attempt is over **once his death flight has left his own view**; one life less, gems gone, the "Try Again" box, which either player's keys (and the keys of playing alone) choose |
+| The exit | Either Keen walking out to the side completes the level for both, **but not while the other one dies** (Keen 1-3's rule); a rescue, the wetsuit or the Foot completes it at once (that object has already acted) |
+| The council, Lindsey, the janitor, the wetsuit | Whoever reaches them; the boxes are shown once, as alone |
+| Status window (Enter) | One window (the shared inventory and progress) |
+| Saving | Player 2 is **not saved** (Keen 3). A save in a level player 2 played in holds that level's start (no frames), because a saved level is played again from its frames and his cannot be played by one Keen; on the map as alone. Loading starts with player 2 still in (when he was), who joins after the level has been played back |
+| The end, high scores | As alone: one entry with the shared score |
+| Demos, the title loop | One player; F7 does nothing there |
+
+**The split screen** (`GalaxySplitView`). Each Keen keeps his own
+`GalaxyCamera`, which follows him by the original's rules (it wakes the
+creatures and ends his death). The picture uses the shared
+`SplitScreen` of Keen 1-3: a focus point per Keen with the shared dead
+zone, one shared view while both are close enough to its middle, two
+halves split by a line at right angles to the line between them when
+they are further apart, the views gliding. Galaxy's own rule on top:
+each view stays inside its Keen's area between the scroll blocks (or the
+map's border), so the split screen never shows what lies beyond a block,
+and two Keens in different areas (one in a room behind a block) always
+split. In widescreen what a view shows beyond its area is covered as
+alone; the second view has a cover of its own (drawn only in `World2`,
+by canvas cull masks). The view starts where each player's own camera
+looks, so the picture does not jump when player 2 joins; while the
+screen is shared the view follows the Keens' middles instead of the
+original's resting place of the feet (a few pixels' difference).
+
+## Online (D12)
+
+As Keen 1-3 ([../online.md](../online.md)): Configure > Online Game
+opens the shared online pages (Host via Steam, Host via IP, Join via
+Steam, Join via IP, Your Name), drawn as a framed box in the panel's
+font and colours (`GalaxyOnlinePageView`; the watch's screen is too
+small for the addresses). Keen 4's id `commanderperfect-keen4` is in
+`OnlineProtocol.GAME_IDS`; a player of Keen 1-3 who joins a Keen 4 host
+switches to Keen 4 (and back), by IP or from the Steam list. The
+fingerprint is `GalaxyFingerprint`: the one GAMEMAPS file with its map
+headers. Each player uses his own game files; nothing of them travels.
+
+| What | Online (D12) |
+|---|---|
+| Hosting | From the title a new game starts; in a game it goes on. Player 2 on the keyboard leaves, F7 is off while online (for both) |
+| The joined player | Player 2 in the host's levels (his Keen appears where the host's is; on the map from the next level), steered by his keys for playing alone (up and down included); **no split screen**: each has his own screen, the joined player's view is the host's camera on his Keen. An arrow at the edge points to the other Keen while he is out of sight (yellow to the host's Keen, blue to the other) |
+| The world map | Only the host walks ("Only the host can walk on the world map"); the joined player sees the host's view |
+| Boxes | Shown on both screens; the joined player's are made from his own files (`Keen4BoxNames`: the host names each box, the joiner draws the same). They wait for the **host's** key; the game stands still for both meanwhile, as the original stands still behind them |
+| The control panel, the status window | The host's panel and status window stop the game for both (as the original's); the joined player's panel (Return to Game, Leave Game, Configure, Quit) does not, and he has no status window of his own (his score box shows the shared numbers) |
+| Sounds, music | The sounds of the level (by number) and the song the host plays |
+| Death, Try Again, the exit | As two on one keyboard; the host chooses after a death |
+| The end | Each reads the end pages at his own pace; the high-score table is the host's; afterwards the joined player sees the title picture until the host plays again |
+| Saving, loading | Only the host (player 2 is not saved) |
+
+**On the wire** (appended at the end of `OnlineProtocol.Message`; Keen
+1-3's messages are unchanged byte for byte):
+
+- `GALAXY_SCENE` (reliable): the scene number, the kind (`WAITING`: no
+  map; `MAP`: a level or the world map is played; `ENDING`), the map's
+  number and every tile of the three planes that differs from the map in
+  GAMEMAPS (plane, x, y, tile). A new scene is sent for every new session
+  of a map (Try Again starts anew), the end, or nothing; the boxes
+  between two maps keep the last map behind them.
+- `GALAXY_TILE` (reliable): a tile of the background or foreground that
+  changed (plane, x, y, tile), with the scene's number.
+- `GALAXY_SNAPSHOT` (unreliable, every logic frame, 35 a second): the
+  joined player's view (units), every sprite drawn (x, y, sprite,
+  priority; the host's and the joined player's Keen marked), the sounds,
+  the song, the brightness of a fade, the box shown (its name) and Keen
+  4's numbers (`Keen4OnlineState`: score, lives, charges, drops, gems,
+  next extra life, rescued, wetsuit, levels done, difficulty).
+- The joined player's buttons go as the shared `INPUT` message
+  (`OnlineInput`, which already had up and down).
+
+Tried in D12 with a headless host (`--max-fps 60`) and a joined player in
+xvfb on one computer by IP (127.0.0.1).

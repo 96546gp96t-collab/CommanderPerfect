@@ -1051,3 +1051,79 @@ as the old script gives on the same machine). Keen 4's own shapes
 `tests/test_keen4_backgrounds.gd` checks that exactly those levels have a
 picture, that each is 16:9 or wider, and, with the player's files, that
 the screen finds a picture for exactly those maps.
+
+## Deviations in D12
+
+Two players and online (docs/keen4/gameplay.md, "Two players (D12)",
+"Online (D12)").
+
+1. **The screen chain** got three layers, so no file grows past ~500
+   lines: `Keen4View` → `Keen4OnlineScreen` (the shared `OnlinePlay`, the
+   host's side) → `Keen4JoinedScreen` (what the joined player draws) →
+   `Keen4CoopScreen` (player 2 on the keyboard, the split screen) →
+   `Keen4MenuScreen`. `Keen4PlayScreen` got two hooks (`_partner_input`,
+   `_choice_input`), `Keen4View` calls `_set_up_coop`/`_set_up_online`
+   and `super` in `_waiting`.
+2. **Two Keens in a Galaxy world**: `GalaxyWorld` now extends
+   `GalaxyWorldPlayers` (the objects, `player()`, the `partner` and his
+   `partner_camera`, `players()`, `is_player()`, `nearest_player()`,
+   `on_screen()`, `on_own_screen()`), because gdlint allows 20 public
+   methods. The creatures' `world.player()` became `nearest_player()` and
+   `kill_player(other)`; alone both give exactly what they gave (the
+   demos and every D5-D11 suite are unchanged).
+3. **The split screen** (`GalaxySplitView`) reuses Keen 1-3's
+   `SplitScreen` (its focus with the dead zone, `targets_for`, `reach`,
+   the line) on the Keens' middles, not the original's camera rules, which
+   cannot be shared between two Keens; the original's rule that a view
+   never crosses a scroll block is kept by clamping each view into its
+   own Keen's `GalaxyCamera.area_pixels()`. The second cover is a second
+   `GalaxyViewCover`, drawn only in `World2` (visibility layers and the
+   viewports' canvas cull masks); `TwoPlayerView` (Keen 1-3) is not used,
+   only the nodes it set up (`World2`, `SplitView`, `Camera2`).
+4. **The panel**: `GalaxyCoopMenuController` (extends
+   `GalaxyMenuController`, so the shared `OnlinePlay.attach` takes it)
+   leaves the original's cards as they were and adds two rows to the end of
+   Configure; the shared online pages are drawn by `GalaxyOnlinePageView`
+   (a framed box: the watch's screen cannot hold the addresses). Cards
+   without a title picture show their first line as the title.
+   `GalaxyMenuPages.keys(key_set)` shows a player's two-player keys.
+5. **Online messages of its own**: Keen 1-3's `Snapshot` carries a Keen 1
+   `Inventory` and one tile plane, so Galaxy has `GalaxySnapshot` and
+   `GalaxyOnlineMessages` behind three kinds appended to
+   `OnlineProtocol.Message`; `OnlinePlay` is used unchanged for the
+   transport, the handshake, the menus, the partner's input (which
+   already carried up and down) and switching games. The Galaxy messages
+   are read from `OnlinePlay.session.received`, next to `OnlinePlay`'s own
+   reader (which ignores them).
+6. **Boxes by name**: the host's boxes are made by `Keen4NamedBoxes` and
+   `Keen4NamedMessages` (subclasses; `Keen4GameBoxes.create` and
+   `Keen4Messages.create` take an optional instance to fill), which name
+   every picture in `Keen4BoxNames`; the joiner makes the same picture
+   from his own files. The pictures never travel (the cheat's box has no
+   name and is not shown to the joiner).
+7. **Pausing online**: in Keen 1-3 nothing pauses while two play online.
+   Keen 4's panel, status window and boxes stop the host's clock for the
+   game (`Keen4MenuScreen._run_frame`, `GalaxyScreenQueue`), so they stop
+   it for both; the joined player's own panel does not. Boxes wait for the
+   host's key.
+8. **The shared notice** ("Name joined") draws with Keen 1's font, which
+   Keen 4 does not load: `Keen4OnlineScreen` shows its text as a message
+   in the middle of the screen.
+9. **The joined player** has no status window of his own and no smooth
+   motion of his view (it moves in the host's logic frames); his sprites
+   are smooth as usual. Only the sounds of the level's objects travel
+   (the screen's own, such as the status window's, do not).
+10. **Saving with two players**: a level player 2 played in is saved as
+    it began (`Keen4CoopScreen._save_game`), because the frames of a
+    saved level are played again with one Keen.
+11. **Shared files changed** (all additive, or approved): `KeyBindings`
+    (`p1_up`/`p1_down`/`p2_up`/`p2_down` appended), `KeenInput.for_player`
+    (fills `vertical`), `project.godot` (their default keys),
+    `OnlineProtocol` (`GAME_ID_KEEN_4` appended to `GAME_IDS`, three
+    message kinds appended). As exception 1 of "The rule", two asserts
+    that pinned the list of online games now expect the fourth:
+    `tests/test_keen3_online.gd` (the first three are still the same) and
+    `tests/test_galaxy_data.gd`. `Keen4Files.GAME_ID` is now
+    `OnlineProtocol.GAME_ID_KEEN_4` (the same text).
+12. New folders: `src/galaxy/online/` (fingerprint, messages, snapshot)
+    and `src/keen4/online/` (box names, Keen 4's numbers).

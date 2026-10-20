@@ -101,11 +101,13 @@ func _key_set_menu() -> Menu:
 
 
 ## The original's Configure card with Two Players and Online Game after a
-## gap.
+## gap (Online Game not for a player in somebody else's game: he leaves it
+## from his main card).
 func _configure_card() -> Menu:
 	var menu := GalaxyMenuPages.configure()
 	menu.add(GAP + TWO_PLAYERS_LABEL, TWO_PLAYERS)
-	menu.add(ONLINE_LABEL, ONLINE)
+	if online.role != OnlineMenuInfo.Role.CLIENT:
+		menu.add(ONLINE_LABEL, ONLINE)
 	return menu
 
 

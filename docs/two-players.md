@@ -39,6 +39,14 @@ The choice is not saved with a game.
 | Jump | Left Shift | . (period) |
 | Pogo | ` (backquote; on a Mac with an ISO keyboard the key next to left Shift) | / (slash) |
 | Fire | Z | Right Shift |
+| Up | W | Up |
+| Down | S | Down |
+
+Up and down came last (milestone D12, approved by the user on
+19-10-2026): Keen 4 needs them in its levels (poles, doors, looking up and
+down). Keen 1-3 do not use them in a level; on their world map the keys of
+playing alone (which include W/S and the arrows) already steered, so they
+play exactly as before; their Controls pages show the two new lines.
 
 Enter (status) and Escape (menu) are shared. Each player's keys have their
 own page in Controls. Keys are stored by their place on the keyboard
@@ -60,6 +68,16 @@ and [keen3/gameplay.md](keen3/gameplay.md). In Keen 3 each Keen has his
 own ankh (a panel per Keen in the HUD, both times on the status screen),
 and on the world map the one Keen rides Messie and goes through the
 teleporters with the keys of either player.
+
+## Keen 4
+
+Keen 4 (milestone D12, [keen4/gameplay.md](keen4/gameplay.md), "Two
+players") has two players too, with the same keys (now with up and down),
+the shared inventory, one Keen on the world map and the same split screen
+(`GalaxySplitView` uses `SplitScreen`), each view kept inside its Keen's
+area between the scroll blocks. Its control panel has them under
+Configure > Two Players (Add Player 2, each player's keys); F7 as in Keen
+1-3.
 
 ## The split screen
 
