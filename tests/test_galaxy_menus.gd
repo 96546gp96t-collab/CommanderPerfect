@@ -348,6 +348,16 @@ func test_configure_and_the_score_box() -> void:
 	assert_equal(_labels()[0], "SCORE BOX (OFF)", "shown off")
 	_press(KEY_ENTER)
 	assert_equal(_chosen[-1], [GalaxyMenuController.CHOICE_SCORE_BOX, 1], "on again")
+	_press(KEY_SPACE)
+	# The picture's settings are the shared ones (all games): widescreen.
+	var changed := [0]
+	_menus.settings_changed.connect(func() -> void: changed[0] += 1)
+	var aspect := _menus.settings.display.aspect
+	_press(KEY_DOWN)
+	_press(KEY_ENTER)
+	assert_true(_menus.settings.display.aspect != aspect, "widescreen switched")
+	assert_equal(changed[0], 1, "the game is told")
+	assert_true(FileAccess.file_exists(_menus.settings.path), "kept in the shared settings file")
 
 
 func test_the_cursor_blinks_every_35_tics() -> void:
