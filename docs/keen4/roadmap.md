@@ -333,8 +333,9 @@ start zonder rekenen).
 |---|---|---|
 | D1 Onderzoek | 19-10-2026 | Klaar; de vragen zijn beantwoord (research.md §13) |
 | D2 Bestanden | 20-10-2026 | Klaar; afwijkingen in architecture.md, "Deviations in D2" |
+| D3 Level tekenen | 20-10-2026 | Klaar; eerste beeld van levels 1, 4, 11, 14, 17 en de kaart pixel voor pixel gelijk aan het origineel; afwijkingen in architecture.md, "Deviations in D3"; de regels in gameplay.md |
 
-Volgende stap: zodra Keen 3 op `main` staat, `PROGRESS.md`,
-`docs/doorlooptijden.md` en `docs/new-episode-guide.md` bijwerken met D1
-(de lessen staan onderaan research.md), de regel "vragen altijd als
-keuzemenu" in `CLAUDE.md` zetten, en D2 beginnen vanaf `main`.
+Volgende stap: D4, Keen beweegt (`milestone-d4-keen`): het actiesysteem,
+`GalaxyClip` met hellingen, Keen met lopen, springen, pogo, palen en
+randen, de camera die hem volgt (`GalaxyCamera.follow` staat al klaar) en
+het scorebord.

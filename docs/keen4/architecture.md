@@ -400,3 +400,57 @@ What D2 built differently from the plan above, and why (developer, D2):
     messages, plus the random numbers. Not yet: the status window, the
     menus, the "Try Again" box, the high-score defaults (the milestones
     that need them search for them, by shape, the same way).
+
+## Deviations in D3
+
+What D3 built differently from the plan above, and why (developer, D3):
+
+1. **Where the classes went.** `src/galaxy/level/`: `GalaxyLevelMap`,
+   `GalaxyTileAnimator`, `GalaxyTileAtlas` (one atlas per tile set),
+   `GalaxyCamera` (the original's scroll rules, numbers only),
+   `GalaxyViewCover` (widescreen), `GalaxyBackdropPictures` and
+   `GalaxyClock`. `src/galaxy/actors/GalaxyObjectLayer`,
+   `src/galaxy/graphics/GalaxyScaledGraphics`. Keen 4: `Keen4LevelScreen`
+   (drawing on `GameScreen`) and `Keen4View` (the flow) as a two-class
+   chain like Keen 3's, and `src/keen4/level/Keen4Start`. The info values,
+   standing sprites, sky tiles and the backdrop folder are constants in
+   `Keen4Episode`; the Galaxy classes get them passed in (Keen 5 ignores
+   info 26, for example).
+2. **`GalaxyClock` already in D3** (the plan put it in D4): the tile
+   animation needs the original's tics. It only hands out 2-tic frames and
+   the absolute tic; D4 builds on it.
+3. **Atlases per level, not per whole tile set.** An atlas of all 2916
+   foreground tiles at xBRZ's factor 6 would be about 112 MB and take
+   ~10 s of processor time to scale. A level needs a few hundred tiles
+   (with their animation loops); `GalaxyScaledGraphics` scales only those
+   (~0.6 s on 4 cores) and keeps them for later levels. A `set_tile` with a
+   tile outside the atlas asks for a new atlas (`tiles_missing`).
+4. **The camera is not `LevelCamera`'s limits and smoothing.**
+   `GalaxyCamera` computes the view in units by the original's rules;
+   the scene's `LevelCamera` node is used unchanged with
+   `follow_exactly(true)` and its anchor put on the view's middle. In
+   widescreen the wide view is centred on the original's view and kept
+   inside the area between the blocks around it; it is covered only where
+   that area is narrower (D1 planned "centre on the original and cover";
+   this shows as much level as allowed and covers less).
+5. **Covering instead of clipping.** `CanvasItem.clip_children` first,
+   but children with their own z index (the in-front tiles, the sprites)
+   escape the clip. `GalaxyViewCover` draws black, or the backdrop picture
+   at its own place, over everything outside the area.
+6. **Keen 1-3's nodes stay in the scene, hidden.** `keen4_view.tscn` is
+   `level_view.tscn`'s layout (GameScreen finds its nodes by name) plus
+   `GalaxyMap`, `Objects` and `Cover` under World. `Keen4LevelScreen`
+   overrides `_apply_graphics`, `_apply_backdrop`, `_apply_display_settings`,
+   `_fit_screen` and `_update_status` (GameScreen's versions read Keen 1-3's
+   `EgaGraphics`/`LevelData`); nothing shared changed.
+7. **No "coming soon" screen**: without `--level` the view opens level 1,
+   as the flow above says for D3-D6. `--level=N` opens any map 0-19; the
+   world map and level 17 show the map Keen and the swimming Keen standing
+   still (with the camera the original puts there), not only info 1 / 2.
+8. **Free look is "where Keen would be"**: the arrows move a point and the
+   view is put on it by the original's rules, so looking around respects the
+   scroll blocks and jumps across them, instead of `FreeLook`'s own bounds
+   over the whole map.
+9. **The camera's settle step** follows Omnispeak's 32-bit arithmetic
+   (`(distance << 4) >> 7`, an eighth); the 16-bit original may differ for
+   distances over 128 px. Only matters once Keen moves (D4).

@@ -613,6 +613,36 @@ then F10+W) or walking on the map. God mode (F10+G) keeps Keen alive
 while watching. The D1 cloud session had no browser pane, so nothing was
 measured in js-dos yet.
 
+### Watched in D3 (js-dos, the user's v1.0)
+
+Headless js-dos (`tools/original/headless.js`, bundle in the scratchpad,
+frames never in the repository): `KEEN4E`, a key past the sign-on screen
+and the intro, New Game, Normal, then the debug keys (A+2+Enter holds A
+and 2 and presses Enter: "Debug keys active") and the warp (hold F10 for
+~300 ms and press W: "Warp to which level(1-18):"). Our 4:3 picture
+(320 × 200, the World viewport) compared pixel by pixel:
+
+- **The first view of level 1, 4, 11, 14 and 17 and of the world map is
+  the original's to the pixel**: the same scroll position, the same tiles
+  of all three layers, Keen (standing, map Keen, swimming Keen) on the same
+  pixel. Only the score box (D4), the enemies (D5) and the phase of the
+  animated tiles differ. So CK_CentreCamera, the scroll limits, the start
+  y (tile × 256 − 241) and the sprite origins are confirmed for v1.0.
+- Level 17's view moves sideways in the first frames as Keen sinks (the
+  world-map style camera; D6); frame 0010 of the recording matches ours.
+- **Tile animation** (level 1, 6 s recorded, 35 frames a second: a frame
+  every 28.6 ms = 2 tics): drops every 114 ms (8 tics), eyes 571 / 2,855 ms
+  (40 / 200 tics), a tree 286 ms (20 tics), a face 3,140 ms (220 tics):
+  TILEINFO's times in tics of 1/70 s, confirmed.
+- **In front of Keen**: the original draws the in-front tiles (misc bit
+  0x80) over Keen; ours too (checked with Keen moved behind the rock in
+  level 1 and behind the Megarocket in map 18; not compared in js-dos,
+  where Keen cannot move yet in our engine).
+- Level 14 on Normal: Keen is killed within seconds of the warp by the
+  enemies near the start ("You didn't make it past Pyramid of the
+  Forbidden / Try Again / Exit to Shadowlands"); Try Again restarts the
+  level with the same first view.
+
 ## Lessons for the new-episode guide
 
 (To be added to `docs/new-episode-guide.md` when Keen 3 is merged; that
@@ -628,3 +658,8 @@ file is not changed now because another session is working on it.)
   files are needed (or the shareware zip on the Mac).
 - D1: keep the Galaxy engine (`src/galaxy/`) apart from the episode
   (`src/keen4/`), so Keen 5 and 6 never need to subclass Keen 4.
+- D3: `clip_children` does not clip children with their own z index;
+  cover with a node drawn on top instead.
+- D3: atlases per level (only the tiles a level shows) keep xBRZ for
+  Galaxy's 4212 tiles fast and small.
+- D3: the debug warp in js-dos needs F10 held a few hundred ms before W.

@@ -82,7 +82,7 @@ bestanden in [docs/keen4/file-formats.md](docs/keen4/file-formats.md).
 |---|---|---|
 | D1 | Onderzoek: code in kaart, Keen 4 v1.0 van de gebruiker uitgelezen, Omnispeak, architectuur, mijlpalen | ✅ Klaar (branch `milestone-d1-onderzoek`); vragen beantwoord op 19-10-2026 |
 | D2 | De bestanden van Keen 4 inlezen, data viewer, vierde icoon | ✅ Klaar, wacht op controle door de architect (branch `milestone-d2-bestanden`) |
-| D3 | Een level tekenen | ⬜ |
+| D3 | Een level tekenen | ✅ Klaar, wacht op controle door de architect (branch `milestone-d3-level`) |
 | D4 | Keen beweegt (klok, acties, hellingen, palen, randen) | ⬜ |
 | D5 | Vijanden | ⬜ |
 | D6 | Platforms, schakelaars, de raad, onder water | ⬜ |
@@ -93,6 +93,77 @@ bestanden in [docs/keen4/file-formats.md](docs/keen4/file-formats.md).
 | D11 | Mooier maken en Paddle War | ⬜ |
 | D12 | Co-op | ⬜ |
 | D13 | Naast het origineel | ⬜ |
+
+## Mijlpaal D3: wat er nu is
+
+Elke map van Keen 4 staat op het scherm zoals in het origineel, met Keen
+die stilstaat op zijn startplek; je kunt rondkijken. Bewegen komt in D4.
+De regels staan in het nieuwe `docs/keen4/gameplay.md`, de afwijkingen
+van het plan in `docs/keen4/architecture.md` ("Deviations in D3"), wat het
+origineel liet zien in `docs/keen4/research.md` ("Watched in D3").
+
+- [x] **Drie tile-lagen** (`GalaxyLevelMap`): achtergrond, voorgrond
+  achter de sprites, en voorgrond vóór de sprites, alleen waar
+  `TILEINFO` bit 0x80 dat zegt. Eén `set_tile` voor tiles die veranderen
+  (kaart, scherm en animatie samen). Een atlas per tileset en per level
+  met alleen de tiles die het level kan tonen (`GalaxyTileAtlas`).
+- [x] **Bewegende tiles** (`GalaxyTileAnimator`) met de tijden uit
+  `TILEINFO` in tics van 1/70 s, achter en voor, op de klok van het
+  origineel (`GalaxyClock`: 2 tics per logisch frame, 35 per seconde).
+- [x] **Sprites** (`GalaxyObjectLayer`) op positie + oorsprong, op hele
+  pixels of met vloeiende beweging (`Interpolation`), in de volgorde van
+  de prioriteiten (0-2 onder de tiles vóór, 3 erboven).
+- [x] **Keen op zijn start** (`Keen4Start`): info 1/2 staand naar
+  rechts/links (y = tile × 256 − 241), op de kaart de kaart-Keen, in level
+  17 de zwemmende Keen.
+- [x] **De camera van het origineel** (`GalaxyCamera`): de rand van 2
+  tiles, de scroll-blokken (info 26 een kolom, info 25 een rij), het eerste
+  beeld (Keen 152 px van links, voeten 140 px van boven) en het volgen
+  (Keen tussen 144-192 px, voeten tussen 33 en 167 px) voor D4.
+- [x] **Breedbeeld**: het brede beeld blijft tussen de scroll-blokken; wat
+  daarbuiten zou komen wordt afgedekt (zwart, of het plaatje achter het
+  level) met `GalaxyViewCover`. In 4:3 is het beeld precies het origineel.
+- [x] **xBRZ** (F5) via `GalaxyScaledGraphics` met de gedeelde
+  `XbrzScaler`, op de achtergrond per level (~0,6 s), daarna bewaard.
+- [x] **Plaatjes achter de levels** (breedbeeld, `GalaxyBackdropPictures`):
+  alleen waar de bovenste rij van het level lucht is (de effen lichtblauwe
+  tiles): levels 5, 7-14 en 16. Map `assets/backgrounds/keen4` (nog leeg)
+  en `game_data/keen4/backgrounds` van de speler.
+- [x] **Rondkijken**: pijltjes/WASD verplaatsen het punt waar Keen zou
+  staan; het beeld volgt met de regels van het origineel (dus nooit voorbij
+  een scroll-blok). Shift+N/P: volgende/vorige map. Escape: terug naar het
+  startscherm. Zonder `--level` opent level 1 (het "coming soon"-scherm is
+  weg).
+- [x] **Naast het origineel (js-dos, headless)**: het eerste beeld van
+  levels 1, 4, 11, 14, 17 en van de wereldkaart is pixel voor pixel gelijk
+  (tiles van alle drie lagen, camera, Keen); alleen het scorebord (D4), de
+  vijanden (D5) en de stand van de animaties verschillen. De animatietijden
+  gemeten: druppels 114 ms (8 tics), ogen 571/2855 ms, boom 286 ms: precies
+  `TILEINFO`.
+- [x] **Tests**: nieuwe suites `test_galaxy_level` (zelfgemaakte data:
+  klok, animatie, lagen, atlas, camera met blokken, breedbeeld, volgorde,
+  lucht) en `test_keen4_level` (echte data: start in alle 20 maps, het
+  eerste beeld van level 1, blokken, tiles, lucht-levels). 74 suites, 836
+  tests (was 72 en 816), alle slagen, gdlint schoon.
+  `tools/keen4_regression.sh`: level 1 en 11 in 4:3 en breedbeeld.
+- [x] **Keen 1-3-controle:** `keen1_regression.sh` en `keen2_regression.sh`
+  tegen D2 (lege gebruikersmap): alles gelijk, ook `launcher.png`.
+  `git diff milestone-d2-bestanden` op `src/keen2`, `src/keen3`, hun tests
+  en fixtures, `src/actors`, `src/map` en `src/game/level_view.gd` is leeg.
+  Gedeeld bestand veranderd: alleen de testlijst (`tests/run_tests.gd`).
+- [x] **Bekeken** (scratchpad `d3shots/`): alle 20 maps in 4:3 en
+  breedbeeld, met en zonder xBRZ; tiles vóór Keen, bewegende tiles,
+  scroll-blokken, afdekken in breedbeeld, en een testplaatje achter de
+  lucht-levels (niet gecommit).
+- **Niet gedaan:** de apps zijn hier niet gebouwd (Mac-build alleen op de
+  Mac; voor Windows ontbreken hier de export templates).
+- **Om te proberen:** `godot --path . -- --game=4` (level 1),
+  `-- --game=4 --level=18` (smal: breedbeeld afgedekt), `--level=4` en
+  `--level=14` (scroll-blokken; rondkijken met de pijltjes), Shift+N door
+  alle maps, F2 (breedbeeld), F5 (xBRZ), en een eigen plaatje als
+  `game_data/keen4/backgrounds/level07.png`.
+- **Volgende stap: D4**, Keen beweegt (acties, hellingen, palen, randen,
+  de camera die hem volgt, het scorebord).
 
 ## Mijlpaal D2: wat er nu is
 
