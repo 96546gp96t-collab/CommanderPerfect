@@ -22,6 +22,9 @@ const MILLISECONDS := 1000.0
 
 var mode := DEFAULT_MODE
 var music_on := true
+## The AdLib sounds quieter (the original's "QUIET ADLIB/SOUNDBLASTER";
+## [method GalaxyAdlibSound.quiet_decibels]); the music stays as it is.
+var quiet_adlib := false
 var library: GalaxySoundLibrary
 ## The episode's sound names to their numbers.
 var names: Dictionary[StringName, int] = {}
@@ -106,6 +109,9 @@ func play_number(number: int) -> void:
 	_sound_player.stop()
 	if stream != null:
 		_sound_player.stream = stream
+		_sound_player.volume_db = 0.0
+		if quiet_adlib and kind == GalaxySoundLibrary.Kind.ADLIB:
+			_sound_player.volume_db = -library.adlib_sounds[number].quiet_decibels()
 		_sound_player.play()
 
 

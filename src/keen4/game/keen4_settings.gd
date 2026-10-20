@@ -3,13 +3,15 @@ extends RefCounted
 ## Keen 4's own settings, kept apart from the shared ones ([UserSettings]:
 ## keys and the picture), as the original keeps them in its CONFIG.CK4:
 ## whether the score box is shown (Omni ck_scoreBoxEnabled; on in a new
-## installation). Stored in a ConfigFile in Keen 4's user folder.
+## installation) and whether the AdLib sounds are the quiet ones (D11; Omni
+## sd_quietAdlibSfx, off). Stored in a ConfigFile in Keen 4's user folder.
 
 const DEFAULT_PATH := "user://keen4/settings.cfg"
 const SECTION := "game"
 
 var path := DEFAULT_PATH
 var score_box := true
+var quiet_adlib := false
 
 
 ## The settings stored at [param file_path], with the defaults for what
@@ -24,6 +26,7 @@ static func load_from(file_path := DEFAULT_PATH) -> Keen4Settings:
 		push_error("%s could not be read; using the default settings." % file_path)
 		return settings
 	settings.score_box = bool(config.get_value(SECTION, "score_box", true))
+	settings.quiet_adlib = bool(config.get_value(SECTION, "quiet_adlib", false))
 	return settings
 
 
@@ -32,6 +35,7 @@ func save() -> bool:
 	DirAccess.make_dir_recursive_absolute(path.get_base_dir())
 	var config := ConfigFile.new()
 	config.set_value(SECTION, "score_box", score_box)
+	config.set_value(SECTION, "quiet_adlib", quiet_adlib)
 	var error := config.save(path)
 	if error != OK:
 		push_error("Could not save %s: %s" % [path, error_string(error)])

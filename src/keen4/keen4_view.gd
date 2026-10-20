@@ -302,7 +302,7 @@ func _is_help_key(event: InputEvent) -> bool:
 		return false
 	if _data == null or _front in [Front.HELP, Front.ENDING, Front.NAME_ENTRY]:
 		return false
-	if _panel.is_open():
+	if _panel.is_open() and not _panel.allows_help():
 		return false
 	return event.is_action_pressed("toggle_help")
 

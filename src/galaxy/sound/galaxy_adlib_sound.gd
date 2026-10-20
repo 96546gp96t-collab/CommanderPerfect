@@ -14,6 +14,11 @@ extends RefCounted
 ## end right after writing), so the last note is never heard and the sound
 ## lasts one step less than it has notes. [method render_samples] renders
 ## that on a fresh chip, plus the release that still sounds afterwards.
+##
+## "Quiet" AdLib sounds (Omni SD_AL_PlaySound with sd_quietAdlibSfx): the
+## carrier's level byte L is written as 0x3F − (x >> 1) − (x >> 2) with
+## x = 0x3F − L, all in bytes. Only the carrier's total level changes, so
+## the sound is the same, [method quiet_decibels] quieter.
 
 const HEADER_SIZE := 6
 const INSTRUMENT_SIZE := 16
@@ -40,6 +45,12 @@ const BLOCK_SHIFT := 2
 const MAX_TAIL_SECONDS := 3.0
 const FADE_SECONDS := 0.03
 const TAIL_PIECE := 512
+## The carrier's level byte in the instrument; its total level (attenuation
+## in 0.75 dB steps) is the low 6 bits.
+const CARRIER_LEVEL := 3
+const TOTAL_LEVEL_MASK := 0x3F
+const BYTE_MASK := 0xFF
+const DECIBELS_PER_LEVEL := 0.75
 
 var priority := 0
 var instrument := PackedByteArray()
@@ -61,6 +72,22 @@ static func parse(chunk: PackedByteArray) -> GalaxyAdlibSound:
 		NOTES_OFFSET, NOTES_OFFSET + mini(length, chunk.size() - NOTES_OFFSET)
 	)
 	return sound
+
+
+## How much quieter the "quiet" version is, in dB (0 for no instrument).
+func quiet_decibels() -> float:
+	if instrument.size() <= CARRIER_LEVEL:
+		return 0.0
+	var level := instrument[CARRIER_LEVEL]
+	var quiet := quiet_level(level)
+	return ((quiet & TOTAL_LEVEL_MASK) - (level & TOTAL_LEVEL_MASK)) * DECIBELS_PER_LEVEL
+
+
+## The carrier's level byte [param level] as the quiet setting writes it.
+static func quiet_level(level: int) -> int:
+	var loudness := (TOTAL_LEVEL_MASK - level) & BYTE_MASK
+	var quieter := ((loudness >> 1) + (loudness >> 2)) & BYTE_MASK
+	return (TOTAL_LEVEL_MASK - quieter) & BYTE_MASK
 
 
 ## How long the sound lasts, in seconds: the time the original counts it as
