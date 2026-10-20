@@ -123,7 +123,6 @@ func _stop_front() -> void:
 	_front = Front.NONE
 	_demo = null
 	_demo_sign.visible = false
-	_board_sprite.visible = false
 	_clock.tics_per_frame = GalaxyClock.NORMAL_TICS
 	_objects.visible = true
 
@@ -205,6 +204,13 @@ func _begin_demo(high_scores: bool) -> void:
 		_show_board(map)
 
 
+## A new map: the table is part of map 19's picture (it stays under the
+## next demo's box until that map is shown, seen in the original).
+func _show_map(map: GalaxyMap, sprites: PackedInt32Array) -> void:
+	_board_sprite.visible = false
+	super(map, sprites)
+
+
 ## The table over map 19's view.
 func _show_board(map: GalaxyMap) -> void:
 	_board = Keen4HighScoreBoard.create(
@@ -256,7 +262,7 @@ func _after_demo_frame() -> bool:
 
 
 func _end_demo() -> void:
-	var was_high_scores := _board_sprite.visible
+	var was_high_scores := _board_sprite.visible and _demo.map_number == Keen4Episode.HIGH_SCORE_MAP
 	_played = null
 	_stop_front()
 	if _after_game and was_high_scores:
