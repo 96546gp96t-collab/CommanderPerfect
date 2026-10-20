@@ -5,8 +5,9 @@ extends "res://tests/test_case.gd"
 ## game, New Game per difficulty with the cursor on Normal, the questions
 ## before ending, quitting or starting over, Load and Save with six slots and
 ## a typed name, the score box option, Choose Game (D11: C on the quit
-## question), the cursor that stops at the ends and blinks every 35 tics. Saved games and settings go to a folder
-## of their own in the user folder, which is removed afterwards.
+## question), the cursor that stops at the ends and blinks every 35 tics.
+## Saved games and settings go to a folder of their own in the user folder,
+## which is removed afterwards.
 
 const TEST_DIRECTORY := "user://test_galaxy_menus"
 const SLOTS := 6
