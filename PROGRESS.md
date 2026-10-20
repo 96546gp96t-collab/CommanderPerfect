@@ -91,9 +91,45 @@ bestanden in [docs/keen4/file-formats.md](docs/keen4/file-formats.md).
 | D8.1 | Fix: tekenen op de pixelstappen van het origineel | ✅ Klaar en gecontroleerd door de architect (branch `milestone-d8.1-pixelstappen`) |
 | D9 | Geluid en muziek (eigen OPL2-synthesizer) | ✅ Klaar en gecontroleerd door de architect (branch `milestone-d9-geluid`; developer + tester) |
 | D10 | Menu's en opslaan | ✅ Klaar en gecontroleerd door de architect (branch `milestone-d10-menus`; developer + tester) |
-| D11 | Mooier maken en Paddle War | 🔶 Bezig (branch `milestone-d11-extras`: D8.1, D9 en D10 samengevoegd) |
-| D12 | Co-op | ⬜ |
+| D11 | Mooier maken en Paddle War | ✅ Klaar en gecontroleerd door de architect (branch `milestone-d11-extras`; menu-developer + tester en een tekenaar tegelijk) |
+| D12 | Co-op | 🔶 Bezig |
 | D13 | Naast het origineel | ⬜ |
+
+## Mijlpaal D11: wat er nu is
+
+Gebouwd door drie agents tegelijk (een developer en een tester voor het
+menu, een tekenaar voor de plaatjes), gecontroleerd en samengevoegd door de
+architect in `milestone-d11-extras`.
+
+**Het menu.** Het hoofdmenu van het horloge is nu precies dat van het
+origineel: PADDLE WAR staat weer op zijn eigen rij. Het spelletje is
+nagebouwd zoals versie 1.0 het speelt en tekent (70 tics per seconde, Keens
+batje 2 pixels per tic, de computer 2 van de 3 tics, opslag na 70 tics,
+sneller na elke 10 slagen, tot 21, met de vijf eigen geluiden); 0 pixels
+verschil met het origineel. "Choose Game" zit onder QUIT (besluit van de
+gebruiker): de vraag "REALLY QUIT?" heeft een regel "PRESS C TO CHOOSE
+GAME" (C naar het startscherm, Y stopt, elke andere toets terug). Configure
+heeft de kaarten SOUND (geen, PC-speaker, AdLib, stille AdLib) en MUSIC
+(geen, AdLib) zoals het origineel (0 pixels verschil); kiezen werkt meteen
+en blijft bewaard, Shift+S/M werken nog. F1 in het menu opent de help,
+Escape brengt je terug op dezelfde kaart. De muziek stopt als het menu
+opengaat; "Terug naar spel" start het lied van de kaart opnieuw. De melding
+over het scorebord laat eerst nog "(ON)" staan, zoals het origineel. Met
+xBRZ blijven het menu, de vensters en de titelplaatjes scherp, en flitst een
+level niet meer terug naar de originele graphics bij een schakelaar of
+edelsteen. Vloeiende beweging werkt overal. Beide staan standaard uit.
+
+**De plaatjes.** Tien eigen achtergronden voor de levels met lucht (5, 7-14,
+16), getekend vanuit code (`tools/make_keen4_backgrounds.py`, met de
+gedeelde `tools/background_painter.py`): besneeuwde bergen, een heuveldorp,
+buttes bij zonsondergang, een luchtspiegeling, een oase, drie manen boven
+piramides, zwarte piramides bij rode zon, ruïnes, een storm, een vulkaan.
+Samen ~56 KB, alleen in breedbeeld.
+
+- [x] Paddle War, Choose Game onder Quit, SOUND- en MUSIC-kaarten, F1 in het menu, muziek in het menu.
+- [x] xBRZ- en vloeiende-beweging-fixes; tests die een draaiend scherm nodig hebben lopen nu mee (`TREE_SUITES` in de testrunner).
+- [x] Tien achtergronden en `test_keen4_backgrounds`.
+- Open: of de berichtvensters in Keen 4 ook xBRZ moeten krijgen (vraag aan de gebruiker).
 
 ## Mijlpaal D10: wat er nu is
 
@@ -856,7 +892,7 @@ Drie bugs die de gebruiker vond, op dezelfde branch.
   de nabije; levels 1, 6 en 7: koepels, huisjes en het fort staan op de
   laagste grond eronder. Level 14 is helemaal nieuw (noorderlicht boven
   een bevroren zee, ijsbergen, een planeet met ring, een wachttoren met
-  zoeklicht). De tekenhulp staat nu in `tools/keen3_canvas.py`. 3, 8, 11,
+  zoeklicht). De tekenhulp staat nu in `tools/background_painter.py` (sinds D11 gedeeld met Keen 4). 3, 8, 11,
   13 en 15 zweefden niet en zijn niet veranderd.
 - [x] **Level 10 (en 9) een plaatje:** een level krijgt nu een plaatje
   als het lucht heeft, en het plaatje komt alleen door de lucht (tile
@@ -2600,14 +2636,13 @@ Keen 3:
 
 Keen 4:
 
-1. **D11** (branch `milestone-d11-extras`, D8.1 + D9 + D10 samengevoegd):
-   vloeiende beweging en xBRZ nakijken, plaatjes achter de levels, geluid en
-   muziek in het menu, F1 in het menu, Paddle War.
-2. Daarna **D12** (co-op), dan D13 (naast het origineel).
-3. **Voor de gebruiker:** Keen 4 van titel tot highscore spelen in `build/`
-   (bouw vanaf `milestone-d11-extras` als D11 klaar is, of nu vanaf die
-   branch): het menu, Easy/Normal/Hard, opslaan midden in een level, het
-   geluid en de muziek (Shift+S, Shift+M).
+1. **D12** (co-op): twee spelers met split-screen (omhoog/omlaag bij de
+   gedeelde toetsen) en online (`GAME_ID_KEEN_4`).
+2. Daarna D13 (naast het origineel: de wezens die in demo 0, 2 en 3 uit de
+   pas lopen, de rest van de schattingen).
+3. **Voor de gebruiker:** Keen 4 helemaal spelen in `build/` (bouw vanaf
+   `milestone-d11-extras`): menu, Paddle War, geluid en muziek, opslaan, de
+   plaatjes in breedbeeld.
 
 Keen 2:
 
