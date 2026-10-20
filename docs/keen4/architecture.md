@@ -1253,3 +1253,51 @@ whole 4:3 frames of all five demos equal the original's:
 6. **Shared files changed**: only `tests/run_tests.gd` (the new suite).
    Keen 1-3 and the shared code are untouched; `src/galaxy` and
    `src/keen4` only.
+
+## Deviations in D13 C
+
+Version 1.4 next to 1.0, and the final checks (tester/developer, D13 C;
+research.md "1.0 and 1.4").
+
+1. **The pages of 1.4**: the version is not asked anywhere; the pages
+   follow from the pictures. `GalaxyPageFrame` (`src/galaxy/ui/`) finds
+   the five frame pictures by their sizes from picture 74
+   (`Keen4Episode.PAGE_FRAME_PICTURE`); `Keen4Episode.page_layout` gives a
+   `GalaxyPageLayout` with that frame, red (4) and yellow text (14), or,
+   without the frame (1.0), light grey and dark grey as before.
+   `GalaxyPageLayout` got two members (`frame`, `frame_status`) and draws
+   the frame after filling the page. `Keen4Help` puts "pg n of m" at
+   (218, 186) in light red with the frame, at 1.0's place without it;
+   `Keen4Ending` only takes the layout. 1.0's screens are unchanged (the
+   Keen 4 regression's help shots are the same).
+2. **1.4's known places** (`Keen4Episode`): AUDIOHED, AUDIODCT, the level
+   names, the message, text and high-score runs got their 1.4 offsets as
+   the first place to look (loading 1.4 takes ~80 ms instead of ~150 ms);
+   `Keen4FrontScreen` asks `Keen4Episode.high_score_offsets()`.
+3. **Keen's jump from the ground keeps the walk's step** (`GalaxyKeen`,
+   shared Galaxy code): when Keen stops walking and jumps in the same
+   frame, the step his walk already made in that frame is kept, only the
+   vertical step is dropped (Omni CK_HandleInputOnGround resets only
+   ck_nextY); a jump while walking on still drops both (CK_KeenRunningThink).
+   1.4's first demo does exactly this at frame 176: before, our view stood
+   4 pixels off from there on until a door (whole frames 63 % equal, now
+   75 %). No 1.0 demo does it (they all still play in sync).
+4. **F1 while a box waits in a game** (`Keen4View._box_waits`, found by
+   the final smoke test on v1.0): after loading a game the "PAUSED" box
+   waits for a key; F1 opened the help *under* the box (the box stayed on
+   top of the help and after it). Now F1 is only a key for a waiting box,
+   the status window or the choice after a death, as in the original,
+   which reads F1 only while Keen plays (Omni CK_CheckKeys); in the title
+   loop and on the panel's cards F1 opens the help as before.
+5. **Tests**: `tests/test_keen4_v14.gd` reads `game_data/keen4-v14` (or
+   `KEEN4_V14_DIR`) and skips without it; with 1.0 present too it compares
+   what both share. `test_galaxy_keen.gd` got a test for item 3,
+   `test_keen4_d11_screen.gd` one for item 4. The other
+   real-data suites still read 1.0 through `Keen4Files.locate()`; several
+   pin 1.0's own numbers (help pages, demo 0's frames), so they are not
+   run against 1.4.
+6. **Not changed**: the sign-on text screen is still not built (as in
+   D8); `Keen4Episode.EXECUTABLE_SIZES` keeps CG's unpacked 1.4 size (the
+   shareware program is packed, 105,108 bytes, but its sign-on names the
+   version, so the size is never needed). Keen 1-3 and the other shared
+   code are untouched.

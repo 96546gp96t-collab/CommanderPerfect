@@ -130,6 +130,10 @@ func _handle_ground_input() -> void:
 	if _jump_pressed():
 		_use_jump()
 		_start_jump(0)
+		# Only the vertical step is dropped: when he stops walking and jumps
+		# in one frame, the walk's last step still moves him (Omni
+		# CK_HandleInputOnGround; seen in v1.4's first demo, D13).
+		step.y = 0
 		return
 	if _pogo_pressed():
 		_use_pogo()
@@ -164,6 +168,7 @@ func _think_run() -> void:
 	if _jump_pressed():
 		_use_jump()
 		_start_jump(direction.x * WALK_JUMP_SPEED_X)
+		step = Vector2i.ZERO
 	if _pogo_pressed():
 		_use_pogo()
 		_start_pogo(direction.x * POGO_SPEED_X)
@@ -189,7 +194,6 @@ func _walk_sound() -> void:
 func _start_jump(speed_x: int) -> void:
 	world.play_sound(&"keen_jump")
 	velocity = Vector2i(speed_x, GalaxyKeenAir.JUMP_SPEED)
-	step = Vector2i.ZERO
 	jump_timer = GalaxyKeenAir.JUMP_TICS
 	_continue_as(&"jump_1")
 

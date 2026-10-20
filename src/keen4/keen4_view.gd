@@ -74,10 +74,11 @@ func _ready() -> void:
 
 func _unhandled_input(event: InputEvent) -> void:
 	if _is_help_key(event):
-		get_viewport().set_input_as_handled()
-		_open_help()
-		return
-	if _handle_display_keys(event):
+		if not _box_waits():
+			get_viewport().set_input_as_handled()
+			_open_help()
+			return
+	elif _handle_display_keys(event):
 		get_viewport().set_input_as_handled()
 		return
 	if _data != null and _front_input(event):
@@ -322,6 +323,16 @@ func _is_help_key(event: InputEvent) -> bool:
 	if _panel.is_open() and not _panel.allows_help():
 		return false
 	return event.is_action_pressed("toggle_help")
+
+
+## Whether a box, the status window or the choice after a death waits in a
+## game: the original reads F1 only while Keen plays, so then F1 is just a
+## key for what waits (D13: the help opened under the "PAUSED" box after
+## loading a game).
+func _box_waits() -> bool:
+	if _panel.is_open() or _in_title_loop:
+		return false
+	return not _queue.is_empty() or _status_drop != null or _choice >= 0
 
 
 func _leave() -> void:

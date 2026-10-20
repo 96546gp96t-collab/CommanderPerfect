@@ -101,6 +101,26 @@ func test_walking_speed() -> void:
 	assert_equal(keen.box.right, (world.map.width - 2) * TILE - 1, "against the border")
 
 
+func test_stopping_and_jumping_in_one_frame_keeps_the_last_step() -> void:
+	# The walk's step of that frame still moves him; a jump with the
+	# direction held starts from where he is (Omni CK_HandleInputOnGround
+	# and CK_KeenRunningThink; seen in v1.4's first demo, D13).
+	var world := Fixtures.world(OPEN_SKY)
+	var keen := world.player() as GalaxyKeen
+	Fixtures.run(world, 5, func(_frame: int) -> KeenInput: return Fixtures.press(1))
+	var before := keen.position.x
+	Fixtures.run(world, 1, func(_frame: int) -> KeenInput: return Fixtures.press(0, 0, true))
+	assert_equal(keen.action.name, &"jump_1", "he jumps")
+	assert_equal(keen.position.x - before, WALK_PER_FRAME, "and the walk's step moves him")
+	assert_equal(keen.velocity.x, 0, "but not on in the air")
+	var held := Fixtures.world(OPEN_SKY)
+	var held_keen := held.player() as GalaxyKeen
+	Fixtures.run(held, 5, func(_frame: int) -> KeenInput: return Fixtures.press(1))
+	var start := held_keen.position.x
+	Fixtures.run(held, 1, func(_frame: int) -> KeenInput: return Fixtures.press(1, 0, true))
+	assert_equal(held_keen.position.x, start, "walking on into a jump: no step that frame")
+
+
 func test_slopes_change_his_speed_and_height() -> void:
 	var world := (
 		Fixtures

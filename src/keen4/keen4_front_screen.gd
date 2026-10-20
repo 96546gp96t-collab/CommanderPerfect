@@ -90,7 +90,7 @@ func _set_up_front() -> void:
 static func default_high_scores(data: GalaxyData) -> Array[GalaxyHighScores.Entry]:
 	var image := data.executable.image
 	var start := GalaxyHighScores.find_defaults(
-		image, Keen4Episode.HIGH_SCORE_COUNT, PackedInt32Array([Keen4Episode.HIGH_SCORES_V1_0])
+		image, Keen4Episode.HIGH_SCORE_COUNT, Keen4Episode.high_score_offsets()
 	)
 	if start < 0:
 		push_error("The high-score table was not found in the program.")

@@ -3,7 +3,8 @@
 How CommanderPerfect reads the files of episode 4 ("Secret of the
 Oracle"). Written in milestone D1 by the architect, from Omnispeak and
 Commander Genius and **checked against the user's own files (v1.0)** with
-scratch scripts (nothing from the files is in the repository). D2 built
+scratch scripts (nothing from the files is in the repository); D13
+checked everything again in the user's **shareware v1.4** (marked "D13"). D2 built
 the readers (`src/galaxy/data/`, `src/keen4/data/`) and corrected this page
 where the code learned more (marked "D2"). The facts
 behind the numbers are in [research.md](research.md). This page holds
@@ -21,11 +22,16 @@ app) for a folder that holds:
 
 | File | Contents | Compression |
 |---|---|---|
-| `KEEN4E.EXE` (or `KEEN4.EXE`) | The program, with the headers of the other files inside (below). v1.0: **LZEXE 0.91**, 102,355 bytes, image 246,288 bytes. v1.4 (CG): not packed, 263,488 bytes, MZ header 0x2E00, image 0x3D740 | `DosExecutable` |
-| `EGAGRAPH.CK4` | All graphics: fonts, pictures, sprites, 8×8 and 16×16 tiles, texts, demos | Huffman per chunk |
+| `KEEN4E.EXE` (or `KEEN4.EXE`) | The program, with the headers of the other files inside (below). v1.0: **LZEXE 0.91**, 102,355 bytes, image 246,288 bytes. v1.4 (CG): not packed, 263,488 bytes, MZ header 0x2E00, image 0x3D740. The shareware v1.4 (D13): LZEXE, 105,108 bytes, the same image of 251,712 bytes (= 0x3D740) | `DosExecutable` |
+| `EGAGRAPH.CK4` | All graphics: fonts, pictures, sprites, 8×8 and 16×16 tiles, texts, demos. v1.0 487,332 bytes, v1.4 520,581 | Huffman per chunk |
 | `GAMEMAPS.CK4` | All 20 maps; starts with `TED5v1.0` | Carmack, then RLEW, per plane |
 | `AUDIO.CK4` | PC speaker sounds, AdLib sounds, AdLib music | Huffman per chunk |
 | `CONFIG.CK4`, `SAVEGAM?.CK4` | The original's settings and saves | not read |
+
+D13: `GAMEMAPS.CK4` (99,040 bytes) and `AUDIO.CK4` (33,325 bytes) are
+**byte for byte the same** in v1.0 and v1.4; so are TILEINFO, the random
+numbers and every text we read from the EXE. Only the program and
+`EGAGRAPH.CK4` differ (above and below).
 
 External header files (`EGAHEAD.CK4`, `EGADICT.CK4`, `MAPHEAD.CK4`,
 `AUDIOHED.CK4`, `AUDIODCT.CK4`) exist for mods and in Omnispeak's own data
@@ -39,14 +45,14 @@ tile information after them, as in the EXE. `Keen4Files` needs
 
 Offsets are "raw": in the unpacked image after the MZ header.
 
-| Piece | v1.0 (files) | v1.4 (CG) | Recognised by |
+| Piece | v1.0 (files) | v1.4 (files, D13) | Recognised by |
 |---|---|---|---|
-| `AUDIOHED` | 0x1FB80, 163 × 32 bit | — | Offsets starting at 0, the last equal to the size of `AUDIO.CK4`. Entries 104-155 (digitised sounds, absent) hold one bogus value larger than entry 156: skip that block when checking the order |
-| `EGAHEAD` | 0x1FE10, 4744 × 24 bit | 0x21080 | Offsets starting at 0, never decreasing apart from 0xFFFFFF (empty), the last equal to the size of `EGAGRAPH.CK4` |
-| `MAPHEAD` | 0x235B0, 402 bytes | 0x24830 | The word 0xABCD, then 100 32-bit offsets into `GAMEMAPS.CK4` (0 = no map) |
-| `TILEINFO` | 0x23742, 23,004 bytes | 0x249C2 | Directly after `MAPHEAD`; its size is 2 × 1296 + 7 × 2916 |
-| `AUDIODCT` | 0x33FF6 | — | A Huffman tree (below); decompressing an audio chunk gives a sane length |
-| `EGADICT` | 0x343F6 | 0x358F6 | A Huffman tree; chunk 0 decompresses to 4 × the number of pictures |
+| `AUDIOHED` | 0x1FB80, 163 × 32 bit | 0x20DF0 | Offsets starting at 0, the last equal to the size of `AUDIO.CK4`. Entries 104-155 (digitised sounds, absent) hold one bogus value larger than entry 156: skip that block when checking the order |
+| `EGAHEAD` | 0x1FE10, 4744 × 24 bit | 0x21080, 4752 × 24 bit (CG's place) | Offsets starting at 0, never decreasing apart from 0xFFFFFF (empty), the last equal to the size of `EGAGRAPH.CK4` |
+| `MAPHEAD` | 0x235B0, 402 bytes | 0x24830 (CG) | The word 0xABCD, then 100 32-bit offsets into `GAMEMAPS.CK4` (0 = no map) |
+| `TILEINFO` | 0x23742, 23,004 bytes | 0x249C2 (CG), the same bytes | Directly after `MAPHEAD`; its size is 2 × 1296 + 7 × 2916 |
+| `AUDIODCT` | 0x33FF6 | 0x354F6 | A Huffman tree (below); decompressing an audio chunk gives a sane length |
+| `EGADICT` | 0x343F6 | 0x358F6 (CG) | A Huffman tree; chunk 0 decompresses to 4 × the number of pictures |
 
 **A Huffman tree** is 255 nodes of two 16-bit values (0-bit, 1-bit); a
 value below 256 is a byte (a leaf), 256 or more is node (value − 256). In a
@@ -82,7 +88,8 @@ How `GalaxyHeaderSearch` does it (D2):
   chance; three in a row do not.
 - In 1.0 the known places hit at once (the whole load, LZEXE included,
   takes ~70 ms); without them the search finds the same six places in
-  ~0.2 s.
+  ~0.2 s. D13: the same for v1.4 (~80 ms with its places known, ~150 ms
+  when the two audio pieces had to be searched).
 
 ## Huffman
 
@@ -104,9 +111,11 @@ the tile chunks (fixed lengths, no prefix): one chunk with all 8×8 tiles
 (32 bytes each), one with all masked 8×8 tiles (40 each), and **one chunk
 per 16×16 tile**: 128 bytes (four planes of 32) for a background tile, 160
 bytes (the mask plane, then four planes) for a foreground tile. An empty
-16×16 chunk (0xFFFFFF) is a tile that is never drawn.
+16×16 chunk (0xFFFFFF) is a tile that is never drawn. (D13: foreground
+tiles 1-88 are empty in 1.0 but hold pictures in 1.4; no map uses them.
+Every other tile and every sprite decodes to the same picture in both.)
 
-| Range | v1.0 chunks (files) | v1.4 chunks (CG) | Count |
+| Range | v1.0 chunks (files) | v1.4 chunks (CG; files, D13) | Count |
 |---|---|---|---|
 | Tables: pictures, masked pictures, sprites | 0, 1, 2 | 0, 1, 2 | 3 |
 | Fonts | 3-5 | 3-5 | 3 |
@@ -186,32 +195,54 @@ The code keeps **indices inside a range**, never chunk numbers.
   (one per row, from the start of the chunk), then per row 16-bit run
   lengths, dark and light in turn starting with dark, ended by 0xFFFF; every
   row of 1.0's second word starts with a dark run of 20.
-- **Texts** (D8, 1.0's order): 0 the ComputerWrist help, 1 the story, 2
-  the keys ("The keys to excitement"), 3 about Id, 4 the end, 5 "not in the
-  demo version", 6 how to order (Omni's 1.4 names put the controls before
-  the story; not checked in a 1.4). Lines end in CR LF; commands start with
+- **Texts** (D8, 1.0's order; D13: v1.4 has the same order): 0 the
+  ComputerWrist help, 1 the story, 2 the keys ("The keys to excitement"),
+  3 about Id, 4 the end, 5 "not in the demo version", 6 how to order. In
+  v1.4 texts 0-3 and 6 differ (other colours, no `^G` of the page bar,
+  pages split elsewhere: 15, 21, 9, 20 and 2 pages for the help's topics
+  where v1.0 has 13, 21, 9, 18, 2); the end (4) and text 5 are the same. Lines end in CR LF; commands start with
   `^` (`GalaxyTextPages`, `GalaxyPageLayout`):
   - `^P` a new page (the rest of the line is skipped), `^E` the end;
   - `^G y,x,chunk` a picture (**y first**), its x rounded down to 8;
   - `^T y,x,chunk,tics` a picture after a pause (the page so far is shown
     meanwhile);
   - `^L y,x` the next word's line (rounded to the 10-pixel lines) and x;
-  - `^C` / `^c` and one hex digit: the text colour (1.0: the EGA colour
-    itself, on light grey);
+  - `^C` / `^c` and one hex digit: the text colour (the EGA colour
+    itself: 1.0 on light grey, before any `^C` dark grey (8); 1.4 on red
+    (4), before any `^C` yellow (14); D13 saw `^cB` light cyan on red, so
+    it is not ORed with the red);
   - `^B y,x,width,height,colour` a bar in the background colour (the end
     uses it to wipe a line).
   The picture numbers are **chunk numbers of this version**; subtract the
   picture range start (6 in 1.0 and 1.4).
-- **Pictures by place** (D8): counted from the start, the same in 1.0 and
-  1.4 (1.0 lacks 1.4's five border pictures and three bar pictures, which
-  come after these): 0 the help menu (136 × 184), 5 the help's "PAGE / ESC
-  BACKS OUT" bar, 39 the pointing hand, 41 and 42 the end's dim and bright
-  arrow (16 × 16). Counted from the end: 17-14 the four intro credits, 13
-  the story's picture, 12 the title picture (both 320 × 200).
-- **Demos** (D8): a 16-bit map number (1, 9, 11, 15, 19 in 1.0), a 16-bit
+- **Pictures by place** (D8, D13): pictures 0-73 counted from the start
+  have the same places in 1.0 and 1.4, and counted from the end the last
+  33 (1-33) are the same pictures. 1.4 puts **eight pictures in between**
+  (74-81; Omni PIC_BORDERTOP … PIC_H_KEEN6PIC): the page frame's top (320
+  × 8), left and right (8 × 192), bottom with the help's bar (304 × 24)
+  and plain bottom (304 × 8) (`GalaxyPageFrame`), a bar (288 × 8) and
+  two big pictures (304 × 176, 304 × 152) of the order text. Places from
+  the start: 0 the help menu (136 × 184), 5 the help's "PAGE / ESC BACKS
+  OUT" bar (96 × 16 in 1.0; an 8 × 8 dummy in 1.4, whose bar is part of
+  the frame), 39 the pointing hand, 41 and 42 the end's dim and bright
+  arrow (16 × 16 in 1.0, 16 × 8 in 1.4, drawn at the same place). Of 0-73,
+  1.4 draws 0-5, 14-22, 37, 39, 41, 42 and 73 differently (for the red
+  pages). Counted from the end: 17-14 the four intro credits, 13 the
+  story's picture, 12 the title picture (both 320 × 200).
+- **The pages of 1.4** (D13, seen in the shareware v1.4; Omni
+  PageLayout, ShowHelp): filled with red (4); the frame's top at (0, 0),
+  sides at (0, 8) and (312, 8); a help page has the bar at (8, 176) and
+  "pg n of m" at (218, 186) in light red (12), the help's menu and the end
+  pages the plain bottom at (8, 192). The text keeps 1.0's lines (18 of
+  10 pixels from y 10, x 10-310). With this, our help menu, the first page
+  of every topic and all 16 end pages equal the original's frames (0
+  pixels differ).
+- **Demos** (D8): a 16-bit map number (1, 9, 11, 15, 19 in 1.0 and 1.4), a 16-bit
   length in bytes, then pairs of bytes: how many logic frames, and what is
   held (bits 0-1 up/down + 1, bits 2-3 left/right + 1, bit 4 jump, bit 5
-  pogo). 1.0's demos are 744, 687, 749, 645 and 271 frames of 3 tics.
+  pogo). 1.0's demos are 744, 687, 749, 645 and 271 frames of 3 tics;
+  1.4's first demo is another recording (812 frames), the other four are
+  the same bytes.
 
 ### Decoding time (D2, GDScript, this machine)
 
@@ -362,20 +393,20 @@ player's files.
 All found by **shape**, never by their words (`GalaxyExecutable`,
 `GalaxyExeTexts`); the known 1.0 places are tried first.
 
-| Piece | 1.0 position | How it is found |
+| Piece | 1.0 position (1.4, D13) | How it is found |
 |---|---|---|
 | Version | the sign-on screen | A text-mode screen: each character followed by its colour byte, so "(v1.0)" has its letters two bytes apart. The search reads "(v" + digits and a dot + ")" two (or one) bytes apart. Without it: the size of the EXE (1.0: 102,355; 1.4: 263,488) |
-| Random numbers | 0x1DA32 | 256 bytes starting 0, 8, 109, 220, 222, 241, 149 (Omni `US_RndT`) |
-| Level names | 0x1DD40 | 19 zero-terminated records (maps 0-18), each on a 16-byte boundary (zeros in between), then 19 "Keen enters …" texts. The test: every entry text, newlines read as spaces, ends with its level's name (1.0: also map 3 "the The …"). Names may hold a newline (maps 13 and 18) |
-| The janitor | 0x1E280 | Right after the entry texts: 4 records with 4, 3, 2 and 2 lines: his first two boxes, Keen's reply, his last box (D6: the fifth box has no text, only Keen's picture with the cross face; seen in the original) |
-| Council, Lindsey, wetsuit | 0x2F5BC | 17 records, one zero apart, with 4, 4, 1, 3, 1, 1, 2, 2, 2, 1, 3, 1, 3, 2, 4, 5, 5 lines: Lindsey's two hints, Keen's two thanks, "Princess Lindsey says:", Keen without and with the wetsuit, Keen's eight answers to the council members, the member's message under water and on land. The first record follows code bytes, not a zero |
+| Random numbers | 0x1DA32 (1.4: 0x1ED32) | 256 bytes starting 0, 8, 109, 220, 222, 241, 149 (Omni `US_RndT`) |
+| Level names | 0x1DD40 (1.4: 0x1F040) | 19 zero-terminated records (maps 0-18), each on a 16-byte boundary (zeros in between), then 19 "Keen enters …" texts. The test: every entry text, newlines read as spaces, ends with its level's name (1.0: also map 3 "the The …"). Names may hold a newline (maps 13 and 18) |
+| The janitor | 0x1E280 (1.4: 0x1F580) | Right after the entry texts: 4 records with 4, 3, 2 and 2 lines: his first two boxes, Keen's reply, his last box (D6: the fifth box has no text, only Keen's picture with the cross face; seen in the original) |
+| Council, Lindsey, wetsuit | 0x2F5BC (1.4: 0x3094C) | 17 records, one zero apart, with 4, 4, 1, 3, 1, 1, 2, 2, 2, 1, 3, 1, 3, 2, 4, 5, 5 lines: Lindsey's two hints, Keen's two thanks, "Princess Lindsey says:", Keen without and with the wetsuit, Keen's eight answers to the council members, the member's message under water and on land. The first record follows code bytes, not a zero |
 
-| Status window (D7) | 0x2E115 | 14 one-line records, one zero apart, of 8, 5, 5, 7, 5, 4, 6, 4, 4, 4, 5, 5, 7 and 3 characters: location, score, extra, rescued, level, the three difficulties, keys, ammo, lives, drops, the wetsuit and its absence. One-line labels say nothing by their lines, so this run is found by its **lengths** (`GalaxyEpisode.text_lengths`, `GalaxyExeTexts.find_by_lengths`) |
-| Game texts (D7) | 0x2DD4C | 13 records of 10, 31, 31, 4, 33, 22, 39, 23, 9, 19, 34, 48 and 10 characters: "game over", two memory errors, the demo texts, the three lines of the box after a death (0-based 7, 8, 9), two memory errors, and the box when Keen leaves the world map (12). Found by its lengths too |
+| Status window (D7) | 0x2E115 (1.4: 0x2F487) | 14 one-line records, one zero apart, of 8, 5, 5, 7, 5, 4, 6, 4, 4, 4, 5, 5, 7 and 3 characters: location, score, extra, rescued, level, the three difficulties, keys, ammo, lives, drops, the wetsuit and its absence. One-line labels say nothing by their lines, so this run is found by its **lengths** (`GalaxyEpisode.text_lengths`, `GalaxyExeTexts.find_by_lengths`) |
+| Game texts (D7) | 0x2DD4C (1.4: 0x2F0BE) | 13 records of 10, 31, 31, 4, 33, 22, 39, 23, 9, 19, 34, 48 and 10 characters: "game over", two memory errors, the demo texts, the three lines of the box after a death (0-based 7, 8, 9), two memory errors, and the box when Keen leaves the world map (12). Found by its lengths too |
 
-| Story (D8) | 0x1DB40 | One record of 30 lines (the title loop's story), found by that shape |
-| Cheat box (D8) | 0x2E0C3 | 3 records of 70, 6 and 3 characters: the B+A+T box, "PAUSED", the drive prompt; right before the status labels |
-| High scores (D8) | 0x31E9C | 8 records of 64 bytes: a name of 58 bytes (printable, then zeros), a 32-bit score, a 16-bit number (council members rescued). Found by that shape (`GalaxyHighScores.find_defaults`); the same records are kept in `CONFIG.CK4` after its 6-byte header |
+| Story (D8) | 0x1DB40 (1.4: 0x1EE40) | One record of 30 lines (the title loop's story), found by that shape |
+| Cheat box (D8) | 0x2E0C3 (1.4: 0x2F435) | 3 records of 70, 6 and 3 characters: the B+A+T box, "PAUSED", the drive prompt; right before the status labels |
+| High scores (D8) | 0x31E9C (1.4: 0x33234) | 8 records of 64 bytes: a name of 58 bytes (printable, then zeros), a 32-bit score, a 16-bit number (council members rescued). Found by that shape (`GalaxyHighScores.find_defaults`); the same records are kept in `CONFIG.CK4` after its 6-byte header |
 
 A record is a run of printable characters and newlines ending in a zero.
 The shapes and lengths are Keen 4's numbers (`Keen4Episode`); the Galaxy

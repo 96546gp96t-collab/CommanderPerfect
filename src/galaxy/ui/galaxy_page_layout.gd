@@ -16,7 +16,8 @@ extends RefCounted
 ##     word to a line and x; [code]^C[/code] sets the colour; [code]^B[/code]
 ##     fills a bar with the background colour.
 ## The result is a list of [Stage]s: what the screen shows and for how long
-## (the last stage stays until the reader goes on).
+## (the last stage stays until the reader goes on). Later releases (v1.4)
+## put a [GalaxyPageFrame] around the page ([member frame]).
 
 
 ## One picture of the page and how long it is shown before the next.
@@ -51,6 +52,10 @@ var background := 7
 var default_color := 8
 ## The chunk number of the first picture: ^G numbers are chunk numbers.
 var first_picture_chunk := 0
+## The border drawn around the page (v1.4), or null (v1.0 has none).
+var frame: GalaxyPageFrame
+## Whether the frame's bottom is the help's bar with the page number.
+var frame_status := false
 var _graphics: GalaxyGraphics
 var _font: GalaxyFont
 var _image: Image
@@ -80,6 +85,8 @@ func lay_out(pages: GalaxyTextPages, index: int) -> Array[Stage]:
 	_stages = []
 	_image = Image.create_empty(SCREEN_SIZE.x, SCREEN_SIZE.y, false, Image.FORMAT_RGBA8)
 	_image.fill(EgaPalette.color(background))
+	if frame != null:
+		frame.draw(_image, frame_status)
 	if index < 0 or index >= pages.page_count() or _font == null:
 		_finish()
 		return _stages
