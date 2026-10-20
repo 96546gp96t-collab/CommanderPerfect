@@ -28,13 +28,15 @@ var drops := 0
 var gems := PackedInt32Array([0, 0, 0, 0])
 ## Charges in a stunner item (Omni: 5, 8 on Easy).
 var charges_per_stunner := 5
+## Whether points give extra lives: not in demos (Omni CK_IncreaseScore).
+var extra_lives_for_points := true
 
 
 ## Adds [param points]; returns whether that gave an extra life (Omni
 ## CK_IncreaseScore: at the threshold, which then doubles).
 func add_score(points: int) -> bool:
 	score += points
-	if score < next_life_at:
+	if not extra_lives_for_points or score < next_life_at:
 		return false
 	lives += 1
 	next_life_at *= 2
