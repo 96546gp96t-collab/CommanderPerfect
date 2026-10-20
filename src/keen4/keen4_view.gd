@@ -1,12 +1,13 @@
 class_name Keen4View
-extends Keen4PlayScreen
-## The Keen 4 game screen that the start screen opens (milestones D3-D7):
-## the flow of a game on top of [Keen4PlayScreen] (docs/keen4/architecture.md,
+extends Keen4FrontScreen
+## The Keen 4 game screen that the start screen opens (milestones D3-D8):
+## the flow of a game on top of [Keen4FrontScreen] (docs/keen4/architecture.md,
 ## "The flow of Keen 4"; Omni `ck_game.c:CK_GameLoop`, facts only):
-##   - a new game starts on the world map, with the box "Keen enters the
-##     Shadowlands"; [code]-- --game=4 --level=N[/code] opens map N at once
-##     (0 the world map, 1-17 the levels, 18 the Megarocket, 19 the
-##     high-score map);
+##   - it starts with the title loop (intro, story, demos, high scores); a
+##     key starts a new game on the world map, with the box "Keen enters
+##     the Shadowlands" (Escape: the start screen; F1: the help);
+##     [code]-- --game=4 --level=N[/code] opens map N at once (0 the world
+##     map, 1-17 the levels, 18 the Megarocket, 19 the high-score map);
 ##   - on the world map jump, pogo or fire on an entrance: "One moment",
 ##     then the level's "Keen enters ..." box with Keen counting down, a
 ##     fade, and the level;
@@ -16,33 +17,20 @@ extends Keen4PlayScreen
 ##     flies);
 ##   - a death: one life less and the box "You didn't make it past …"
 ##     with Try Again (the level again) or Exit to Shadowlands (the map);
-##     with no life left "Game Over!" and the start screen (the high scores
-##     come in D8);
-##   - after the eighth rescue (the end is D8's) the status line says so
-##     and the map follows.
+##     with no life left "Game Over!", then the high scores;
+##   - after the eighth rescue (or the cheat E+N+D) the end pages, then the
+##     name typed in on the high-score table, the high scores and the title
+##     loop again; B+A+T gives the gems, 99 charges and a life.
 ##
 ## Keys: the shared ones (arrows, jump, pogo, fire); Enter the status
-## window; Escape back to the start screen; Shift+N / Shift+P the next or
-## previous map; Shift+G god mode; F1-F6 as in Keen 1-3 (help line,
-## widescreen, pixel shape, full screen, graphics: original or xBRZ,
-## smooth motion).
+## window; F1 the help; Escape back to the start screen; Shift+N / Shift+P
+## the next or previous map; Shift+G god mode; Shift+F1 and F2-F6 as in
+## Keen 1-3 (help line, widescreen, pixel shape, full screen, graphics:
+## original or xBRZ, smooth motion).
 
 const NOT_A_MAP_MESSAGE := "Keen 4 has no map %d"
-## After the eighth rescue (the end comes in D8).
-const ALL_RESCUED_MESSAGE := "All eight council members are rescued"
-## The box when a map "loads" (seen in the original, D7; the original's
-## times depend on how fast it reads the files): "One moment" when Keen
-## leaves the world map, the box with the whole count-down picture, each
-## finger, the last one before the fade.
+## "One moment" when Keen leaves the world map (seen in the original, D7).
 const ONE_MOMENT_TICS := 28
-const BOX_TICS := 21
-const FINGER_TICS := 20
-const LAST_FINGER_TICS := 28
-## The fade to the next map and back (seen: steps of 6 tics, about 19
-## tics black in between).
-const FADE_STEPS: PackedFloat32Array = [0.75, 0.5, 0.25]
-const FADE_STEP_TICS := 6
-const BLACK_TICS := 19
 ## "Game Over!" stays 4 seconds, or until a key (Omni CK_GameOver).
 const GAME_OVER_TICS := 4 * GalaxyClock.TICS_PER_SECOND
 ## The choices after a death.
@@ -52,6 +40,7 @@ const EXIT_TO_MAP := 1
 ## The choice after a death, while the box is up; -1 otherwise.
 var _choice := -1
 var _choice_tic := 0
+var _cheats := Keen4Cheats.new()
 
 
 func _ready() -> void:
@@ -62,15 +51,23 @@ func _ready() -> void:
 	if not _load_data():
 		return
 	_set_up_play()
+	_set_up_front()
 	var requested := _requested_map()
 	if requested < 0:
-		_enter(Keen4Episode.WORLD_MAP, false)
+		_start_title_loop()
 	else:
 		_show_level(requested)
 
 
 func _unhandled_input(event: InputEvent) -> void:
+	if _is_help_key(event):
+		get_viewport().set_input_as_handled()
+		_open_help()
+		return
 	if _handle_display_keys(event):
+		get_viewport().set_input_as_handled()
+		return
+	if _data != null and _front_input(event):
 		get_viewport().set_input_as_handled()
 		return
 	if _status_drop != null:
@@ -129,23 +126,18 @@ func _show_level(number: int) -> void:
 ## [param from_map]: "One moment" first.
 func _enter(number: int, from_map: bool) -> void:
 	_queue.clear()
-	var screens := _boxes.entering(number)
 	if from_map:
 		_queue.add(_boxes.one_moment(), ONE_MOMENT_TICS)
-	_queue.add(screens[0], BOX_TICS)
-	for finger in range(1, screens.size()):
-		var last := finger == screens.size() - 1
-		_queue.add(screens[finger], LAST_FINGER_TICS if last else FINGER_TICS)
-	for brightness in FADE_STEPS:
-		_queue.add(screens[-1], FADE_STEP_TICS, brightness)
-	_queue.add(null, BLACK_TICS, 0.0, _show_level.bind(number))
-	for step in range(FADE_STEPS.size() - 1, -1, -1):
-		_queue.add(null, FADE_STEP_TICS, FADE_STEPS[step])
+	_queue_loading(_boxes.entering(number), _show_level.bind(number))
 	_after_queue(Callable())
 
 
 ## After a frame: what the level or the map asks for, and how it ended.
 func _after_frame() -> bool:
+	if _after_demo_frame():
+		return not _queue.is_empty() or _played == null
+	if _check_cheats():
+		return true
 	if _on_map != null:
 		_after_map_frame()
 	else:
@@ -195,8 +187,9 @@ func _finish_level() -> void:
 
 func _after_rescue() -> void:
 	if _game_progress.all_rescued():
-		_show_message(ALL_RESCUED_MESSAGE)
-	_back_to_map()
+		_start_ending()
+	else:
+		_back_to_map()
 
 
 func _back_to_map() -> void:
@@ -211,7 +204,7 @@ func _lose_level() -> void:
 	_inventory.lives -= 1
 	if _inventory.lives < 0:
 		_queue.add(_boxes.game_over(), GAME_OVER_TICS)
-		_after_queue(_leave)
+		_after_queue(_game_ended)
 		return
 	_choice = TRY_AGAIN
 	_choice_tic = 0
@@ -257,6 +250,58 @@ func _redraw_choice() -> void:
 		return
 	step.image = _boxes.try_again(_map_number, _choice, _choice_tic)
 	_show_step()
+
+
+## The cheats while Keen plays (Omni CK_PlayLoop, CK_CheckKeys): E+N+D
+## ends the game as a rescue of the eighth council member here; B+A+T
+## shows its box and gives the items. Returns whether one did something.
+func _check_cheats() -> bool:
+	match _cheats.check(Keen4Cheats.is_key_held):
+		Keen4Cheats.Cheat.END:
+			var map := _map_number
+			_played = null
+			_on_map = null
+			_game_progress.rescued = Keen4Progress.COUNCIL_COUNT - 1
+			if map >= Keen4Episode.FIRST_LEVEL and map <= Keen4Episode.LAST_LEVEL:
+				_game_progress.mark_done(map)
+			var before := _game_progress.rescue()
+			_show_screens(_messages.council(map, before), _start_ending)
+			return true
+		Keen4Cheats.Cheat.ITEMS:
+			_show_screens([Keen4Cheats.items_box(_data)], _give_items)
+			return true
+	return false
+
+
+func _give_items() -> void:
+	Keen4Cheats.give_items(_inventory)
+	_update_score_box()
+
+
+## A new game from the title loop: on the world map with its box.
+func _new_game() -> void:
+	_in_title_loop = false
+	_after_game = false
+	_queue.clear()
+	_played = null
+	_on_map = null
+	_stop_front()
+	_title_layer.clear()
+	_inventory = Keen4Inventory.new_game()
+	_game_progress = Keen4Progress.new()
+	_difficulty = GalaxyDifficulty.DEFAULT
+	_enter(Keen4Episode.WORLD_MAP, false)
+
+
+## F1 alone (Shift+F1 keeps Keen 1-3's help line); not over the end or
+## the name being typed.
+func _is_help_key(event: InputEvent) -> bool:
+	var key := event as InputEventKey
+	if key == null or not key.pressed or key.echo or key.shift_pressed:
+		return false
+	if _data == null or _front in [Front.HELP, Front.ENDING, Front.NAME_ENTRY]:
+		return false
+	return event.is_action_pressed("toggle_help")
 
 
 func _leave() -> void:
