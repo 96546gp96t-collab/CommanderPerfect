@@ -281,7 +281,7 @@ func _key_set_menu() -> Menu:
 	for action: String in KeyBindings.ACTIONS:
 		var label: String = KeyBindings.ACTIONS[action].to_upper()
 		# The original's box holds one key: the first (the one that changes).
-		var key_name := KeyBindings.describe(action).get_slice(KEY_NAME_SEPARATOR, 0)
+		var key_name := KeyBindings.describe(action).get_slice(KEY_NAME_SEPARATOR, 0).capitalize()
 		menu.add(label + VALUE_SEPARATOR + key_name, StringName(action))
 	return menu
 

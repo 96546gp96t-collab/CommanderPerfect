@@ -17,13 +17,14 @@ class Card:
 
 
 ## The offsets of the cards by the menu's kind (Omni: main 32, 4; new game,
-## options, keyboard 8, 0; load and save 4, 3; configure and the keys 0, 0).
+## options, keyboard 8, 0; load and save 4, 3; the keys 0, 0; seen in
+## v1.0: configure 8, 0, not Omnispeak's 0, 0).
 const OFFSETS: Dictionary[StringName, Vector2i] = {
 	MenuController.MAIN: Vector2i(32, 4),
 	GalaxyMenuController.NEW_GAME: Vector2i(8, 0),
 	MenuController.SLOTS_LOAD: Vector2i(4, 3),
 	MenuController.SLOTS_SAVE: Vector2i(4, 3),
-	GalaxyMenuController.CONFIGURE: Vector2i(0, 0),
+	GalaxyMenuController.CONFIGURE: Vector2i(8, 0),
 	MenuController.OPTIONS: Vector2i(8, 0),
 	MenuController.KEY_SET: Vector2i(0, 0),
 }

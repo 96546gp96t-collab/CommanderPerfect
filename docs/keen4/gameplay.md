@@ -87,7 +87,7 @@ cards, typing a name, the dialogs and the PAUSED box):
   (seen).
 - **Cards** (title pictures counted from the end of the picture range,
   the same in v1.0 and 1.4; places Omni): main 33 (32, 4), new game 32
-  (8, 0), load 31 and save 30 (4, 3), configure 29 (0, 0), keys
+  (8, 0), load 31 and save 30 (4, 3), configure 29 (8, 0; seen, Omnispeak 0, 0), keys
   ("BUTTON SETUP") 24 (0, 0), options 22 (8, 0).
 - **Keys**: up and down move the cursor and stop at the ends; it can rest
   on a choice that cannot be picked (nothing happens there); a letter puts
@@ -111,7 +111,8 @@ cards, typing a name, the dialogs and the PAUSED box):
 - **Configure**: OPTIONS (SCORE BOX (ON/OFF), with the original's message
   "Score box now on/off"; then the shared display settings WIDESCREEN,
   4:3 PIXELS, FULL SCREEN, SMOOTH MOTION, BACKGROUNDS (only in widescreen),
-  GRAPHICS), KEYBOARD (one row per action, its key in a box at x + 90;
+  GRAPHICS), KEYBOARD (one row per action, its key (first letter capital,
+  as the original names keys) in a box at x + 90 in the colour of its text;
   Enter waits for a new key with a blinking cursor, Escape keeps the old
   one) and RESET KEYS. The keys and the picture are shared with Keen 1-3;
   the score box is Keen 4's own (`user://keen4/settings.cfg`), on by

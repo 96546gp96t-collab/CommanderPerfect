@@ -176,7 +176,8 @@ func _key_box(key_name: String, at: Vector2i, color: int, waiting: bool, cursor:
 	var room := SCREEN_AT.x + SCREEN_SIZE.x - (at.x + KEY_BOX_X)
 	var width := clampi(needed, KEY_BOX_WIDTH, room)
 	var box := Rect2i(at.x + KEY_BOX_X, at.y, width, ROW)
-	_bar(box, color ^ (NORMAL ^ BRIGHT))
+	# Seen in v1.0: the box has the colour of its text.
+	_bar(box, color)
 	_bar(box.grow(-1), BACKGROUND)
 	if not waiting:
 		_text(key_name, Vector2i(at.x + KEY_TEXT_X, at.y + TEXT_SHIFT.y), color)
