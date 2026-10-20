@@ -49,7 +49,7 @@ var _played: Keen4LevelSession
 ## The view's top left, in pixels, frame by frame (smooth motion).
 var _view_motion := Interpolation.new()
 ## The rescued council members, the wetsuit, the levels done.
-var _progress := Keen4Progress.new()
+var _game_progress := Keen4Progress.new()
 var _messages: Keen4Messages
 ## The message screens still to show (the first is on the screen), and
 ## what follows the last.
@@ -92,6 +92,8 @@ func _process(delta: float) -> void:
 	if _played == null:
 		_follow_free_look()
 	_objects.place(_clock.blend(), _settings.smooth_motion)
+	if _window_sprite.visible:
+		_place_window()
 	_place_smooth_view()
 	_update_backdrops()
 	_update_status()
@@ -99,7 +101,10 @@ func _process(delta: float) -> void:
 
 func _unhandled_input(event: InputEvent) -> void:
 	if not _screens.is_empty():
-		if _is_new_press(event):
+		# F1-F6 still change the picture; any other key goes on.
+		if _handle_display_keys(event):
+			get_viewport().set_input_as_handled()
+		elif _is_new_press(event):
 			get_viewport().set_input_as_handled()
 			_next_screen()
 		return
@@ -135,7 +140,7 @@ func inventory() -> Keen4Inventory:
 
 
 func progress() -> Keen4Progress:
-	return _progress
+	return _game_progress
 
 
 ## Whether a message box is on the screen (the game waits for a key).
@@ -228,20 +233,20 @@ func _after_frame() -> bool:
 ## The level is done: a rescue or the wetsuit shows its messages first;
 ## then the next level.
 func _finish_level() -> void:
-	_progress.mark_done(_map_number)
+	_game_progress.mark_done(_map_number)
 	match _played.ending():
 		Keen4Council.RESCUED:
-			var before := _progress.rescue()
+			var before := _game_progress.rescue()
 			_show_screens(_messages.council(_map_number, before), _after_rescue)
 		Keen4Wetsuit.TAKEN:
-			_progress.wetsuit = true
+			_game_progress.wetsuit = true
 			_show_screens(_messages.wetsuit(), _show_next_level)
 		_:
 			_show_next_level()
 
 
 func _after_rescue() -> void:
-	if _progress.all_rescued():
+	if _game_progress.all_rescued():
 		_show_message(ALL_RESCUED_MESSAGE)
 	_show_next_level()
 
@@ -285,9 +290,14 @@ func _next_screen() -> void:
 ## The first screen, in the middle of the picture (also in widescreen).
 func _put_screen() -> void:
 	_window_sprite.texture = ImageTexture.create_from_image(_screens[0])
-	var width := _settings.game_size().x
-	_window_sprite.position = Vector2((width - GalaxyWindow.SCREEN_SIZE.x) / 2, 0)
 	_window_sprite.visible = true
+	_place_window()
+
+
+## The message screen in the middle of the picture, also after F2.
+func _place_window() -> void:
+	var width := _settings.game_size().x
+	_window_sprite.position = Vector2((width - GalaxyWindow.SCREEN_SIZE.x) / 2.0, 0)
 
 
 ## A key or button just pressed (the original waits for a new press).

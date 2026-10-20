@@ -193,6 +193,13 @@ func test_the_window_layout() -> void:
 	)
 
 
+func test_the_view_compiles() -> void:
+	# No suite plays the view itself; a member it shares with GameScreen by
+	# mistake would only show when the game starts.
+	var script := load("res://src/keen4/keen4_view.gd") as GDScript
+	assert_true(script != null and script.can_instantiate(), "Keen4View compiles")
+
+
 func _level(number: int, level: GalaxyDifficulty.Level) -> Keen4LevelSession:
 	var map := _data.maps.load_map(number)
 	return Keen4LevelSession.start(_data, map, Keen4Inventory.new_game(), 0, level, number)
