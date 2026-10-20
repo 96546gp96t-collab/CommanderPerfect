@@ -76,6 +76,8 @@ const SUITES: Array[Script] = [
 	preload("res://tests/test_galaxy_data.gd"),
 	preload("res://tests/test_galaxy_files.gd"),
 	preload("res://tests/test_keen4_data.gd"),
+	preload("res://tests/test_galaxy_level.gd"),
+	preload("res://tests/test_keen4_level.gd"),
 ]
 
 
