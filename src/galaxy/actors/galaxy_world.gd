@@ -66,6 +66,10 @@ var back_tile_writer: Callable
 ## Called as (name, interrupt) to play a sound ([GalaxySoundPlayer.play]);
 ## the episode gives the names their numbers. Unset: silent (tests).
 var sound_player: Callable
+## The object whose action runs now ([method _run_action]), or null. The
+## original keeps the step of that object in one shared place, which an
+## action started on another object resets ([method GalaxyObject.start]).
+var acting: GalaxyObject = null
 ## The first frame after a level starts puts everything far from the view
 ## to sleep at once (the original's screen is still faded in).
 var _starting := true
@@ -140,7 +144,9 @@ func run_frame(frame_tics: int, end_tic: int) -> void:
 		var object := objects[index]
 		index += 1
 		if not object.removed and _wake_or_sleep(object):
+			acting = object
 			_run_action(object)
+			acting = null
 	_starting = false
 	var keens := players()
 	for keen in keens:

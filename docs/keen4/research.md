@@ -230,7 +230,11 @@ Order of one frame (`ck_play.c:CK_PlayLoop`): input; per object: wake up
 within the screen + 1 tile, sleep beyond + 4 tiles (only with a chance of
 2 × tics in 256 per frame; some objects stay awake, some are removed
 off-screen), then think + motion + tile clipping; Keen rides his
-platform; every pair of awake objects is tested, **both** contact
+platform; (D13, seen in the demos: after placing them,
+`CK4_ScanInfoLayer` puts every object but the ever-awake ones to sleep;
+the step of the object that runs is one shared variable, which starting an
+action on any other object clears; a door puts the view on Keen inside his
+think, so the objects after him in the list already see the new view); every pair of awake objects is tested, **both** contact
 functions run; Keen's tile specials; react; camera; score box; draw.
 At most 100 objects; slot 0 is Keen, slot 1 the score box.
 
@@ -895,7 +899,9 @@ are creatures whose random choices or animation phases differ from the
 original's (Keen's own track is equal in every frame, D8). Not part of
 D8.1: the creatures' use of the random table (Omnispeak deactivates an
 object off screen only when `US_RndT() < sprite sync × 2`, which draws a
-random number) is a candidate for a later look.
+random number) is a candidate for a later look. Done in D13: every
+difference had a cause and all five demos now match (see "Watched in D13:
+demos").
 
 ### Watched in D9 (js-dos, the user's v1.0)
 
@@ -1021,6 +1027,64 @@ for 10 tics). Facing left, starting in the air right beside the ledge's
 top with left held, the original lands on the ledge where ours
 (Omnispeak's clipping) catches the wall and hangs: a lip case of the
 clipping, left open.
+
+### Watched in D13: demos (D8's js-dos recordings, the user's v1.0)
+
+Our engine played each demo in the real Keen 4 view (4:3, xvfb, OpenGL)
+and saved the World viewport after every logic frame; each recorded frame
+of the original (D8: demo 0 in run 2a, demo 1 and the high scores in run
+3, demo 2 in run 4, demo 3 in run 3b) was laid on ours. Alignment: the
+first of our frames from frame 30 on that equals a recorded frame pixel
+for pixel, then the recorder's time at 3 tics a frame, each recorded frame
+compared with our frames n − 1, n and n + 1 (the recorder's timing). To
+find causes, the state per frame (objects, actions, timers, the random
+table's index and who drew each number) was laid beside Omnispeak's order
+and the original's sprites were found in its frames pixel for pixel.
+
+| Demo | Recorded frames compared | Identical before (D12 code) | Identical after (D13) |
+|---|---|---|---|
+| 0 (map 1) | 638 | 91.5 % | **100 %** |
+| 1 (map 9) | 660 | 100 % | **100 %** |
+| 2 (map 11) | 664 | 86.4 % | **100 %** |
+| 3 (map 15) | 598 | 42.0 % | **100 %** |
+| 4 (map 19, high scores) | 267 | 14.6 % | **100 %** |
+
+The causes (each fixed; no other difference is left):
+
+1. **Everything sleeps at the start.** `CK4_ScanInfoLayer` ends by
+   putting every object that is not always awake to sleep (Omni; ours
+   started them awake and only put those beyond 4 tiles to sleep). A
+   creature 1-4 tiles beyond the first view therefore stayed awake in ours
+   and drew random numbers: demo 3's skypest, just below the view, drew 2
+   a frame from the first frame, so the slug's slime chance read index 15
+   (21) instead of index 1 (8): the original's slug stops to slime at
+   frame 5 (seen), ours did not, and every later random choice of the demo
+   moved with it (demo 2's drips from the ceiling likewise).
+2. **The shared step.** In the original the step of the running object is
+   one shared variable (Omni `ck_nextX`, `ck_nextY`); `CK_SetAction` and
+   `CK_SetAction2` on any object set it to 0 (and the new object's own
+   clipping may leave 16 in y when its action sticks to the ground). A
+   slug leaving its slime (`CK4_SlugSlime` makes the slime with
+   `CK_SetAction` in the think at the end of its 60-tic stop) loses the
+   step back of 64 that ends the stop: seen in demo 3 at frame 25, the
+   original's slug stays at x 232 (ours stepped to 228); demo 4's slugs
+   the same. The 1.0 program's own action record (found by its shape in
+   the unpacked program: sprites 314 / 309, type 0, stick 1, 60 tics,
+   x 64) has the same step as 1.4, so it is the shared step and not other
+   numbers.
+3. **A door moves the view at once.** `CK_KeenEnterDoor` calls
+   `CK_CentreCamera` in Keen's think, so the objects after Keen in that
+   frame wake up (and fall asleep) by the new view; ours put the view on
+   him after the frame, one frame late. What woke behind a door was one
+   frame behind: demo 0's poison slug (drawn a frame late, later its stars
+   in another phase, and the Bounder's random bounces at the end), demo
+   2's inchworms (their 30-tic steps), demo 3's soda bottle
+   (its 20-tic animation).
+
+Checked as numbers in `tests/test_keen4_demo_sync.gd`: 67 sprites (Keen,
+creatures, their stars, drips, slime) at 24 frames of the five demos, each
+found in the original's recorded frame pixel for pixel; the suite fails
+without any one of the three fixes.
 
 ## Lessons for the new-episode guide
 

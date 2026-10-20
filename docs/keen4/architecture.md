@@ -1164,3 +1164,49 @@ and why (developer, D13 B); the measurements are in research.md,
    fireball's burn, the wetsuit's first key press, Smirky's teleport (70 s
    watched, no puff in the view). They stay Omnispeak's numbers.
 5. **Shared files changed**: only `tests/run_tests.gd` (one suite).
+
+## Deviations in D13 A
+
+Demos in sync (developer, D13 part A). Three causes found by laying our
+frames and our state beside the original's recorded frames and
+Omnispeak's order (research.md, "Watched in D13: demos"); with them
+whole 4:3 frames of all five demos equal the original's:
+
+1. **Everything sleeps at the start** (`Keen4LevelSession._place_objects`,
+   Omni CK4_ScanInfoLayer): after the info plane is placed, every object
+   that is not always awake is asleep, and wakes within one tile of the
+   view as before. `GalaxyWorld`'s first-frame rule (far objects asleep
+   at once) stays for worlds made without a session (the test fixtures);
+   in Keen 4's levels it no longer has anything to do.
+2. **The shared step** (`GalaxyWorld.acting`,
+   `GalaxyObject._share_step`): the original keeps the step of the object
+   whose action runs in one shared variable, and `CK_SetAction` /
+   `CK_SetAction2` on any object reset it. Ours keeps a step per object;
+   to give the same result, `start` (CK_SetAction) and `set_action`
+   (CK_SetAction2) on another object than the one whose action runs copy
+   their own step after clipping (0 sideways, 0 or 16 down) into the
+   running object's step. Outside the actions (contacts, Keen's tile
+   checks) nothing is running and nothing changes, as in the original,
+   where the shared step is only used inside an action. This touches
+   every creature that makes objects in its think (slime, shots, bubbles,
+   fireballs, bolts, darts, the gem door), not only the slug the demos
+   showed; it is the original's rule, not a per-creature fix.
+3. **A door puts the view on Keen in his think** (`GalaxyKeen.
+   _think_enter_door`, Omni CK_KeenEnterDoor → CK_CentreCamera), through
+   the new `GalaxyWorldPlayers.view_of` (his own view when two play), so
+   the objects after him in that frame wake up and fall asleep by the new
+   view. `GalaxyKeen.went_through_door` and the session's centring after
+   the frame are gone.
+4. **Saved games**: a level saved before D13 is replayed (D10) with the
+   new rules, so its creatures may end elsewhere than when it was saved;
+   when Keen ends the replay dead or out of the level, the level starts
+   anew from its saved start (D10's designed fallback). Saves on the
+   world map are not touched.
+5. **Tests**: `tests/test_keen4_demo_sync.gd` (real data, v1.0 only)
+   plays the five demos headless and checks 67 sprites at 24 frames
+   against places measured in the original's recorded frames; it fails
+   without any one of the three fixes. `test_galaxy_creatures` got a
+   hand-made check of the slug leaving its slime.
+6. **Shared files changed**: only `tests/run_tests.gd` (the new suite).
+   Keen 1-3 and the shared code are untouched; `src/galaxy` and
+   `src/keen4` only.

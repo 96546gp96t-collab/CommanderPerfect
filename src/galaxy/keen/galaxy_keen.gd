@@ -68,8 +68,6 @@ const POLE_FEET_MARGIN := 64
 
 ## The episode shows the moon (Keen 4).
 var shows_moon := false
-## Set when he went through a door: the view is put on him again.
-var went_through_door := false
 ## Whether this walking step's sound was played (Omni user3).
 var _stepped := false
 
@@ -319,8 +317,10 @@ func _think_slide() -> void:
 		_continue_as(&"stand")
 
 
-## Think at the end of entering a door: he is put at its target (Omni
-## CK_KeenEnterDoor).
+## Think at the end of entering a door: he is put at its target and his
+## view on him at once, so the objects after him in this frame wake up or
+## fall asleep by the new view (Omni CK_KeenEnterDoor; seen in the
+## original, D13: what is behind the door moves in this frame already).
 func _think_enter_door() -> void:
 	var target := world.info_at(box.tile_left, box.tile_bottom)
 	position = Vector2i((target >> BYTE_SHIFT) * TILE, (target & BYTE_MASK) * TILE + DOOR_ARRIVAL)
@@ -328,7 +328,9 @@ func _think_enter_door() -> void:
 	clip = Clip.NONE
 	set_action(action.next)
 	clip = Clip.NORMAL
-	went_through_door = true
+	var view := world.view_of(self)
+	if view != null:
+		view.centre_on(position.x, box.bottom)
 
 
 ## Think: the gem goes in; the holder changes (tile + 18) and the door at
