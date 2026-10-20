@@ -1,12 +1,13 @@
 class_name Keen4Creatures
 extends RefCounted
-## Places Keen 4's creatures from a level's info plane (Omni
-## `ck4_misc.c:CK4_ScanInfoLayer`, facts only; docs/keen4/research.md §6):
-## most kinds have three values, one placed on every difficulty, one from
-## Normal on and one only on Hard. What D5 does not place yet (platforms,
-## the council, Lindsey, the wetsuit, the creatures under water: D6; the
-## world map's: D7) is listed in [constant LATER], so a test can tell a
-## forgotten value from a planned one.
+## Places Keen 4's creatures and moving things from a level's info plane
+## (Omni `ck4_misc.c:CK4_ScanInfoLayer`, facts only; docs/keen4/research.md
+## §6): most kinds have three values, one placed on every difficulty, one
+## from Normal on and one only on Hard. The land creatures came in D5; the
+## platforms, the council members, Lindsey, the wetsuit and the creatures
+## under water in D6. What only the world map places (D7) is listed in
+## [constant LATER], so a test can tell a forgotten value from a planned
+## one; [constant TURN_POINT] places nothing (the platforms read it).
 
 enum Kind {
 	SLUG,
@@ -28,6 +29,21 @@ enum Kind {
 	DART_GUN_RIGHT,
 	DART_GUN_DOWN,
 	DART_GUN_LEFT,
+	COUNCIL,
+	LINDSEY,
+	WETSUIT,
+	PLATFORM_UP,
+	PLATFORM_RIGHT,
+	PLATFORM_DOWN,
+	PLATFORM_LEFT,
+	FALLING_PLATFORM,
+	DOPEFISH,
+	SCHOOLFISH,
+	WATER_SPRITE,
+	MINE_UP,
+	MINE_RIGHT,
+	MINE_DOWN,
+	MINE_LEFT,
 }
 
 const EASY := GalaxyDifficulty.Level.EASY
@@ -35,7 +51,9 @@ const NORMAL := GalaxyDifficulty.Level.NORMAL
 const HARD := GalaxyDifficulty.Level.HARD
 ## Info value: [kind, the lowest difficulty it is placed on] (Omni).
 const PLACED: Dictionary[int, Array] = {
+	4: [Kind.COUNCIL, EASY],
 	5: [Kind.BERKELOID, EASY],
+	6: [Kind.LINDSEY, EASY],
 	7: [Kind.WORMMOUTH, EASY],
 	8: [Kind.SKYPEST, EASY],
 	9: [Kind.CLOUD, EASY],
@@ -44,11 +62,22 @@ const PLACED: Dictionary[int, Array] = {
 	12: [Kind.BOUNDER, EASY],
 	13: [Kind.EGG, EASY],
 	14: [Kind.LICK, EASY],
+	15: [Kind.DOPEFISH, EASY],
+	16: [Kind.SCHOOLFISH, EASY],
+	17: [Kind.WATER_SPRITE, EASY],
 	18: [Kind.SMIRKY, EASY],
 	19: [Kind.MIMROCK, EASY],
 	20: [Kind.ARACHNUT, EASY],
 	21: [Kind.MUSHROOM, EASY],
 	22: [Kind.SLUG, EASY],
+	23: [Kind.WATER_SPRITE, NORMAL],
+	24: [Kind.WATER_SPRITE, HARD],
+	27: [Kind.PLATFORM_UP, EASY],
+	28: [Kind.PLATFORM_RIGHT, EASY],
+	29: [Kind.PLATFORM_DOWN, EASY],
+	30: [Kind.PLATFORM_LEFT, EASY],
+	32: [Kind.FALLING_PLATFORM, EASY],
+	35: [Kind.WETSUIT, EASY],
 	43: [Kind.SLUG, NORMAL],
 	44: [Kind.SLUG, HARD],
 	45: [Kind.SKYPEST, NORMAL],
@@ -63,6 +92,10 @@ const PLACED: Dictionary[int, Array] = {
 	54: [Kind.DART_GUN_RIGHT, EASY],
 	55: [Kind.DART_GUN_DOWN, EASY],
 	56: [Kind.DART_GUN_LEFT, EASY],
+	69: [Kind.MINE_UP, EASY],
+	70: [Kind.MINE_RIGHT, EASY],
+	71: [Kind.MINE_DOWN, EASY],
+	72: [Kind.MINE_LEFT, EASY],
 	73: [Kind.ARACHNUT, NORMAL],
 	74: [Kind.ARACHNUT, HARD],
 	77: [Kind.BIRD, NORMAL],
@@ -75,15 +108,15 @@ const PLACED: Dictionary[int, Array] = {
 	84: [Kind.DART_GUN_RIGHT, HARD],
 	85: [Kind.DART_GUN_DOWN, HARD],
 	86: [Kind.DART_GUN_LEFT, HARD],
+	87: [Kind.DOPEFISH, NORMAL],
+	88: [Kind.DOPEFISH, HARD],
 }
-## Info values of later milestones (Omni): the council member 4, Lindsey 6,
-## the Dopefish 15/87/88, school fish 16, the sprite under water 17/23/24,
-## platforms 27-30, their turn points 31, the falling platform 32, the
-## wetsuit 35, mines 69-72, the swimming Keen 42 (D6); the map Keen 3 and
-## Miragia 33 (D7); 75 only loads the moon's sprites.
-const LATER: PackedInt32Array = [
-	3, 4, 6, 15, 16, 17, 23, 24, 27, 28, 29, 30, 31, 32, 33, 35, 42, 69, 70, 71, 72, 75, 87, 88
-]
+## Info values of the world map (Omni): the map Keen 3 and Miragia 33
+## (D7); 75 only loads the moon's sprites (nothing is placed).
+const LATER: PackedInt32Array = [3, 33, 75]
+## The turn point of platforms and mines: read where they move, placing
+## nothing ([GalaxyPlatform]).
+const TURN_POINT := GalaxyPlatform.TURN_POINT
 
 
 ## Places the creatures of [param world]'s map for [param difficulty];
@@ -152,4 +185,31 @@ static func place(
 			return Keen4Inchworm.spawn(world, cell, sprites)
 		Kind.FOOT:
 			return Keen4Inchworm.spawn_foot(world, cell, sprites)
-	return Keen4DartGun.spawn(world, cell, kind - Kind.DART_GUN_UP, sprites)
+		Kind.DART_GUN_UP, Kind.DART_GUN_RIGHT, Kind.DART_GUN_DOWN, Kind.DART_GUN_LEFT:
+			return Keen4DartGun.spawn(world, cell, kind - Kind.DART_GUN_UP, sprites)
+	return _place_d6(world, kind, cell, sprites)
+
+
+## The kinds that came in D6: the moving things, the council, Lindsey, the
+## wetsuit and the creatures under water.
+static func _place_d6(
+	world: GalaxyWorld, kind: Kind, cell: Vector2i, sprites: Dictionary[StringName, int]
+) -> GalaxyCreature:
+	match kind:
+		Kind.COUNCIL:
+			return Keen4Council.spawn(world, cell, sprites)
+		Kind.LINDSEY:
+			return Keen4Lindsey.spawn(world, cell, sprites)
+		Kind.WETSUIT:
+			return Keen4Wetsuit.spawn(world, cell, sprites)
+		Kind.PLATFORM_UP, Kind.PLATFORM_RIGHT, Kind.PLATFORM_DOWN, Kind.PLATFORM_LEFT:
+			return Keen4Platform.spawn(world, cell, kind - Kind.PLATFORM_UP, sprites)
+		Kind.FALLING_PLATFORM:
+			return GalaxyFallingPlatform.spawn(world, cell, sprites)
+		Kind.DOPEFISH:
+			return Keen4Dopefish.spawn_dopefish(world, cell, sprites)
+		Kind.SCHOOLFISH:
+			return Keen4Schoolfish.spawn(world, cell, sprites)
+		Kind.WATER_SPRITE:
+			return Keen4WaterSprite.spawn(world, cell, sprites)
+	return Keen4Mine.spawn(world, cell, kind - Kind.MINE_UP, sprites)

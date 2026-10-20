@@ -8,6 +8,12 @@ extends RefCounted
 ## (files: checked on a sheet of all sprites, D4).
 
 const KEEN: Dictionary[StringName, int] = {
+	&"SWIM_L_1": 185,
+	&"SWIM_L_2": 186,
+	&"SWIM_R_1": 187,
+	&"SWIM_R_2": 188,
+	&"SUIT_DIE_1": 189,
+	&"SUIT_DIE_2": 190,
 	&"STAND_R": 6,
 	&"RUN_R_1": 7,
 	&"RUN_R_2": 8,

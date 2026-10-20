@@ -1,6 +1,6 @@
 class_name Keen4View
 extends Keen4LevelScreen
-## The Keen 4 game screen that the start screen opens (milestones D3-D4).
+## The Keen 4 game screen that the start screen opens (milestones D3-D6).
 ## It opens level 1, or map N with [code]-- --game=4 --level=N[/code] (0 is
 ## the world map, 1-17 the levels, 18 the Megarocket, 19 the high-score
 ## map).
@@ -9,13 +9,18 @@ extends Keen4LevelScreen
 ## map) he is played ([Keen4LevelSession]) on the original's clock
 ## ([GalaxyClock], 35 logic frames a second): the view follows him by the
 ## original's rules ([GalaxyCamera]) and the score box ([GalaxyScoreBox]) is
-## the HUD. Until the world map exists (D7) the game goes on like this:
-## walking out of a level opens the next one (1-16, then 1 again), a death
-## starts the level again (one life less), and without lives left the
-## start screen returns.
-## On the world map and in the Well of Wishes (D6, D7) Keen still stands and
-## the movement keys look around, as in D3: the point they move is where
-## Keen would be, and the view follows it by the same rules.
+## the HUD. In the Well of Wishes (17) Keen swims. Until the world map
+## exists (D7) the game goes on like this: walking out of a level, rescuing
+## a council member or taking the wetsuit opens the next level (1-17, then 1
+## again), a death starts the level again (one life less), and without
+## lives left the start screen returns.
+## Message boxes (the council, the janitor, Lindsey, the wetsuit;
+## [Keen4Messages]) stop the game and wait for a key each, as the
+## original's; the rescued council members and the wetsuit are kept in
+## [Keen4Progress] for the world map (D7) and the end (D8).
+## On the world map (D7) Keen still stands and the movement keys look
+## around, as in D3: the point they move is where Keen would be, and the
+## view follows it by the same rules.
 ##
 ## Keys: the shared ones (arrows, jump, pogo, fire); Escape back to the
 ## start screen; Shift+N / Shift+P the next or previous map; F1-F6 as in
@@ -23,10 +28,12 @@ extends Keen4LevelScreen
 ## original or xBRZ, smooth motion).
 
 const NOT_A_MAP_MESSAGE := "Keen 4 has no map %d"
-## The last level Keen walks through: the Well of Wishes (17) is swum (D6),
-## so after 16 level 1 follows for now.
-const LAST_WALKING_LEVEL := 16
+## The last level of the round before the world map exists (D7): after the
+## Well of Wishes (17) level 1 follows.
+const LAST_PLAYED_LEVEL := 17
 const GAME_OVER_MESSAGE := "Game over"
+## After the eighth rescue (the end comes in D8).
+const ALL_RESCUED_MESSAGE := "All eight council members are rescued"
 
 var _clock := GalaxyClock.new()
 var _start: Keen4Start
@@ -41,6 +48,14 @@ var _inventory := Keen4Inventory.new_game()
 var _played: Keen4LevelSession
 ## The view's top left, in pixels, frame by frame (smooth motion).
 var _view_motion := Interpolation.new()
+## The rescued council members, the wetsuit, the levels done.
+var _progress := Keen4Progress.new()
+var _messages: Keen4Messages
+## The message screens still to show (the first is on the screen), and
+## what follows the last.
+var _screens: Array[Image] = []
+var _after_screens := Callable()
+var _window_sprite := Sprite2D.new()
 
 @onready var _score_box: GalaxyScoreBox = %ScoreBox
 
@@ -53,6 +68,10 @@ func _ready() -> void:
 	if not _load_data():
 		return
 	_score_box.use_graphics(_data.graphics, Keen4Sprites.OBJECTS[&"SCOREBOX"])
+	_messages = Keen4Messages.create(_data)
+	_window_sprite.centered = false
+	_window_sprite.visible = false
+	_score_box.get_parent().add_child(_window_sprite)
 	_show_level(_requested_map())
 
 
@@ -60,7 +79,9 @@ func _process(delta: float) -> void:
 	_message_time_left -= delta
 	if _scaled != null and _scaled.poll():
 		_apply_graphics()
-	for frame in _clock.advance(delta):
+	# A message box stops the game until a key is pressed.
+	var frames := _clock.advance(delta) if _screens.is_empty() else 0
+	for frame in frames:
 		var tics := _clock.run_frame()
 		if _played != null:
 			_played.run_frame(KeenInput.from_actions(), tics, _clock.tic)
@@ -77,6 +98,11 @@ func _process(delta: float) -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
+	if not _screens.is_empty():
+		if _is_new_press(event):
+			get_viewport().set_input_as_handled()
+			_next_screen()
+		return
 	if event.is_action_pressed("ui_cancel"):
 		get_viewport().set_input_as_handled()
 		_leave()
@@ -108,6 +134,15 @@ func inventory() -> Keen4Inventory:
 	return _inventory
 
 
+func progress() -> Keen4Progress:
+	return _progress
+
+
+## Whether a message box is on the screen (the game waits for a key).
+func shows_message() -> bool:
+	return not _screens.is_empty()
+
+
 ## Shows map [param number]: played when Keen stands in it, otherwise with
 ## Keen standing still at his start and the view on him.
 func _show_level(number: int) -> void:
@@ -120,9 +155,11 @@ func _show_level(number: int) -> void:
 	_start = Keen4Start.find(map)
 	_objects.clear()
 	_keen_item = null
-	_played = Keen4LevelSession.start(_data, map, _inventory, randi() & GalaxyWorld.RANDOM_MASK)
+	_played = Keen4LevelSession.start(
+		_data, map, _inventory, randi() & GalaxyWorld.RANDOM_MASK, GalaxyDifficulty.DEFAULT, number
+	)
 	if _played != null:
-		_played.keen.god_mode = _god_mode
+		_played.player.god_mode = _god_mode
 		_play(map)
 	else:
 		_look_at(map)
@@ -169,8 +206,13 @@ func _after_frame() -> bool:
 	_frame_view()
 	_view_motion.move_to(Vector2(_camera_anchor.position))
 	_update_score_box()
+	var asked := _played.take_conversation()
+	if asked == Keen4Lindsey.MESSAGE:
+		_show_screens(_messages.lindsey(_map_number), Callable())
+	elif asked == Keen4Council.JANITOR:
+		_show_screens(_messages.janitor(), Callable())
 	if _played.is_done():
-		_show_level(_next_level())
+		_finish_level()
 	elif _played.is_lost():
 		_inventory.lives -= 1
 		if _inventory.lives < 0:
@@ -179,16 +221,82 @@ func _after_frame() -> bool:
 		else:
 			_show_level(_map_number)
 	else:
-		return false
+		return not _screens.is_empty()
 	return true
 
 
-## The level after this one; after the last one Keen walks through (and
-## after the Megarocket and the high-score map) the first again.
+## The level is done: a rescue or the wetsuit shows its messages first;
+## then the next level.
+func _finish_level() -> void:
+	_progress.mark_done(_map_number)
+	match _played.ending():
+		Keen4Council.RESCUED:
+			var before := _progress.rescue()
+			_show_screens(_messages.council(_map_number, before), _after_rescue)
+		Keen4Wetsuit.TAKEN:
+			_progress.wetsuit = true
+			_show_screens(_messages.wetsuit(), _show_next_level)
+		_:
+			_show_next_level()
+
+
+func _after_rescue() -> void:
+	if _progress.all_rescued():
+		_show_message(ALL_RESCUED_MESSAGE)
+	_show_next_level()
+
+
+func _show_next_level() -> void:
+	_show_level(_next_level())
+
+
+## The level after this one; after the last (and after the Megarocket and
+## the high-score map) the first again.
 func _next_level() -> int:
-	if _map_number >= Keen4Episode.FIRST_LEVEL and _map_number < LAST_WALKING_LEVEL:
+	if _map_number >= Keen4Episode.FIRST_LEVEL and _map_number < LAST_PLAYED_LEVEL:
 		return _map_number + 1
 	return Keen4Episode.FIRST_LEVEL
+
+
+## Shows [param screens] one by one, each until a key is pressed; then
+## [param then] (when valid).
+func _show_screens(screens: Array[Image], then: Callable) -> void:
+	if screens.is_empty():
+		if then.is_valid():
+			then.call()
+		return
+	_screens = screens
+	_after_screens = then
+	_put_screen()
+
+
+func _next_screen() -> void:
+	_screens.pop_front()
+	if not _screens.is_empty():
+		_put_screen()
+		return
+	_window_sprite.visible = false
+	var then := _after_screens
+	_after_screens = Callable()
+	if then.is_valid():
+		then.call()
+
+
+## The first screen, in the middle of the picture (also in widescreen).
+func _put_screen() -> void:
+	_window_sprite.texture = ImageTexture.create_from_image(_screens[0])
+	var width := _settings.game_size().x
+	_window_sprite.position = Vector2((width - GalaxyWindow.SCREEN_SIZE.x) / 2, 0)
+	_window_sprite.visible = true
+
+
+## A key or button just pressed (the original waits for a new press).
+static func _is_new_press(event: InputEvent) -> bool:
+	var key := event as InputEventKey
+	if key != null:
+		return key.pressed and not key.echo
+	var button := event as InputEventJoypadButton
+	return button != null and button.pressed
 
 
 func _leave() -> void:
@@ -275,7 +383,7 @@ func _handle_map_keys(event: InputEvent) -> bool:
 		KEY_G:
 			_god_mode = not _god_mode
 			if _played != null:
-				_played.keen.god_mode = _god_mode
+				_played.player.god_mode = _god_mode
 			return true
 		_:
 			return false
