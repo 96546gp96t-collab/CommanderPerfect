@@ -10,8 +10,9 @@ extends Keen4LevelScreen
 ## ([GalaxyClock], 35 logic frames a second): the view follows him by the
 ## original's rules ([GalaxyCamera]) and the score box ([GalaxyScoreBox]) is
 ## the HUD. Until the world map exists (D7) the game goes on like this:
-## walking out of a level opens the next one, a death starts the level
-## again (one life less), and without lives left the start screen returns.
+## walking out of a level opens the next one (1-16, then 1 again), a death
+## starts the level again (one life less), and without lives left the
+## start screen returns.
 ## On the world map and in the Well of Wishes (D6, D7) Keen still stands and
 ## the movement keys look around, as in D3: the point they move is where
 ## Keen would be, and the view follows it by the same rules.
@@ -22,6 +23,9 @@ extends Keen4LevelScreen
 ## original or xBRZ, smooth motion).
 
 const NOT_A_MAP_MESSAGE := "Keen 4 has no map %d"
+## The last level Keen walks through: the Well of Wishes (17) is swum (D6),
+## so after 16 level 1 follows for now.
+const LAST_WALKING_LEVEL := 16
 const GAME_OVER_MESSAGE := "Game over"
 
 var _clock := GalaxyClock.new()
@@ -61,8 +65,9 @@ func _process(delta: float) -> void:
 		if _played != null:
 			_played.run_frame(KeenInput.from_actions(), tics, _clock.tic)
 		_galaxy_map.animate(tics)
-		if _played != null:
-			_after_frame()
+		# A level that ends starts another one (with its own clock).
+		if _played != null and _after_frame():
+			break
 	if _played == null:
 		_follow_free_look()
 	_objects.place(_clock.blend(), _settings.smooth_motion)
@@ -157,7 +162,8 @@ func _look_at(map: GalaxyMap) -> void:
 
 
 ## After a logic frame of a played level: draw it, then what comes next.
-func _after_frame() -> void:
+## Returns whether the level ended.
+func _after_frame() -> bool:
 	_objects.show_objects(_played.world.objects)
 	_frame_view()
 	_view_motion.move_to(Vector2(_camera_anchor.position))
@@ -171,11 +177,15 @@ func _after_frame() -> void:
 			_leave()
 		else:
 			_show_level(_map_number)
+	else:
+		return false
+	return true
 
 
-## The level after this one; after the last one the first again.
+## The level after this one; after the last one Keen walks through (and
+## after the Megarocket and the high-score map) the first again.
 func _next_level() -> int:
-	if _map_number >= Keen4Episode.FIRST_LEVEL and _map_number < Keen4Episode.LAST_LEVEL:
+	if _map_number >= Keen4Episode.FIRST_LEVEL and _map_number < LAST_WALKING_LEVEL:
 		return _map_number + 1
 	return Keen4Episode.FIRST_LEVEL
 
@@ -203,6 +213,7 @@ func _level_sprites() -> PackedInt32Array:
 	var sprites: Dictionary[int, bool] = {}
 	for sprite in Keen4Sprites.all().values():
 		sprites[sprite] = true
+	for sprite in Keen4Sprites.ITEM_FIRST_FRAMES:
 		sprites[sprite + 1] = true
 	return PackedInt32Array(sprites.keys())
 
