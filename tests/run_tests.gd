@@ -112,10 +112,20 @@ const SUITES: Array[Script] = [
 	preload("res://tests/test_galaxy_paddle_points.gd"),
 	preload("res://tests/test_galaxy_paddle_menus.gd"),
 	preload("res://tests/test_keen4_d11_quiet.gd"),
+	preload("res://tests/test_keen4_coop_keys.gd"),
+	preload("res://tests/test_galaxy_coop.gd"),
+	preload("res://tests/test_galaxy_coop_creatures.gd"),
+	preload("res://tests/test_keen4_coop_session.gd"),
+	preload("res://tests/test_keen4_coop_levels.gd"),
+	preload("res://tests/test_keen4_online_bytes.gd"),
+	preload("res://tests/test_keen4_online.gd"),
+	preload("res://tests/test_keen4_online_snapshot.gd"),
 ]
 const TREE_SUITES: Array[Script] = [
 	preload("res://tests/test_keen4_d11_screen.gd"),
 	preload("res://tests/test_keen4_d11_xbrz.gd"),
+	preload("res://tests/test_keen4_coop_screen.gd"),
+	preload("res://tests/test_keen4_online_play.gd"),
 ]
 
 var _failure_count := 0
