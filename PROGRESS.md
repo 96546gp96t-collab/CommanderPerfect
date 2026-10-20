@@ -86,13 +86,99 @@ bestanden in [docs/keen4/file-formats.md](docs/keen4/file-formats.md).
 | D4 | Keen beweegt (klok, acties, hellingen, palen, randen) | ✅ Klaar, wacht op controle door de architect (branch `milestone-d4-keen`) |
 | D5 | Vijanden | ✅ Klaar, wacht op controle door de architect (branch `milestone-d5-vijanden`) |
 | D6 | Platforms, schakelaars, de raad, onder water | ✅ Klaar, wacht op controle door de architect (branch `milestone-d6-mechaniek`) |
-| D7 | De wereldkaart | ⬜ |
+| D7 | De wereldkaart | ✅ Klaar, wacht op controle door de architect (branch `milestone-d7-kaart`) |
 | D8 | Het einde, de titel en de demo's | ⬜ |
 | D9 | Geluid en muziek (eigen OPL2-synthesizer) | ⬜ |
 | D10 | Menu's en opslaan | ⬜ |
 | D11 | Mooier maken en Paddle War | ⬜ |
 | D12 | Co-op | ⬜ |
 | D13 | Naast het origineel | ⬜ |
+
+## Mijlpaal D7: wat er nu is
+
+Keen 4 begint nu op de wereldkaart: Keen loopt in acht richtingen, zwaait
+als hij stilstaat, gaat met springen, pogo of schieten een level in (eerst
+"One moment", dan het vak "Keen enters …" met Keen die op zijn vingers
+aftelt) en komt na het level terug op de plek waar hij erin ging. Gedane
+levels krijgen hun vlag (de laatste wordt gegooid), de hekken verdwijnen,
+water houdt hem tegen tot hij het wetsuit heeft, Miragia komt en gaat, de
+Foot vliegt hem over de kaart. Na een dood komt het vak "Try Again / Exit
+to Shadowlands", zonder levens "Game Over!". Enter laat het statusvenster
+zakken, in een level en op de kaart. De regels staan in
+`docs/keen4/gameplay.md` ("The course of the game (D7)", "The world map",
+"Between the levels", "The status window"), de afwijkingen van het plan in
+`docs/keen4/architecture.md` ("Deviations in D7"), wat het origineel liet
+zien in `docs/keen4/research.md` ("Watched in D7").
+
+- [x] **De kaart-Keen** (`GalaxyMapKeen`, Galaxy; `Keen4MapKeen`): 24 per
+  tic op elke as (gemeten: 3 px per frame), de loopbeelden lopen 2, staan,
+  lopen 1, staan (gelijk aan het origineel), zwaaien na 360 tics, de
+  ingangen 0xC001-0xC012 (alleen met een knop, niet bij gedane levels).
+- [x] **Gedane levels** (`Keen4MapSession`, `GalaxyMapFlag`): elk
+  info-woord met dat level in de lage byte wordt gewist, 0xD0 haalt het
+  hek weg (levels 1 en 2), 0xF0 krijgt een wapperende vlag; de vlag van het
+  net gedane level wordt gegooid in een boog (30 punten, 50 tics) en landt
+  in de houder (pad gelijk aan het origineel). Map 18 (de Megarocket) is
+  een gewoon level zonder vlag: uitlopen = terug, opnieuw in te gaan (zo
+  gezien in het origineel).
+- [x] **Water**: zonder wetsuit "I can't swim!" en terug; met wetsuit
+  zwemt hij (16 per tic, eigen beelden), frame voor frame gelijk aan het
+  origineel (twee kleine afwijkingen van Omnispeak overgenomen van het
+  origineel).
+- [x] **Miragia** (`Keen4Miragia`): 300 tics weg, drie stappen van 30, 300
+  tics helemaal, drie stappen terug, gekopieerd uit rij 60 van de kaart;
+  blijft weg als Keen op die plek staat. Tijden gelijk aan het origineel.
+- [x] **De Foot-vlucht**: na de Foot vliegt Keen naar de Pyramid of the
+  Forbidden (vanuit het westen, 280 tics) of terug (140 tics).
+- [x] **De vakken tussen de levels** (`Keen4GameBoxes`, `GalaxyScreenQueue`):
+  "One moment", "Keen enters …" met de aftellende vingers en de fade, "I
+  can't swim!", "Try Again / Exit to Shadowlands" (knipperend kader,
+  omhoog/omlaag kiezen), "Game Over!". Alle **pixel voor pixel gelijk** aan
+  het origineel ("One moment" staat in het midden en "I can't swim!" 12 px
+  omlaag: zo doet het origineel, Omnispeak anders). De laadtijd is vast
+  (gemeten: 0,13-0,63 s per vinger in het origineel, hangt af van de schijf).
+- [x] **Het statusvenster** (`Keen4StatusWindow`, `GalaxyStatusDrop`):
+  locatie, score, extra leven bij, geredde raadsleden, moeilijkheid,
+  edelstenen, lading, levens, druppels, wetsuit; zakt in ~0,3 s en gaat
+  weer omhoog; met de arm en de band van het origineel. **Pixel voor pixel
+  gelijk** aan het origineel.
+- [x] **Voortgang** (`Keen4Progress`): gedane levels, plek op de kaart,
+  laatste level (voor de gegooide vlag), de Foot, geredde leden, wetsuit;
+  ook als dictionary voor het opslaan in D10.
+- [x] **Teksten** van het statusvenster en de vakken uit de EXE, gezocht op
+  de lengtes van de records (nooit op de woorden).
+- [x] **Tests**: nieuwe suites `test_keen4_map`, `test_keen4_map_more`
+  (zelfgemaakte kaarten, `keen4_map_fixtures.gd`) en `test_keen4_map_play`
+  (echte data: alle 18 ingangen, vlaggen en hekken, Miragia, teksten,
+  vakken, statusvenster). 89 suites, 963 tests (was 86 en 942), alle
+  slagen, geen SCRIPT ERROR, gdlint schoon. De flow van de view (kaart →
+  level → dood → kaart) is met scripted screenshots bekeken; een test
+  daarvoor heeft een draaiende scene tree nodig.
+- [x] **Keen 1-3-controle:** `keen1_regression.sh` en `keen2_regression.sh`
+  tegen D6 (lege gebruikersmap): alles gelijk. `git diff
+  milestone-d6-mechaniek` op `src/keen2`, `src/keen3`, hun tests en
+  fixtures, `src/actors`, `src/map` en `src/game/level_view.gd` is leeg.
+  Gedeeld bestand veranderd: alleen de testlijst (`tests/run_tests.gd`).
+  De Keen 4-regressie: level 1 en 11 gelijk aan D6; nieuw erbij: de
+  wereldkaart (breedbeeld en 4:3) en het statusvenster.
+- [x] **Bekeken** (scratchpad `d7shots/`): de kaart, "One moment", het
+  intrevak met de vingers, de Megarocket, het statusvenster op de kaart en
+  in een level, de Foot en de vlucht, de gegooide en wapperende vlag, het
+  hek voor en na, "I can't swim!", zwemmen, Miragia, Try Again en Exit, in
+  4:3 en breedbeeld.
+- **Niet gedaan:** de apps zijn hier niet gebouwd (Mac-build alleen op de
+  Mac; voor Windows ontbreken hier de export templates). Geluid (D9), de
+  cheat E+N+D (D8). Gezien maar niet veranderd: het origineel tekent
+  sprites op even pixels (vier verschuivingen); bij ons kan een sprite een
+  pixel opzij staan, ook in de levels (voor D13).
+- **Om te proberen:** `godot --path . -- --game=4` (een nieuw spel op de
+  kaart: loop met de pijlen, Ctrl op een ingang; de Megarocket ligt vlak
+  onder Keen, de Border Village erboven), Enter voor het statusvenster,
+  `-- --game=4 --level=14` (snel dood: Try Again / Exit to Shadowlands),
+  `--level=9` (het wetsuit; daarna kun je op de kaart zwemmen), `--level=0`
+  (meteen de kaart).
+- **Volgende stap: D8**, het einde, de titel en de demo's
+  (`milestone-d8-einde-titel`).
 
 ## Mijlpaal D6: wat er nu is
 
@@ -2317,11 +2403,13 @@ Keen 3:
 
 Keen 4:
 
-1. **D7** (branch `milestone-d7-kaart`, vanaf `milestone-d6-mechaniek`):
-   de wereldkaart van Keen 4; zie `docs/keen4/roadmap.md`.
-2. **Voor de gebruiker:** D6 proberen (`godot --path . -- --game=4
-   --level=N`, zie "Mijlpaal D6"): platforms, de raad, Lindsey, het
-   wetsuit en zwemmen in level 17; zeg wat anders voelt dan het origineel.
+1. **D8** (branch `milestone-d8-einde-titel`, vanaf `milestone-d7-kaart`):
+   het einde, de titel en de demo's; zie `docs/keen4/roadmap.md`.
+2. **Voor de gebruiker:** D7 proberen (`godot --path . -- --game=4`, zie
+   "Mijlpaal D7"): de kaart lopen, levels in en uit, de vlaggen, zwemmen
+   na het wetsuit, Miragia, de Foot, het statusvenster (Enter), Try Again;
+   zeg wat anders voelt dan het origineel. (D6: platforms, de raad,
+   Lindsey, level 17.)
 
 Keen 2:
 

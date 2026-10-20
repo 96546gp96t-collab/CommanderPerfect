@@ -645,3 +645,66 @@ What D6 built differently from the plan above, and why (developer, D6):
     `GameScreen`'s and the scene did not compile; no suite loaded the
     view, so a test now checks that `keen4_view.gd` compiles.
 12. **Shared files changed**: only `tests/run_tests.gd` (four suites).
+
+## Deviations in D7
+
+What D7 built differently from the plan above, and why (developer, D7):
+
+1. **Where the classes went.** Galaxy: `GalaxyMapKeen` (`keen/`, the walk,
+   the waving and the entrances that Keen 5 and 6 share; it extends
+   `GalaxyKeenBody` for the input and the world's player hooks),
+   `GalaxyMapFlag` (`actors/`, waving and thrown flags; the episode gives
+   the offsets), `GalaxyScreenQueue` and `GalaxyStatusDrop` (`ui/`).
+   Keen 4: `src/keen4/map/` holds `Keen4MapKeen` (water and the Foot),
+   `Keen4Miragia` and `Keen4MapSession` (the plan's map session);
+   `src/keen4/game/` holds `Keen4GameBoxes` (entering, "One moment",
+   "I can't swim!", Try Again, Game Over) and `Keen4StatusWindow` (the
+   plan's `Keen4StatusScreen`; Keen 4 only for now: Keen 5 and 6 differ in
+   two fields, so the drawing can move to Galaxy when they come).
+2. **The view is a chain of three.** `Keen4View` would pass 500 lines, so
+   `Keen4PlayScreen` (between `Keen4LevelScreen` and `Keen4View`) plays a
+   level or the map, shows the queue of boxes and fades and the status
+   window; `Keen4View` keeps only the flow (which map, done, lost, try
+   again, game over) and the keys.
+3. **Everything between the frames is one queue** (`GalaxyScreenQueue`):
+   message boxes that wait for a key (D6's), the timed "One moment", the
+   "Keen enters …" box with its five fingers, the fade (the brightness of
+   the screen node) and the black step that puts the next map on the
+   screen. The game does not run while the queue has steps, so the thrown
+   flag starts once the map has faded in, as the original's
+   CK_MapFlagThrown waits for the fade.
+4. **The original's load time is a fixed time** (the original's depends on
+   reading the files: 130-630 ms per finger in js-dos): 21 tics for the
+   whole picture, 20 per finger, 28 for the last, then 3 × 6 tics of fade,
+   19 black and 3 × 6 back (seen in the original, D7). The fade is three
+   even steps of brightness, not the EGA palette's steps.
+5. **Three numbers of the original instead of Omnispeak's**: "One moment" is
+   centred, "I can't swim!" is 12 pixels down (Omnispeak: printed from the
+   left, 6 down; both compared pixel by pixel), and in the water the stick
+   counts again in the think that uses up the last forced tics, and Keen
+   walks on at once out of the water (the original's positions frame by
+   frame; Omnispeak would turn him round 6 tics later and stand him first).
+6. **New texts by their lengths**: the status labels and the run of game
+   texts (game over, try again, one moment) are one-line records, so
+   `GalaxyEpisode.text_lengths` / `GalaxyExeTexts.find_by_lengths` find a
+   run by the lengths of its records (file-formats.md).
+7. **`GalaxyWorld` writes the background too** (`back_tile_writer`,
+   `set_back_tile`, `copy_block`): Miragia copies all three planes.
+   `GalaxyWindow` got `print_in_middle`, `text_height` and `outline` (the
+   Try Again frame).
+8. **`Keen4Progress`** keeps the map position, the level finished last (its
+   flag is thrown), whether the Foot ended it (he flies), and gives a
+   dictionary for the saves of D10 (`to_dictionary`, `from_dictionary`).
+9. **The start**: `--game=4` without `--level` is a new game on the world
+   map with its box (there is no title or menu yet, D8 and D10); `--level=N`
+   opens map N at once, also 0 (the map, without a box). After a level
+   opened with `--level`, Keen comes back to the map's start.
+10. **Map 18** is an ordinary level (seen in the original): walking out of
+    the Megarocket ends it; it has no flag and can be entered again.
+11. **The eighth rescue** still only says so in the status line (the end is
+    D8's), then the map.
+12. **Not built**: sounds (D9), the E+N+D cheat (D8), the original's EGA
+    sprite shifts (sprites on even pixels, research.md "Watched in D7"; left
+    for D13 because it moves every sprite in every level).
+13. **Shared files changed**: only `tests/run_tests.gd` (three suites).
+    `tools/keen4_regression.sh` (Keen 4's own) takes the world map too.

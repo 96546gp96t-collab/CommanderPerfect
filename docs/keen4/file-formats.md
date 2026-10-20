@@ -163,6 +163,12 @@ The code keeps **indices inside a range**, never chunk numbers.
   Keen showing the moon 395-396 (checked on a sheet of all sprites;
   `Keen4Sprites` names them). The hit box changes from frame to frame
   (Keen's pogo sprites start 64 or 128 units lower than his standing one).
+  D7, the world map (seen in the original's recordings): the map Keen
+  130-155 (three per direction, walking 1, walking 2, standing, in the
+  order W, E, N, S, SE, SW, NW, NE, then waving 154-155; box 0-240 square),
+  swimming 156-171 (two per direction: N, E, S, W, NE, SE, SW, NW; box
+  32-208), on the Foot 172-173 (40 × 27), the flag flipping 174-178,
+  falling 179-180 and waving 181-184.
 - **8×8 tiles in the score box** (D4, Omni CK_UpdateScoreBox): the digits
   '0'-'9' are unmasked 8×8 tiles 42-51 (character code − 6), tile 41 is the
   dim "8" of an unused place; the original draws them into the SCOREBOX
@@ -300,11 +306,14 @@ All found by **shape**, never by their words (`GalaxyExecutable`,
 | The janitor | 0x1E280 | Right after the entry texts: 4 records with 4, 3, 2 and 2 lines: his first two boxes, Keen's reply, his last box (D6: the fifth box has no text, only Keen's picture with the cross face; seen in the original) |
 | Council, Lindsey, wetsuit | 0x2F5BC | 17 records, one zero apart, with 4, 4, 1, 3, 1, 1, 2, 2, 2, 1, 3, 1, 3, 2, 4, 5, 5 lines: Lindsey's two hints, Keen's two thanks, "Princess Lindsey says:", Keen without and with the wetsuit, Keen's eight answers to the council members, the member's message under water and on land. The first record follows code bytes, not a zero |
 
+| Status window (D7) | 0x2E115 | 14 one-line records, one zero apart, of 8, 5, 5, 7, 5, 4, 6, 4, 4, 4, 5, 5, 7 and 3 characters: location, score, extra, rescued, level, the three difficulties, keys, ammo, lives, drops, the wetsuit and its absence. One-line labels say nothing by their lines, so this run is found by its **lengths** (`GalaxyEpisode.text_lengths`, `GalaxyExeTexts.find_by_lengths`) |
+| Game texts (D7) | 0x2DD4C | 13 records of 10, 31, 31, 4, 33, 22, 39, 23, 9, 19, 34, 48 and 10 characters: "game over", two memory errors, the demo texts, the three lines of the box after a death (0-based 7, 8, 9), two memory errors, and the box when Keen leaves the world map (12). Found by its lengths too |
+
 A record is a run of printable characters and newlines ending in a zero.
-The shapes are Keen 4's numbers (`Keen4Episode`); the Galaxy code knows
-none of them. Not searched yet (for later milestones): the status window's
-words, the menus' texts, the "Try Again" box, the high-score texts,
-"I can't swim!" is in the council block.
+The shapes and lengths are Keen 4's numbers (`Keen4Episode`); the Galaxy
+code knows none of them. Not searched yet (for later milestones): the
+menus' texts and the high-score texts. "I can't swim!" is in the council
+block (record 5).
 
 D6, the order in the council block as the boxes use it (seen in the
 original, the same order as Omnispeak's strings): 0 the hint of level 7
@@ -325,3 +334,17 @@ with his thumb up (48 × 64), 8 Keen's cross face (24 × 24), 7 Lindsey
 five 24 × 24; D7). `Keen4Messages` takes them by that place, never by
 chunk number. The window's frame is the masked 8×8 tiles 0-8 (corners,
 edges); the text is font 0, the menu font.
+
+## The status window (D7)
+
+Drawn from the 8×8 tiles, not from a picture (Omni CK_DrawStatusWindow;
+compared with the original: no pixel differs): the frame is the
+**unmasked** 8×8 tiles 54-62 (54, 55, 56 the top, 57 and 59 the sides, 60,
+61, 62 the bottom), the digits the tiles 41 (blank) and 42-51 ('0'-'9', as
+the score box), a rescued member tile 40, the four gems 36-39, and the
+window's own "press a key" sign the tiles 72-91 (two rows of ten). The
+two masked pictures 1 and 2 (1.0 and 1.4 have three: 0 the wrist-watch
+screen, 1 the arm at the window's left, 24 × 96, 2 the strap above it, 48 ×
+16) hang it from the top of the screen. The labels are printed with XOR in
+the menu font (colour 15): dark grey on the grey inside, black on the
+white bars.

@@ -450,6 +450,11 @@ per object (as numbers, marked `(Omni)`, if the user allows that).
 - Each level has a text on entering ("Keen enters …") in a box with a
   count-down picture while loading.
 - Galaxy has **no "Keens left" window**.
+- D7, seen in the original (details in "Watched in D7"): the walk (3
+  pixels a frame, the pictures walking 2, standing, walking 1, standing),
+  waving after 360 tics, the box when leaving the map ("One moment") and
+  entering one, the thrown flag, the fences, "I can't swim!", swimming
+  (2 pixels a frame), Miragia's 300 / 30 tics, the Foot's flight, map 18.
 
 ## 9. Levels, the story and the end
 
@@ -555,8 +560,12 @@ branches; the cheats and warp in §9 help):
 5. ~~**Info 13**: an egg on every difficulty (Omnispeak) or a bird on
    Normal/Hard (CG)?~~ Done in D5: an egg on Normal (the shot broke it: the
    shell, the bits and the bird appeared), as Omnispeak.
-6. **Map 18** (the Megarocket): entrance 0xC012 is on the map in 1.0; what
-   happens when Keen enters?
+6. ~~**Map 18** (the Megarocket): entrance 0xC012 is on the map in 1.0; what
+   happens when Keen enters?~~ Done in D7: "One moment", "Keen launches
+   into the Bean-with-Bacon Megarocket", and a small level with the ship in
+   which Keen walks; walking out of it (left) ends it as any level: the
+   map's box, Keen back at the place he entered. It gets no flag (flags are
+   1-17) and can be entered again (see "Watched in D7").
 7. **Differences 1.0 / 1.4** in anything we measure.
 8. **The original's bugs** (1-tic ledge grabbing at high speed, the
    platform draw order fixed only in Keen 6, the Bounder pole/door glitch):
@@ -744,6 +753,42 @@ in 2.
 | Swimming, kick with nothing held | the kick only sets the held directions | no change of speed | the same |
 | Level 17's view | CK_MapCamera | moves once Keen's box leaves 80-112 px from the top | `GalaxyCamera.follow_map` |
 
+### Watched in D7 (js-dos, the user's v1.0)
+
+Headless js-dos as in D6, Normal, debug keys (A+2+Enter), warp (F10+W),
+"end level" (F10+E). Two scratch copies of `GAMEMAPS.CK4` (scratchpad
+only): A moved the map Keen to (54, 42) above a water tile and Miragia to
+(46, 44), with the wetsuit next to Keen in level 9; B moved the map Keen
+to (53, 34) under level 1's entrance, with the Foot next to Keen in level
+1. Keen and the flags were found in every recorded frame by matching our
+own decoded sprites exactly (scratchpad script); boxes were compared pixel
+by pixel by laying ours over the original's frame.
+
+| What | Omnispeak | The original (v1.0) | Ours (D7) |
+|---|---|---|---|
+| Map Keen walking | 24 a tic on each axis, a picture every 4 tics | 3 px a frame (2, 4, 2, 4 on the screen: drawn on even pixels), stand, walk 1, stand, walk 2; walking left from the start the view scrolls up with him as he slides along a sloped wall, 3 px a frame from the 14th frame | the same frames and the same scroll (x 1 px off on odd pixels, see below) |
+| Waving | after 360 tics, 5 × 20 tics | after about 5.3 s, pictures 286 ms apart | the same |
+| Leaving the map | "One moment" (US_Print from the left) | the box "One moment", **centred**, for 0.4-0.7 s; 0 pixels differ (centred) | centred, 28 tics |
+| "Keen enters …" | box 26 × 8, the count-down picture, text centred in the rest 4 above the middle; fingers 4 … 0 at (24, 40) | over the last picture of the map or level (not black); 0 pixels differ (box and every finger); fingers 130-630 ms apart (the time to read the files), the last 0.4 s before a fade of three 6-tic steps, ~0.35 s black, three 6-tic steps back | 21 tics, 4 × 20, 28, fade 3 × 6, 19 black, 3 × 6 |
+| Map 18 | entrance 0xC012 | a level; walking out ends it, back on the map; no flag | the same |
+| Thrown flag | from a tile up-left of Keen's place, 30 points, 50 tics, Flips 12 tics | starts at Keen's place, up 8.5 px a frame (with Keen's place one tile lower: 8.5 = Omnispeak's arc), frames 12 tics; it waits while the map fades in | the same path; waits for the fade (the map runs only after it) |
+| Fences | 0xD001 / 0xD002 clear the tile | level 1 done: the fence north of the village is gone, Keen walks through | the same |
+| Waving flag | holder + (0x60, -0x1E0) | at its holder | the same |
+| "I can't swim!" | text 6 down | text **12** down; 0 pixels differ with 12 | 12 |
+| Swimming | 16 a tic, 18 tics on by himself (user3 −= 6, the stick after) | 2 px a frame; into the water from the north he swims back north 9 frames, turns at the **third** think (12 tics, not 18) and swims south; out of the water he **walks on at once** (Omnispeak stands him first) | the same positions frame by frame |
+| Miragia | 300 hidden, 30 / 30 / 30, 300 whole, 30 / 30 / 30 | 300, 30, 30, 30 tics (429 ms steps), 300 whole, 30 × 3 back, 300 hidden | the same |
+| The Foot | 140 tics back to (0x1000, 0x2F00) from the east | flew west on the Foot, 8 px a frame, the two pictures 30 tics each; landed by the Pyramid of the Moons | the same targets |
+| Status window | CK_DrawStatusWindow, 8 px a tic | dropped in ~0.3 s; **0 pixels differ** (window, arm, strap, labels in XOR) | the same |
+| Try Again | window 20 × 8, choice frame blinking 12 / 1 every 16 tics | 0 pixels differ (both colours); over the death scene; Exit → the map's box, Keen at his place, one life less | the same |
+
+**Sprites on even pixels.** The map Keen and the thrown flag only ever
+showed on even x pixels (272, 268, 266, 262 … where our positions give
+272, 269, 266, 263): the original keeps four shifts of a sprite, so it
+draws them at x steps of 2 pixels. Ours draws on whole pixels; the
+difference is at most one pixel sideways, in levels too. Left for D13 (a
+change in `GalaxyObjectLayer.pixel_of`, which would move sprites in every
+level).
+
 ## Lessons for the new-episode guide
 
 
@@ -785,3 +830,11 @@ file is not changed now because another session is working on it.)
   (scratchpad script): no shift, no differing pixel means done.
 - D6: the debug warp types the W still held into its prompt; press
   Backspace before the level number.
+- D7: find sprites in recorded frames by matching your own decoded sprite
+  pictures exactly (only the opaque pixels): it gives the frame and the
+  pixel of every map Keen, swimmer, flag and Foot without guessing.
+- D7: one-line labels (the status window) cannot be found by their numbers
+  of lines; find such a run by the lengths of its records.
+- D7: a box of the original over a moving scene can be caught mid-draw
+  (one row in the old colour); compare the rest before doubting the
+  layout.

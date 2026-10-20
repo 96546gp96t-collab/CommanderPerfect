@@ -337,8 +337,11 @@ start zonder rekenen).
 | D4 Keen beweegt | 20-10-2026 | Klaar; sprong (67 px), pogo (105 / 41 px), lopen, helling, paal en deur nagemeten in js-dos; afwijkingen in architecture.md, "Deviations in D4"; de regels in gameplay.md |
 | D5 Vijanden | 20-10-2026 | Klaar; alle landwezens met eigen actietabel, verdoving, moeilijkheidsgraad; Bounder, paddenstoel, Arachnut, vogel (ei op Normal), Skypest, Lick, Berkeloid en Mimrock bekeken in js-dos; afwijkingen in architecture.md, "Deviations in D5" |
 | D6 Mechaniek | 20-10-2026 | Klaar; platforms, keerpunten, vallend platform, schakelaars en bruggen, de raad (en de conciërge), Lindsey, het wetsuit, level 17 onder water; alle berichtvakken pixel voor pixel gelijk aan het origineel, platformsnelheid en zwemmen gemeten in js-dos; afwijkingen in architecture.md, "Deviations in D6" |
+| D7 Kaart | 20-10-2026 | Klaar; de wereldkaart gespeeld (lopen, zwaaien, levels in, vlaggen gegooid en wapperend, hekken weg, water en zwemmen, Miragia, de Foot-vlucht, map 18), de vakken tussen de levels en het statusvenster; alle vakken en het statusvenster pixel voor pixel gelijk aan het origineel, lopen, zwemmen, Miragia en de vlag frame voor frame vergeleken in js-dos; afwijkingen in architecture.md, "Deviations in D7" |
 
-Volgende stap: D7, de wereldkaart (`milestone-d7-kaart`): `Keen4Progress`
-(geredde raadsleden, wetsuit, gedane levels) bestaat al sinds D6, net als
-de kaartcamera (`GalaxyCamera.follow_map`) en de berichtvakken
-(`GalaxyWindow`, voor "I can't swim!" en "Keen enters …").
+Volgende stap: D8, het einde, de titel en de demo's
+(`milestone-d8-einde-titel`): de achtste redding gaat nu nog via een
+melding terug naar de kaart; het eindverhaal, de highscores (map 19), de
+cheat E+N+D en de titel met de demo's volgen. De wereldkaart, de vakken en
+het statusvenster (`Keen4View`, `Keen4PlayScreen`, `GalaxyScreenQueue`)
+bestaan sinds D7.

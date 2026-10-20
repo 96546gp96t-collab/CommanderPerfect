@@ -2,8 +2,9 @@
 
 What a Keen 4 level does in CommanderPerfect so far, and where its numbers
 come from. Written in milestone D3 (drawing a level), D4 (Keen moves), D5 (the
-creatures) and D6 (platforms, the council, under water); later milestones
-add to it. The facts and their sources are in
+creatures), D6 (platforms, the council, under water) and D7 (the world map,
+the boxes between the levels, the status window); later milestones add to
+it. The facts and their sources are in
 [research.md](research.md), the code layout in
 [architecture.md](architecture.md), the files in
 [file-formats.md](file-formats.md). Numbers from Omnispeak are marked
@@ -12,26 +13,83 @@ add to it. The facts and their sources are in
 All positions are the original's **global units**: 16 per pixel, 256 per
 tile. Times are **tics** of 1/70 s.
 
-## The course of the game (D4)
+## The course of the game (D7)
 
 | What | Then |
 |---|---|
-| Keen 4 picked on the start screen | Level 1 (Border Village), played; there is no title or menu yet (D8, D10) |
-| `-- --game=4` | Level 1 |
-| `-- --game=4 --level=N` | Map N: 1-19 are played (17, the Well of Wishes, swum: D6); 0 (the world map) is only shown, with the D3 look-around (D7); another number: a message |
-| Keen walks out of the level (left or right) | The next level (after 16 the Well of Wishes, after 17, 18 and 19 level 1 again); the world map comes in D7 |
-| The Foot carries Keen off (D5) | The level is done (the flight over the world map is D7's) |
-| Keen rescues a council member, or takes the wetsuit (D6) | The message boxes, each until a key is pressed; then the next level. After the eighth rescue the status line says so (the end is D8's) |
+| Keen 4 picked on the start screen, or `-- --game=4` | A new game on the world map, after the box "Keen enters the Shadowlands"; there is no title or menu yet (D8, D10) |
+| `-- --game=4 --level=N` | Map N at once: 0 the world map, 1-19 played (17 swum); another number: a message |
+| On the world map: jump, pogo or fire on an entrance | "One moment", then the level's "Keen enters …" box with Keen counting down, a fade, the level |
+| Keen walks out of a level (left or right), the Foot carries him off, he rescues a council member or takes the wetsuit | The level is done (the rescue's and the wetsuit's boxes first); the map's box; Keen back on the map where he entered, the level's flag thrown to its holder, its fence gone; after the Foot he flies |
+| Keen dies | One life less, the gems gone; the box "You didn't make it past …": Try Again (the level again, with its box) or Exit to Shadowlands (the map); with no life left (fewer than 0): "Game Over!" for 4 s or a key, then the start screen (the high scores are D8's) |
+| The eighth rescue | The status line says so; the map follows (the end is D8's) |
+| Enter (the shared status key) | The status window drops down, in a level and on the map; a key lifts it |
 | Lindsey, the janitor (D6) | Their boxes; the level goes on |
-| Keen dies | One life less; the level starts again (fresh, without the gems); with no lives left (fewer than 0): "Game over" and the start screen |
 | Shift+N / Shift+P | The next or previous map (0-19, round) |
-| Arrows / WASD, jump, pogo, fire | Keen (the shared keys: Ctrl or Z jump, Alt or X pogo, Space or C fire); on maps 0 and 17 the arrows look around |
+| Arrows / WASD, jump, pogo, fire | Keen (the shared keys: Ctrl or Z jump, Alt or X pogo, Space or C fire); on the world map the arrows walk in eight directions |
 | Shift+G | God mode on/off (the original's debug key F10+G): nothing kills Keen, except falling out of the level |
 | Escape | Back to the start screen |
 | F1-F6 | As in Keen 1-3: help line, widescreen, pixel shape, full screen, graphics (original / xBRZ), smooth motion |
 
 A new game starts with 3 lives, 5 stunner charges and the first extra life
 at 20,000 points (Omni); what Keen carries goes from level to level.
+
+## The world map (D7)
+
+Map 0 is played like a level (`Keen4MapSession`), on the same clock, with
+the score box; the view follows Keen as the original's map camera (his box
+between 144 and 192 pixels from the left and 80 and 112 from the top, at
+most 255 units a frame; the same camera as level 17).
+
+| What | How (Omni unless marked) |
+|---|---|
+| Keen (info 3) | At the info tile in a new game; afterwards where he stood when he entered the last level. Facing west, priority 1 |
+| Walking | Eight directions, 24 units a tic on each axis held (a diagonal is faster); clipped by the map's walls and slopes like Keen in a level (he slides along a sloped wall). Every 4 tics the next picture: walking 2, standing, walking 1, standing (seen: 3 pixels a frame, the same pictures) |
+| Waving | Standing 360 tics: he waves (two pictures, 5 × 20 tics; seen after about 5.3 s) |
+| Entering | Jump, pogo or fire while an info word 0xC001-0xC012 lies under his box: that level (1-18). Done levels have no entrance any more |
+| Done levels (1-17) | Every info word whose low byte is the level is cleared; under 0xD0nn the foreground tile goes too (the fences of levels 1 and 2), at 0xF0nn a flag waves (a tile corner + 0x60, −0x1E0; four pictures of 10 tics, each flag from its own point) |
+| The thrown flag | The level just finished: its flag leaves Keen (a tile up and left of his place) once the map has faded in, follows 30 points (straight on sideways, in 24 of them, and an arc up and down) at a point every 2 tics, 50 tics at most, flipping (12-tic pictures), and lands 128 units below the end of its path, in its holder (seen: 8.5 pixels a frame up) |
+| Water (misc 11-14) | The tile under the middle of his box. Without the wetsuit: the box "I can't swim!" and he is pushed back by what he moved. With it he swims 16 units a tic (two pictures per direction, 6 tics each): first on by himself into the water (from its north side southwards …) for 18 tics, the stick counting again in the think that uses up the last of them (seen); on the next water tile he walks out on by himself (seen) |
+| Miragia (info 33) | A 6 × 4 block copied (all three planes) from the template blocks on row 60 (columns 2, 8, 14, 20, 26): hidden 300 tics, three 30-tic steps to the whole city, 300 tics, three steps back (seen: exactly these times). When the hidden time ends with Keen in its place, it stays hidden another round |
+| The Foot | A level ended on the Foot: on the map Keen flies on it, not clipped, in front of everything (two pictures of 30 tics): from left of x 0x1400 to the Pyramid of the Forbidden (0x1E00, 0x3700) in 280 tics, otherwise back to (0x1000, 0x2F00) in 140; then he stands. His speed is the distance / the tics + 1, and the think runs twice in a frame in which the picture changes, so he lands a little short (as the original's action loop) |
+| Map 18 | The Megarocket: entered like a level; a small level with the ship; walking out ends it; no flag, so it can be entered again (seen) |
+
+## Between the levels (D7)
+
+All boxes are the original's window (`GalaxyWindow`, `Keen4GameBoxes`; seen:
+0 pixels differ), drawn over the last picture of the map or level, in the
+middle of the picture (also in widescreen); the game stands still.
+
+| Box | What (Omni unless marked) |
+|---|---|
+| "One moment" | Keen leaves the world map: a window of 26 × 8 cells, the text 25 pixels down, centred (seen; Omnispeak prints it from the left); 28 tics |
+| "Keen enters …" | The map's own text, centred in the window beside the count-down picture, 4 pixels above the middle. The picture's fingers count down 4 … 0 (five small pictures at 24, 40). Times (seen, the original's depend on reading the files): 21 tics, 4 × 20, 28; then the screen fades in three steps of 6 tics, 19 tics black (the next map is put on the screen), and three steps back |
+| "I can't swim!" | Keen talking on the right, the text 12 pixels down (seen; Omnispeak 6); until a key |
+| After a death | A window of 20 × 8 cells: "You didn't make it past", the level's name (4 lower when it is one line), "Try Again", "Exit to Shadowlands"; the choice framed (2 pixels, from 4 inside the window, 14 high) in light red and blue by turns every 16 tics. Up / down choose; jump, pogo, Enter or Space take it; Escape exits. Try Again: the level again with its box; exit: the map with its box. The life is taken first; with none left no box but "Game Over!" |
+| "Game Over!" | A window of 16 × 3 cells, the text in its middle; 4 s or a key; then the start screen (D8: the high scores) |
+
+## The status window (D7)
+
+Enter in a level or on the world map (`Keen4StatusWindow`,
+`GalaxyStatusDrop`; Omni CK_ShowStatusWindow, CK_DrawStatusWindow; seen: 0
+pixels differ). A window of 192 × 152 pixels at (64, 16), framed by the 8×8
+tiles 54-62, grey inside; the labels in the menu font with XOR (dark grey
+on grey, black on white):
+
+| Row | Left | Right |
+|---|---|---|
+| 1 | LOCATION and the map's name on a white bar (centred, one or two lines) | |
+| 2 | SCORE (8 digit tiles in a black bar) | EXTRA: the next extra life |
+| 3 | RESCUED: one icon per rescued member | LEVEL: Easy / Normal / Hard on a white bar |
+| 4 | KEYS: the gems held | AMMO (3 digits) |
+| 5 | KEENS: lives (2 digits) | DROPS (2 digits) |
+| 6 | the wetsuit's word on a white bar ("???" without it) | the window's "press a key" sign |
+
+It hangs from Keen's arm (a masked picture at 40, 0) and a strap (at 136,
+0). It drops with its bottom from 16 to 168 pixels, 8 a tic (seen: about
+0.3 s), waits for a key, then rises from 152, 8 a tic. The strap shows only
+while the whole window is in the picture, the arm once its bottom is 72
+down. The game stands still meanwhile.
 
 ## Keen's moves (D4)
 
