@@ -87,4 +87,5 @@ Keen 4 is een andere engine (Galaxy); de schatting per mijlpaal staat in
 | D4 Keen beweegt | 20-10 | ~75 min | 70 min | Actiesysteem, botsingen met hellingen, alle toestanden van Keen, items, edelsteendeuren, scorebord; sprong 67 px en pogo 105 px gemeten in het origineel (v1.0) |
 | D5 Vijanden | 20-10 | ~55 min | 51 min | 15 soorten wezens op het land, de verdoving, moeilijkheidsgraad; Bounder, paddenstoel, vogel, Arachnut, Skypest, Lick, Berkeloid en Mimrock nagekeken in het origineel |
 | D6 Mechaniek | 20-10 | ~65 min | 61 min | Platforms, schakelaars, bruggen, raadsleden, conciërge, Lindsey, wetsuit, berichtvensters (pixel gelijk aan het origineel), level 17 onder water |
-| D7 Wereldkaart | | | | |
+| D7 Wereldkaart | 20-10 | ~80 min | 73 min + 3 min | Kaart als level, levels in en uit, vlaggen, hekken, water en wetsuit, Miragia, de Foot, statusvenster en Try Again (pixel gelijk aan het origineel), map 18; controle: een vlag buiten beeld nagevraagd (geen fout) |
+| D8 Einde, titel, demo's | | | | |
