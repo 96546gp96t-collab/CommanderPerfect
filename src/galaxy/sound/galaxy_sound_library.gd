@@ -152,9 +152,7 @@ func _render(kind: Kind, index: int) -> void:
 		return
 	var result := {"kind": kind, "index": index, "loop_begin": -1, "loop_end": -1}
 	if kind == Kind.PC:
-		result["pcm"] = SpeakerSynth.render_samples(
-			pc_sounds[index].divisors(), GalaxyPcSound.STEPS_PER_SECOND
-		)
+		result["pcm"] = pc_sounds[index].render_samples()
 		result["rate"] = SpeakerSynth.MIX_RATE
 	else:
 		var chunk: PackedByteArray = (

@@ -9,9 +9,11 @@ extends RefCounted
 ## (registers 0x20, 0x40, 0x60, 0x80 and 0xE0; the instrument's
 ## connection byte is not written), then each step writes a note as the
 ## F-number's low byte with the key on and the block in register 0xB0 (the
-## F-number's top bits stay 0), or turns the key off for a 0. After the
-## last step the key goes off. [method render_samples] renders that on a
-## fresh chip, plus the release that still sounds afterwards.
+## F-number's top bits stay 0), or turns the key off for a 0. The service
+## that writes the last note turns the key off at once (Omni: it checks the
+## end right after writing), so the last note is never heard and the sound
+## lasts one step less than it has notes. [method render_samples] renders
+## that on a fresh chip, plus the release that still sounds afterwards.
 
 const HEADER_SIZE := 6
 const INSTRUMENT_SIZE := 16
@@ -58,10 +60,10 @@ static func parse(chunk: PackedByteArray) -> GalaxyAdlibSound:
 	return sound
 
 
-## How long the notes last, in seconds (the time the original counts the
-## sound as playing).
+## How long the sound lasts, in seconds: the time the original counts it as
+## playing (until the service reads its last note).
 func duration() -> float:
-	return notes.size() / STEPS_PER_SECOND
+	return maxi(notes.size() - 1, 0) / STEPS_PER_SECOND
 
 
 ## The sound at [constant GalaxyOpl.CHIP_RATE], 1.0 = 16-bit full scale.
@@ -83,7 +85,8 @@ func render_samples(connection := 0) -> PackedFloat32Array:
 		else:
 			chip.write(GalaxyOpl.F_NUMBER_LOW, note)
 			chip.write(GalaxyOpl.KEY_BLOCK, key_block)
-		samples.append_array(chip.generate(_sample_at(index + 1) - _sample_at(index)))
+		if index < notes.size() - 1:
+			samples.append_array(chip.generate(_sample_at(index + 1) - _sample_at(index)))
 	chip.write(GalaxyOpl.KEY_BLOCK, 0)
 	var tail := 0
 	var max_tail := int(MAX_TAIL_SECONDS * GalaxyOpl.CHIP_RATE)

@@ -5,7 +5,9 @@ extends RefCounted
 ## [constant DIVISOR_FACTOR], or 0 for silence (Omni `id_sd.c`,
 ## SD_PC_SoundService). The steps run at the same rate as the AdLib
 ## sounds' ([constant GalaxyAdlibSound.STEPS_PER_SECOND], about 140 a
-## second) and are played by the shared [SpeakerSynth].
+## second) and are played by the shared [SpeakerSynth]. The service that
+## reads the last step turns the speaker off at once (Omni: it checks the
+## end right after setting the speaker), so the last step is never heard.
 
 const HEADER_SIZE := 6
 const DIVISOR_FACTOR := 60
@@ -36,9 +38,21 @@ func divisors() -> PackedInt32Array:
 	return result
 
 
+## The steps that are heard: all but the last.
+func heard_divisors() -> PackedInt32Array:
+	var all := divisors()
+	return all.slice(0, maxi(all.size() - 1, 0))
+
+
+## How long the sound lasts (and counts as playing), in seconds.
 func duration() -> float:
-	return steps.size() / STEPS_PER_SECOND
+	return heard_divisors().size() / STEPS_PER_SECOND
 
 
 func render() -> AudioStreamWAV:
-	return SpeakerSynth.render(divisors(), STEPS_PER_SECOND)
+	return SpeakerSynth.render(heard_divisors(), STEPS_PER_SECOND)
+
+
+## The raw 16-bit samples of [method render].
+func render_samples() -> PackedByteArray:
+	return SpeakerSynth.render_samples(heard_divisors(), STEPS_PER_SECOND)

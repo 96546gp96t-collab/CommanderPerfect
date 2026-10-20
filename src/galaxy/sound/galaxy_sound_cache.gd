@@ -13,7 +13,7 @@ extends RefCounted
 
 const DEFAULT_DIRECTORY := "user://keen4/cache"
 ## Raise this when the rendered sound changes, so old files are not used.
-const RENDER_VERSION := "galaxy-opl-1"
+const RENDER_VERSION := "galaxy-opl-2"
 const EXTENSION := ".pcm"
 const HEADER_SIZE := 8
 
