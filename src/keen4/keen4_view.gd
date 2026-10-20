@@ -33,8 +33,10 @@ extends Keen4OnlineScreen
 const NOT_A_MAP_MESSAGE := "Keen 4 has no map %d"
 ## "One moment" when Keen leaves the world map (seen in the original, D7).
 const ONE_MOMENT_TICS := 28
-## "Game Over!" stays 4 seconds, or until a key (Omni CK_GameOver).
-const GAME_OVER_TICS := 4 * GalaxyClock.TICS_PER_SECOND
+## "Game Over!" stays 4.76 seconds, or until a key: in the original (v1.0)
+## the box was up 4,758 ms before the fade (seen in the original, D13;
+## Omnispeak's CK_GameOver waits 4 seconds).
+const GAME_OVER_TICS := 333
 ## The choices after a death.
 const TRY_AGAIN := 0
 const EXIT_TO_MAP := 1

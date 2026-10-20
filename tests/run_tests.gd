@@ -120,6 +120,7 @@ const SUITES: Array[Script] = [
 	preload("res://tests/test_keen4_online_bytes.gd"),
 	preload("res://tests/test_keen4_online.gd"),
 	preload("res://tests/test_keen4_online_snapshot.gd"),
+	preload("res://tests/test_keen4_d13_seen.gd"),
 ]
 const TREE_SUITES: Array[Script] = [
 	preload("res://tests/test_keen4_d11_screen.gd"),

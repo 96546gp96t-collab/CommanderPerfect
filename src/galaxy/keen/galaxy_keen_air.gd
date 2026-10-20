@@ -193,10 +193,13 @@ func _think_hang() -> void:
 		clip = Clip.NORMAL
 
 
+## The first pull lifts him only when he faces left (whose hang lifted him
+## half as far). Omnispeak moves him a step sideways when he faces right,
+## which leaves him 128 units further on the ledge than the original
+## (v1.0): there he stands one step from the edge, facing either way, and
+## then walks on as ours now does (seen in the original twice, D13).
 func _think_pull_1() -> void:
-	if direction.x == 1:
-		step.x = PULL_STEP
-	else:
+	if direction.x == -1:
 		step.y = -PULL_STEP
 
 
