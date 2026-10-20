@@ -39,6 +39,8 @@ var _items: Array[Item] = []
 var _textures: Dictionary[int, Texture2D] = {}
 ## The item of every object shown, by object.
 var _shown: Dictionary[GalaxyObject, Item] = {}
+## The items of the overlays of every object shown ([GalaxyObject.Overlay]).
+var _overlays: Dictionary[GalaxyObject, Array] = {}
 
 
 ## The z index of a sprite of [param priority]: 0-2 above the tiles and
@@ -104,32 +106,34 @@ func clear() -> void:
 		item.node.queue_free()
 	_items.clear()
 	_shown.clear()
+	_overlays.clear()
 
 
 ## After a logic frame: every awake object with a sprite is drawn where it
-## is, with its priority; the others are not. Objects that left the world
-## lose their item.
+## is (plus its draw offset), with its priority, and its overlays with it;
+## the others are not. Objects that left the world lose their items.
 func show_objects(objects: Array[GalaxyObject]) -> void:
 	var present: Dictionary[GalaxyObject, bool] = {}
 	for object in objects:
 		present[object] = true
-		var shown := GalaxyWorld.is_awake(object) and object.sprite != GalaxyObject.NO_SPRITE
+		var shown := (
+			GalaxyWorld.is_awake(object)
+			and object.sprite != GalaxyObject.NO_SPRITE
+			and not object.hidden
+		)
 		var item: Item = _shown.get(object)
 		if item == null:
 			if not shown:
 				continue
-			item = add(object.sprite, object.position, object.priority)
+			item = add(object.sprite, object.position + object.draw_offset, object.priority)
 			_shown[object] = item
-		if item.priority != object.priority:
-			item.priority = object.priority
-			item.node.z_index = z_of(object.priority)
-		item.node.visible = shown
-		if shown:
-			move(item, object.sprite, object.position)
+		_show(item, shown, object.sprite, object.position + object.draw_offset, object.priority)
+		_show_overlays(object, shown)
 	for object in _shown.keys():
 		if not present.has(object):
 			remove(_shown[object])
 			_shown.erase(object)
+			_show_overlays(object, false)
 
 
 func items() -> Array[Item]:
@@ -144,6 +148,35 @@ func place(blend: float, smooth: bool) -> void:
 		item.node.position = item.motion.at(blend, smooth)
 
 
+func _show(item: Item, shown: bool, sprite: int, position: Vector2i, priority: int) -> void:
+	if item.priority != priority:
+		item.priority = priority
+		item.node.z_index = z_of(priority)
+	item.node.visible = shown
+	if shown:
+		move(item, sprite, position)
+
+
+## The overlays of [param object] as items: one per overlay, removed when
+## it has fewer (or none, or [param shown] is false).
+func _show_overlays(object: GalaxyObject, shown: bool) -> void:
+	var items: Array = _overlays.get(object, [])
+	var wanted := object.overlays.size() if shown else 0
+	while items.size() > wanted:
+		remove(items.pop_back())
+	for index in wanted:
+		var overlay := object.overlays[index]
+		var at := object.position + overlay.offset
+		if index == items.size():
+			items.append(add(overlay.sprite, at, overlay.priority))
+		var visible := overlay.sprite != GalaxyObject.NO_SPRITE
+		_show(items[index], visible, overlay.sprite, at, overlay.priority)
+	if items.is_empty():
+		_overlays.erase(object)
+	else:
+		_overlays[object] = items
+
+
 func _info(sprite: int) -> GalaxySpriteInfo:
 	if _graphics == null or sprite < 0 or sprite >= _graphics.sprite_infos.size():
 		return null
@@ -151,7 +184,7 @@ func _info(sprite: int) -> GalaxySpriteInfo:
 
 
 func _texture(sprite: int) -> Texture2D:
-	if _graphics == null:
+	if _graphics == null or sprite < 0:
 		return null
 	if _textures.has(sprite):
 		return _textures[sprite]

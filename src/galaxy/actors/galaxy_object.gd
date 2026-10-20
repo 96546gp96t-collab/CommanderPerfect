@@ -35,6 +35,16 @@ const NO_SPRITE := -1
 const ON_PLATFORM := 0x19
 
 
+## A second sprite drawn with the object (Omni
+## RF_AddSpriteDrawUsing16BitOffset): the stars over a stunned creature.
+class Overlay:
+	extends RefCounted
+	var sprite := NO_SPRITE
+	## From the object's position, in units.
+	var offset := Vector2i.ZERO
+	var priority := 3
+
+
 ## The hit box in units and the tiles it covers (Omni clipRects).
 class Box:
 	extends RefCounted
@@ -112,6 +122,14 @@ var step := Vector2i.ZERO
 var clips_like_keen := false
 ## The box of a [constant Clip.SIMPLE] object, in units from its position.
 var simple_box_size := Vector2i.ZERO
+## The sprite is drawn this far from [member position] (the Berkeloid
+## floats up and down; its box does not).
+var draw_offset := Vector2i.ZERO
+## Not drawn, though its sprite gives it a box (Omni: an object without a
+## draw function, the dart gun).
+var hidden := false
+## Sprites drawn with this one ([Overlay]).
+var overlays: Array[Overlay] = []
 var _world: WeakRef
 
 
@@ -163,6 +181,21 @@ func reset_box() -> void:
 	box.tile_top = GalaxyUnits.to_tile(box.top)
 	box.tile_bottom = GalaxyUnits.to_tile(box.bottom)
 	box.tile_middle = GalaxyUnits.to_tile(box.middle)
+
+
+## The player ([param player]) touches this object; [param holding] when
+## he is on a pole, hanging or looking (Omni CK_KeenSpecialColFunc),
+## otherwise as he walks, jumps or stands (CK_KeenColFunc). What pushes,
+## carries or takes him somewhere overrides this; what kills him does that
+## in its own contact function.
+func touched_by_player(_player: GalaxyObject, _holding: bool) -> void:
+	pass
+
+
+## Contact: it kills the player (Omni CK_LethalCol).
+func _contact_lethal(other: GalaxyObject) -> void:
+	if other == world.player() and other.has_method(&"kill"):
+		other.call(&"kill")
 
 
 ## Think: gravity and its own horizontal velocity (Omni CK_Fall).

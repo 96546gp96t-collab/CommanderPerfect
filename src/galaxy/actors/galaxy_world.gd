@@ -8,12 +8,14 @@ extends RefCounted
 ##      2 × tics in 256 a frame), or is removed when it only lives on the
 ##      screen; then its action runs ([method _run_action]): think, move,
 ##      tile collision;
-##   2. every pair of awake objects whose boxes overlap: **both** contact
+##   2. the player rides the object he stands on (a platform, a Bounder):
+##      [method GalaxyWorld.player]'s [code]_ride_platform[/code];
+##   3. every pair of awake objects whose boxes overlap: **both** contact
 ##      functions run;
-##   3. the player's own tile checks (items, deadly tiles, gem holders):
+##   4. the player's own tile checks (items, deadly tiles, gem holders):
 ##      [method GalaxyWorld.player]'s [code]_touch_tiles[/code];
-##   4. an object at the map's last row is removed (the player dies);
-##   5. every object that moved or changed reacts (its [code]react[/code]).
+##   5. an object at the map's last row is removed (the player dies);
+##   6. every object that moved or changed reacts (its [code]react[/code]).
 ## The camera follows afterwards ([GalaxyCamera], by the level session).
 ## The player is the first object; the original keeps at most 100.
 
@@ -43,6 +45,9 @@ var objects: Array[GalaxyObject] = []
 var tics := GalaxyClock.NORMAL_TICS
 var tic := 0
 var state := LevelState.PLAYING
+## How a completed level was left, when not by walking out of it: the name
+## an object gave (Keen 4: [code]&"foot"[/code], the Foot carries Keen off).
+var ending := &""
 ## The fixed table of random numbers ([method random]).
 var random_table := PackedByteArray()
 var random_index := 0
@@ -94,8 +99,10 @@ func run_frame(frame_tics: int, end_tic: int) -> void:
 		if not object.removed and _wake_or_sleep(object):
 			_run_action(object)
 	_starting = false
-	_contacts()
 	var keen := player()
+	if keen != null and keen.has_method(&"_ride_platform"):
+		keen.call(&"_ride_platform")
+	_contacts()
 	if keen != null and keen.has_method(&"_touch_tiles"):
 		keen.call(&"_touch_tiles")
 	_leave_at_bottom()

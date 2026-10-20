@@ -32,6 +32,11 @@ const SHOT_POLE_DOWN_RIGHT := Vector2i(96, 384)
 const SHOT_POLE_DOWN_LEFT := Vector2i(192, 384)
 ## A gem goes in when he stands this far left of the holder's tile (Omni).
 const GEM_SPOT := -64
+## Riding, he stands this far above the platform's box, and his x keeps
+## the platform's lowest bits, so the two move as one (Omni
+## CK_KeenRidePlatform).
+const RIDE_GAP := 16
+const RIDE_X_BITS := 0x1F
 
 ## His actions by name ([GalaxyKeenActions]).
 var actions: Dictionary[StringName, GalaxyAction] = {}
@@ -60,6 +65,9 @@ var idle_tics := 0
 var idle_stage := 0
 ## 1 while he stands on the moon spot (Keen 4), 2 once he showed it.
 var moon := 0
+## What he stands on and rides (a platform, a Bounder), or null (Omni
+## ck_keenState.platform).
+var platform: GalaxyObject
 var _item_actions: Dictionary[StringName, GalaxyAction] = {}
 var _shot_actions: Dictionary[StringName, GalaxyAction] = {}
 var _jump_used := false
@@ -249,15 +257,105 @@ func _reach_gem_holder(x: int, y: int, colour: int) -> void:
 		_continue_as(&"slide")
 
 
-## Contact while walking, jumping or standing: items (Omni CK_KeenColFunc;
-## platforms and the creatures that push him come with them, D5 and D6).
+## Contact while walking, jumping or standing: items, and what the other
+## object does to him (Omni CK_KeenColFunc).
 func _contact_normal(other: GalaxyObject) -> void:
 	var item := other as GalaxyItem
-	if item != null and not item.taken:
-		inventory.collect(item.collect(sprites))
+	if item != null:
+		if not item.taken:
+			inventory.collect(item.collect(sprites))
+		return
+	other.touched_by_player(self, false)
 
 
-## Contact while on a pole, hanging or looking (Omni CK_KeenSpecialColFunc:
-## only platforms and some creatures matter, D5 and D6).
-func _contact_special(_other: GalaxyObject) -> void:
-	pass
+## Contact while on a pole, hanging or looking (Omni CK_KeenSpecialColFunc).
+func _contact_special(other: GalaxyObject) -> void:
+	other.touched_by_player(self, true)
+
+
+## [param pusher] pushes him out sideways, or he lands on it and rides it,
+## or it bumps his head (Omni CK_PhysPushXY, without squashing).
+func push_out(pusher: GalaxyObject) -> void:
+	var dx := pusher.moved.x - moved.x
+	step = Vector2i.ZERO
+	var from_left := pusher.box.right - box.left
+	var from_right := box.right - pusher.box.left
+	if from_left > 0 and dx + 1 >= from_left:
+		_pushed_sideways(from_left)
+		right_hit = 1
+		return
+	if from_right > 0 and -dx + 1 >= from_right:
+		_pushed_sideways(-from_right)
+		left_hit = 1
+		return
+	var dy := moved.y - pusher.moved.y
+	var onto := box.bottom - pusher.box.top
+	var under := pusher.box.bottom - box.top
+	if onto >= 0 and onto <= dy:
+		platform = pusher
+		step.y = -onto
+		world.clip.update_simple(self)
+		if bottom_hit == 0:
+			top_hit = ON_PLATFORM
+	elif under >= 0 and under <= dy:
+		step.y = under
+		world.clip.update_normal(self)
+		bottom_hit = ON_PLATFORM
+
+
+## He lands on [param pusher] from above and rides it (Omni CK_PhysPushY).
+func land_on(pusher: GalaxyObject) -> void:
+	var onto := box.bottom - pusher.box.top
+	if onto < 0 or onto > moved.y - pusher.moved.y:
+		return
+	platform = pusher
+	step = Vector2i(0, -onto)
+	# Not pushed down onto the ground in this move (Omni).
+	var sticks := action.stick_to_ground
+	action.stick_to_ground = false
+	world.clip.update_normal(self)
+	action.stick_to_ground = sticks
+	if bottom_hit == 0:
+		top_hit = ON_PLATFORM
+
+
+## [param pusher] knocks him off a pole or ledge: he falls, pushed out of
+## its way (Omni CK_KeenSpecialColFunc).
+func knock_off(pusher: GalaxyObject) -> void:
+	priority = 1
+	clip = Clip.NORMAL
+	_become(&"fall_1")
+	jump_timer = 0
+	velocity = Vector2i.ZERO
+	push_out(pusher)
+
+
+## After everything moved: he moves with what he stands on, or leaves it
+## (Omni CK_KeenRidePlatform).
+func _ride_platform() -> void:
+	if platform == null:
+		return
+	var carrier := platform
+	if carrier.removed or box.right < carrier.box.left or box.left > carrier.box.right:
+		platform = null
+		return
+	if moved.y < 0:
+		# He jumped off.
+		platform = null
+		if carrier.moved.y < 0:
+			step = Vector2i(0, carrier.moved.y)
+			world.clip.update_simple(self)
+		return
+	step = Vector2i(carrier.moved.x, carrier.box.top - box.bottom - RIDE_GAP)
+	world.clip.update_simple(self)
+	position.x |= carrier.position.x & RIDE_X_BITS
+	if bottom_hit != 0:
+		platform = null
+		return
+	top_hit = ON_PLATFORM
+
+
+func _pushed_sideways(distance: int) -> void:
+	step.x = distance
+	velocity.x = 0
+	world.clip.update_simple(self)

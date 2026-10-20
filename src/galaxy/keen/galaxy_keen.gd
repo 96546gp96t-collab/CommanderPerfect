@@ -228,6 +228,9 @@ func _think_look_down() -> void:
 			if sides + clip_tiles.right_of(tile) != 0:
 				return
 		var drop := maxi(world.tics, DROP_MIN_TICS) * GalaxyUnits.PER_PIXEL
+		if platform != null:
+			drop += platform.moved.y
+		platform = null
 		box.bottom += drop
 		position.y += drop
 		step = Vector2i.ZERO
