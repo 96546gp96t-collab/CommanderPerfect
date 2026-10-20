@@ -122,6 +122,7 @@ func _show_level(number: int) -> void:
 	_keen_item = null
 	_played = Keen4LevelSession.start(_data, map, _inventory, randi() & GalaxyWorld.RANDOM_MASK)
 	if _played != null:
+		_played.keen.god_mode = _god_mode
 		_play(map)
 	else:
 		_look_at(map)
@@ -259,7 +260,8 @@ func _look_bounds() -> Rect2:
 	return Rect2(Vector2(border, border) + half, size - 2.0 * Vector2(border, border) - view)
 
 
-## Shift+N and Shift+P: the next or previous map.
+## Shift+N and Shift+P: the next or previous map; Shift+G: god mode, as
+## the original's debug key F10+G (nothing kills Keen, D5).
 func _handle_map_keys(event: InputEvent) -> bool:
 	var key := event as InputEventKey
 	if key == null or not key.pressed or key.echo or not key.shift_pressed:
@@ -270,6 +272,11 @@ func _handle_map_keys(event: InputEvent) -> bool:
 			step = 1
 		KEY_P:
 			step = -1
+		KEY_G:
+			_god_mode = not _god_mode
+			if _played != null:
+				_played.keen.god_mode = _god_mode
+			return true
 		_:
 			return false
 	if _data != null:

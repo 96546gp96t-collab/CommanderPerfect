@@ -1,11 +1,14 @@
 class_name Keen4LevelSession
 extends RefCounted
-## One Keen 4 level being played (milestone D4): the [GalaxyWorld] with
-## Keen and the items the info plane places (Omni
-## `ck4_misc.c:CK4_ScanInfoLayer`), the camera that follows him (Omni
+## One Keen 4 level being played (milestones D4, D5): the [GalaxyWorld]
+## with Keen, and the items and creatures the info plane places for the
+## difficulty, in the order the original scans it (Omni
+## `ck4_misc.c:CK4_ScanInfoLayer`; [Keen4Creatures]), the camera that follows him (Omni
 ## `ck_play.c:CK_NormalCamera`), and how the level ends:
 ##   - Keen leaves the area the views can cover, to the left or right: the
 ##     level is done;
+##   - the Foot carries him off ([method ending] [code]&"foot"[/code]): the
+##     level is done too (the flight over the world map is D7's);
 ##   - he falls below it: he dies (also in god mode); his death ends when
 ##     he has left the view;
 ##   - gems are lost either way.
@@ -24,13 +27,19 @@ var world: GalaxyWorld
 var keen: GalaxyKeen
 var camera: GalaxyCamera
 var inventory: GalaxyInventory
+var difficulty := GalaxyDifficulty.DEFAULT
 
 
 ## The level [param level_map] (read fresh: it changes while played) with
 ## Keen carrying [param carried], or null when the map has no standing
-## Keen. [param random_start] is where the random table starts.
+## Keen. [param random_start] is where the random table starts;
+## [param level] decides which creatures are there.
 static func start(
-	data: GalaxyData, level_map: GalaxyMap, carried: GalaxyInventory, random_start := 0
+	data: GalaxyData,
+	level_map: GalaxyMap,
+	carried: GalaxyInventory,
+	random_start := 0,
+	level := GalaxyDifficulty.DEFAULT
 ) -> Keen4LevelSession:
 	var start_place := Keen4Start.find(level_map)
 	if start_place.kind != Keen4Start.Kind.STANDING:
@@ -38,6 +47,7 @@ static func start(
 	var session := Keen4LevelSession.new()
 	session.map = level_map
 	session.inventory = carried
+	session.difficulty = level
 	session.camera = GalaxyCamera.for_map(
 		Vector2i(level_map.width, level_map.height),
 		GalaxyCamera.blocks_in(level_map, Keen4Episode.COLUMN_BLOCK_INFO, true),
@@ -52,7 +62,7 @@ static func start(
 	session.keen = GalaxyKeen.spawn(world, start_place.cell, start_place.facing, sprites)
 	session.keen.inventory = carried
 	session.keen.shows_moon = true
-	session._place_items(sprites)
+	session._place_objects(sprites)
 	session.camera.centre_on(session.keen.position.x, session.keen.box.bottom)
 	return session
 
@@ -83,6 +93,12 @@ func is_done() -> bool:
 
 func is_lost() -> bool:
 	return world.state == GalaxyWorld.LevelState.DIED
+
+
+## How a done level was left when not by walking out: [code]&"foot"[/code]
+## (the Foot), otherwise empty.
+func ending() -> StringName:
+	return world.ending
 
 
 ## The camera after a frame, and the edges of the level (Omni
@@ -120,12 +136,16 @@ func _target(tics: int) -> GalaxyCamera.Target:
 	return target
 
 
-func _place_items(sprites: Dictionary[StringName, int]) -> void:
+## The items and creatures of the info plane, row by row.
+func _place_objects(sprites: Dictionary[StringName, int]) -> void:
 	var actions := keen.item_actions()
 	for y in map.height:
 		for x in map.width:
 			var info := map.tile(GalaxyMap.Layer.INFO, x, y)
+			var cell := Vector2i(x, y)
 			if info == LOW_STUNNER_INFO and inventory.shots < LOW_SHOTS:
-				GalaxyItem.place(world, Vector2i(x, y), STUNNER_ITEM, sprites, actions)
+				GalaxyItem.place(world, cell, STUNNER_ITEM, sprites, actions)
 			elif info >= FIRST_ITEM_INFO and info <= LAST_ITEM_INFO:
-				GalaxyItem.place(world, Vector2i(x, y), info - FIRST_ITEM_INFO, sprites, actions)
+				GalaxyItem.place(world, cell, info - FIRST_ITEM_INFO, sprites, actions)
+			else:
+				Keen4Creatures.place_info(world, info, cell, difficulty, sprites)

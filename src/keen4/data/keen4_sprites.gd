@@ -2,7 +2,8 @@ class_name Keen4Sprites
 extends RefCounted
 ## Keen 4's sprites by the names the Galaxy code asks for: Keen's
 ## ([GalaxyKeenActions]), the items' ([GalaxyItem]), the stunner shot's
-## ([GalaxyStunnerShot]) and the score box. The numbers are sprite indices
+## ([GalaxyStunnerShot]), the score box and the creatures'
+## ([Keen4CreatureSprites]). The numbers are sprite indices
 ## (Omni `GFXCHUNK.CK4` chunk − 124 in v1.4); the same in the user's v1.0
 ## (files: checked on a sheet of all sprites, D4).
 
@@ -112,6 +113,7 @@ const ITEM_SHADOWS: PackedInt32Array = [126, 126, 126, 126, 95, 96, 97, 98, 99, 
 static func all() -> Dictionary[StringName, int]:
 	var sprites: Dictionary[StringName, int] = KEEN.duplicate()
 	sprites.merge(OBJECTS)
+	sprites.merge(Keen4CreatureSprites.SPRITES)
 	for item in ITEM_FIRST_FRAMES.size():
 		sprites[StringName("ITEM_%d" % item)] = ITEM_FIRST_FRAMES[item]
 		sprites[StringName("SHADOW_%d" % item)] = ITEM_SHADOWS[item]
