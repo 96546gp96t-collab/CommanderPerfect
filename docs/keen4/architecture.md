@@ -975,3 +975,62 @@ What D10 built differently from the plan above, and why (developer, D10):
    blinks on the game's clock (35 tics).
 9. **The original's cards not built**: Sound, Music, Joystick, Movement
    Setup (our keys are one list), the "CONTROL: KEYBOARD" line.
+
+## Deviations in D11
+
+What D11 (part A: the panel's extras, smooth motion and xBRZ) built
+differently from the plan above, and why (developer, D11):
+
+1. **Where the classes went.** `src/galaxy/ui/`: `GalaxyPaddleWar` (the
+   rules, no drawing, deterministic: a step per tic, its random numbers
+   from a Callable), `GalaxyPaddleWarView` (keeps the card's picture and
+   changes it as the original changes its screen, erase bars included),
+   `GalaxyMenuPages` (the cards' choices as static builders, moved out of
+   `GalaxyMenuController` to keep it under 500 lines). `GalaxyMenuCards`
+   got Paddle War's picture and sprites; `Keen4Episode.menu_cards` gives
+   them (pictures 28, 27, 21 from the end; sprites 0-2).
+2. **The main card is the original's**; Choose Game (D10, in Paddle War's
+   row) moved to the quit question as a third line, "PRESS C TO CHOOSE
+   GAME" (the user's decision, 20-10-2026). The dialog is the original's
+   `USL_CtlDialog` box with one line more; any other key still backs out.
+3. **Sound and music switch at once**, not when the panel closes as in
+   the original (the user's wish). The original's fourth sound choice,
+   QUIET ADLIB/SOUNDBLASTER, is built: `GalaxyAdlibSound.quiet_level` /
+   `quiet_decibels` give the carrier's level change, played as the sound
+   player's volume (only the carrier's total level changes, so the quiet
+   sound is the same sound that many dB lower; the key-scale bits stay as
+   the byte arithmetic leaves them). Stored in `Keen4Settings.quiet_adlib`,
+   not in the shared `UserSettings`.
+4. **Paddle War runs on its own tics**: `Keen4MenuScreen._process` turns
+   the screen's time into tics (70 a second, at most 4 a frame, the rest
+   dropped as the original drops it) instead of the game's 2- or 3-tic
+   frames, so every tic is drawn as in the original. Its random numbers
+   come from the EXE's table at a place of its own: sharing the level's
+   index (as the original does) would change a saved level's replay.
+5. **The end of Paddle War** shows its dialog before the last tic's ball
+   and paddles are drawn, as the original asks inside its tic loop; the
+   score is drawn first.
+6. **F1 in the panel**: `Keen4MenuScreen._open_help` / `_close_help`
+   show the help over the panel (the panel's stack stays) and give the
+   panel back; F1 is taken on cards only (`allows_help`).
+7. **The music** stops when the panel opens, in a game and in the title
+   loop (heard in v1.0); Return to Game starts the map's song from its
+   beginning, Return to Demo goes on with the next step.
+8. **Cursor memory**: Configure, Options and the keys keep their cursor
+   for the program's run (seen for Configure); New Game keeps D10's
+   "always Normal" (seen in D10), the main card and the Sound and Music
+   cards set theirs anew as Omni's USL_UpdateCards does.
+9. **xBRZ**: (a) everything on the title layer and the boxes, the DEMO
+   sign and the high-score table filter nearest: with xBRZ the World
+   viewport's default filter is linear, which made them soft once a
+   level had shown xBRZ (they keep the original pixels, as D4 and D10
+   decided for the score box and the panel); (b) tiles a switch or a gem
+   puts in a level get a nearest stand-in until scaled
+   (`Keen4LevelScreen._stand_in`), instead of the whole level falling back
+   to the original graphics for a moment.
+10. **Smooth motion** needed no change: measured headless (see
+    gameplay.md, "Graphics").
+11. **Shared files changed**: only `tests/run_tests.gd`, which got the new
+    suites and a second list, `TREE_SUITES`, run in the first frame of a
+    running tree (the screen suite needs one); the other suites run as
+    before.

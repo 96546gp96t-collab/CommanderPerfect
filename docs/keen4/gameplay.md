@@ -71,7 +71,7 @@ D8.1 whole frames of the 4:3 view are compared too ("Watched in D8.1").
 key or button the control panel (D10, as the original); Return to Demo
 goes on with the loop.
 
-## The control panel (D10)
+## The control panel (D10, D11)
 
 The original's wrist-watch menu (Omni `id_us_2.c`, `ck_us_2.c`), drawn as
 v1.0 draws it (seen: 0 pixels differ for the main, new game, load and save
@@ -89,17 +89,28 @@ cards, typing a name, the dialogs and the PAUSED box):
   (seen).
 - **Cards** (title pictures counted from the end of the picture range,
   the same in v1.0 and 1.4; places Omni): main 33 (32, 4), new game 32
-  (8, 0), load 31 and save 30 (4, 3), configure 29 (8, 0; seen, Omnispeak 0, 0), keys
-  ("BUTTON SETUP") 24 (0, 0), options 22 (8, 0).
+  (8, 0), load 31 and save 30 (4, 3), configure 29 (8, 0; seen, Omnispeak 0, 0),
+  sound 28 and music 27 (8, 0), keys ("BUTTON SETUP") 24 (0, 0), options
+  22 (8, 0), Paddle War's title 21.
 - **Keys**: up and down move the cursor and stop at the ends; it can rest
   on a choice that cannot be picked (nothing happens there); a letter puts
   it on the choice starting with it (1-6 on the slots); Enter, jump or pogo
-  picks; Escape backs out, and on the main card asks "REALLY QUIT?".
-- **Main card**: NEW GAME, LOAD GAME, SAVE GAME, CONFIGURE, RETURN TO GAME
-  (RETURN TO DEMO out of a game), END GAME, CHOOSE GAME (ours: the start
-  screen; the original has PADDLE WAR here, D11), QUIT. Save and End only
-  in a game; the cursor starts on Return to Game in a game, else on New
-  Game.
+  picks; Escape backs out, and on the main card asks "REALLY QUIT?". F1
+  on a card opens the help; Escape in the help's menu brings back the
+  panel on the same card and choice (seen, D11; not in dialogs, while a
+  name or a key is typed, or in Paddle War). Configure, Options and the
+  keys keep their cursor for the next visit (seen for Configure; Omni
+  keeps every card's).
+- **Main card** (exactly the original's since D11): NEW GAME, LOAD GAME,
+  SAVE GAME, CONFIGURE, RETURN TO GAME (RETURN TO DEMO out of a game), END
+  GAME, PADDLE WAR, QUIT. Save and End only in a game; the cursor starts on
+  Return to Game in a game, else on New Game.
+- **Quit** (and Escape on the main card): "REALLY QUIT?" / "PRESS Y TO
+  QUIT" / "PRESS C TO CHOOSE GAME" / "ESC TO BACK OUT", in the original's
+  dialog. The third line is ours (the user's decision, 20-10-2026): C goes
+  back to the start screen to choose another game; Y or jump quits; any
+  other key backs out, as in the original. (D10 had CHOOSE GAME in Paddle
+  War's row.)
 - **New game**: BEGIN EASY / NORMAL / HARD GAME, the cursor on Normal
   (seen); in a game first "YOU'RE IN A GAME / PRESS Y FOR NEW GAME / ESC TO
   BACK OUT".
@@ -110,8 +121,23 @@ cards, typing a name, the dialogs and the PAUSED box):
   line light green, a line under it, the others dark green. Y or jump says
   yes, any other key no. Asked: Quit always; New Game, Load and End Game in
   a game unless it was saved since the panel opened (Omni game_unsaved).
-- **Configure**: OPTIONS (SCORE BOX (ON/OFF), with the original's message
-  "Score box now on/off"; then the shared display settings WIDESCREEN,
+- **Configure**: SOUND, MUSIC, OPTIONS, (gap) KEYBOARD, RESET KEYS.
+- **Sound and Music** (D11; 0 pixels differ from v1.0): NO SOUND EFFECTS,
+  PC SPEAKER, ADLIB/SOUNDBLASTER, QUIET ADLIB/SOUNDBLASTER; NO MUSIC,
+  ADLIB/SOUNDBLASTER. One is checked (icon 92/93), the others show a ring
+  (94/95); the cursor starts on the checked one; Enter checks the choice
+  under the cursor and the card stays (seen). The choice works at once (the
+  original switches when the panel closes; the user wished it at once) and
+  is stored: `UserSettings.sound_device` and `music_enabled` (shared with
+  Shift+S and Shift+M), the quiet AdLib sounds in Keen 4's own settings.
+  Quiet AdLib (Omni sd_quietAdlibSfx; heard in v1.0): every AdLib sound's
+  carrier level byte L is written as 0x3F − (x >> 1) − (x >> 2) with x =
+  0x3F − L, in bytes, so the sound is 12.75 dB quieter for L = 0 and much
+  more (36.75 dB) for the six sounds whose byte has the key-scale bits set;
+  the music is not changed.
+- **Options**: SCORE BOX (ON/OFF), with the original's message
+  "Score box now on/off" over the card, which still shows the old state
+  until the key (seen, D11); then the shared display settings WIDESCREEN,
   4:3 PIXELS, FULL SCREEN, SMOOTH MOTION, BACKGROUNDS (only in widescreen),
   GRAPHICS), KEYBOARD (one row per action, its key (first letter capital,
   as the original names keys) in a box at x + 90 in the colour of its text;
@@ -121,6 +147,50 @@ cards, typing a name, the dialogs and the PAUSED box):
   default.
 - **End Game**: the game stops, the map fades, the high scores (nothing
   enters the table) and the title loop (seen).
+- **Music**: opening the panel stops the music, in a game and in the title
+  loop (heard in v1.0); Return to Game starts the map's song from its
+  beginning (Omni CK_PlayLoop), Return to Demo goes on with the title
+  loop's next step and its song.
+
+### Paddle War (D11)
+
+The original's paddle game (Omni `ck_us_2.c` USL_PlayPaddleWar, facts
+only; seen in v1.0, 0 pixels differ for the start, the serve, the scores and
+the end's dialog). `GalaxyPaddleWar` has the rules, `GalaxyPaddleWarView`
+draws it.
+
+- **The card**: the wrist watch, the PADDLE WAR picture at (130, 48) (on
+  whole bytes: 128), lines at y 60 and 143 from x 77 to 231; "KEEN:" and
+  Keen's score at (80, 52), "COMP:" at (182, 52) with the computer's score
+  always at x 217 (seen); light green.
+- **Time**: one step a tic (70 a second), every tic drawn; at most 4 tics
+  a frame.
+- **Paddles** (12 × 3, sprite 0): the computer's at y 66, Keen's at y 135,
+  both from x 148. Keen's moves 2 pixels a tic on the held left or right
+  (78 to 220); the computer's follows the ball 1 pixel on two tics of
+  three, only while the ball is in play, aiming its x + 6 at the ball's
+  column (an even column made odd by chance). Sprites go on even columns
+  (4 shifts): the computer's paddle is drawn in 2-pixel steps.
+- **The ball** (5 × 4 visible; sprite 1 on even columns, sprite 2 a pixel
+  further right on odd ones) moves in quarter pixels: served 70 tics after
+  a point from (153, 99) with x speed 1 − random % 3 and y speed 3
+  (towards Keen, or away when Keen won the point); it bounces off x 78 and
+  228. A paddle hits it in rows 66-68 / 132-134 from 5 pixels left of the
+  paddle to 10 right; the new x speed is (ball x + 5 − paddle x) / 2 − 4
+  (0 becomes −1), and every 10th hit on Keen's paddle in a round makes the
+  y speed a quarter pixel faster, up to 12.
+- **Points**: past y 137 the computer scores, above y 62 Keen; the ball
+  goes and is served again 70 tics later. First to 21: "You won!" or "You
+  lost!" / "Press any key" in the original's dialog over the field; a key
+  brings back the main card on PADDLE WAR. Escape leaves at any time.
+- **Drawing**: as the original's screen: every frame the ball's old place
+  (6 × 5) and each paddle's (16 × 3, from 3 pixels left) are cleared before
+  they are drawn again, so a ball passing a paddle's row next to the
+  paddle is wiped where the paddle's bar goes.
+- **Sounds**: paddle_keen (47), paddle_wall (48), paddle_computer (49),
+  paddle_computer_scores (50), paddle_keen_scores (51), with D9's player.
+- **Random numbers**: the original's table, from a place of Paddle War's
+  own (the original shares the game's; ours must not change a level's).
 
 ## Saving and loading (D10)
 
@@ -242,7 +312,9 @@ down. The game stands still meanwhile.
 `Keen4Audio` plays them (`GalaxySoundPlayer`, `GalaxySoundLibrary`; Omni
 `id_sd.c`, facts only). The setting is AdLib with music unless the player
 chose otherwise (Shift+S: AdLib, PC speaker, off; Shift+M: music; stored in
-the settings).
+the settings). Since D11 the panel's Sound and Music cards set the same
+settings ("The control panel"); Shift+S leaves the quiet AdLib choice as it
+is.
 
 - **One sound at a time.** A sound starts only when its priority is at
   least the priority of the sound still playing; a sound counts as playing
@@ -675,3 +747,16 @@ test picture, not committed).
   (~0.6 s for a level on 4 cores), keeps them for the next level, and shows
   the original tiles until they are ready ("Preparing xBRZ graphics...").
 - No HD graphics (Real-ESRGAN is skipped for Keen 4).
+- D11: tiles a switch, a gem or a gem door puts in the level that are not
+  scaled yet get a stand-in (the original tile made larger) until they
+  are; the level stays in xBRZ (before, it flashed back to the original
+  graphics). The full-screen pictures (title, help, story, end pages), the
+  panel, the boxes, the status window, the DEMO sign, the score box and
+  the high-score table always keep the original pixels, filtered sharp
+  (before, they went soft once a level had shown xBRZ).
+- **Smooth motion** (F6): every object goes through `GalaxyObjectLayer`
+  and the view through `_place_smooth_view`, so levels, the map, swimming
+  and the platforms all move between the logic frames (measured headless
+  at 120 frames a second: a running Keen takes 175 different places in 4
+  s instead of 26; swimming 420 instead of 77, the view 54 instead of 13).
+  The front screens and the panel keep the original's steps.

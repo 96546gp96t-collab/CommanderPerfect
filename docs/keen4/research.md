@@ -940,6 +940,27 @@ snapshotted, ours drawn on a 320 × 200 picture and laid over it.
 | Keyboard | MOVEMENT, BUTTONS cards | KEYBOARD MENU (MOVEMENT, BUTTONS), MOVEMENT SETUP, BUTTON SETUP: each key in a box at x + 90 | one list on the BUTTON SETUP card, the same boxes |
 | Easy jump | gravity mid after the push | frame for frame as ours with gravity mid: 75 px held (Normal 67) | the same |
 
+### Watched in D11 (js-dos, the user's v1.0)
+
+Headless js-dos as before (the developer on port 8771, the tester on 8772
+with AdLib music and sound); ours drawn on a 320 × 200 picture and laid
+over the original's frames; Paddle War's paddles and ball tracked frame by
+frame (70 frames a second).
+
+| What | Omnispeak | The original (v1.0) | Ours (D11) |
+|---|---|---|---|
+| Main card | PADDLE WAR in row 7 | the same | **0 pixels differ** |
+| Paddle War's card | title at (130, 48), lines 60 / 143, "KEEN:" at 80, "COMP:" at 182, the number after the label | the same, the title on x 128; the computer's number always at x 217 (6 pixels after "COMP:") | **0 pixels differ** at the start, the serve and after a point |
+| Paddles | Keen 2 px a tic, the computer 1 px on 2 tics of 3 | the same; the computer's paddle shown on even x only (sprite shifts) | the same |
+| Serve | after 70 tics, from 612/4, 396/4 | ~1000 ms after the point, (153, 99) | the same |
+| The end | USL_CtlDialog "You lost!" / "Press any key" | over the dotted field, the last ball under the dots; a key: the main card on PADDLE WAR; a key held when it comes closes it at once | the same; dialog and score 0 pixels differ |
+| Sound / Music cards | 4 / 2 radio items | NO SOUND EFFECTS, PC SPEAKER, ADLIB/SOUNDBLASTER, QUIET ADLIB/SOUNDBLASTER; NO MUSIC, ADLIB/SOUNDBLASTER; checked dot, unchecked ring; Enter checks, the card stays | **0 pixels differ** (tester) |
+| Quiet AdLib | carrier level 0x3F − (x >> 1) − (x >> 2) | status_down (byte 0x80) 35.6 dB quieter, status_up (0x00) 12.7 dB (tester) | 36.75 / 12.75 dB |
+| F1 in the panel | HelpScreens, then US_DrawCards | the help; Escape twice: the same card and cursor | the same |
+| Score-box message | | the card behind still says (ON) until the key | the same |
+| Music | StopMusic before the panel in a game, StartMusic after | stops at once (also from the story in the title loop); Return to Game: the map's song from its start; Return to Demo: the next demo with its song | the same |
+| Cursors | selectedItem per card | Configure keeps its cursor between visits | Configure, Options, keys |
+
 ## Lessons for the new-episode guide
 
 
