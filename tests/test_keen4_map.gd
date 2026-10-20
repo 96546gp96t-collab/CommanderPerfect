@@ -158,6 +158,40 @@ func test_a_thrown_flag_flies_an_arc_and_lands_in_its_holder() -> void:
 	assert_equal(flag.position, holder + Vector2i(0, GalaxyMapFlag.LANDING_DROP), "in its holder")
 
 
+func test_the_landed_flag_waves_in_its_holder_now_and_later() -> void:
+	var level := MapFixtures.map(FIELD)
+	MapFixtures.Fixtures.put_info(level, Vector2i(3, 1), 0xF002)
+	var progress := Keen4Progress.new()
+	progress.mark_done(2)
+	progress.last_finished = 2
+	var on_map := MapFixtures.session_of(level, progress)
+	var flag := on_map.flags[0]
+	MapFixtures.hold(on_map, 40)
+	var sprites := Keen4Sprites.all()
+	var waving := [
+		sprites[&"FLAG_WAVE_1"],
+		sprites[&"FLAG_WAVE_2"],
+		sprites[&"FLAG_WAVE_3"],
+		sprites[&"FLAG_WAVE_4"]
+	]
+	var holder := Vector2i(5 * TILE, 3 * TILE) + Keen4MapSession.FLAG_OFFSET
+	assert_true(flag.action.name.begins_with("wave"), "after the throw it waves")
+	assert_true(flag.sprite in waving, "with the waving pictures")
+	assert_true(on_map.world.objects.has(flag) and not flag.removed, "and stays on the map")
+	assert_equal(flag.position, holder, "where a waving flag stands")
+	MapFixtures.hold(on_map, 20)
+	assert_true(flag.sprite in waving and on_map.world.objects.has(flag), "and goes on waving")
+	progress.last_finished = -1
+	var again := MapFixtures.session_of(MapFixtures.map(FIELD), progress)
+	assert_equal(again.flags.size(), 0, "a holder only where the map has one")
+	var level_again := MapFixtures.map(FIELD)
+	MapFixtures.Fixtures.put_info(level_again, Vector2i(3, 1), 0xF002)
+	var later := MapFixtures.session_of(level_again, progress)
+	assert_equal(later.flags.size(), 1, "entering the map again: the flag is there")
+	assert_true(not later.flags[0].is_thrown(), "waving at once")
+	assert_equal(later.flags[0].position, holder, "in the same place")
+
+
 func test_water_without_the_wetsuit_pushes_him_back() -> void:
 	var on_map := MapFixtures.session(WATER_FIELD)
 	var asked := false

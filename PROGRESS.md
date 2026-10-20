@@ -150,7 +150,7 @@ zien in `docs/keen4/research.md` ("Watched in D7").
 - [x] **Tests**: nieuwe suites `test_keen4_map`, `test_keen4_map_more`
   (zelfgemaakte kaarten, `keen4_map_fixtures.gd`) en `test_keen4_map_play`
   (echte data: alle 18 ingangen, vlaggen en hekken, Miragia, teksten,
-  vakken, statusvenster). 89 suites, 963 tests (was 86 en 942), alle
+  vakken, statusvenster). 89 suites, 964 tests (was 86 en 942), alle
   slagen, geen SCRIPT ERROR, gdlint schoon. De flow van de view (kaart →
   level → dood → kaart) is met scripted screenshots bekeken; een test
   daarvoor heeft een draaiende scene tree nodig.
