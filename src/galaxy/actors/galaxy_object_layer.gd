@@ -12,8 +12,9 @@ extends Node2D
 ## priority the sprite placed last is drawn first, so under the others
 ## (the original puts a new sprite at the head of its list).
 ##
-## The objects themselves (their actions, their physics) come in D4; this
-## layer only knows what to draw where.
+## The objects themselves ([GalaxyObject], run by [GalaxyWorld]) are shown
+## with [method show_objects] after every logic frame; this layer only
+## knows what to draw where.
 
 
 ## One sprite on the layer.
@@ -36,6 +37,8 @@ var _graphics: GalaxyGraphics
 var _scaled: GalaxyScaledGraphics
 var _items: Array[Item] = []
 var _textures: Dictionary[int, Texture2D] = {}
+## The item of every object shown, by object.
+var _shown: Dictionary[GalaxyObject, Item] = {}
 
 
 ## The z index of a sprite of [param priority]: 0-2 above the tiles and
@@ -100,6 +103,33 @@ func clear() -> void:
 	for item in _items:
 		item.node.queue_free()
 	_items.clear()
+	_shown.clear()
+
+
+## After a logic frame: every awake object with a sprite is drawn where it
+## is, with its priority; the others are not. Objects that left the world
+## lose their item.
+func show_objects(objects: Array[GalaxyObject]) -> void:
+	var present: Dictionary[GalaxyObject, bool] = {}
+	for object in objects:
+		present[object] = true
+		var shown := GalaxyWorld.is_awake(object) and object.sprite != GalaxyObject.NO_SPRITE
+		var item: Item = _shown.get(object)
+		if item == null:
+			if not shown:
+				continue
+			item = add(object.sprite, object.position, object.priority)
+			_shown[object] = item
+		if item.priority != object.priority:
+			item.priority = object.priority
+			item.node.z_index = z_of(object.priority)
+		item.node.visible = shown
+		if shown:
+			move(item, object.sprite, object.position)
+	for object in _shown.keys():
+		if not present.has(object):
+			remove(_shown[object])
+			_shown.erase(object)
 
 
 func items() -> Array[Item]:

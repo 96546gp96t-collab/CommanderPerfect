@@ -178,6 +178,13 @@ func follow(target: Target) -> void:
 		smooth_scroll(delta.clamp(-Vector2i(MAX_STEP, MAX_STEP), Vector2i(MAX_STEP, MAX_STEP)))
 
 
+## Where the view's top left may go, in units: the map's edges (Omni
+## rf_scrollXMinUnit … rf_scrollYMaxUnit). Keen leaving the area these
+## views cover to the side ends the level; below it he dies.
+func limits() -> Rect2i:
+	return Rect2i(_min, _max - _min)
+
+
 ## The top left of the view in pixels (the original scrolls by whole
 ## pixels).
 func view_pixels() -> Vector2i:
