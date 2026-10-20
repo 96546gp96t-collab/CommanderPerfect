@@ -47,6 +47,10 @@ var game_id := OnlineProtocol.GAME_ID:
 ## (Host) the progress bits sent with every snapshot ([member
 ## Snapshot.progress_bits]): Keen 2's saved cities; 0 for Keen 1.
 var progress_bits := 0
+## (Host) a game's own numbers sent with every snapshot ([member
+## Snapshot.extra]): Keen 3's ([Keen3OnlineState]); empty for Keen 1 and 2,
+## whose snapshots stay as they were.
+var extra := PackedInt32Array()
 ## The level files, to tell which tiles of a map differ from its file.
 var files: GameFiles
 ## Whether the ping may sound.
@@ -372,6 +376,7 @@ func _original(number: int) -> LevelData:
 
 func _send_snapshot(snapshot: Snapshot) -> void:
 	snapshot.progress_bits = progress_bits
+	snapshot.extra = extra
 	session.send(snapshot.to_message(), false)
 
 

@@ -7,7 +7,9 @@ extends TileMapLayer
 ## widescreen view gets black bars instead of border tiles.
 ##
 ## With [TileProperties], foreground tiles go to a second layer that is drawn
-## in front of Keen, and animated tiles cycle through their frames.
+## in front of Keen, and animated tiles cycle through their frames. A masked
+## tile with a mask ([MaskedTiles]) is drawn whole behind Keen and, on a
+## third layer in front of him, only where its mask lets it through.
 
 ## Seconds per animation frame of animated tiles.
 const ANIMATION_FRAME_TIME := 0.1
@@ -15,6 +17,8 @@ const ANIMATION_FRAME_TIME := 0.1
 const FOREGROUND_Z_INDEX := 1
 
 var _foreground := TileMapLayer.new()
+## The parts of masked tiles that are drawn in front of Keen.
+var _masked := TileMapLayer.new()
 var _properties: TileProperties
 ## Animated cells and the tile the level puts there.
 var _animated_cells: Dictionary[Vector2i, int] = {}
@@ -26,6 +30,9 @@ func _init() -> void:
 	_foreground.name = "Foreground"
 	_foreground.z_index = FOREGROUND_Z_INDEX
 	add_child(_foreground)
+	_masked.name = "Masked"
+	_masked.z_index = FOREGROUND_Z_INDEX
+	add_child(_masked)
 
 
 func _process(delta: float) -> void:
@@ -39,7 +46,8 @@ func _process(delta: float) -> void:
 func show_level(level: LevelData, properties: TileProperties = null) -> void:
 	clear()
 	_foreground.clear()
-	_foreground.tile_set = tile_set
+	_masked.clear()
+	_use_tile_set_in_front(tile_set)
 	_properties = properties
 	_animated_cells.clear()
 	_animation_time = 0.0
@@ -59,7 +67,7 @@ func show_level(level: LevelData, properties: TileProperties = null) -> void:
 ## the same tile numbers), keeping every cell.
 func use_tile_set(new_tile_set: TileSet) -> void:
 	tile_set = new_tile_set
-	_foreground.tile_set = new_tile_set
+	_use_tile_set_in_front(new_tile_set)
 
 
 ## Changes the tile in [param cell], for example when Keen picks up an item.
@@ -76,6 +84,11 @@ func foreground() -> TileMapLayer:
 	return _foreground
 
 
+## The layer with the parts of masked tiles that are drawn in front of Keen.
+func masked() -> TileMapLayer:
+	return _masked
+
+
 ## Advances the tile animations by [param seconds].
 func animate(seconds: float) -> void:
 	if _animated_cells.is_empty():
@@ -89,11 +102,35 @@ func animate(seconds: float) -> void:
 		_draw_tile(cell, _properties.animated_tile(_animated_cells[cell], step))
 
 
+func _use_tile_set_in_front(new_tile_set: TileSet) -> void:
+	_foreground.tile_set = new_tile_set
+	_masked.tile_set = new_tile_set
+	_masked.material = MaskedTiles.material_of(new_tile_set)
+
+
 func _draw_tile(cell: Vector2i, tile: int) -> void:
+	_masked.erase_cell(cell)
+	if _is_masked_with_mask(tile):
+		_foreground.erase_cell(cell)
+		_put_tile(self, cell, tile)
+		_put_tile(_masked, cell, tile)
+		return
 	var in_front := _properties != null and _properties.is_foreground(tile)
 	var layer: TileMapLayer = _foreground if in_front else self
 	var other: TileMapLayer = self if in_front else _foreground
 	other.erase_cell(cell)
+	_put_tile(layer, cell, tile)
+
+
+func _is_masked_with_mask(tile: int) -> bool:
+	return (
+		_properties != null
+		and _properties.behavior(tile) == TileProperties.Behavior.MASKED
+		and MaskedTiles.has_mask(tile_set, tile)
+	)
+
+
+func _put_tile(layer: TileMapLayer, cell: Vector2i, tile: int) -> void:
 	var source := tile_set.get_source(LevelTileSet.SOURCE_ID) as TileSetAtlasSource
 	var atlas_coords := LevelTileSet.atlas_coords_of(tile)
 	if source.has_tile(atlas_coords):

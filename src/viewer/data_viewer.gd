@@ -3,7 +3,7 @@ extends Control
 ## tiles, sprites, bitmaps and the font. Used to check that the data is
 ## decoded correctly before the game itself is built on top of it.
 ## With [code]-- --game=2[/code] on the command line it shows Keen 2's
-## files instead of Keen 1's.
+## files instead of Keen 1's, with [code]-- --game=3[/code] Keen 3's.
 
 const TILE_ATLAS_COLUMNS := 16
 const FONT_ATLAS_COLUMNS := 32
@@ -14,6 +14,10 @@ const MISSING_DATA_MESSAGE := (
 const KEEN_2_MISSING_DATA_MESSAGE := (
 	"Keen 2 data not found. Put the files in game_data/keen2 "
 	+ "(see game_data/README.md) or start with: -- --game=2 --data-dir-keen2=PATH"
+)
+const KEEN_3_MISSING_DATA_MESSAGE := (
+	"Keen 3 data not found. Put the files in game_data/keen3 "
+	+ "(see game_data/README.md) or start with: -- --game=3 --data-dir-keen3=PATH"
 )
 
 var _files: GameFiles
@@ -36,10 +40,18 @@ var _zoom := 2
 
 
 func _ready() -> void:
-	var keen_2 := GameLaunch.wants_keen_2(OS.get_cmdline_user_args())
-	_files = Keen2Files.locate() if keen_2 else GameFiles.locate()
+	var game := GameLaunch.game_number(OS.get_cmdline_user_args())
+	var keen_2 := game == 2
+	var keen_3 := game == 3
+	if keen_3:
+		_files = Keen3Files.locate()
+	else:
+		_files = Keen2Files.locate() if keen_2 else GameFiles.locate()
 	if _files == null:
-		_show_error(KEEN_2_MISSING_DATA_MESSAGE if keen_2 else MISSING_DATA_MESSAGE)
+		if keen_3:
+			_show_error(KEEN_3_MISSING_DATA_MESSAGE)
+		else:
+			_show_error(KEEN_2_MISSING_DATA_MESSAGE if keen_2 else MISSING_DATA_MESSAGE)
 		return
 
 	_graphics = EgaGraphics.load_from(_files, _files.extension)
@@ -50,6 +62,8 @@ func _ready() -> void:
 	_status_label.text = "Loaded game data from %s" % _files.directory
 	if keen_2:
 		_status_label.text += _keen_2_executable_summary()
+	if keen_3:
+		_status_label.text += _keen_3_executable_summary()
 	_zoom_spin_box.value = _zoom
 	_zoom_spin_box.value_changed.connect(_on_zoom_changed)
 	_level_select.item_selected.connect(_on_level_selected)
@@ -126,6 +140,38 @@ func _keen_2_executable_summary() -> String:
 	return (
 		" (%s version %s; found: %s)"
 		% [Keen2Files.EXECUTABLE, executable.version, ", ".join(found)]
+	)
+
+
+## What was found inside KEEN3.EXE, for the status line.
+func _keen_3_executable_summary() -> String:
+	var executable := Keen3Executable.load_from(_files)
+	if executable == null:
+		return " (%s could not be read)" % Keen3Files.EXECUTABLE
+	var image := executable.image
+	var found := PackedStringArray()
+	if Keen3Executable.find_sound_block(image) >= 0:
+		found.append("sounds")
+	for block in Keen3Executable.TextBlock.size():
+		if Keen3Executable.find_text_block(image, block as Keen3Executable.TextBlock) >= 0:
+			found.append(Keen3Executable.TextBlock.keys()[block].to_lower())
+	if executable.tile_properties(_graphics.tiles.size()) != null:
+		found.append("tiles")
+	var pieces: Dictionary[String, int] = {
+		"status box": executable.status_box_lines().size(),
+		"mortimer": executable.mortimer_messages().size(),
+		"ending": executable.ending_pages().size(),
+		"the end": executable.the_end().size(),
+		"ship": executable.ship_messages().size(),
+	}
+	for piece in pieces:
+		if pieces[piece] > 0:
+			found.append(piece)
+	if executable.score_texts() != null:
+		found.append("scores")
+	return (
+		" (%s version %s; found: %s)"
+		% [Keen3Files.EXECUTABLE, executable.version, ", ".join(found)]
 	)
 
 

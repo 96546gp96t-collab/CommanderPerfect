@@ -28,14 +28,13 @@ new episode is in before you estimate anything.
 | **Galaxy** | 4, 5, 6 | Completely different: Huffman-compressed `EGAGRAPH`, `GAMEMAPS`/`MAPHEAD` with Carmack + RLEW compression, three map planes, sloped floors, AdLib music and sound (`AUDIO.CK4`), new physics, actions/states, a 2.5D world map | Only the outer layer: launcher, menus, settings, saves, scaling shaders, xBRZ/HD pipeline, online transport, test runner. Plan it as a new engine: new decoders, new physics, new collision (slopes), an OPL (AdLib) emulator. Roughly as much work as Keen 1 was. |
 | **Keen Dreams** | (between 3 and 4) | Its own engine, close to Galaxy | As Galaxy. Its source code was published under the GPL: our "no copied code" rule still applies; use it as documentation only. |
 
-Things known about **episode 3** from the Keen 2 research (verify them;
-some are from memory): files `*.CK3` and `KEEN3.EXE`; sounds and texts are
-inside the EXE as in episode 2; the tile table needs a forced stride of 715
-tiles (Commander Genius `fileio/CTileLoader.cpp`); behaviours 27 (ankh,
-shield) and 28 (single raygun shot) exist; the world map has teleporters
-again; enemies include Meeps, Foobs, the Vorticon mother, Vorticon ninjas,
-balls/jacks and the final boss with the mangling machine; Messie can be
-ridden on the map.
+Episode 3 was researched in milestone C1: see `docs/keen3/research.md`.
+The short version: the same family as 1 and 2; sounds and texts in the EXE
+(text order help, end, previews, story); 624 tiles with a tile table that is
+715 entries wide; 148 sprites (numbers from 31 on one lower than episode 2);
+behaviours 27 (ankh) and 28 (single charge); map teleporters encoded in the
+info layer (0x0Fsd); Messie, a creature Keen rides on the map; the Mangling
+Machine in level 16 built from tiles.
 
 ## 2. Getting the game files
 
@@ -83,10 +82,15 @@ ridden on the map.
   Commander Genius has bugs and guesses. "CG does X" is not "the original
   does X". Mark such numbers *estimate* in the code.
 - **Chocolate Keen** (`jamesfmackenzie/chocolatekeen`) is a reconstruction of
-  the original code of episodes 1-3. In B1 only its data tables (offsets,
-  names, sizes in `src/episodes/episode<n>.h`, `src/engine/engine_loader.c`)
-  were read, never its behaviour code. Whether it may be used at all is a
-  decision of the user (see `PROGRESS.md`, open decisions); follow that.
+  the original v1.31 code of episodes 1-3. Since C1 (decision of the user,
+  17-10-2026, in `CLAUDE.md`) its data tables **and** the facts and numbers
+  in its behaviour code may be used (speeds, timings, chances, hit points),
+  marked `(Choco)`; its code is never copied. It is far more reliable than
+  Commander Genius for numbers. It counts in 145.65 Hz clock ticks with a
+  frame every 6 ticks; `docs/keen3/research.md` explains how to convert to
+  our 60 Hz units. Where it lives: `src/episodes/episode<n>.c/.h` (the
+  episode's objects, map, scenes), `src/game/enemies.c`, `physics.c`,
+  `gameplay.c`, `worldmap.c`, `menus.c`, `src/engine/`.
 - **ModdingWiki and KeenWiki** (shikadi.net) are the best format
   documentation, but the cloud proxy blocks them (403). GitHub (clone, raw)
   works. On the Mac they can be read.
@@ -158,3 +162,14 @@ Add one line per lesson, with the milestone where it was learned.
 
 - B1: the cloud proxy blocks shikadi.net; a sparse clone of Commander Genius
   from GitHub works and is enough for most questions.
+- C1: the user's files can be another version than Commander Genius and
+  Chocolate Keen know (Keen 3 was 1.00, both sources are 1.31), and the
+  offsets do not shift by one amount. Content search pays off.
+- C1: Chocolate Keen's numbers disagree with Commander Genius in many places
+  (Keen 3's ankh, Messie, the ninja; Keen 2's stun and Elite). Ask the user
+  early which sources may be used; it decides how many estimates remain.
+- C1: compare with the original during each milestone, not only at the end
+  (B10 could not steer Keen reliably in js-dos and left the enemies as
+  estimates). Things seen while Keen stands still can be measured any time.
+- C1: subagents may not write report files; let them return the report as
+  text and save what must last in `docs/` (the scratchpad is temporary).

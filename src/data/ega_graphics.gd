@@ -10,6 +10,10 @@ const FONT_CHAR_SIZE := 8
 const LATCH_PLANES := 4
 const SPRITE_PLANES := 5  # four color planes and a mask plane
 const SPRITE_MASK_PLANE := 4
+## The two colors a mask tile is drawn in (EGA 0 and 15), as RGBA bytes.
+const _MASK_BLACK: PackedByteArray = [0, 0, 0, 255]
+const _MASK_WHITE: PackedByteArray = [255, 255, 255, 255]
+const _BYTES_PER_PIXEL := 4
 
 var header: EgaHeader
 ## 8x8 font characters, indexed by character code.
@@ -20,6 +24,9 @@ var tiles: Array[Image] = []
 var bitmaps: Array[Image] = []
 ## Sprites with transparency, in the same order as [member EgaHeader.sprites].
 var sprites: Array[Image] = []
+## Whether each tile is drawn only in black and white; filled the first time
+## [method has_tile_mask] asks.
+var _black_and_white := PackedByteArray()
 
 
 ## Loads and decodes all graphics. Returns null when a file is missing or
@@ -63,6 +70,17 @@ func bitmap_index(bitmap_name: String) -> int:
 	return -1
 
 
+## Whether tile [param tile] has a mask: the next tile, drawn only in black
+## and white. A masked tile (behavior -2 in Keen 2 and 3) is drawn in front
+## of the sprites only where its mask is black. The last tile has none.
+func has_tile_mask(tile: int) -> bool:
+	if tile < 0 or tile + 1 >= tiles.size():
+		return false
+	if _black_and_white.size() != tiles.size():
+		_find_black_and_white_tiles()
+	return _black_and_white[tile + 1] != 0
+
+
 ## Combines all tiles into one image, [param columns] tiles wide.
 ## Tile number n ends up at column n % columns, row n / columns.
 func create_tile_atlas(columns: int) -> Image:
@@ -72,6 +90,26 @@ func create_tile_atlas(columns: int) -> Image:
 ## Combines all font characters into one image, [param columns] characters wide.
 func create_font_atlas(columns: int) -> Image:
 	return _create_atlas(font_chars, FONT_CHAR_SIZE, columns)
+
+
+func _find_black_and_white_tiles() -> void:
+	_black_and_white.resize(tiles.size())
+	for index in tiles.size():
+		_black_and_white[index] = 1 if is_black_and_white(tiles[index]) else 0
+
+
+## Whether every pixel of [param image] is black or white (EGA 0 or 15).
+static func is_black_and_white(image: Image) -> bool:
+	var rgba := image
+	if image.get_format() != Image.FORMAT_RGBA8:
+		rgba = image.duplicate() as Image
+		rgba.convert(Image.FORMAT_RGBA8)
+	var data := rgba.get_data()
+	for start in range(0, data.size(), _BYTES_PER_PIXEL):
+		var pixel := data.slice(start, start + _BYTES_PER_PIXEL)
+		if pixel != _MASK_BLACK and pixel != _MASK_WHITE:
+			return false
+	return true
 
 
 ## Reads a planar data file. Depending on the game version the file is either

@@ -1,0 +1,876 @@
+# Keen 3: architecture
+
+How Keen 3 ("Keen Must Die!") is added beside Keen 1 and Keen 2. Written in
+milestone C1 by the architect; the developer follows it in C2-C11 and
+updates it when a decision changes (with the reason). The milestones are in
+[roadmap.md](roadmap.md), the facts about the game in
+[research.md](research.md). The pattern is the one of Keen 2
+([../keen2/architecture.md](../keen2/architecture.md)); read that first.
+
+## The rule: Keen 1 and Keen 2 stay as they are
+
+The user asked to leave the Keen 1 and Keen 2 code alone and to reuse what
+is the same for Keen 3. That splits the code into four groups.
+
+| Group | What | Allowed changes |
+|---|---|---|
+| **Keen 1 only** | As listed in `docs/keen2/architecture.md` (`src/actors/*`, the map and ship classes, `level_view.gd`, the Keen 1 text extractors, the `test_keen1_*` suites, …) | **None.** |
+| **Keen 2 only** | `src/keen2/**`, `tests/test_keen2_*.gd`, `tests/keen2_fixtures.gd`, `docs/keen2/*` (docs may get a correction note, see below) | **None.** Not even renames, "small cleanups" or a pulled-out base class. Keen 3 may *use* and *subclass* Keen 2 classes. |
+| **Shared** | Decoders, graphics and scaling, `src/level/`, `src/keen/`, `src/sound/`, `src/menu/`, `src/online/`, `src/launcher/`, `GameScreen`, `LevelSession`, `Hud`, settings, saves, high scores, tools | **Only additive, behaviour-neutral changes**: a new optional parameter whose default is the old value, a new method, a new constant, an enum value at the end, a new entry in a list of games. Never a changed default, a removed method or a changed save format. |
+| **Keen 3 only** | Everything new | Free, in `src/keen3/`. |
+
+Two exceptions, decided by the architect in C1 and to be reported to the
+user:
+
+1. **The list of games.** Assertions that the start screen has exactly two
+   games (`tests/test_launcher.gd`, `tests/test_keen2_files.gd`) grow to
+   three. Keen 1 stays first and Keen 2 second, both unchanged. This is the
+   same exception the user approved in B2.
+2. **`GameLaunch.skips_launcher` and `scene_for`** may change their bodies to
+   pick one of three games (for example through a new
+   `GameLaunch.game_number(arguments)`), as long as every argument list that
+   worked before gives the same answer. The existing tests prove it; new
+   tests add `--game=3`. The same holds for the two-way choices in the data
+   viewer and `tools/export_graphics.gd`.
+
+### The reference to compare with
+
+The Keen 2 milestones are not on `main` yet: `milestone-b10-origineel`
+contains all of them, and the C branches start from it. Until that branch is
+merged, the reference is commit **`a9d04cc`** (the last commit of B10), and
+after the merge it is `main`. Below, `$REF` means that reference.
+
+### How we prove that Keen 1 and Keen 2 did not change
+
+At the end of every C milestone:
+
+1. Every existing test passes **without changes to the test files** (except
+   the list-of-games assertions above). New suites may be added.
+2. `gdlint` is clean.
+3. With the Keen 1 shareware data: `tools/keen1_regression.sh` gives the same
+   screenshots before (`$REF` in a `git worktree`) and after, byte for byte;
+   only `launcher.png` may differ, by the third icon.
+4. With the user's Keen 2 data: `tools/keen2_regression.sh` (new in C2, same
+   shape: title, level 1, a walk in level 1, the world map, with
+   `SCENE=res://src/keen2/keen2_view.tscn -- --game=2`) gives the same
+   screenshots before and after.
+5. `git diff $REF -- <Keen 1 only files> src/keen2 tests/test_keen2_*.gd
+   tests/keen2_fixtures.gd` is empty (apart from exception 1).
+
+If a shared change cannot be made behaviour-neutral, stop and ask the
+architect (who asks the user).
+
+## Where the code goes
+
+```
+src/keen3/            Keen 3 only (all class names start with Keen3)
+  data/               Keen3Files, Keen3Executable (version, sounds, texts, tile table,
+                      Mortimer and ship messages, ending pages)
+  actors/             Keen3Enemy, Keen3Grunt, Keen3Youth (own classes, C4), Keen3Mom,
+                      Keen3Fireball, Keen3Meep, Keen3SoundWave, Keen3Ninja, Keen3Foob,
+                      Keen3Ball (ball and jack), Keen3Platform (horizontal and
+                      vertical), Keen3WallGun, Keen3Shot, Keen3AnkhShield
+  keen/               Keen3Body (Keen2Body with Keen 3's stun frames and the ankh)
+  level/              Keen3LevelSession, Keen3Machine (Mortimer's Mangling Machine)
+  map/                Keen3MapSession (teleporters, Messie, done signs, ship messages),
+                      Keen3Messie, Keen3MapKeen, Keen3MapTeleport, Keen3MapScroll,
+                      Keen3MapInfo
+  game/               Keen3LevelPlay, Keen3GameData, Keen3Progress, Keen3Inventory,
+                      Keen3StatusScreen, Keen3Window, Keen3Screens, Keen3Ending,
+                      Keen3Sounds
+  keen3_*_screen.gd   the screen chain on top of GameScreen (see below)
+  keen3_view.gd/.tscn Keen3View, the scene the start screen opens
+tests/test_keen3_*.gd Keen 3 suites; tests/keen3_fixtures.gd
+docs/keen3/           Keen 3 documents
+assets/backgrounds/keen3/   pictures behind Keen 3 levels (our own pictures only)
+```
+
+The list is a plan; the developer may split or merge classes, and writes
+the change down here. Keep every file under ~500 lines.
+
+## Reusing Keen 1 and Keen 2 code
+
+Using a class unchanged, or subclassing it, is no change to it. Two
+GDScript facts decide how (found in the C1 code survey):
+
+- **Constants cannot be overridden.** Keen 2 keeps its tile and sprite
+  numbers in `const`s and reads them in `sprite_index()`, `create()` and
+  static helpers. A Keen 3 subclass must override every method that reads
+  such a constant.
+- **Static constructors return the parent type.** A Keen 3 subclass gets its
+  own constructor with another name (as Keen 2 did with `begin` and
+  `placed`).
+
+| Keen 2 / Keen 1 class | For Keen 3 | Why |
+|---|---|---|
+| `Keen2Icons`, `Keen2RidingCollision`, `Keen2Carrier`, `Keen2SpaceSprite`, `Keen2BackdropPictures` | **Use unchanged** | Generic; no Keen 2 numbers |
+| `Keen2Executable` static helpers (`find_sound_block`, `text_blocks`, `text_end`, `message_lines`, `_records_from` …) | **Call from `Keen3Executable`** (composition) | The search is generic; the offsets, the text order and the city table are Keen 2's. Note: `text_blocks` starts the first block two bytes early in KEEN3.EXE (the sound block's `0xFFFF` end mark looks like text); `Keen3Executable` trims it |
+| `Keen2LevelSession` | **`Keen3LevelSession extends Keen2LevelSession`** | It has the riding, the stun, enemy shots that hurt enemies and the "no exit while riding" rule that Keen 3 needs too. Keen 3 overrides `create_enemy`, `_spawn_enemies`, `_create_keen`, `_create_shot`, `_is_item`, `_pick_up` and `_touch_special_tile`. The switches, lights and Tantalus stay idle (no behaviour 22-26 in Keen 3). If this becomes awkward, the fallback is `extends LevelSession` with its own riding code; write the choice down here |
+| `Keen2Body` | **`Keen3Body extends Keen2Body`** | Same stun, but its last frame is 30 (KEENMELT) instead of 31; plus the ankh (no death, no stun) |
+| `Keen2Grunt`, `Keen2Youth` | **Subclass** (`Keen3Grunt`, `Keen3Youth`) | The same behaviour as in Keen 2 (CG), other sprite numbers. Override `sprite_index` and give them their own constructor. If the original shows other numbers (C4), copy instead |
+| `Keen2Enemy` | **Base class** of the new enemies | `roll`, `_is_blocked`, `_jump`; override `_fire_shot` (it makes a Keen 2 shot) |
+| `Keen2Inventory`, `Keen2HighScores` | Use or subclass | `Keen2HighScores.load_from(path, …)` with `user://keen3/high_scores.json`; Keen 3 has no third column, so the city count stays 0 and is not shown |
+| `Keen2LevelPlay.requested_level`, `start_cell` | Call unchanged | Static and generic |
+| `Keen2Sounds.find_entry` | Call unchanged | For ANKH, MEEP, MORTIMER and FOOTSLAM, which `Sound.Id` does not name |
+| Keen 1's `MapSession`, `MapCollision`, `MapKeen`, `MapMessages` | **`Keen3MapSession extends MapSession`**, the rest unchanged | Entrances and blocking (0x8000 + n) are the same; Keen 3 overrides `_use` (teleporters 0x0Fab, Messie's landings, the ship's messages) and `_mark_done` (done tiles 52-56). Own constructor, because `create` is static |
+| `Keen2View` and its screen chain | **Not reusable**; Keen 3 gets its own chain | Typed Keen 2 members and Keen 2 constants in all four files. Copy the generic parts (`_shake`, `_show_game_over`, `_show_picture`, `_leave`, the input and tick loop) into Keen 3 classes |
+| `keen2_view.tscn` | Copy as `keen3_view.tscn` | Same node layout as `level_view.tscn`, because `GameScreen` finds its nodes by unique name |
+
+## The seams in the shared code
+
+What Keen 3 needs from the shared code, and the additive change for each.
+
+| Need | Today | Additive change |
+|---|---|---|
+| Find `game_data/keen3`, `KEEN3.EXE`, `*.CK3` | `GameFiles.locate_in(subfolder, required, option, extension)` (B2) | None. `Keen3Files` with `--data-dir-keen3=` |
+| Graphics, levels, FINALE | `EgaGraphics.load_from(files, extension)`, `FinaleImage.load_from(files, name)` | None (checked in C1: they load the CK3 files) |
+| **The tile table: 624 tiles, rows 715 wide** | `TileProperties.find_in_image(image, tile_count, known_offsets)` uses `tile_count` as the count and as the stride. With 624 it finds a *wrong* table without an error | Add an optional `stride` parameter (default: `tile_count`), so the planes are read 715 apart and only 624 tiles are kept. Known offsets for Keen 3: v1.00 0x199F8, v1.31 0x198C8 |
+| Behaviours 27 (ankh) and 28 (single charge) | `TileProperties.Behavior` ends at Keen 1's values; `is_item()` does not know 27/28 | None in the shared enum: Keen 3 gets `Keen3Behavior` and `Keen3LevelSession._is_item` / `_pick_up` |
+| What a pickup leaves behind | Keen 1: tile 143; Keen 2: 276 from 305 on | `Keen3LevelSession`: the first tile of the item's row, `(tile / 13) * 13`. An opened door: see research §2 |
+| Sounds inside `KEEN3.EXE` | `SoundFile.parse` | None. Entries 0-40 have Keen 1's names; 41-44 (ANKH, MEEP, MORTIMER, FOOTSLAM) are played through `Keen2Sounds.find_entry` on Keen 3's own speaker (as EARTHPOW in Keen 2) |
+| Texts inside `KEEN3.EXE` | `TextDocument.layout`, `ExeStrings` | None. Keen 3's order is help, end, previews, story (Keen 2: end, help, …) |
+| Saves and high scores apart | `SaveGames.in_directory`, `HighScores.load_from` | None: `user://keen3/saves`, `user://keen3/high_scores.json` |
+| The border tile 245 is an "OH no!" picture | Keen 1's camera keeps the 2-tile border out of view (assumed) | Check in C3 that no view (widescreen, two players, the map, the ending) ever shows the border. If the shared camera does, Keen 3 draws the border cells empty in its own `LevelMap` copy of the data, not in shared code |
+| Start screen icon | `GameCatalog.games()` with two entries; the layout has room for a third (608 of 1280 px) | Append Keen 3 (title "Keen 3", `GameLaunch.KEEN_3_SCENE`, `Keen3Files.locate()`, `data_folder`, `game_id`) |
+| Start Keen 3 from the command line | `GameLaunch.wants_keen_2`, `scene_for` are two-way | `--game=3`; exception 2 above |
+| Data viewer, `tools/export_graphics.gd` | Two-way (`Keen2Files if keen_2 else GameFiles`) | Three-way, Keen 1 and Keen 2 the same as before; output `exported/keen3/` |
+| HUD | `Hud.raygun_tile`, `keycard_icons` | Set from `Keen2Icons`. The ankh time in the HUD: preferably a `Keen3Hud extends Hud`; if `Hud` cannot be extended without a change, one new member that is off by default |
+| Pictures behind levels | `BackdropPictures.create(files, folder)` | None: `Keen2BackdropPictures` with `res://assets/backgrounds/keen3` (C9: `Keen3BackdropPictures` with its own rule instead, see "Deviations in C9") |
+| Online | `OnlineProtocol.GAME_IDS`, `GameCatalog.for_game_id`, scenes/events appended at the end of their enums | `GAME_ID_KEEN_3` in `GAME_IDS`; Keen 3 scenes and events at the end; the ankh time and the done levels in the snapshot through new optional fields (C10). Keen 1's and Keen 2's messages stay byte for byte the same. *Done in C10:* three events at the end, no new scene, one optional field `Snapshot.extra` (see "Deviations in C10") |
+| Build scripts | Copy `game_data/keen1` and `keen2` | Same block for `keen3` |
+| Tests | `tests/run_tests.gd` lists the suites | One line per new suite |
+
+## The flow of Keen 3
+
+```
+Launcher ──click "Keen 3"──▶ keen3_view.tscn (Keen3View)
+   ▲                            │ title (map 90) + main menu (shared Menu classes)
+   │ "Choose Game"              ▼
+   └──────────────────────── world map 80 (Keen3MapSession)
+                                │ teleporters, Messie, the ship's messages
+                                │ enter level 1-16
+                                ▼
+                              level (Keen3LevelSession)
+                                │ exit ─▶ back to the map, level done
+                                │ level 16: Mortimer's messages, the Mangling Machine,
+                                │ the heart destroyed ─▶ level done
+                                ▼
+                    level 16 done ─▶ ending (map 81 with four pages, camera
+                                     flashes, FINALE.CK3, end text) ─▶ high scores
+```
+
+Before the map exists (C3-C5), the flow is as in B3: level 1 (or
+`--level=N`), exit to the next level, death restarts the level, game over
+goes back to the start screen.
+
+## Comparing with the original during the work
+
+B10 showed that measuring everything at the end does not work: steering
+Keen through levels in js-dos was too unreliable, so the enemies kept their
+estimates. For Keen 3:
+
+- The numbers come first from Chocolate Keen (allowed since C1, see
+  `CLAUDE.md`), marked `(Choco)`, then Commander Genius, marked `estimate`.
+- Every milestone that builds something visible ends with a short check
+  against the original in js-dos (how to set it up:
+  [research.md](research.md), "Watching the original"). The things that
+  can be seen standing still (an enemy walking, a gun firing, the machine)
+  are measured then, not in a last milestone.
+- C11 only picks up what is left.
+
+## Testing
+
+As for Keen 2:
+
+- Hand-made fixtures (`tests/keen3_fixtures.gd`) for everything that does
+  not need the files; these run everywhere.
+- `tests/test_keen3_data.gd` with the user's own files (`Keen3Files.locate()`,
+  skip without them). Keen 3 is not shareware.
+- The screens with `tools/scripted_play.gd` (`SCENE=res://src/keen3/keen3_view.tscn
+  -- --game=3 --level=N`).
+- A stand-in suite with Keen 1's files under Keen 3's names is **not**
+  planned: Keen 3's tile and sprite numbers are too different to be useful;
+  the real files are on the Mac. If a cloud session has no Keen 3 files, the
+  real-data suites skip.
+
+## Rules that carry over
+
+All hard rules in `CLAUDE.md` apply: never commit game data or anything
+derived from it, never use the name "Commander Keen" or its logo as branding
+("Keen 3" on the icon is fine), never decompile `KEEN3.EXE` code (reading
+data tables is fine), never copy code from Commander Genius, Chocolate Keen
+or other projects. Extras are off by default, with the user's exceptions
+(widescreen with HUD, pictures behind levels).
+
+## Deviations in C2
+
+Written by the developer of C2. None of them changes Keen 1 or Keen 2.
+
+- **`TileProperties.from_table` also got the optional `stride`** (default
+  -1 = the tile count), besides `find_in_image`: the search hands the found
+  table to it. A test (`test_keen3_files.gd`) shows that the default reads
+  the same values as an explicit stride of the tile count and as a plain
+  reading of the old layout, also for the real Keen 1 and Keen 2 tables.
+- **The two bytes before the help text** are not the end of the sound
+  block (which ends at 0x16604) but the `0xFFFF` of a table of words right
+  before the help. `Keen3Executable.text_blocks` moves every start past
+  font-picture bytes (0x80 and up), so no text starts with one.
+- **The sound block** is cut at the end of its last sound's data: the size
+  word in its header (16,224) runs up to the help text.
+- **No `Keen2Executable.line_records`:** it stops at Keen 2's known text
+  positions, which could cut a Keen 3 run short. `Keen3Executable` has its
+  own small record reader; it only calls Keen 2's public helpers
+  (`find_sound_block`, `text_blocks`, `text_end`, `message_lines`) and
+  constants. The private `_records_from` is not called.
+- **Ending pages without a known position:** they are the line records
+  right before the finale name (`ExeStrings.lines_before`), the box over the
+  finale the record after it; Mortimer's boxes follow the points table. Only
+  the status box and the ship's messages have a 1.00 position and a
+  record-by-record search.
+- **`OnlineProtocol.GAME_ID_KEEN_3`** is a new constant so that the catalog
+  entry has its own id; it is **not** in `GAME_IDS` (online play comes in
+  C10), so nothing online changes.
+- **`Keen3Behavior`** (27 ankh, 28 single charge) lives in
+  `src/keen3/data/`.
+- **The placeholder `keen3_view.tscn`** is a plain `Control` with a "Keen 3 -
+  coming soon" text, as Keen 2's in B2; C3 replaces it with the copy of
+  `keen2_view.tscn` described above.
+- **The hand-made KEEN3.EXE image** for the tests is in
+  `tests/keen3_fixtures.gd`.
+- **`tools/keen2_regression.sh`** takes title, level 1, the walk in level 1
+  and map 80, but not the start screen: that changes with every new game
+  (the Keen 1 script keeps it, and only its `launcher.png` may differ).
+
+## Deviations in C3
+
+Written by the developer of C3. None of them changes Keen 1 or Keen 2; **no
+shared file changed** in C3 (`git diff 303ae1f` touches only `src/keen3/`,
+`tests/keen3_*`, `tests/test_keen3_*`, `tests/run_tests.gd` and docs).
+
+- **The choice: `Keen3LevelSession extends Keen2LevelSession`** (not the
+  fallback `extends LevelSession`). It worked without trouble: Keen 3
+  overrides `create_enemy` (null for now), `_spawn_enemies`, `_create_keen`
+  (a `Keen3Body` on Keen 2's riding collision; Keen 2's switches object is
+  still made, because `Keen2LevelSession.step_players` steps it, but no
+  Keen 3 level has a switch), `_create_shot`, `_touch_tiles` (to know which
+  Keen picks up an ankh), `_is_item`, `_pick_up`, `_touch_special_tile`
+  (behaviour 22) and `_open_door` (the tile left of the door's top). Its
+  constructor is `started`.
+- **`Keen3Body extends Keen2Body`**, constructor `spawned`. The ankh lives
+  in the body (`ankh_ticks`, `add_ankh`, `is_protected`, `ankh_seconds`,
+  `halo_sprite`), not in the inventory: it is reset by every new attempt
+  and counts down in `step`. `kill` and `stun` return early while it
+  protects; falling out of the level does not go through `kill`. The
+  getting-up frame of the stun is 30; the stun's timing stays Keen 2's
+  until C4.
+- **The halo is an actor** (`Keen3AnkhShield` in `src/keen3/actors/`), so
+  the shared `ActorLayer` draws it (behind Keen) and nothing in the view
+  needed to change.
+- **Keen 3's own sounds** go through a new signal
+  `Keen3LevelSession.keen3_sound_played(name)` to `Keen3Sounds` (a node
+  like `Keen2Sounds`, for ANKH, MEEP, MORTIMER and FOOTSLAM), because
+  `LevelSession.sound_played` only carries `Sound.Id`.
+- **The screen chain** is `Keen3View` → `Keen3SceneScreen` → `GameScreen`.
+  `Keen3SceneScreen` has the generic parts (setup, loading the data, the
+  HUD icons, "Keens Left", GAME OVER, Keen 3's sounds, leaving); C7 adds
+  the ending there, C8 puts a `Keen3MenuScreen` between it and
+  `Keen3View`, as Keen 2's chain has.
+- **`Keen3Hud extends Hud`**, set as the script of the `Hud` node in
+  `keen3_view.tscn` (otherwise the scene is a copy of `keen2_view.tscn`).
+  It redraws the left panel with Keen 3's map Keen (sprite 35; the shared
+  `Hud.LIFE_SPRITE` 36 is another frame in Keen 3) and adds the ankh panel.
+  No member was added to the shared `Hud`.
+- **`Keen3LevelPlay`** is Keen 2's B3 course, with `start_cell` taking the
+  last 255 (`PackedInt32Array.rfind`) and `start_position` adding the 8 px
+  of the original. It calls `Keen2LevelPlay.requested_level` unchanged.
+- **The border (tile 245)** needed no Keen 3 code: the shared `LevelMap`
+  draws only the playable area and the camera keeps to it (details and the
+  test in [gameplay.md](gameplay.md), "The border").
+- **Tests:** the level tests are split in two suites (gdlint allows 20
+  public methods per file): `test_keen3_level.gd` (items, doors, exits)
+  and `test_keen3_keen.gd` (Keen, the ankh); `test_keen3_play.gd` uses the
+  real files. The C2 test of the placeholder screen is removed from
+  `test_keen3_files.gd`, as B3 did with Keen 2's (that screen no longer
+  exists). The level fixtures were added to `tests/keen3_fixtures.gd`.
+- **The regression scripts and full screen:** with the user's setting
+  `fullscreen=true`, `keen1_regression.sh` gave a different
+  `level1_walk.png` for this branch than for `a9d04cc` (the reference
+  showed Keen not yet walking). The game logic was the same: Keen's
+  positions at frames 40-100 were equal in both trees. With `--fixed-fps
+  60` the frames run in a few milliseconds and, during the macOS full
+  screen animation, the screenshot shows an older frame; how much older
+  depends on how long the start takes. Run windowed (`fullscreen=false`
+  for the run, then restored), every Keen 1 picture except `launcher.png`
+  and every Keen 2 picture is the same. Later milestones should run the
+  regressions windowed.
+
+## Deviations in C4
+
+Written by the developer of C4. None of them changes Keen 1 or Keen 2; **no
+shared file changed** in C4 (`git diff a9d04cc` on the Keen 1, Keen 2 and
+shared folders shows only the changes of C2).
+
+- **No subclasses of `Keen2Grunt` and `Keen2Youth`.** The plan above made
+  `Keen3Grunt` and `Keen3Youth` subclasses of Keen 2's; but those follow
+  Commander Genius (look around at walls, the "trapped" jump, two hop
+  sizes, a sliding corpse, Keen 2's stun), and Chocolate Keen's behaviour
+  differs in every one of these. All six enemies are their own classes on a
+  new base `Keen3Enemy extends Keen2Enemy` (for `_is_blocked`, `_jump` and
+  `_random_speed`), which adds the Choco chance (`chance(session, k)`, 9.5·k
+  in 1000 per tick), Keen 3's gravity, the dying frames, the push and the
+  waking rule. Constructors are `spawned` (Keen3Meep: from its cell).
+- **Classes:** `Keen3Grunt`, `Keen3Youth`, `Keen3Mom`, `Keen3Fireball`
+  (a `Keen3Shot`), `Keen3Meep`, `Keen3SoundWave` (an `Actor`: it flies
+  through walls and never splashes), `Keen3Ninja`, `Keen3Foob` in
+  `src/keen3/actors/`; `Keen3ActiveArea` (waking and sleeping) in
+  `src/keen3/level/`.
+- **Keen 3's own hits.** `Keen3LevelSession._resolve_hits` carries the
+  riders as Keen 2 does (`_carry_riders`) and then replaces
+  `LevelSession`'s hits with Keen 3's (Choco's contact rules): only awake
+  enemies take part; Keen's shot hits enemies, fireballs and waves; a
+  fireball kills Keen even when stunned and passes mothers and corpses; a
+  wave kills Keen; touching calls the enemy's `touch_keen` through
+  `LevelSession._kill`, so a Foob that dies by touch screams. Keen 2's
+  `_shoot_keens` / `_shoot_enemies` and `enemy_shots_hurt_enemies` are not
+  used by Keen 3.
+- **Waking and sleeping** follow the original (`Keen3ActiveArea`), not the
+  shared "in view plus one tile, then awake forever" of `Enemy.step`: a
+  `Keen3Enemy` overrides `step`. The view rectangles come from
+  `LevelSession.view_rects` (set by `Keen3View` every frame); in widescreen
+  the limits grow with the view (gameplay.md). The session deletes Keen 3's
+  shots, splashes and waves far from the view, and a wave also when it
+  leaves the playable area (the black bars of level 16 in widescreen showed
+  waves flying on outside the level).
+- **Keen 3's stun** lives in `Keen3Body` (`stun_with(speed)`, `stun`
+  calls it): its own counter, its own movement while stunned (the youth's
+  speed, Choco's friction and gravity), `is_stunned`, `can_exit` (not while
+  stunned) and `shorten_stun` (does nothing). It still extends `Keen2Body`
+  (the session's riding and its `is_stunned` checks), but Keen 2's stun code
+  is no longer reached. New constants are named `STUN_LYING_TICKS` and
+  `DAZED_FRAME_TICKS`, because GDScript does not allow a subclass to
+  redefine `Keen2Body.STUN_TICKS`.
+- **`Keen3Shot`** flies at 121/32 (Choco) instead of the shared 124/32 and
+  its splash stays 8 ticks; it overrides `step` and `splash`, and plays
+  SHOTHIT without the "in view" check (every awake sprite is heard in the
+  original). `RaygunShot` is unchanged.
+- **The HUD's item pictures** (`Keen3Hud._draw_tile`) leave out their row's
+  background colour; made in `Keen3Hud` with its own small cache (also for
+  xBRZ/HD through the public `ScaledGraphics.derive`), so `GraphicsTextures`
+  and `Hud` are unchanged.
+- **Two C3 assertions changed** (the B3/B4 precedent): `test_keen3_level`'s
+  "info values spawn nothing yet" now checks 7-18 (not 11), and
+  `test_keen3_play` no longer asserts that the levels start without
+  enemies; `test_keen3_enemy_census` checks the real enemies instead.
+- **Tests** are split in three suites (gdlint's 20 public methods):
+  `test_keen3_enemies`, `test_keen3_enemy_rules`, `test_keen3_enemy_census`
+  (real files).
+
+## Deviations in C5
+
+Written by the developer of C5. None of them changes Keen 1 or Keen 2; **no
+shared file changed** in C5 (`git diff a9d04cc` on the Keen 1, Keen 2 and
+shared folders shows only the changes of C2). `Keen2Carrier` and
+`Keen2RidingCollision` are used unchanged.
+
+- **More classes than planned.** The plan had `Keen3Ball` for ball and jack
+  and one `Keen3Platform`. Built: `Keen3Carrier extends Keen2Carrier` (the
+  solid touch of Keen 3's carriers: on top, from below, aside, and
+  `give_way`), `Keen3Ball` and `Keen3Platform` on it (the platform has a
+  `sideways` and an `up_and_down` constructor), and `Keen3Jack extends
+  Keen3Enemy` apart: a jack is not solid and must not be a carrier (the
+  riding collision takes every `Keen2Carrier`), and as a `Keen3Enemy` it
+  wakes and sleeps for free. Both fly with the static `Keen3Ball.bounce`.
+  The ball copies the eight lines of waking and sleeping, because it cannot
+  extend `Keen3Enemy` and `Keen2Carrier` both.
+- **The wall gun is an `Enemy`** (`Keen3WallGun`), so `create_enemy` can
+  return it and the census can count it; it has no size, never wakes, stops
+  no shot and touches nothing. It does not count its own time: **the
+  session keeps one clock** (`Keen3LevelSession.step_players`, after the
+  tick) and fires every gun at once with one TANKFIRE. Its shot is
+  `Keen3GunShot extends Keen3Shot` (the downward one sweeps on y, is 8x16,
+  and its splash is centred).
+- **The hit rules moved to `Keen3Hits`** (`src/keen3/level/keen3_hits.gd`),
+  because the session grew past ~450 lines: `_resolve_hits` carries the
+  riders, deletes far shots and hands the awake enemies to a new
+  `Keen3Hits`. It has the general enemy-shot branch asked for in C4: a gun's
+  shot kills every Keen, grunt and Foob it touches and flies on; the
+  fireball keeps its own branch (it splashes on the first thing). Its kill
+  helper repeats `LevelSession._kill`'s four lines (the scream) instead of
+  calling a private method of the shared class.
+- **Riding.** `Keen3LevelSession._carry_riders` replaces Keen 2's (same
+  steps) so that a rider whose head a ceiling stops makes the carrier give
+  way. In `Keen3Carrier.touch_keen` a push that the tiles stop is simply
+  left there and the carrier passes Keen: the original did so in level 2
+  (research.md, "Watching the original", C5). The first version made the
+  carrier turn at Keen as at a tile; the js-dos run showed otherwise and it
+  was changed.
+- **Tests:** two new suites, `test_keen3_objects` and `test_keen3_riding`
+  (gdlint's 20 public methods). Two Keen 3 tests changed because C5 changes
+  what they expect: `test_keen3_level`'s "info values after the enemies
+  spawn nothing yet" now checks only the machine's values 12, 13, 16-18;
+  `test_keen3_enemy_census` accepts the C5 objects among the enemies and
+  got a second census for them.
+
+## Deviations in C6
+
+Written by the developer of C6. None of them changes Keen 1 or Keen 2; **no
+shared file changed** in C6 (`git diff a9d04cc` on the Keen 1, Keen 2 and
+shared folders shows only the changes of C2). Keen 1's `MapSession`,
+`MapKeen`, `MapCollision` and `MapInfo` are used unchanged.
+
+- **`Keen3MapSession extends MapSession`**, constructor `opened`. It
+  overrides `step` as a whole (Keen 1's reads the cell under Keen's middle,
+  steps Keen 1's teleporter and knows the ship level), `_use`, `_enter`
+  (also keeps the view) and `_mark_done` (Keen 3's signs; the info cells
+  are cleared, as in the original), and `is_teleporting`. The button reads
+  the cells under Keen's box, the last one counting (Choco), not the cell
+  under his middle. It must be pressed anew, as in Keen 1 (the original
+  acts while it is held).
+- **`Keen3MapKeen extends MapKeen`** (constructor `placed`): Keen 3's
+  sprites and speed; `step` and `sprite_index` are its own because
+  `MapKeen` keeps them in constants. Keen 1's speed (127.5 px/s) is 30 %
+  above the original's 97 px/s, so Keen 3 has its own.
+- **Keen 1's `MapTeleport` is not used:** it flies Keen across the map and
+  flickers Keen 1's tiles. `Keen3MapTeleport` animates both teleporters in
+  place, makes the view jump and hides Keen (seen in js-dos).
+- **`Keen3MapScroll`, the map's own view.** The shared camera's dead zone
+  sits in the middle; the original keeps Keen between 9 and 11 cells from
+  the left and 3 and 7 from the top, starts a new game at (35,44) and puts
+  a teleporter's destination 10 cells right, 6 down. The session keeps the
+  view's corner; `Keen3View` puts the camera anchor on it with
+  `LevelCamera.follow_exactly(true)` (no smoothing, no dead zone) on the
+  map, and back to `follow_exactly(false)` in a level. The view size comes
+  from the screen every frame (widescreen).
+- **`Keen3Messie` is an `Actor`** (so the shared `ActorLayer` draws her)
+  but is moved by the map session with its own `swim`; `Actor.step` takes
+  a `LevelSession`. She and the view live in `Keen3Progress` while Keen is
+  in a level, because the original puts her at her start only once per
+  game.
+- **`Keen3Window extends GameWindow`** (the script of the Window node in
+  `keen3_view.tscn`, like `Keen3Hud` on the Hud node): tiles half a row
+  lower and text in the font's second half (red on gray), which the status
+  screen needs; `GameWindow` is unchanged. It copies the window's
+  three-line origin formula.
+- **The status screen opens with the status action (Enter)**, not Space as
+  in the original: Space is fire in our key bindings (Keen 1 and 2 do the
+  same). Any key closes it, and the ship's message.
+- **`Keen3Executable.ship_prompt`**: the line under the ship's messages
+  (asking for a key) is read from the two records after them, so no text of
+  the EXE is in the code.
+- **"Keens Left" shows at most 6 Keens** (Choco), was 7 (estimate) in C3.
+- **Tests:** four new suites (`test_keen3_map`, `test_keen3_messie`,
+  `test_keen3_status`, `test_keen3_map_data`) and the fixture file
+  `tests/keen3_map_fixtures.gd`; `tests/keen3_fixtures.gd` got the ship
+  prompt records. Keen 3 tests changed because C6 changes the course
+  (as B6 did for Keen 2): `test_keen3_play` (exit → map, level 16 wins,
+  death → map; the old "next level", "last level finishes" and "death
+  restarts the level" are gone) and `test_keen3_level` (keycards gone after
+  level 16, which now wins instead of finishing).
+- **Messie without a way on** stands still (the original would swim on in
+  her last direction); the real loop never gets there. A test map needs
+  cut corners, as the real loop has: with a square corner the
+  column-first rule turns her back.
+
+## Deviations in C7
+
+Written by the developer of C7. None of them changes Keen 1 or Keen 2; **no
+shared file changed** in C7 (`git diff a9d04cc` on the Keen 1, Keen 2 and
+shared folders shows only the changes of C2). `GameLaunch` needed no
+change: `--game=3 --ending` already skips the start screen and opens Keen
+3's scene, and `--ending` alone still opens Keen 1's (a test in
+`test_keen3_scenes` says so); `Keen3View` reads the option itself.
+
+- **The screen chain** is now `Keen3View` → `Keen3EndingScreen` →
+  `Keen3SceneScreen` → `GameScreen` (the plan's "Keen3Ending" in
+  `Keen3SceneScreen` became its own class, as Keen 2's `Keen2SpaceScreen`).
+  It has Mortimer, the border flash and the ending's drawing, and overrides
+  `_show_picture` and `_move_camera_anchor` (both know Keen 1's ending in
+  `GameScreen`). `Keen3View._data` moved there.
+- **The machine is more classes than planned:** `Keen3Machine` (the
+  parts, the sparks' count, the heart, the end) with `Keen3MachineArm`,
+  `Keen3MachineLeg` and `Keen3MachineSweep` in `src/keen3/level/`; the
+  sparks and the heart are `Keen3Spark` and `Keen3Heart` in
+  `src/keen3/actors/`. They are plain `Actor`s, not `Enemy`s, so the enemy
+  census and the waking rules leave them alone; `Keen3Hits` hands a shot
+  that touches one to `Keen3LevelSession.shoot_machine`. The session makes
+  the machine in `_spawn_enemies` (`Keen3Machine.found_in`) and steps it in
+  `step_players`; its new signal `border_flashed` tells the view.
+- **Fractional waits** (6.2, 16.5, 14.4, 12.4, 8.2 ticks) are counted with
+  a tolerance of 0.001 tick (`Keen3Machine.TIME_TOLERANCE`), so sums that
+  should be whole are; the typed boxes count retraces the same way.
+- **Typed boxes** (`Keen3TypedBoxes`) serve Mortimer and the ending.
+  `Keen3Window.open_at` places a window's frame on a text cell of the
+  320x200 picture in the middle of the view: it moves `GameWindow`'s
+  drawing with `draw_set_transform`, so the shared window is unchanged.
+- **The border flash** is a `Control` over the `Screen` node
+  (`Keen3BorderFlash`); the fade and the camera flash are two
+  `Keen3ScreenTint` nodes added last to the World's UI layer (the camera
+  flash adds light: our reading of the camera-flash palette). All three are
+  made in code, `keen3_view.tscn` is unchanged.
+- **The ending's boxes** take Choco's cells less (4,4), the view's corner
+  on map 81 (gameplay.md, "The ending"); the y part of that is our reading.
+- **Level 16's sprites are drawn before its first tick**, so Mortimer
+  speaks over the Meeps, the sparks and the heart (`Keen3View` shows the
+  actors when any level starts; for other levels this is the same picture
+  one tick earlier).
+- **In the ending, up and down scroll the end text and do not count as
+  "any key"**; every other key goes on.
+- **Tests:** four new suites (`test_keen3_machine`, `test_keen3_scenes`,
+  `test_keen3_ending`, `test_keen3_machine_data`) and the fixture file
+  `tests/keen3_machine_fixtures.gd`. One Keen 3 test changed because C7
+  changes what it expects: `test_keen3_level`'s "the machine info values
+  spawn nothing yet" is now "make the machine" (with a new test that a
+  level without them has none). `test_keen3_play`'s "level 16 done wins"
+  still holds unchanged (the course emits `won`; the view now shows the
+  ending).
+
+## Masked tiles (fix after C7)
+
+A shared, behaviour-changing fix, approved by the user for Keen 2 as well
+(18-10-2026). Tiles with behaviour -2 were drawn as plain foreground tiles,
+so for example the gray around the fence of Keen 3's level 14 hid Keen.
+Now `LevelMap` draws a masked tile whose next tile is a black-and-white
+mask whole on its normal layer, and again on a third layer in front of the
+sprites (`masked()`, z index of the foreground) through
+`src/graphics/masked_tiles.gdshader`, which reads the mask from the next
+atlas cell (rules in `docs/file-formats.md`, drawing in
+`docs/graphics.md`). Masked tiles without a mask (Keen 2's 371-373) and
+behaviour -1 tiles are drawn as before.
+
+The shared changes are additive: `EgaGraphics.has_tile_mask` and
+`is_black_and_white` (new), `MaskedTiles` (new; a custom data layer and a
+material that `LevelTileSet.build` adds to every tile set, so none of its
+callers changed), and `LevelMap` (the third layer, `masked()`, and the
+choice in `_draw_tile`). Keen 1 has no masked tiles, so its third layer
+stays empty and every cell lands where it did; `test_masked_tiles` checks
+that for every Keen 1 level and map, and `keen1_regression.sh` and
+`keen2_regression.sh` against `a9d04cc` give the same screenshots (only
+`launcher.png` differs). Everything that draws a level goes through
+`LevelMap`, so the world maps (Keen 2's map 80 has masked tiles), the two
+viewports of two players (one World shared), the online client
+(`RemoteGame`) and the scene screens get it as well; the data viewer
+(`LevelImageBuilder`) draws no sprites and is unchanged.
+
+- *After the masked-tile fix:* `tools/keen2_regression.sh` took its "map"
+  picture with `--level=80`, which Keen 2 does not support, so it showed
+  the title with an error text. It now opens the menu (Space), starts a new
+  game (Enter) and takes the map at frame 320, after the Keens Left box.
+  Checked: the four pictures are the same at `a9d04cc` and after the fix
+  (the map's start view has no masked tiles).
+
+## Deviations in C8
+
+Written by the developer of C8. **The one deliberate change to Keen 1 and
+Keen 2** is the sound rate (the user's decision of 17-10-2026); nothing
+else of Keen 1 or Keen 2 changed (`git diff 97b128f` on `src/keen2`,
+`tests/test_keen2_*.gd`, `tests/keen2_fixtures.gd`, `src/actors`,
+`src/map`, `src/game`, `src/keen`, `src/menu`, `src/launcher`,
+`src/level`, `src/online` is empty).
+
+- **The sound rate (shared).** `SoundFile.STEPS_PER_SECOND` was 140.0; it
+  is now `TIMER_FREQUENCY / SOUND_TIMER_DIVISOR` = 1193182 / 8192 = 145.65
+  (the new constant `SOUND_TIMER_DIVISOR`, named after its origin: the
+  divisor the game sets for its timer interrupt). `SpeakerSynth` only got
+  a new comment; it already read the rate from `SoundFile`. **Changed
+  140 Hz tests: none.** The only test that depends on the rate,
+  `tests/test_sounds.gd` `test_synth_plays_each_step_for_its_time`,
+  computes the length from `SoundFile.STEPS_PER_SECOND` and passes
+  unchanged; no Keen 1 or Keen 2 test assumed 140 Hz. The new
+  `tests/test_keen3_sounds.gd` checks 145.65 Hz. The regression
+  screenshots of Keen 1 and Keen 2 are the same (sound is not in them).
+  `docs/file-formats.md`, `docs/sounds.md` and research.md say 145.65 Hz
+  now.
+- **The screen chain** is `Keen3View` → `Keen3MenuScreen` →
+  `Keen3EndingScreen` → `Keen3SceneScreen` → `GameScreen` (the plan put
+  the menu screen right on `Keen3SceneScreen`; it sits on the ending
+  screen as Keen 2's menu screen sits on its space screen, so GAME OVER
+  after the ending can lead to the high scores). `play` moved from
+  `Keen3View` to `Keen3MenuScreen`, as in Keen 2; `_clear_screen` moved
+  there too and now also ends Mortimer and the ending and clears the
+  title's pictures.
+- **GAME OVER** no longer leaves for the start screen: `_leave_after` and
+  `_count_down_leaving` are gone; `Keen3MenuScreen._count_down_screen`
+  counts GAME OVER, the title and the high scores, as Keen 2's does.
+  `Keen3EndingScreen._finish_game` (the ending is over) is now
+  `_after_ending`; `_finish_game` is Keen 2's name for "GAME OVER is
+  over: the high scores".
+- **High scores:** `Keen2HighScores` unchanged in
+  `user://keen3/high_scores.json`, with the cities left at 0 and not
+  drawn (as planned). The names and scores are drawn by the shared
+  `PictureLayer` in the font's second half (`Keen3Window.label_text`):
+  red on gray, as the original draws them (Choco `CVort_draw_string_80`);
+  Keen 2's stay black. No HISCORESND for a new entry: the original has
+  none (Choco `CVort_game_over`); Keen 2 plays it.
+- **The attract loop** takes 2400 clock ticks per screen (16.5 s, Choco;
+  `Keen3MenuScreen.ATTRACT_SECONDS`), not Keen 2's estimated 8 s.
+- **Saving:** `Keen3SaveGames extends SaveGames` (`user://keen3/saves`)
+  overrides `read` to return a `Keen3Progress`: it calls the parent's
+  `read` (version check and all) and then reads the file once more for
+  the one key Keen 3 adds, `map_corner`, which `Keen3Progress.to_dict`
+  writes (the original saves the view's corner too). It uses the parent's
+  `_path`. Keen 1's reader ignores the extra key; Keen 1's and Keen 2's
+  files are unchanged. A loaded game's inventory is a plain `Inventory`,
+  as in Keen 2 (`Keen3Inventory` only sets start values). Messie is not
+  saved: the original puts her at her start for a loaded game as well
+  (Choco `CVort_draw_worldmap`). `Keen3MapSession.remember_place` keeps
+  Keen's place and the corner for a save; on Messie's back the corner is
+  left out (the view follows her, Keen's place is where he got on), so
+  the loaded game shows Keen as a new game does. Saving is not offered
+  while a teleporter runs.
+- **The menus** are the shared `MenuController` with `offers_online`,
+  `offers_second_player` and `offers_extra_levels` off (C10 turns on what
+  co-op needs). Escape in a game opens the main menu (C7: back to the
+  start screen); while Mortimer speaks it still skips him; without the
+  files it still leaves. The game stands still while a menu is open; a
+  menu opened in the ending closes the ending's box, and
+  `MenuController.closed` brings it back.
+- **"Choose Game"** goes back to the start screen (`_leave`). Started
+  with `-- --game=3`, the start screen opens Keen 3 again at once
+  (`GameLaunch.skips_launcher`, unchanged; Keen 2 does the same with
+  `--game=2`); from the app it shows the start screen.
+- **Sounds.** `Keen3Sounds` now knows the priorities and the lengths of
+  the whole sound block: one of its four sounds does not cut off a more
+  important one of its four, and `give_way_to` lets a shared sound cut
+  it off only with a priority at least as high (then it stops), so both
+  speakers act as one; every sound of the view goes through
+  `Keen3SceneScreen._play_game_sound` / `_play_keen3_sound`. The shared
+  `SoundPlayer` keeps its playing priority private, so one of Keen 3's
+  four still cuts off a shared sound of any priority (only MEEP, 200,
+  could cut off a more important one); the shared class is unchanged.
+- **Keen's sounds** differ from Keen 1's where Choco's code differs
+  (research.md §2, "Found in C8"): `Keen3Body` overrides `_stand` (PLUMMETSND
+  off a ledge) and `_move_horizontally` (KEENBLOKSND against a wall in the
+  air, every 13.2 ticks), and the session plays `Keen3Body.sound_for`
+  (a pogo bounce sounds as KEENJUMPSND). `KeenBody` is unchanged; the
+  same differences for Keen 1 and 2 are listed in
+  [choco-keen1-keen2.md](choco-keen1-keen2.md) for C12.
+- **The mother** plays TANKFIRE before her fireball is made, so its
+  splash in a wall (SHOTHIT) cuts it off, as in the original (C4 had the
+  order the other way round).
+- **The end text** plays keensleft to its end, then MORTIMER (C7 started
+  MORTIMER at once); the text can be scrolled meanwhile (the original
+  waits).
+- **Tests:** three new suites, `test_keen3_sounds`, `test_keen3_menus` and
+  `test_keen3_menus_data` (real files); `tests/keen3_fixtures.gd` got
+  `sound_file`. No existing test changed. The screens themselves need a
+  running scene tree; they were checked with `tools/scripted_play.gd`
+  (title, menu, story, high scores in 4:3 and widescreen, a new game,
+  saving and loading, the ending up to the name for a new high score,
+  the menu in the ending, Choose Game).
+
+## Deviations in C9
+
+Written by the developer of C9. None of them changes Keen 1 or Keen 2; **no
+shared file changed** in C9 (`git diff ade258d` touches only `src/keen3/`,
+`tests/test_keen3_extras.gd`, one line in `tests/run_tests.gd` and docs;
+on `src/keen2`, `tests/test_keen2_*.gd`, `tests/keen2_fixtures.gd`,
+`src/actors`, `src/map` and `src/game/level_view.gd` it is empty).
+`keen1_regression.sh` and `keen2_regression.sh` against the C7 references
+(reset user folder): every picture the same, `launcher.png` too.
+
+- **xBRZ and smooth motion needed no Keen 3 code.** Everything Keen 3
+  draws goes through the shared paths: its sprites are `Actor`s in the
+  shared `ActorLayer` (interpolated), Keen and the map Keen are the shared
+  `Keen` node, the map's view blends in `Keen3MapScroll.center` with the
+  same fraction (`Keen3View._move_camera_anchor`), changing tiles go to
+  `LevelMap`, and the HUD, windows, pictures and FINALE take their
+  textures from `GraphicsTextures` (`Keen3Hud` keeps its own cache per
+  scaled graphics, since C4). Checked in code and with screenshots; the
+  new suite guards the two Keen 3 parts (the map view, the actors).
+- **Not `Keen2BackdropPictures`, but `Keen3BackdropPictures extends
+  BackdropPictures`** (`src/keen3/level/`). The plan (seams table: "None:
+  `Keen2BackdropPictures` with `res://assets/backgrounds/keen3`") used Keen
+  2's class, whose rule is "the plain background is the most used tile".
+  With the real files that rule picks levels 1-7, 10 and 14: level 10's
+  plain background is the dark gray inside its base (tile 195), whose
+  colour is also in the cave rock and patterned walls, and levels 8, 11,
+  13 and 15, which have sky beside a building or above a cave, would get
+  none. Keen 3's rule is "the plain background is the sky" (tile 143,
+  `SKY_TILE`): levels 1-8, 11, 13, 14 and 15 in version 1.00
+  (gameplay.md, "Extras (C9)"). After C11 it became "the level has sky,
+  and the picture shows only through the sky": levels 9 and 10 (sky over
+  a base whose dark gray is the plain background) got theirs too.
+  `Keen3SceneScreen` overrides `GameScreen._level_tile_set` to leave out
+  the sky's colour (`Keen3BackdropPictures.backdrop_color`) where the
+  shared screen would leave out the plain background's; no shared code
+  changed. It does not extend `Keen2BackdropPictures`
+  either, because that class's static `for_levels` and `suits` would have
+  to be shadowed; the few lines of `shows_level` and `picture` are
+  repeated instead.
+- **Made in `Keen3SceneScreen._load_data`** (`for_game` reads levels
+  1-16), so the shared `GameScreen._apply_backdrop` shows them; nothing
+  else in the view changed. Keen 3 has no darkness, so the pictures need
+  no `Keen2Darkness` as Keen 2's have.
+- **Our own pictures in `assets/backgrounds/keen3/`** (added after C9 at the
+  user's request, 19-10-2026): `tools/make_keen3_backgrounds.py` paints one
+  per level with sky (1-11, 13, 14, 15; 9, 10 and a new 14 after C11; its
+  canvas is `tools/keen3_canvas.py`) from code, in chunky pixels
+  (216 rows blown up 5 times; 3840x1080 for the wide levels, 1920x1080 for
+  3, 9, 10, 11, 13 and 15), each with a scene that fits the level. Nothing in them
+  comes from the game files. `test_keen3_extras` checks that exactly those
+  levels have a picture.
+- **Builds:** `tools/build_macos.sh` and `tools/build_windows.sh` already
+  copy `game_data/keen3` (since C2), with a player's `backgrounds` folder
+  in it; pictures in `assets/backgrounds/keen3/` go into the export with
+  every other resource (`export_filter="all_resources"`). Nothing new to
+  add. Not run here: macOS only on the Mac, Windows needs Godot's export
+  templates.
+- **Real-ESRGAN** left out, as for Keen 2 (the user's decision).
+
+## Deviations in C10
+
+Written by the developer of C10. Keen 1 and Keen 2 play as before; `git
+diff ccdea53` on `src/keen2`, `tests/test_keen2_*.gd`,
+`tests/keen2_fixtures.gd`, `src/actors`, `src/map` and
+`src/game/level_view.gd` is empty. `keen1_regression.sh` and
+`keen2_regression.sh` against the C7 references (reset user folder): every
+picture the same, `launcher.png` too.
+
+**Shared files changed (additive, behaviour-neutral for Keen 1 and 2):**
+
+- `src/online/online_protocol.gd`: `GAME_ID_KEEN_3` is in `GAME_IDS` (the
+  assignment). The one visible effect on Keen 1 and 2 is the intended
+  one: a Keen 1 or 2 player who knocks at a Keen 3 host is told
+  `OTHER_GAME` (and switches to Keen 3) instead of `NOT_OURS`, and the
+  Steam list of Keen 1 and 2 shows Keen 3 hosts with "Keen 3" after them.
+  Between Keen 1 and Keen 2 nothing changes.
+- `src/online/online_messages.gd`: three events at the end of `Event`
+  (`SHIP_MESSAGE`, `MORTIMER`, `BORDER_FLASH`); the old ones keep their
+  numbers. **No new scene:** Keen 3's map, levels, GAME OVER and ending
+  are the shared scenes, and Mortimer speaks inside the level scene (an
+  event), so `Scene` is unchanged.
+- `src/online/snapshot.gd`: a new member `extra` (a game's own numbers, at
+  most `MAX_EXTRA` = 32), sent as an eighth part of the message **only
+  when it is not empty**; `from_message` accepts seven or eight parts
+  (`PARTS`). Keen 1 and 2 never fill it, so their snapshots are byte for
+  byte the same (`test_keen3_online` compares `var_to_bytes` with a
+  message built by hand as before C10).
+- `src/game/online_play.gd`: a new member `extra` (empty), handed to every
+  snapshot in `_send_snapshot`, as `progress_bits` is.
+- `GameCatalog`, `GameLaunch`, `JoinTicket`, `OnlineSession`,
+  `SteamLobby`, `RemoteGame`, `SnapshotMaker`, `TwoPlayerView` and the
+  menus did not change: the switching between games of B9 works for a
+  third game through `GameCatalog.for_game_id` (Keen 3's entry and id
+  exist since C2).
+
+**Keen 3 code:**
+
+- **The screen chain** is `Keen3View` → `Keen3OnlineScreen` →
+  `Keen3MenuScreen` → `Keen3EndingScreen` → `Keen3SceneScreen` →
+  `GameScreen`, as Keen 2's B9 put `Keen2OnlineScreen` under
+  `Keen2View`. `Keen3OnlineScreen` has both the second player on the
+  keyboard (`_toggle_second_player`, `_inputs`, `_view_rects`) and the
+  online play; `Keen3MenuScreen` only got `_two_players`, the menu choice,
+  and the joined player's way to his title after GAME OVER.
+- **`Keen3OnlineState`** (`src/keen3/game/`) packs Keen 3's numbers into
+  `Snapshot.extra` and checks them when they arrive (the layout is in
+  its doc comment). The plan said "the ankh time and the done levels";
+  it also carries Keen 3's own sounds (the snapshot's sounds are
+  `Sound.Id`s, which do not name ANKH, MEEP, MORTIMER and FOOTSLAM), the
+  middle of the host's map view and Messie: `SnapshotMaker.of_map` only
+  takes the map Keen, and `RemoteGame` only draws actors in a level, so
+  Messie travels in the extra numbers and the joined player draws her
+  with a `MirrorActors.Copy`; the shared classes stay as they are. On
+  the map the joined player's camera stands on the host's view (exactly,
+  blended between ticks), not on the host's Keen as `RemoteGame` would
+  put it: Keen 3's map has a view of its own, and Keen is hidden on
+  Messie's back and in a teleporter.
+- **Mortimer online:** the host's level waits while Mortimer speaks, so it
+  sends no ticks; `Keen3OnlineScreen._run_mortimer` sends the still
+  picture every frame, and the joined player runs his own Mortimer and
+  the host's picture together, so both Keens show under the boxes.
+- **The ending online** is not cut short for the joined player by the
+  host's GAME OVER or title after it (Keen 2's B9 lets the host's next
+  scene end it); every new map or level of the host still takes him
+  there.
+- **`Keen3LevelPlay.step_players`** (Keen 2's B9 has the same): the map
+  steps with the combined keys. **`Keen3LevelSession.remove_player`**
+  also removes player 2's halo: the halo waits for its Keen's ankh to run
+  out, which never happens once that Keen is out of the session.
+- **`Keen3Hud.show_ankh_times`** (a panel per Keen whose ankh runs, with
+  the player's number when two play) and an optional
+  `partner_ankh_seconds` for `Keen3StatusScreen.fill` (row 9); one player
+  looks exactly as before.
+- **Skipping Mortimer and closing "Keens Left"** also take the jump, pogo
+  and fire keys of the two players (`Keen3View.PLAYER_BUTTONS`), since
+  two players do not use the keys of playing alone.
+- **Tests:** two new suites, `test_keen3_coop` and `test_keen3_online`.
+  Two Keen 3 tests changed because C10 changes what they expect:
+  `test_keen3_files`'s catalog test now asserts that Keen 3 *is* in
+  `GAME_IDS`, and `test_keen3_menus`'s "no online game, second player or
+  extra levels" is now "offers a second player but no extra levels" (the
+  online game is switched on by `Keen3OnlineScreen._connect_online`). The
+  game screen cannot be put into a running scene tree inside the test
+  runner (`_initialize` runs before the root is in the tree), so the
+  screen tests use a stand-in for the split screen's nodes; the split
+  screen itself is Keen 1's, tested in `test_split_screen`, and it was
+  checked in screenshots.
+- **Not tested here:** Steam (no Steam library on Linux; the lobby logic
+  is covered by the tests, as in B9).
+
+## Deviations in C11
+
+Written by the developer of C11 (next to the original). Keen 1 and Keen 2
+play as before: `git diff milestone-c10-coop` on `src/keen2`,
+`tests/test_keen2_*.gd`, `tests/keen2_fixtures.gd`, `src/actors`, `src/map`
+and `src/game/level_view.gd` is empty, and `keen1_regression.sh` and
+`keen2_regression.sh` against the C7 references (reset user folder) give
+every picture the same, `launcher.png` too.
+
+**No shared file changed** apart from the test list (`tests/run_tests.gd`
+registers `test_keen3_original`). New tooling: `tools/original/headless.js`
+(no game data). Everything recorded from the original, and the scratch
+copies of the player's files with changed levels, stayed in the
+scratchpad.
+
+**Keen 3 changes (all measured, research.md "Watched again in C11"):**
+
+- `Keen3Ending.SCREEN_ORIGIN` is (4, 0), not (4, 4): the ending's pages
+  and the box over FINALE.CK3 stand 32 px lower, on Choco's own rows, as in
+  the original. `test_keen3_ending` expected C7's places; its three
+  assertions now expect the measured ones.
+- `Keen3TypedBoxes` counts a letter's time for every line end too, and
+  `Keen3Executable` keeps the trailing spaces of Mortimer's and the
+  ending's lines (`typed_lines`; the ship's messages and every other text
+  are read as before). A box is still sized by its lines without those
+  spaces. `test_keen3_scenes`' typing test changed with it (a line end
+  now takes 6 retraces). Applied to Mortimer as well, whose own timing was
+  not measured.
+- A ball spins under the typed box over FINALE.CK3 (`Keen3Ending.cursor_char`).
+- The end text uses Keen 3's own layout (`Keen3EndText`) and the
+  original's reader (21 lines, the edge, the footer read from KEEN3.EXE by
+  content: `Keen3Executable.reader_footer`). The shared `TextDocument`
+  (used by Keen 1's and 2's end texts and every story) is unchanged, so
+  Keen 1 and 2 still centre `~` lines and show 23 lines; whether their
+  originals use the same reader is a question for C12.
+- A new high score table fills all seven places with the three names in
+  turn (`Keen3Screens.default_names`); Keen 2's `Keen2HighScores` is
+  unchanged, Keen 3 only passes it seven names.
+- Not changed although measured: Keen's jump heights (shared physics; the
+  user's decision: C12 changes them for all three games).
+- Not built: the original's GAME OVER window with the name entry over the
+  hall (research.md); our GAME OVER bitmap and the shared name box stay.
+
+## Shots at a wall: Keen 2 too, approved by the user 20-10
+
+After C11, Keen 3's shot learned to splash against a wall right in front of
+Keen instead of starting inside it (`Keen3Shot.fired_by_keen`). Keen 2 had
+the same bug; the user approved changing Keen 2's behaviour for it (an
+exception to "Keen 2 is never changed for Keen 3 milestones"). The rule
+lives in Keen 2's code and Keen 3 reuses it:
+
+- `Keen2Shot.put_against_wall(shot, collision, way)` sweeps a shot's box
+  over the `way` pixels from its shooter's middle to its start and, when a
+  wall is in the way, moves the shot against it. The caller splashes it
+  with SHOTHIT (Keen 2 with `play_sound_at`, Keen 3 with `play_sound`, as
+  each episode's flying shots already do).
+- Keen 2: `Keen2LevelSession._create_shot` uses `Keen2Shot.fired_by_keen`;
+  the Elite's and the Guard robot's shots (`Keen2Enemy._fire_shot`) use
+  `Keen2EnemyShot.fired_from`, which sweeps from the enemy's middle.
+- Keen 3: `Keen3Shot._stop_at_wall_behind_start` calls the same helper
+  with `Keen2Shot.FROM_KEENS_MIDDLE`; its behaviour is unchanged.
+- Keen 1 keeps the bug: `RaygunShot`, `LevelSession._create_shot` and
+  `KeenBody` are untouched and do not call the helper (a question for C12).
+
+Tests: `test_keen2_shot_wall` (Keen standing, jumping and on the pogo, both
+ways, thin and thick walls, and both enemies) next to `test_keen3_shot_wall`.

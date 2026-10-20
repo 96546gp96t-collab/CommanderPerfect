@@ -1,0 +1,117 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Original game (js-dos)</title>
+<script>
+// js-dos pauses the emulator while the document is hidden (the browser pane is often
+// hidden), so pretend the page is always visible.
+Object.defineProperty(document, "hidden", { get: () => false });
+Object.defineProperty(document, "visibilityState", { get: () => "visible" });
+document.addEventListener("visibilitychange", e => e.stopImmediatePropagation(), true);
+</script>
+<link rel="stylesheet" href="node_modules/js-dos/dist/js-dos.css">
+<script src="node_modules/js-dos/dist/js-dos.js"></script>
+<style>body { margin: 0; background: #000; } #dos { width: 960px; height: 600px; }</style>
+</head>
+<body>
+<div id="dos"></div>
+<script>
+// Frame log: every frame js-dos reports (only frames with changed lines) gets a
+// sequence number and a performance.now() time stamp. While recording, copies are kept.
+window.K = {
+  ci: null, n: 0, changed: false, w: 0, h: 0, last: null, lastT: 0, rec: null, times: [],
+  // Keys go straight to the worker with timeMs 0: js-dos's own sendKeyEvent stamps
+  // keys with wall-clock time, and when the emulator has fallen behind (hidden pane)
+  // they are only delivered much later, which is why steering lagged in B10.
+  raw(key, pressed) {
+    K.ci.keyMatrix[key] = pressed;
+    K.ci.sendClientMessage("wc-add-key", { key, pressed, timeMs: 0 });
+  },
+  key(code, ms = 120) {
+    K.raw(code, true);
+    return new Promise(r => setTimeout(() => { K.raw(code, false); r(); }, ms));
+  },
+  wait(ms) { return new Promise(r => setTimeout(r, ms)); },
+  async keys(codes, ms = 120, gap = 150) {
+    for (const c of codes) { await K.key(c, ms); await new Promise(r => setTimeout(r, gap)); }
+  },
+  async type(text) {
+    const map = { ' ': 32, '/': 47, '.': 46, '-': 45, '\n': 257 };
+    for (const ch of text.toUpperCase()) {
+      const c = map[ch] ?? ch.charCodeAt(0);
+      await K.key(c, 60); await new Promise(r => setTimeout(r, 60));
+    }
+  },
+  // Types text with real upper case (Shift held), e.g. K.typeU("KEEN3 /LEVEL\n").
+  async typeU(text) {
+    const map = { ' ': 32, '/': 47, '.': 46, '-': 45, '\n': 257 };
+    for (const ch of text) {
+      const up = ch >= 'A' && ch <= 'Z';
+      const c = map[ch] ?? ch.toUpperCase().charCodeAt(0);
+      if (up) { K.raw(340, true); await K.wait(30); }
+      await K.key(c, 60);
+      if (up) K.raw(340, false);
+      await K.wait(60);
+    }
+  },
+  // Runs a DOS command line and records what follows: await K.run("KEEN3 /LEVEL 5", 15000, "name").
+  async run(cmd, ms, name, every = 200, max = 400) {
+    await K.typeU("cls\n"); await K.wait(400);
+    K.startRec(max, every);
+    await K.typeU(cmd + "\n");
+    await K.wait(ms);
+    return await K.saveRec(name);
+  },
+  // Recording. js-dos only reports frames whose lines changed, so time comes from
+  // performance.now() (emulated time = wall time while the emulator keeps up; checked
+  // with the DOS TIME command). A changed frame is logged as [wall ms, n] and kept when
+  // at least `every` ms passed since the last kept one (0 = keep every changed frame).
+  startRec(max = 600, every = 0) { K.rec = { max, every, frames: [], t: [], v: [], wh: [], log: [], lastV: -1e9 }; },
+  stopRec() { const r = K.rec; K.rec = null; return r; },
+  async upload(name, frames) {
+    const blob = new Blob(frames);
+    await fetch("/upload?name=" + name, { method: "POST", body: blob });
+  },
+  async snap(name) { await K.upload(name + ".rgb", [K.last.slice()]); return [K.w, K.h, K.n]; },
+  async saveRec(name) {
+    const r = K.stopRec();
+    const idx = { w: K.w, h: K.h, t: r.t, v: r.v, wh: r.wh, log: r.log };
+    await K.upload(name + ".json", [JSON.stringify(idx)]);
+    // upload in chunks of 100 frames
+    for (let i = 0; i < r.frames.length; i += 100) {
+      await K.upload(name + "." + String(i / 100).padStart(3, "0") + ".rgb", r.frames.slice(i, i + 100));
+    }
+    return r.frames.length;
+  },
+};
+window.dosProps = Dos(document.getElementById("dos"), {
+  url: (new URLSearchParams(location.search).get("bundle") || "game.jsdos") + "?v=" + Date.now(),  // no stale cached bundle; ?bundle= picks another
+  pathPrefix: "node_modules/js-dos/dist/emulators/",
+  backend: "dosbox",
+  autoStart: true,
+  kiosk: true,
+  noCloud: true,
+  onEvent: (event, ci) => {
+    if (event !== "ci-ready") return;
+    K.ci = ci;
+    ci.events().onFrameSize((w, h) => { K.w = w; K.h = h; });
+    const origLines = ci.onFrameLines.bind(ci);
+    ci.onFrameLines = (lines, rgba, w, h) => { K.changed = Array.isArray(lines) && lines.length > 0; origLines(lines, rgba, w, h); };
+    ci.events().onFrameConsumers.unshift((rgb, rgba) => {
+      const now = performance.now();
+      K.n++;
+      const buf = rgb || rgba;
+      K.last = buf;
+      if (K.w === 0) { K.w = ci.width(); K.h = ci.height(); }
+      const r = K.rec;
+      if (r && K.changed) {
+        r.log.push([Math.round(now * 10) / 10, K.n]);
+        if (r.frames.length < r.max && now - r.lastV >= r.every) { r.frames.push(buf.slice()); r.t.push(now); r.v.push(K.n); r.wh.push([K.w, K.h]); r.lastV = now; }
+      }
+    });
+  },
+});
+</script>
+</body>
+</html>

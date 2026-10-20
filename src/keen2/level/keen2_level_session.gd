@@ -30,7 +30,8 @@ extends LevelSession
 ##   Elder      behaviour 22 is the Vorticon Elder's message, not a statue:
 ##              only with tile 429 right below it, which then becomes 182
 ##              ([signal elder_message_touched]). 24 is no teleporter.
-##   shots      Keen's shots use Keen 2's sprites ([Keen2Shot]).
+##   shots      Keen's shots use Keen 2's sprites ([Keen2Shot]); fired close
+##              to a wall, a shot splashes against it at once.
 ##   pogo       Keen has the pogo stick from the start.
 
 ## The lights went off ([param dark] true) or on.
@@ -299,8 +300,9 @@ func _touch_special_tile(cell: Vector2i, tile: int) -> void:
 	elder_message_touched.emit()
 
 
+## Keen's shot; close to a wall it splashes at that wall at once.
 func _create_shot(start: Vector2, direction: int) -> RaygunShot:
-	return Keen2Shot.fired(start, direction)
+	return Keen2Shot.fired_by_keen(self, start, direction)
 
 
 ## Whether [param behavior] is one of Keen 1's ship parts.

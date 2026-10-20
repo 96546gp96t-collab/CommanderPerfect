@@ -24,6 +24,15 @@ enum Event {
 	MESSAGE,
 	## Keen 2: the lights of the level went off (value 1) or on (0).
 	LIGHTS,
+	## Keen 3: the ship spoke; the value is which of its four messages, read
+	## by the joiner from his own files.
+	SHIP_MESSAGE,
+	## Keen 3: Mortimer starts speaking at the start of level 16 (value 1),
+	## or is done (0).
+	MORTIMER,
+	## Keen 3: a spark or the heart of the machine was shot, and the border
+	## around the picture flashes.
+	BORDER_FLASH,
 }
 
 ## Characters of a message that are shown at most.

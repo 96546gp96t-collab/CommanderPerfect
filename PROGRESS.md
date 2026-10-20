@@ -6,6 +6,7 @@ eind van elke sessie bij.
 ## Mijlpalen
 
 Wat elke mijlpaal precies inhoudt, staat in [docs/roadmap.md](docs/roadmap.md).
+Hoe lang elke mijlpaal duurde: [docs/doorlooptijden.md](docs/doorlooptijden.md).
 
 | # | Mijlpaal | Status |
 |---|---|---|
@@ -43,6 +44,849 @@ Voor een volgend deel: [docs/new-episode-guide.md](docs/new-episode-guide.md).
 | B8 | Mooier maken (framerate, xBRZ, HD, achtergronden, builds) | ✅ Gebouwd; Real-ESRGAN bewust overgeslagen (branch `milestone-b8-extras`) |
 | B9 | Co-op lokaal en online | 🔶 Gebouwd, in test bij de gebruiker (branch `milestone-b9-coop`) |
 | B10 | Naast het origineel leggen (js-dos) | 🔶 Deels: schermen gemeten en aangepast; vijanden/levels niet te meten (branch `milestone-b10-origineel`) |
+
+## Keen 3: mijlpalen C
+
+Het derde deel komt naast Keen 1 en 2; die blijven zoals ze zijn. Wat elke
+mijlpaal inhoudt staat in [docs/keen3/roadmap.md](docs/keen3/roadmap.md), de
+opzet in [docs/keen3/architecture.md](docs/keen3/architecture.md), en wat er
+over Keen 3 bekend is in [docs/keen3/research.md](docs/keen3/research.md).
+
+| # | Mijlpaal | Status |
+|---|---|---|
+| C1 | Onderzoek: code in kaart, Keen 3-bestanden, Chocolate Keen, Commander Genius, js-dos, architectuur, mijlpalen | ✅ Klaar (branch `milestone-c1-onderzoek`); vragen aan de gebruiker open |
+| C2 | De bestanden van Keen 3 inlezen, data viewer, derde icoon op het startscherm | ✅ Klaar en gecontroleerd door de architect (branch `milestone-c2-bestanden`) |
+| C3 | Een level spelen (Keen, items, de ankh, deuren, uitgangen) | ✅ Klaar en gecontroleerd door de architect (branch `milestone-c3-level`); in test bij de gebruiker |
+| C4 | Vijanden (grunt, youth, moeder, Meep, ninja, Foob) | ✅ Klaar en gecontroleerd door de architect (branch `milestone-c4-vijanden`) |
+| C5 | Bal, jack, platforms, wapens in de muur | ✅ Klaar en gecontroleerd door de architect (branch `milestone-c5-mechaniek`) |
+| C6 | Wereldkaart: teleporters, Messie, het schip, statusscherm | ✅ Klaar en gecontroleerd door de architect (branch `milestone-c6-kaart`) |
+| C7 | Mortimer, de Mangling Machine en het einde | ✅ Klaar en gecontroleerd door de architect (branch `milestone-c7-mortimer-einde`) |
+| C8 | Geluid, menu's, opslaan, highscores | ✅ Klaar en gecontroleerd door de architect (branch `milestone-c8-geluid-menus`) |
+| C9 | Mooier maken (framerate, xBRZ, achtergronden, builds) | ✅ Gebouwd, wacht op controle architect (branch `milestone-c9-extras`); Real-ESRGAN bewust overgeslagen |
+| C10 | Co-op lokaal en online | ✅ Gebouwd, wacht op controle architect (branch `milestone-c10-coop`); Steam niet te testen hier |
+| C11 | Naast het origineel (wat nog geschat is) | ✅ Gebouwd, wacht op controle architect (branch `milestone-c11-origineel`); een deel blijft geschat (research.md) |
+| C12 | Keen 1 en 2 bijwerken met de getallen uit Chocolate Keen (ook de sprongen) | ⬜ |
+
+## Mijlpaal C11: wat er nu is
+
+Keen 3 naast het origineel gelegd in js-dos (KEEN3.EXE 1.00), dit keer
+zonder browservenster: `tools/original/headless.js` stuurt de pagina in
+een onzichtbare Chromium. Twee kladkopieën van de spelbestanden (alleen in
+de scratchpad) brachten ons waar een script niet komt: een ankh naast
+Keens start in level 1, en de ingang van level 1 op de kaart naar level 16
+met Keen vlak voor het hart. Wat gemeten is staat in
+`docs/keen3/research.md` ("Watched again in C11"), de afwijkingen in
+`docs/keen3/architecture.md` ("Deviations in C11").
+
+- [x] **Pixel voor pixel gelijk aan het origineel** (4:3): de titel, de
+  highscores, het statusscherm van een nieuw spel, het eerste beeld van de
+  kaart en van level 1, de vier pagina's van het einde, FINALE.CK3 met
+  zijn vak, en de eindtekst. Alleen de stand van bewegende tiles en
+  sprites verschilt.
+- [x] **Gerepareerd na het meten:**
+  - de vakken van het einde stonden 32 pixels te hoog (rij 14 in plaats
+    van 18; het vak op FINALE.CK3 op rij 20);
+  - het typen: elk opgeslagen teken (ook de spaties achter een regel) en
+    elk regeleinde kost een letter (85,6 ms); pagina 1 duurt nu 13,2 s,
+    het origineel 13,1 s (was 12,2 s);
+  - onder het vak op FINALE.CK3 draait nu een balletje tot je een toets
+    indrukt (tekens 9-12, elke 5 retraces);
+  - de eindtekst staat nu in het leesvenster van het origineel: de titel
+    rood op een grijze balk, 21 regels, onderaan "ESC to Exit / ↑ ↓ to
+    Read" uit KEEN3.EXE, en twee spaties na een punt blijven staan;
+  - een nieuwe highscorelijst heeft zeven namen (Yorpy, Gargile, Zzapp!,
+    Yorpy, ...), niet drie.
+- [x] **Bevestigd** (getallen bleven, nu "seen in the original, C11"): de
+  ankh duurt 9,6 s (niet 15 of 21 s) en knippert aan het eind om de ~0,12
+  s; titel en highscores wisselen elke 16,5 s; het einde: fade in stappen
+  van ~114 ms, 120 retraces na een pagina, 400 retraces voor het vak op
+  FINALE.CK3.
+- [x] **Gemeten, niet veranderd (C12):** Keen 3 springt 53 px (wij 58), de
+  pogo 50 px (wij 58) en met springknop 105 px (wij 109): net als Keen 2.
+  Staat in `docs/keen3/choco-keen1-keen2.md`.
+- **Blijft geschat** (met de reden in research.md, "Only the original can
+  answer"): de vijanden (levenspunten, de moeder, de Meep, de ninja, de
+  Foob), bal, jack en wapens in de muur, deuren, de done-bordjes, Messie
+  op- en afstappen, level 9's start, Mortimers vakken op de pixel, de
+  camera-flitsen. Die zijn in levels die een script niet haalt; met meer
+  kladlevels (zoals de ankh) kan het later. Ook het eerste beeld van level
+  16: dat staat in het origineel lager dan bij ons (level 1 klopt wel); de
+  camera is gedeeld, dus dat wacht op een eigen regel voor Keen 3 of C12.
+- **Niet gebouwd:** na de eindtekst toont het origineel de hal weer met
+  een venster "GAME OVER", de score, "Congratulations! You got first
+  place!" en "Enter your name:" met het draaiende balletje. Wij tonen GAME
+  OVER op zwart en daarna het gedeelde naamvak. Dat vraagt een eigen
+  naaminvoer in dat venster: een grotere wijziging, voor later.
+- [x] **Tests:** nieuwe suite `test_keen3_original` (8 tests); drie
+  bestaande Keen 3-tests veranderd omdat C11 de getallen verandert
+  (`test_keen3_ending`: de plekken van de vakken; `test_keen3_scenes`: een
+  regeleinde kost een letter). 66 suites, 764 tests (was 65 en 756), alle
+  slagen, gdlint schoon.
+- [x] **Keen 1- en Keen 2-controle:** `keen1_regression.sh` en
+  `keen2_regression.sh` tegen de C7-referentie (lege gebruikersmap): alles
+  gelijk, ook `launcher.png`. `git diff milestone-c10-coop` op `src/keen2`,
+  `tests/test_keen2_*.gd`, `tests/keen2_fixtures.gd`, `src/actors`,
+  `src/map` en `src/game/level_view.gd` is leeg. Geen gedeeld bestand
+  veranderd (alleen de testlijst).
+- [x] **Bekeken in de app** (scratchpad `c11shots/`): titel, highscores,
+  statusscherm, kaart, level 1, het einde vanaf het hart (met dezelfde
+  kladkopie via `--data-dir-keen3`), FINALE.CK3 met het balletje, de
+  eindtekst; elk naast het frame van het origineel.
+
+### Fix na C11 (20-10): lift, achtergronden, level 10
+
+Drie bugs die de gebruiker vond, op dezelfde branch.
+- [x] **Springen van een lift:** Keen werd naar het eind van de lift
+  gegooid. Oorzaak: Keen gaat pas de tick ná de sprong omhoog, maar een
+  lift die omhoog gaat (of de bal) schoof in die tick al in zijn voeten;
+  omdat hij al "stijgend" was gold dat als een botsing van opzij.
+  `Keen3Carrier` zet een stijgende Keen nu op de lift zolang die alleen in
+  zijn voeten omhoog kwam, zonder hem opzij te schuiven. Nieuwe suite
+  `test_keen3_lift_jump` (beide platforms beide kanten op, de bal; links,
+  midden, rechts; springen, kort springen, pogo; terug landen; tegen de
+  zijkant lopen duwt nog wel). Ook met de echte levels nagelopen (elke
+  lift en bal, 900 sprongen): van 198 naar 13 met een zijstap, en die 13
+  komen niet van het afspringen: een tweede bal of iets anders dat tegen
+  hem aan komt, een bal die echt van opzij komt, of Keen klem tussen een
+  plafond en een bal (1-2 px, was al zo; open punt).
+- [x] **Achtergronden:** levels 4 en 5: de stad staat nu op een vlakte
+  die doorloopt tot de heuvels; level 2: de verre stad loopt door achter
+  de nabije; levels 1, 6 en 7: koepels, huisjes en het fort staan op de
+  laagste grond eronder. Level 14 is helemaal nieuw (noorderlicht boven
+  een bevroren zee, ijsbergen, een planeet met ring, een wachttoren met
+  zoeklicht). De tekenhulp staat nu in `tools/keen3_canvas.py`. 3, 8, 11,
+  13 en 15 zweefden niet en zijn niet veranderd.
+- [x] **Level 10 (en 9) een plaatje:** een level krijgt nu een plaatje
+  als het lucht heeft, en het plaatje komt alleen door de lucht (tile
+  143), nooit door het donkergrijs van een basis (`Keen3SceneScreen`
+  kiest de kleur van de lucht). Level 9 heeft ook lucht boven zijn basis
+  en kreeg er ook een; 12 en 16 hebben geen lucht. Nieuwe plaatjes: level
+  9 een groene ochtend met kliffen en watervallen, level 10 een vlakte met
+  een raket op een lanceertoren. Gecontroleerd met screenshots: de basis
+  blijft grijs.
+- [x] **Tests:** 67 suites, alle slagen, gdlint schoon. In
+  `test_keen3_extras` was de oude verwachting de bug (levels 9 en 10 geen
+  plaatje; de basis met lucht "past niet"); aangepast. Keen 1- en
+  Keen 2-controle tegen `9fa77d0`: alles gelijk; geen gedeelde code
+  veranderd (alleen de testlijst).
+
+### Fix na C11 (20-10): schot door de muur
+
+Bug van de gebruiker, op dezelfde branch.
+- [x] **Oorzaak:** Keens schot begint vlak vóór hem
+  (`KeenBody.shot_position`). Staat hij minder dan 16 px van een muur, dan
+  begint het schot al ín de muur, en de zijwaartse sweep kijkt alleen naar
+  de tiles vóór het schot: in een dikke muur spatte het in de muur, door
+  een dunne muur (één rotsblok) vloog het gewoon verder. Nagebootst in
+  level 1 (Keen tegen een rotsblok: het schot vloog erachter verder).
+- [x] **Oplossing (alleen Keen 3-code):** `Keen3Shot.fired_by_keen` (via
+  `Keen3LevelSession._create_shot`) veegt het schot van Keens midden naar
+  zijn begin; zit er een muur tussen, dan komt het schot tegen de voorkant
+  van de muur en spat het meteen (KEENFIRE, dan SHOTHIT), zoals in het
+  origineel (Choco). Staand, springend en op de pogo, beide kanten op.
+- [x] **Vijandschoten nagelopen:** de vuurbal van de moeder begint binnen
+  haar box en spatte al als hij in een muur begint; het schot van een
+  wapen in de muur begint in zijn eigen cel (zo bedoeld); de golf van de
+  Meep gaat bewust door muren. Niets veranderd.
+- [x] **Keen 1 en 2 hebben dezelfde bug** (gedeelde `RaygunShot`): met
+  dezelfde zelfgemaakte test (alleen in de scratchpad) vliegt het schot
+  door een dunne muur en spat het in een dikke muur, in 60 van de 66
+  gevallen per muur. **Niet opgelost**: vraag voor de gebruiker (past bij
+  C12).
+- [x] **Tests:** nieuwe suite `test_keen3_shot_wall` (faalt op de oude
+  code: 120 gevallen); 68 suites, alle slagen, gdlint schoon. Keen 1- en
+  Keen 2-controle tegen `cd8be97`: alles gelijk; geen gedeelde code
+  veranderd (alleen de testlijst). Apps opnieuw gebouwd.
+- [x] **Keen 2 nu ook opgelost** (gevraagd door de gebruiker, 20-10): de
+  regel staat in Keen 2-code, `Keen2Shot.put_against_wall` (veegt het schot
+  van het midden van de schutter naar zijn begin), en Keen 3 gebruikt
+  dezelfde helper (gedrag gelijk). Keen 2: Keens schot via
+  `Keen2Shot.fired_by_keen` (`Keen2LevelSession._create_shot`); ook de
+  schoten van de Elite en de Guard robot hadden de bug (vlak bij een muur
+  vloog het schot door een dunne muur) en gaan nu via
+  `Keen2EnemyShot.fired_from`. Nieuwe suite `test_keen2_shot_wall` (faalt
+  op de oude code: 172 gevallen); 69 suites, alle slagen, gdlint schoon.
+  Keen 1- en Keen 2-controle tegen `fea79ad`: alles gelijk; geen gedeelde
+  code veranderd. Apps opnieuw gebouwd.
+- [ ] **Keen 1 heeft de bug nog** (`RaygunShot`, niet gevraagd): open vraag
+  voor C12.
+
+## Mijlpaal C10: wat er nu is
+
+Gebouwd en getest met de echte Keen 3-bestanden van de gebruiker (1.00).
+De regels en besluiten staan in `docs/keen3/gameplay.md` ("Two players
+(C10)"), afwijkingen in `docs/keen3/architecture.md`, "Deviations in C10".
+
+- [x] **Twee spelers op één toetsenbord:** F7 of "Add Player 2" in het
+  menu, zoals bij Keen 1 en 2: speler 2 (blauwe helm) in het level, eigen
+  toetsen (speler 1 WASD, speler 2 de pijltjes), split screen als ze uit
+  elkaar gaan, gedeelde inventaris, één dood geldt voor beiden, één uitgang
+  voor beiden. Op de kaart is er één Keen die door de toetsen van allebei
+  wordt bestuurd.
+- [x] **Online:** hosten en meedoen via IP of Steam, zoals bij Keen 1 en 2.
+  `GAME_ID_KEEN_3` staat nu in `GAME_IDS`: wie met Keen 1 of 2 meedoet met
+  een Keen 3-host, schakelt over naar Keen 3, en andersom (getest via IP
+  op deze machine: een Keen 1-speler naar een Keen 3-host, een Keen
+  3-speler naar een Keen 2-host). De snapshot stuurt Keen 3's eigen
+  getallen mee (`Keen3OnlineState`): de gedane levels, de ankh-tijd van
+  beide Keens, Keen 3's eigen geluiden, het beeld van de kaart en Messie.
+  Ladingen en sleutelkaarten gaan al mee in de gedeelde inventaris, het
+  schild van de ankh als figuur.
+- [x] **Besluiten voor wat alleen Keen 3 heeft** (tabel in gameplay.md):
+  - *Messie:* er is één Keen op de kaart, die rijdt; de toetsen van
+    beide spelers zetten hem erop en eraf. Online rijdt de Keen van de
+    host en ziet de meespeler Messie met Keen op haar rug.
+  - *Teleporters en ingangen:* de ene Keen gaat; in het level begint
+    speler 2 waar speler 1 begint. Online gaat de host, de meespeler ziet
+    het flikkeren en het beeld springen.
+  - *Het schip:* lokaal één bericht; online hetzelfde bericht op beide
+    schermen, dat na 6 s vanzelf sluit.
+  - *De ankh per speler:* wie hem pakt, is beschermd en krijgt het schild;
+    de HUD toont een paneel per Keen ("1:9", "2:4"), het statusscherm
+    beide tijden. Online ziet ieder zijn eigen tijd.
+  - *Level 16:* Mortimer spreekt voor beiden (overslaan met Escape of een
+    knop van een speler); online krijgt de meespeler Mortimer uit zijn
+    eigen bestanden en ziet hij beide Keens eronder. De machine: beide
+    Keens kunnen de vonken en het hart raken, en beide gaan dood door de
+    armen en benen.
+  - *Het einde:* speler 2 stopt, één Keen in de hal (zoals Keen 2);
+    online kijkt ieder in zijn eigen tempo, en de meespeler wacht daarna
+    bij zijn titel.
+  - *Highscores, opslaan, laden:* zoals Keen 2: één score en één naam;
+    opslaan op de kaart, speler 2 wordt niet bewaard; online alleen de
+    host.
+- [x] **Gedeelde code (alleen toevoegingen, Keen 1 en 2 byte voor byte
+  gelijk):** `GAME_ID_KEEN_3` in `GAME_IDS`, drie gebeurtenissen achteraan
+  (`SHIP_MESSAGE`, `MORTIMER`, `BORDER_FLASH`), geen nieuwe scène, en een
+  optioneel deel `Snapshot.extra` (alleen verstuurd als het niet leeg is)
+  met `OnlinePlay.extra`. Een test vergelijkt de snapshot en een
+  gebeurtenis van Keen 1/2 byte voor byte met de vorm van vóór C10.
+- [x] **Code:** nieuw `Keen3OnlineScreen` (tussen `Keen3MenuScreen` en
+  `Keen3View`) en `Keen3OnlineState`; `Keen3LevelPlay.step_players`,
+  `Keen3LevelSession.remove_player` (het schild gaat mee),
+  `Keen3Hud.show_ankh_times`, het statusscherm met twee tijden.
+- [x] **Tests:** nieuwe suites `test_keen3_coop` en `test_keen3_online`
+  (o.a. een echte host en meespeler via ENet op deze machine). Twee Keen
+  3-tests veranderd omdat C10 ze verandert (`test_keen3_files`: Keen 3
+  staat nu in `GAME_IDS`; `test_keen3_menus`: het menu biedt nu speler 2).
+  65 suites, 756 tests (was 63 en 730), alle slagen, gdlint schoon.
+- [x] **Keen 1- en Keen 2-controle:** `keen1_regression.sh` en
+  `keen2_regression.sh` tegen de C7-referentie (lege gebruikersmap): alles
+  gelijk, ook `launcher.png`. `git diff ccdea53` op `src/keen2`,
+  `tests/test_keen2_*.gd`, `tests/keen2_fixtures.gd`, `src/actors`,
+  `src/map` en `src/game/level_view.gd` is leeg.
+- [x] **Bekeken in de app** (scratchpad `c10shots/`): twee spelers in
+  levels 1, 3 en 16 en op de kaart (split screen, twee ankh-panelen, het
+  statusscherm); online met een host en een meespeler in twee vensters
+  (level 1 met de ankh van de meespeler, zijn statusscherm, de kaart met
+  Messie en een teleporter, het schip, Mortimer, het einde) en het
+  overschakelen van Keen 1 naar Keen 3 en van Keen 3 naar Keen 2.
+- **Niet gedaan:** Steam kon hier niet getest worden (geen Steam op
+  Linux; de logica is gedeeld en met tests gedekt). De Mac-build kan
+  alleen op de Mac.
+
+## Mijlpaal C9: wat er nu is
+
+Gebouwd en nagekeken met de echte Keen 3-bestanden van de gebruiker
+(1.00). De regels staan in `docs/keen3/gameplay.md` ("Extras (C9)"),
+afwijkingen in `docs/keen3/architecture.md`, "Deviations in C9".
+
+- **xBRZ (F5) en vloeiende beweging (F6)** werken voor alles van Keen 3
+  via de gedeelde code; er hoefde niets te veranderen. Nagekeken in de
+  code en met screenshots (beide aan, breedbeeld en 4:3): alle figuren
+  (vijanden, schoten, golven, bal, jack, platforms met Keen erop, het
+  schild van de ankh, Messie, de vonken en het hart, de Vorticon en Keen
+  van het einde) zijn `Actor`s in de gedeelde `ActorLayer` en bewegen
+  tussen de ticks door; het beeld op de kaart schuift mee met dezelfde
+  fractie als Keen, en springt zonder tussenstappen bij een teleporter;
+  de teleporters, de Mangling Machine, de bordjes en de flitsen van het
+  einde veranderen tiles in de gedeelde `LevelMap` (ook in xBRZ); de HUD,
+  het statusscherm, Mortimers vakken, titel, highscores, GAME OVER en
+  `FINALE.CK3` wisselen mee met F5. De randflits en de fades zijn effen
+  kleuren. Keen 3 heeft geen schudden van het scherm (Choco). Beide
+  opties blijven standaard uit.
+- **Plaatjes achter levels** (`Keen3BackdropPictures`): eigen map
+  `assets/backgrounds/keen3/` (twaalf eigen plaatjes, zie hieronder) of die van de
+  speler `game_data/keen3/backgrounds/levelNN.png` (ook .webp of .jpg);
+  nooit die van Keen 1 of 2. Alleen in breedbeeld, met de optie
+  Backgrounds (standaard aan). **Regel:** een level krijgt alleen een
+  plaatje als zijn effen achtergrond de lucht is (tile 143, lichtblauw).
+  De andere effen achtergrond, het donkergrijs binnen de bases en grotten
+  (tile 195), zit ook in de rotsen en muren, dus daar zou het plaatje
+  doorheen schijnen. Keen 2's regel (meest gebruikte tile) zou level 10
+  een plaatje achter de muren van zijn basis geven en levels 8, 11, 13 en
+  15 geen. **In v1.00: levels 1-8, 11, 13, 14 en 15**; niet 9, 10, 12 en
+  16. Getest met een zelfgemaakt testplaatje (niet gecommit, weer
+  verwijderd) in levels 1, 8, 10 en 15: zichtbaar achter de lucht van 1,
+  8 en 15, niet in level 10 en niet in 4:3.
+- **Eigen plaatjes (na C9, op verzoek van de gebruiker, 19-10-2026):**
+  `tools/make_keen3_backgrounds.py` tekent er twaalf vanuit code, in grove
+  pixels zoals het spel, één per level met lucht, elk passend bij het
+  level: 1 zonsondergang met paarse pieken, 2 de stad bij avond met een
+  grote maan, 3 twee manen boven bergen, 4 een heldere dag met wolken, de
+  stad en de aarde aan de hemel, 5 gouden uur met bomen en torens, 6
+  huisjes in de avond, 7 een rode dreigende lucht met een fort, 8 de
+  zonsondergang boven groene heuvels (het testplaatje dat de gebruiker
+  mooi vond), 11 een bos bij volle maan, 13 een roze dageraad met
+  rotsen, 14 kastelen in de zonsondergang, 15 besneeuwde bergen. Samen
+  ~110 KB (lossless WebP). Niets komt uit de spelbestanden. Opnieuw maken:
+  `python3 tools/make_keen3_backgrounds.py`.
+- **Een plaatje toevoegen:** `levelNN.png` (NN = levelnummer met twee
+  cijfers) in `game_data/keen3/backgrounds/` om te proberen, of in
+  `assets/backgrounds/keen3/` om mee te leveren (alleen eigen plaatjes).
+  Elke maat werkt; het plaatje bedekt het beeld en schuift van links naar
+  rechts mee, dus breed voor brede levels (zo'n 3840x1080 voor levels 4,
+  5 en 14), 1920x1080 voor smalle (6, 11).
+- **Builds:** `tools/build_macos.sh` en `tools/build_windows.sh` nemen
+  `game_data/keen3` al mee (sinds C2), met een eventuele map
+  `backgrounds`; plaatjes in `assets/backgrounds/keen3/` gaan vanzelf mee
+  in de export. Niets nieuws nodig. **Niet gebouwd hier:** de Mac-build
+  kan alleen op de Mac, en voor Windows ontbreken de export templates.
+  De gebruiker moet de app op de Mac bouwen.
+- **Real-ESRGAN:** overgeslagen, zoals bij Keen 2 (besluit van de
+  gebruiker, 17-10-2026).
+- **Gedeelde code:** niets veranderd (alleen een regel in
+  `tests/run_tests.gd`). `git diff ade258d` op `src/keen2`,
+  `tests/test_keen2_*.gd`, `tests/keen2_fixtures.gd`, `src/actors`,
+  `src/map` en `src/game/level_view.gd` is leeg.
+- **Tests:** nieuwe suite `test_keen3_extras` (de regel, alleen Keen 3's
+  map, het eigen plaatje van de speler, het kaartbeeld en de figuren
+  tussen de ticks, de echte levels). 63 suites, 729 tests (was 62 en
+  722), alle slagen, gdlint schoon.
+- **Keen 1- en Keen 2-controle:** `keen1_regression.sh` en
+  `keen2_regression.sh` tegen de C7-referentie (lege gebruikersmap): alles
+  gelijk, ook `launcher.png`.
+- **Bekeken in de app** (scratchpad `c9shots/`, xBRZ en vloeiend aan):
+  levels 1, 8, 10, 15 en 16 (Mortimer, de machine), de kaart, het
+  statusscherm, het einde, titel, menu en highscores, in breedbeeld en
+  4:3; en level 1 met de standaardinstellingen en F2/F5/F6.
+
+## Mijlpaal C8: wat er nu is
+
+Gebouwd en getest met de echte Keen 3-bestanden van de gebruiker (1.00).
+Getallen uit Chocolate Keen (`(Choco)`), de plekken van titel en
+highscores uit js-dos (C1). De regels staan in `docs/keen3/gameplay.md`
+("Sounds (C8)", "Title, menus, saving and high scores (C8)");
+afwijkingen in `docs/keen3/architecture.md`, "Deviations in C8".
+
+- **Geluid op 145,65 Hz voor alle drie de delen** (besluit van de
+  gebruiker, 17-10-2026): de gedeelde `SoundFile.STEPS_PER_SECOND` is nu
+  1.193.182 / 8192 (`SOUND_TIMER_DIVISOR`), was 140. De enige bewuste
+  wijziging aan Keen 1 en 2 in de C-reeks. Geen enkele Keen 1- of Keen
+  2-test rekende op 140 Hz (de synth-test leest de snelheid uit
+  `SoundFile`), dus er is geen test aangepast.
+- **Alle geluiden van Keen 3** (`Keen3Sounds`, Choco): ANKH, MEEP, MORTIMER
+  en FOOTSLAM speelden al sinds C3-C7; nieuw volgens het origineel: een
+  pogo-stuit klinkt als KEENJUMPSND (niet KEENPOGOSND), van een rand
+  lopen geeft PLUMMETSND, tegen een muur in de lucht KEENBLOKSND (elke 32
+  klokticks), de moeder eerst TANKFIRE en dan de splash, de eindtekst eerst
+  keensleft tot het eind en dan MORTIMER, en geen HISCORESND bij een naam.
+  Keen 3's eigen speaker en de gedeelde speler gedragen zich als één
+  speaker (prioriteiten). Keen 1 en 2 houden hun eigen keuzes; de
+  verschillen staan voor C12 in `docs/keen3/choco-keen1-keen2.md`.
+- **Titel en highscores** (`Keen3MenuScreen`, `Keen3Screens`): de titel
+  op het eerste scherm van map 90 (`TITLE` op (32,1), `F1HELP` op
+  (120,182)), de highscores op cellen 84-103 (`HIGHSCOR`, `NAME`, `SCORE`,
+  naam vanaf x 80, score tot x 240, rood op grijs zoals het origineel,
+  geen derde kolom); ze wisselen elke 16,5 s (Choco). Een toets opent het
+  hoofdmenu.
+- **Hoofdmenu** (gedeelde `MenuController`): New Game, Continue Game, Save
+  Game (alleen op de kaart, niet tijdens een teleporter), Story (uit
+  KEEN3.EXE), High Scores, Controls, Options, Quit to Title, Choose Game
+  (terug naar het startscherm), Quit. Geen online, geen tweede speler,
+  geen extra levels (C10). Escape opent het menu in een spel (tijdens
+  Mortimer slaat Escape hem nog over).
+- **GAME OVER, ook na het einde,** leidt naar de highscores; een score die
+  erin komt vraagt eerst een naam. Highscores in
+  `user://keen3/high_scores.json`.
+- **Opslaan en laden** in `user://keen3/saves` (negen plekken, los van
+  Keen 1 en 2; toetsen en beeld gedeeld): score, levens, ladingen, de
+  gedane levels, Keens plek en het beeld op de kaart (zoals het origineel).
+  Messie wordt niet bewaard: het origineel zet haar bij een geladen spel
+  ook weer op haar begin.
+- **Gedeelde code:** alleen `src/data/sound_file.gd` (de snelheid) en een
+  commentaar in `src/sound/speaker_synth.gd`. `git diff 97b128f` op de
+  Keen 1- en Keen 2-mappen is leeg.
+- **Tests:** drie nieuwe suites: `test_keen3_sounds` (145,65 Hz,
+  prioriteiten, de nieuwe geluiden van Keen), `test_keen3_menus` (titel en
+  tabel, eigen bestanden, opslaan en laden in een testmap, het menu) en
+  `test_keen3_menus_data` (echte bestanden: 45 geluiden, map 90, de
+  bitmaps, het verhaal). 62 suites, 722 tests (was 59 en 698), alle
+  slagen, gdlint schoon.
+- **Keen 1- en Keen 2-controle:** `keen1_regression.sh` en
+  `keen2_regression.sh` tegen de C7-referentie: alles gelijk, ook
+  `launcher.png`.
+- **Bekeken in de app** (scratchpad `c8shots/`): titel, menu, verhaal,
+  highscores (4:3 en breedbeeld), de titel en highscores die wisselen, een
+  nieuw spel, opslaan en laden (zelfde plek en beeld), het einde tot GAME
+  OVER en de naam voor de highscores, het menu tijdens het einde, Choose
+  Game naar het startscherm.
+- **Niet gedaan:** de Windows-build (geen export templates in deze
+  omgeving) en de Mac-build (alleen op de Mac). Niet nagebouwd, zoals bij
+  Keen 1 en 2: de id-pagina en de bestelpagina met de Foob in de
+  titelreeks, F1-hulp, "About ID", "Ordering Info", "Previews!".
+- **Open punten:** alle geluiden met het oor naast het origineel (ook de
+  145,65 Hz); 100 punten in een nieuwe tabel (schatting zoals Keen 1 en
+  2); in het origineel vraagt het GAME OVER-venster zelf de naam en gaat
+  "Quit to Title" ook via GAME OVER en de highscores (wij doen het zoals
+  Keen 2).
+
+## Mijlpaal C7: wat er nu is
+
+Gebouwd en getest met de echte Keen 3-bestanden van de gebruiker (1.00).
+Getallen uit Chocolate Keen (`(Choco)`), de armen en benen nagekeken in
+js-dos. De regels staan in `docs/keen3/gameplay.md` ("Mortimer", "The
+Mangling Machine", "The border flash", "The ending"); afwijkingen in
+`docs/keen3/architecture.md`, "Deviations in C7".
+
+- **Mortimer** (`Keen3Mortimer`, `Keen3TypedBoxes`): elke keer dat level 16
+  begint staat het level met zijn sprites stil, speelt MORTIMER tot het
+  eind, en worden zijn negen vensters uit KEEN3.EXE getypt (6 retraces per
+  letter), met de maten, plekken en pauzes van Choco; één venster
+  tegelijk. Escape, Spatie of een knop slaat de rest over (Escape verlaat
+  het spel dan niet).
+- **De Mangling Machine** (`Keen3Machine`, `Keen3MachineArm`,
+  `Keen3MachineLeg`, `Keen3MachineSweep`, `Keen3Spark`, `Keen3Heart`):
+  zes vonken (+1000 en de randflits per vonk), het hart (146/147), twee
+  armen (omlaag elke 6,2 ticks, omhoog elke 16,5, keren bij 471 en bij het
+  einde van de schacht), twee benen (stap elke 14,4 ticks, FOOTSLAM op de
+  vloer, 82 ticks wachten). Bij de zesde vonk stoppen de armen en veegt
+  een sweep de kolommen 5-7 en 17-19 schoon (ook tile 611 die het hart
+  afschermt). Het hart: +1000, randflits, benen stoppen, alle sprites
+  behalve Keen weg, sweep over het lichaam, 181 ticks later is het level
+  klaar en volgt het einde. Alle tiles via `LevelSession.set_tile`, dus
+  xBRZ en HD volgen (gezien met xBRZ). Geen trillend scherm (Choco).
+- **De randflits** (besluit van de gebruiker): een dun kader (2
+  spelpixels) knippert geel en cyaan (EGA 14 en 3, elke 26 ticks, 124
+  ticks lang, zoals het origineel) rond het beeld: in de zwarte balken
+  naast het 4:3-beeld, of op de rand van het beeld zelf als er geen ruimte
+  is (breedbeeld).
+- **Het einde** (`Keen3Ending`, `Keen3EndingScreen`): map 81 met een
+  Vorticon en Keen, infaden, de vier pagina's getypt (120 retraces na
+  elke), vijf cameraflitsen (tile wisselt, het beeld licht 2 retraces op,
+  CLICKSND, wachttijden 20/10/5/10/15), 120, uitfaden; FINALE.CK3 infaden,
+  400 retraces, het venster eroverheen getypt, een toets; de eindtekst
+  (scrollen met omhoog/omlaag) met MORTIMER; dan GAME OVER en het
+  startscherm (highscores in C8). In breedbeeld zwarte balken naast map
+  81, nooit de rand. `-- --game=3 --ending` start het einde direct.
+- **Gedeelde code:** niets veranderd (ook `GameLaunch` niet: `--game=3
+  --ending` werkte al; `--ending` zonder `--game=3` blijft Keen 1).
+- **Tests:** vier nieuwe suites: `test_keen3_machine` (zelfgemaakt level
+  16, `tests/keen3_machine_fixtures.gd`), `test_keen3_scenes` (Mortimer,
+  typen, vensterplek, randflits, `--ending`), `test_keen3_ending` (alle
+  stappen van het einde) en `test_keen3_machine_data` (echte bestanden:
+  de machine van level 16, een echt schot op het hart wint het spel, de
+  teksten passen in hun vensters, map 81). Aangepast:
+  `test_keen3_level` ("machine-infowaarden maken nog niets" werd "maken
+  de machine"). Alle 58 suites slagen, geen `SCRIPT ERROR`, gdlint schoon.
+- **Keen 1- en Keen 2-controle:** `keen1_regression.sh` en
+  `keen2_regression.sh` tegen `a9d04cc` in een venster (fullscreen even
+  uit, daarna byte voor byte teruggezet): alles gelijk behalve
+  `launcher.png`. `git diff a9d04cc` op de gedeelde mappen toont alleen de
+  C2-wijzigingen.
+- **js-dos:** level 16 is niet te bereiken met een script; in een kopie
+  van de bestanden in de scratchpad is LEVEL16.CK3 over LEVEL01.CK3 gezet.
+  Daar draait de machine (zonder Mortimer, die hoort bij levelnummer 16):
+  de armen (stap omlaag ~108 ms, omhoog ~271 ms, ~371 ms stil aan elk
+  eind) en de voeten (~245 ms per stap, ~1,9 s op de vloer) kloppen met
+  onze getallen; daarop is het wachten na FOOTSLAM met één stap verlengd.
+  Niet gezien: Mortimer, een vonk of het hart raken, de sweeps, de
+  randflits, het einde.
+- **Bekeken in de app** (scratchpad `c7shots/`): Mortimers vensters (4:3
+  en breedbeeld), de machine in beweging, de randflits na een vonk, na de
+  zesde vonk, de sweep van het hart (ook met xBRZ), en elk deel van het
+  einde (infaden, pagina's, een cameraflits, het plaatje met venster, de
+  eindtekst, GAME OVER) in 4:3 en breedbeeld.
+- **Open punten:** het eerste beeld van level 16 staat in het origineel
+  lager (gezicht bovenaan, voeten onderaan) dan bij ons (C11, zoals level
+  1); of het origineel oude Mortimer-vensters laat staan; de y-plek van de
+  vensters in het einde; de fade-snelheid; de randflits zelf nog niet in
+  het origineel gezien.
+- **Gemaskeerde tiles (fix na C7, goedgekeurd voor Keen 2 en 3):** tiles
+  met gedrag -2 (hekken, raamkozijnen, tafels, bomen, wolken) worden nu
+  heel achter Keen getekend en ervoor alleen waar hun masker (de volgende
+  tile, zwart-wit) zwart is; Keen is door de open delen te zien, ook met
+  xBRZ en op de kaart van Keen 2. Keen 2's 371-373 hebben geen masker en
+  blijven gewone voorgrond-tiles. Keen 1 heeft ze niet en blijft byte voor
+  byte gelijk (regressie tegen `a9d04cc`). Zie `docs/keen3/architecture.md`,
+  "Masked tiles (fix after C7)".
+
+## Mijlpaal C6: wat er nu is
+
+Gebouwd en getest met de echte Keen 3-bestanden van de gebruiker (1.00).
+De getallen komen uit Chocolate Keen (`(Choco)`) en zijn in js-dos
+nagekeken waar dat lukte. De regels staan in `docs/keen3/gameplay.md`
+("The course of the game", "The world map", "The status screen");
+afwijkingen van de architectuur in `docs/keen3/architecture.md`,
+"Deviations in C6".
+
+- **Het verloop** (`Keen3LevelPlay`, zoals Keen 2 na B6): het startscherm
+  (en `--game=3`, ook met `--level=80`) begint een nieuw spel op de
+  wereldkaart met "Keens Left"; `--level=N` (1-16) start dat level en
+  daarna de kaart. Uitgang: level klaar (bordje op de kaart), sleutelkaarten
+  weg, terug op de kaart waar Keen het level in ging, met hetzelfde beeld.
+  Dood: een leven minder, terug op de kaart met "Keens Left" (hoogstens 6
+  Keens, Choco). Geen levens meer: GAME OVER, dan het startscherm.
+  **Level 16 klaar = gewonnen**: voorlopig het briefje "You won - the
+  ending comes later" (5 s of een toets) en dan het startscherm; het einde
+  komt in C7. `Keen3Progress extends GameProgress` bewaart ook Messie en
+  het beeld van de kaart. Cheats Shift+N/P/I/G werken (van de kaart: level
+  1 / level 16).
+- **De kaart** (`Keen3MapSession extends MapSession`, Keen 1's klassen
+  ongewijzigd): ingangen 1-16 met springen of pogo (opnieuw indrukken),
+  ook via een 0x8000-cel; de cellen onder Keens vak tellen, de laatste
+  wint. Muren (0x8000 + n) tot het level klaar is. Bordjes 56 (1x1) en
+  52-55 (2x2; ook level 15 met drie 0x800F-cellen), de info-cellen worden
+  gewist.
+- **Kaart-Keen** (`Keen3MapKeen`): sprites 31-46, 4 px per frame (97 px/s;
+  Keen 1's 127,5 px/s is te snel, dus eigen snelheid), stapgeluid elk
+  tweede frame.
+- **Het beeld** (`Keen3MapScroll`): zoals het origineel, Keen vrij tussen 9
+  en 11 cellen van links en 3 en 7 van boven; een nieuw spel toont (35,44)
+  linksboven; de camera staat er precies op.
+- **Teleporters** (`Keen3MapTeleport`): tiles 130-133 twee keer met
+  TELEPORTSND, 134; het beeld springt (bestemming 10 cellen rechts, 6
+  omlaag); dezelfde animatie daar; Keen onzichtbaar tot hij aankomt;
+  Messie wacht. Alle 16 routes kloppen met research §8.
+- **Het schip**: een van de vier berichten (willekeurig) in een venster van
+  32x6, met de regel eronder uit KEEN3.EXE; een toets sluit het.
+- **Messie** (`Keen3Messie`): start op (35,8) naar links, 2 px per frame,
+  de eerste buur kolom voor kolom die pad of wier is en niet haar cel of de
+  vorige; 122 frames wachten voor wier; plaatjes per richting (met Keen 8
+  verder). Opstappen door tegen haar aan te lopen (CRYSTALSND, Keen
+  verborgen, kan niets gebruiken, het beeld volgt haar), afstappen met een
+  richting naar een aanlegplek (0x2200); daarna 30 frames niet opnieuw.
+  Ze brengt Keen naar het eiland van level 16 en naar de Hidden City
+  (level 13) (getest met de echte kaart).
+- **Statusscherm** (`Keen3StatusScreen` in `Keen3Window`): de statustoets
+  (Enter; in het origineel Spatie, maar dat is hier vuren) op de kaart en
+  in een level, het spel staat stil, elke toets sluit. Vak 28x11 op x
+  40-279, y 48-151; rode labels op grijze balken (de tweede helft van het
+  lettertype, zoals het origineel); score, volgende extra Keen, Keentjes
+  (max 9), pistool met ladingen, ankh met tijd, sleutelkaarten. Alle
+  plaatjes staan pixel voor pixel waar het origineel ze heeft.
+- **HUD op de kaart** (breedbeeld): levens, score, straalgeweer,
+  sleutelkaarten (geen ankh-paneel).
+- **Gedeelde code:** niets veranderd.
+- **Tests:** vier nieuwe suites: `test_keen3_map` en `test_keen3_messie`
+  (zelfgemaakte kaarten, `tests/keen3_map_fixtures.gd`), `test_keen3_status`
+  en `test_keen3_map_data` (echte bestanden: alle ingangen en bordjes, de 16
+  teleporters, Messie's lus van 256 cellen, beide aanlegplekken, haar
+  timing tegen js-dos, met Messie naar level 16 en 13, van de kaart naar
+  level 1 en terug). Aangepast omdat C6 het verloop verandert:
+  `test_keen3_play` (uitgang en dood naar de kaart, level 16 wint) en
+  `test_keen3_level` (level 16 klaar = gewonnen). Alle 54 suites slagen,
+  geen `SCRIPT ERROR`, gdlint schoon.
+- **Keen 1- en Keen 2-controle:** `keen1_regression.sh` en
+  `keen2_regression.sh` tegen `a9d04cc` in een venster (fullscreen even
+  uit, daarna exact teruggezet): alles gelijk behalve `launcher.png`.
+  `git diff a9d04cc` op de gedeelde mappen toont alleen de C2-wijzigingen.
+- **js-dos:** kaart-Keen 4 px per frame en het beeld dat meeschuift op x
+  176; teleporter 1 → 3 en terug (71 ms per tile, 1,14 s, Keen onzichtbaar,
+  beeld op (45,35)); Messie 70 s gevolgd: ze komt op dezelfde momenten in
+  beeld als bij ons (op ~0,1 s), dus start, snelheid, route en het wachten
+  bij het wier kloppen; het schip (venster op x 24-295, y 64-127,
+  willekeurig bericht); het statusscherm met alle sleutelkaarten (pistool
+  en sleutelkaarten 4 px lager dan C1 noteerde: Choco klopt); na een dood
+  in level 1 hetzelfde beeld en dezelfde plek. Niet gezien: een
+  "done"-bordje (geen level uitgespeeld), op- en afstappen bij Messie,
+  geluiden.
+- **Bekeken in de app** (schermafdrukken in de scratchpad, `c6shots/`):
+  de kaart bij de start (4:3 en breedbeeld), lopen, "Keens Left", de
+  teleporter halverwege en erna, het schip, Messie zwemmend, Keen op
+  Messie, een 2x2-bordje, het statusscherm op de kaart en in level 1, de
+  kaart na een dood.
+- **Open punten:** de kaart (met Messie) wordt nog niet opgeslagen (C8);
+  het "done"-bordje en op/afstappen bij Messie nog in js-dos bekijken
+  (C11).
+
+## Mijlpaal C5: wat er nu is
+
+Gebouwd en getest met de echte Keen 3-bestanden van de gebruiker (1.00).
+De getallen komen uit Chocolate Keen (`(Choco)`), omgerekend naar onze
+eenheden; het verticale platform is ook in js-dos nagekeken. De regels
+staan in `docs/keen3/gameplay.md` ("Ball, jack, platforms and wall guns
+(C5)", "Riding"); afwijkingen van de architectuur in
+`docs/keen3/architecture.md`, "Deviations in C5".
+
+- **Bal** (info 7, `Keen3Ball`): vertrekt schuin naar Keens start, 121/32
+  per as, zonder zwaartekracht, kaatst tegen muren, vloeren en plafonds.
+  Keen kan erop staan en meerijden; de bal duwt hem opzij. Schoten spatten
+  erop, hij gaat nooit kapot.
+- **Jack** (info 8, `Keen3Jack`): vliegt hetzelfde, vier plaatjes; aanraken
+  is dodelijk (niet met de ankh); schoten spatten erop.
+- **Platforms** (info 9 zijwaarts, 10 op en neer, `Keen3Platform`):
+  22,8/32; het zijwaartse wacht 31 ticks bij een muur, het verticale keert
+  bij een vloer meteen en wacht 31 ticks bij een plafond. Ze bewegen altijd,
+  ook ver buiten beeld. Meerijden met Keen 2's `Keen2RidingCollision` en
+  `Keen2Carrier` (ongewijzigd, met `Keen3Carrier` als Keen 3-laag erop);
+  niet naar buiten lopen terwijl je meerijdt. Op het 32x8-platform staat
+  Keen goed (schermafdruk level 2).
+- **Hard van alle kanten** (`Keen3Carrier`): van boven komt Keen erop, van
+  onder stoot hij zijn hoofd, van opzij wordt hij weggeduwd; altijd door de
+  tiles heen, dus nooit in een muur. Houden de tiles hem vast, dan gaat het
+  ding langs hem heen (zo deed het origineel in level 2). Draagt een
+  platform of bal Keen tegen een plafond, dan stopt het onder zijn voeten
+  alsof het zelf het plafond raakte (*schatting*; nooit vastgeklemd of
+  dood).
+- **Wapens in de muur** (info 14 naar rechts, 15 omlaag, `Keen3WallGun`):
+  onzichtbaar; één klok voor alle wapens vanaf de start van het level, elke
+  165 ticks (2,75 s) vuren ze tegelijk met één TANKFIRE, ook buiten beeld
+  (hoorbaar); een schot dat ver buiten beeld zou beginnen wordt niet
+  gemaakt. Het schot (`Keen3GunShot`, 103/104) vliegt door alle sprites en
+  doodt onderweg Keen (ook verdoofd, niet met de ankh), grunts en Foobs;
+  bij een muur SHOTHIT en een spat.
+- **Raakregels** verhuisd naar `Keen3Hits` (de sessie werd te lang), met de
+  algemene tak voor vijandelijke schoten. Keens schot spat nu ook op bal,
+  jack, platforms en het schot van een wapen.
+- **Gedeelde code:** niets veranderd.
+- **Tests:** `test_keen3_objects` (bal, jack, wapens) en `test_keen3_riding`
+  (platforms, meerijden) met zelfgemaakte levels; `test_keen3_enemy_census`
+  telt nu ook de objecten van elk level 1-16 (echte bestanden). Twee
+  Keen 3-tests aangepast: `test_keen3_level` (alleen 12, 13, 16-18 maken
+  nog niets) en de census (objecten tussen de vijanden toegestaan). Alle 50
+  suites slagen, geen `SCRIPT ERROR`, gdlint schoon.
+- **Keen 1- en Keen 2-controle:** `keen1_regression.sh` en
+  `keen2_regression.sh` tegen `a9d04cc` in een venster (fullscreen even
+  uit, daarna exact teruggezet): alles gelijk behalve `launcher.png`.
+  `git diff a9d04cc` op de gedeelde mappen toont alleen de C2-wijzigingen.
+- **js-dos:** level 2 bereikt (kaart: één omhoog, vier naar rechts), het
+  verticale platform gemeten: 0,71 px per tick (Choco 22,8/32), keert bij de
+  vloer meteen, wacht ~0,55 s bij het plafond (Choco 31 ticks + 1): de
+  getallen kloppen. Het platform ging langs een Keen die onderin de schacht
+  stond (daarom de regel hierboven). Niet bereikt: bal, jack, wapens
+  (levels 3 en 4 liggen achter de blokkade die pas na level 2 opengaat).
+- **Bekeken in de app** (schermafdrukken in de scratchpad, `c5shots/`):
+  level 2 (meerijden op het verticale platform, tot onder het plafond),
+  level 8 (zijwaarts platform), level 9 (schoten naar rechts uit de rode
+  kanonnen), level 12 (schoten omlaag uit de lampen, spatten op de vloer),
+  level 15 (bal en jack), level 6 (bal). Levels 1-15 draaien headless 2000
+  ticks zonder fouten; Keen, op elk echt platform gezet, komt nooit in een
+  tile (op een paar in levels 9, 10 en 14 schraapt een muur op hoofdhoogte
+  hem eraf).
+- **Open punten:** in level 14 schraapt een paal (kolom 110) Keen van het
+  zijwaartse platform boven de spijkers; zo zitten de tiles, maar of het
+  origineel hem ook laat vallen is niet gezien. Nog te zien in js-dos (C11):
+  bal, jack, wapens, het zijwaartse platform, meerijden tegen een plafond.
+
+## Mijlpaal C4: wat er nu is
+
+Gebouwd en getest met de echte Keen 3-bestanden van de gebruiker (1.00).
+Alle getallen komen uit Chocolate Keen (in de code `(Choco)`), omgerekend
+naar onze eenheden. De regels staan in `docs/keen3/gameplay.md` ("Enemies",
+"Waking and sleeping", "The stun"); afwijkingen van de architectuur in
+`docs/keen3/architecture.md`, "Deviations in C4".
+
+- **Zes vijanden** (`src/keen3/actors/`, op de nieuwe basis `Keen3Enemy`):
+  grunt (info 1 en 11; loopt, springt, wisselt van snelheid, kijkt rond na
+  elke landing en gaat dan op Keen af; aanraken is dodelijk), youth (2;
+  rent en huppelt, verdooft Keen), moeder (3; loopt niet van een richel,
+  draait zich om en spuwt een vuurbal; duwt Keen opzij; 5 schoten), Meep
+  (4; zingt een geluidsgolf die door muren gaat; zingt ook in de lucht aan
+  een richel, de bug van het origineel; duwt), ninja (5; springt op Keen af
+  als hij binnen 5 tiles hoogte is; 4 schoten) en Foob (6; schrikt, vlucht
+  naar een muur; gaat zelf dood als Keen hem raakt). Info 7-18 maken nog
+  niets (C5, C7). Vijanden geven geen punten.
+- **Schoten:** Keens schot (121/32) spat op elke sprite behalve Keen en
+  lijken, ook op een vuurbal (allebei weg) en een golf (die vliegt door).
+  De vuurbal doodt Keen (ook verdoofd), grunts en Foobs en vliegt door
+  moeders heen. De golf doodt Keen.
+- **Wakker en slapen** zoals het origineel (`Keen3ActiveArea`): een vijand
+  wordt wakker vlak bij het beeld en slaapt weer ver ervandaan; schoten,
+  golven en lijken verdwijnen daar. In widescreen groeit het gebied mee met
+  het beeld (besluit van C4). Een golf verdwijnt ook zodra hij het
+  speelbare deel verlaat (anders vloog hij in level 16 over de zwarte
+  balken).
+- **Keen 3's eigen verdoving** (`Keen3Body`): Keen krijgt de snelheid van
+  de youth, ligt 165 ticks (28/29), glijdt uit, staat 16,5 ticks op (30).
+  Een schot doodt een verdoofde Keen; de ankh voorkomt verdoving en dood.
+- **HUD:** de plaatjes van straalgeweer, sleutelkaarten en ankh laten de
+  achtergrondkleur van hun tile-rij weg (geen cyaan vlak meer).
+- **Gedeelde code:** niets veranderd.
+- **Tests:** `test_keen3_enemies`, `test_keen3_enemy_rules` (zelfgemaakte
+  levels) en `test_keen3_enemy_census` (echte bestanden: elk level 1-16
+  heeft de vijanden uit research.md §5). Twee C3-asserties ("nog geen
+  vijanden") zijn aangepast. Alle 48 suites slagen, geen `SCRIPT ERROR`,
+  gdlint schoon.
+- **Keen 1- en Keen 2-controle:** `keen1_regression.sh` en
+  `keen2_regression.sh` tegen `a9d04cc` in een venster: alles gelijk
+  behalve `launcher.png`. `git diff a9d04cc` op de gedeelde mappen toont
+  alleen de C2-wijzigingen.
+- **js-dos:** level 1 bereikt met G+O+D. Gezien: de Foob gaat dood als
+  Keen hem raakt (Keen niet), de gevluchte Foob staat tegen de rotsen te
+  "dribbelen" (bij ons ook), god mode toont de halo achter de
+  voorgrond-tiles. Niet gelukt: de grunt, youth en moeder bereiken (Keen
+  viel twee keer in de put na de waterval); de Choco-getallen blijven.
+- **Bekeken in de app** (schermafdrukken in de scratchpad): level 1 (Foob
+  tegen de rotsen, HUD zonder cyaan), level 4 en 6 (grunts, youths, Foobs),
+  14 (ninja springt), 16 (Meeps zingen golven), een verdoofde Keen
+  (level 6) en een vuurbal (level 1).
+- **Open punten:** de youth gebruikt één botsingsbox voor beide
+  richtingen (*estimate*); welke spat-sprite (origineel: willekeurig); het
+  widescreen-gebied; de vijanden zakken bij de start op de vloer zoals in
+  Keen 1 en 2. Nog te meten in js-dos (C11): snelheden en tijden van
+  grunt, youth, moeder, Meep en ninja.
+
+## Mijlpaal C3: wat er nu is
+
+Gebouwd en getest met de echte Keen 3-bestanden van de gebruiker (1.00).
+De regels staan in `docs/keen3/gameplay.md`; afwijkingen van de
+architectuur in `docs/keen3/architecture.md`, "Deviations in C3".
+
+- **Het spelscherm:** `Keen3View` (`src/keen3/keen3_view.gd/.tscn`, een kopie
+  van de opbouw van `keen2_view.tscn`) op `Keen3SceneScreen` op
+  `GameScreen`: widescreen met HUD, F1-F6 (ook xBRZ), de camera, berichten.
+  De keten is zo opgezet dat C6-C8 er de kaart, de menu's en het einde
+  tussen kunnen zetten (zoals bij Keen 2).
+- **Voorlopig verloop** (`Keen3LevelPlay`, zoals B3): vanaf het startscherm
+  level 1, met `-- --game=3 --level=N` level N (1-16). Uitgang: volgend
+  level (sleutelkaarten weg), na 16 terug naar het startscherm. Dood: een
+  leven minder, hetzelfde level opnieuw met het venster "Keens Left" (0,87 s,
+  zoals in js-dos). Geen levens: GAME OVER (het plaatje, 5,27 s) en terug.
+  Escape gaat terug. Cheats: Shift+N/P, Shift+I, Shift+G.
+- **Een level** (`Keen3LevelSession extends Keen2LevelSession`): punten uit
+  de tabel (snoepreep 500, hamburger 100, cola 200, taart 1000, ninja-knuffel
+  5000), straalgeweer +5, losse lading +1, sleutelkaarten en deuren (de deur
+  krijgt de tile links van zijn bovenste cel en zakt weg zoals bij Keen 1),
+  uitgang (elke uitgang telt, dus de twee uitgangen van 12, 13 en 15
+  werken), dodelijke tiles, extra leven per 20.000. Een opgepakt item laat
+  de eerste tile van zijn rij achter, `(tile / 13) * 13`. Gedrag 22 wordt
+  tile 143. Nog geen vijanden (C4/C5). Level 9 start bij de laatste van
+  zijn twee starts, (63,17).
+- **Keen** (`Keen3Body extends Keen2Body`): de gedeelde natuurkunde,
+  ongewijzigd (sprongen blijven voorlopig iets te hoog, besluit van de
+  gebruiker). Startwaarden: 4 levens, 5 ladingen, pogo vanaf het begin.
+  Doodgaan met sprites 22/23 (nagekeken).
+- **De ankh:** geluid ANKH (`Keen3Sounds`), 577 ticks per ankh (Chocolate
+  Keen: 1400 klokticks, 9,6 s), telt op, bij elk level op 0, telt alleen af
+  tijdens het spelen. Keen kan dan niet dood (behalve door uit het level te
+  vallen) en niet verdoofd worden (`is_protected()`, klaar voor C4). Het
+  schild: sprites 61/62 om de 6,6 ticks, 8 px links-boven Keen, knippert in
+  de laatste 103 ticks (`Keen3AnkhShield`).
+- **HUD:** `Keen3Hud extends Hud`: levens (met Keen 3's eigen kaart-Keen),
+  score, ladingen, sleutelkaarten en, zolang de ankh werkt, de ankh met zijn
+  tijd in hele "seconden" zoals het statusscherm (een nieuwe ankh: 9).
+- **De rand (tile 245, "OH no!"):** nooit te zien. De gedeelde `LevelMap`
+  tekent alleen het speelbare deel en de camera blijft erbinnen; smalle
+  levels (16 in widescreen) krijgen zwarte balken. Getest voor alle levels
+  en drie beeldbreedtes; bekeken in 4:3, widescreen en xBRZ.
+- **Gedeelde code:** niets veranderd.
+- **Tests:** `test_keen3_level` en `test_keen3_keen` (zelfgemaakte levels met
+  een rand van 245) en `test_keen3_play` (echte bestanden). De C2-test van
+  het voorlopige scherm is weg (dat scherm bestaat niet meer).
+- **Keen 1- en Keen 2-controle:** alle 45 suites slagen, gdlint schoon.
+  `keen1_regression.sh` en `keen2_regression.sh` tegen `a9d04cc`: alles
+  gelijk behalve `launcher.png`, als het venster niet schermvullend is.
+  Schermvullend gaf `level1_walk.png` van Keen 1 een ouder beeld bij de
+  referentie (de spellogica was gelijk; het schermvullend-maken van macOS
+  verschuift de schermafdruk). Zie architecture.md.
+- **Niet gedaan:** de vergelijking met het origineel in js-dos (optioneel).
+  Wel opgevallen: ons eerste beeld van level 1 begint bij cel (2; 11,5), het
+  origineel bij (2,12) (zie gameplay.md).
+- **Open punten:** de plaatjes van het straalgeweer, de kaarten en de ankh in
+  de HUD houden de cyaan achtergrond van hun rij; in `test_keen3_data.gd`
+  (C2) breekt `test_sprite_names_fit_the_enemies` af met een scriptfout bij
+  de boxen (de suite meldt toch PASS), niet aangepast.
+
+## Mijlpaal C2: wat er nu is
+
+Gebouwd met de echte Keen 3-bestanden van de gebruiker (versie 1.00).
+Details in `docs/keen3/file-formats.md`; afwijkingen van de architectuur
+staan in `docs/keen3/architecture.md`, "Deviations in C2".
+
+- **Bestanden vinden:** `Keen3Files` (`src/keen3/data/`) zoekt
+  `game_data/keen3` op dezelfde plekken als Keen 1 en 2
+  (`--data-dir-keen3=PATH`, de projectmap, naast het programma, naast de
+  macOS-app) en geeft een gewone `GameFiles` met extensie `CK3`. Vereist:
+  `KEEN3.EXE`, `EGAHEAD.CK3`, `EGALATCH.CK3`, `EGASPRIT.CK3`. Levels 1-16,
+  80, 81 en 90.
+- **De tile-tabel:** `TileProperties.find_in_image` en `from_table` kregen
+  een optionele `stride` (standaard de tile-telling, dus Keen 1 en 2 lezen
+  precies hetzelfde; een test bewijst dat ook met hun echte tabellen). Keen 3
+  leest 624 tiles met rijen van 715 (0x199F8 in 1.00, 0x198C8 in 1.31, anders
+  zoeken); met 624/624 vindt hij aantoonbaar een verkeerde tabel. Gedrag 27
+  (ankh) en 28 (losse lading) staan in `Keen3Behavior`, niet in de gedeelde
+  enum.
+- **KEEN3.EXE:** `Keen3Executable` pakt de EXE uit, herkent de versie (1.00,
+  1.31 of "unknown") en vindt op inhoud: het geluidsblok (45 namen, met
+  ANKH, MEEP, MORTIMER en FOOTSLAM), de tile-tabel, de vier teksten in de
+  volgorde help, eind, previews, verhaal (de eerste niet meer twee bytes te
+  vroeg), het statusvak (11 regels), Mortimers negen vakjes (na de
+  puntentabel), de vier pagina's van het einde, het vakje boven het
+  slotplaatje, de vier scheepsberichten en de highscore-teksten. Het gebruikt
+  de openbare hulpfuncties van `Keen2Executable`; die is niet veranderd.
+  Niets crasht als een stuk ontbreekt.
+- **`Keen3GameData`** leest graphics, tile-eigenschappen, geluiden, teksten
+  en `FINALE.CK3` in één keer (klaar voor C3).
+- **Startscherm:** een derde icoon "Keen 3" rechts van Keen 2, met Keen uit
+  de eigen Keen 3-graphics; zonder bestanden grijs met de uitleg dat ze in
+  `game_data/keen3` horen (de teksten van Keen 1 en 2 zijn gelijk gebleven).
+  Met bestanden opent het voorlopig `src/keen3/keen3_view.tscn` ("Keen 3 -
+  coming soon"; Enter of Escape terug, via `call_deferred`).
+- **Opdrachtregel:** `-- --game=3` (met of zonder `--level=N`) opent Keen 3;
+  `GameLaunch.game_number` kiest uit drie spellen. Elke oude
+  argumentenlijst geeft hetzelfde antwoord (getest, ook `--game=2 --game=3`
+  blijft Keen 2). Data viewer en `tools/export_graphics.gd` kiezen ook uit
+  drie (Keen 3 naar `exported/keen3/`); de statusregel van de viewer noemt
+  de versie van `KEEN3.EXE` en wat erin gevonden is.
+- **Online:** alleen de constante `OnlineProtocol.GAME_ID_KEEN_3`, nog niet in
+  `GAME_IDS` (dat is C10).
+- **Tools:** nieuw `tools/keen2_regression.sh` (titel, level 1, lopen in
+  level 1, kaart 80, met `--game=2`); de bouwscripts nemen `game_data/keen3`
+  mee; `game_data/README.md` heeft een stukje over Keen 3.
+- **Tests:** `test_keen3_files` (zonder data: map zoeken, stride, Keen 1/2
+  lezen hetzelfde, een zelfgemaakt EXE-beeld uit `tests/keen3_fixtures.gd`
+  met alle stukken, kapotte stukken, versies, de catalogus met drie
+  spellen, `--game=3`, oude argumenten, het voorlopige scherm) en
+  `test_keen3_data` (echte data: 624 tiles, 148 sprites, 14 bitmaps,
+  spritenamen en -boxen, versie 1.00, de geluiden, de vier teksten op hun
+  plek, de berichten op hun plek en ook gevonden als alles verschoven is,
+  kaart 80: ingangen, 16 teleporters, Messie's cellen, het schip). Alleen
+  de "twee spellen"-regels in `test_launcher.gd` en `test_keen2_files.gd`
+  zijn nu drie.
+- **Keen 1- en Keen 2-controle:** alle 42 suites slagen, gdlint schoon.
+  `keen1_regression.sh` tegen `a9d04cc` (worktree): alleen `launcher.png`
+  verschilt (het derde icoon). `keen2_regression.sh` tegen `a9d04cc`: alle
+  vier plaatjes gelijk. `git diff a9d04cc` op de Keen 1/2-bestanden toont
+  alleen de toegestane regel in `tests/test_keen2_files.gd`.
+- **Nog niet getest:** versie 1.31 (Steam/GOG); de bekende adressen van 1.31
+  komen van Chocolate Keen, de rest wordt gezocht.
+
+## Mijlpaal C1: wat er nu is
+
+- **Branch:** `milestone-c1-onderzoek`, gemaakt vanaf
+  `milestone-b10-origineel` (die bevat alles van Keen 1 en 2; de B-branches
+  staan nog niet op `main`). Tot die op `main` staan, is commit `a9d04cc` de
+  referentie voor "Keen 1 en 2 niet veranderd".
+- **De Keen 3-bestanden van de gebruiker** (`game_data/keen3`) zijn
+  **versie 1.00**, niet 1.31 (Steam/GOG). Commander Genius en Chocolate Keen
+  kennen alleen de adressen van 1.31, en die schuiven niet overal evenveel
+  op: alles wordt op inhoud gezocht. Een nieuwere versie is niet nodig; 1.31
+  hoort ook te werken (nog niet te testen).
+- **Wat de bestanden zeggen:** 624 tiles maar een tile-tabel van 715 breed
+  (de gedeelde `TileProperties` leest met 624 stil een verkeerde tabel; C2
+  krijgt een optionele `stride`), 148 sprites (vanaf 31 één lager dan Keen
+  2), 14 bitmaps, 45 geluiden (nieuw: ANKH, MEEP, MORTIMER, FOOTSLAM), de
+  teksten in een andere volgorde dan Keen 2, de randtile 245 is een "OH
+  no!"-plaatje dat nooit te zien mag zijn, teleporters in de info-laag
+  (0x0Fsd), Messie's pad (0x2000-0x2200), de machine in level 16 van tiles.
+- **Chocolate Keen:** op verzoek van de gebruiker mogen nu ook de getallen
+  uit de gedragscode gebruikt worden (`CLAUDE.md` aangepast). Daarmee zijn
+  bijna alle vijanden, de ankh (9,6 s, telt op, per level op 0), Messie, de
+  teleporters, de machine, Mortimers berichten, het einde en het
+  statusscherm bekend. Het origineel rekent met 145,65 Hz en ~24 beelden per
+  seconde; `research.md` legt uit hoe we omrekenen naar onze 60 Hz.
+- **Bijvangst voor Keen 1 en 2** (alleen informatie, niets aangepast):
+  [docs/keen3/choco-keen1-keen2.md](docs/keen3/choco-keen1-keen2.md). Zo
+  telt in Keen 2 een stad als gered zodra iets de vonk raakt, duurt de
+  verdoving langer, en zijn de geluiden 145,65 Hz.
+- **Architectuur:** Keen 3 in `src/keen3/` met klassen `Keen3...`;
+  `Keen3LevelSession extends Keen2LevelSession` (meerijden, verdoving),
+  grunt en youth als subklassen van Keen 2's, `Keen3MapSession extends
+  MapSession`; een eigen schermketen. Een nieuwe controle
+  `tools/keen2_regression.sh` (C2) bewijst dat Keen 2 niet verandert.
+- **Handleiding** voor volgende delen bijgewerkt (lessen van C1).
+- Er is nog geen code geschreven.
 
 ## Mijlpaal B1: wat er nu is
 
@@ -954,12 +1798,12 @@ het origineel. Details in `docs/world-map.md` onder "Extra levels".
 - De doelen van de teleporters staan in de code van `KEEN1.EXE`, niet in een tabel; ze zijn als vaste waarden in `MapSession` gezet (volgens de documentatie van Commander Genius wijst elk doel precies naar een andere teleporter). Mods met andere doelen werken dus niet.
 - In de EXE zijn de vraag van de ouders en Keens antwoord ("Aw, Mom...") één bericht; het origineel toont ze misschien als twee vensters.
 - In 4:3-beeld staat de hulpregel linksboven (levelnaam, beeldinstelling, score, levens, munitie) alleen nog onder F1 (besluit van de gebruiker, 16-10-2026); zonder F1 alleen korte meldingen in het midden. De regel bovenin en de toetsenregel onderin zijn hulpmiddelen; het origineel heeft alleen het statusscherm. De toetsenregel noemt de standaardtoetsen, ook als ze zijn veranderd.
-- De snelheid van de geluiden (140 Hz) komt uit openbare documentatie en is nog niet met het oor vergeleken. Een paar koppelingen van geluid aan gebeurtenis zijn gokken (zie `docs/sounds.md`); `CLICKSND`, `CRYSTALSND` en `GOINDOORSND` worden niet gebruikt.
+- De snelheid van de geluiden is sinds C8 145,65 Hz (1.193.182 / 8192, Chocolate Keen; besluit van de gebruiker, voor alle drie de delen) en is nog niet met het oor vergeleken. Een paar koppelingen van geluid aan gebeurtenis zijn gokken (zie `docs/sounds.md`); `CLICKSND`, `CRYSTALSND` en `GOINDOORSND` worden niet gebruikt.
 - Niet nagebouwd: de intro (Apogee- en id-schermen), de demo, "About ID...", "Ordering Info" en "Previews!". De helptekst (`HELPTEXT.CK1`) wordt niet getoond, omdat die de toetsen van het origineel beschrijft.
 - De scores in een nieuwe highscorelijst (100) en de plek van de tabel in de rode lijst zijn geschat.
 - Level overslaan (cheat of Page Up/Down) houdt de inventaris, en een level dat zo gekozen is telt wel mee als het wordt uitgespeeld.
 - De data viewer toont tiles nog zonder animatie en zonder voorgrond-markering.
-- Gemaskeerde tiles (gedrag -2) worden als gewone voorgrond-tiles getekend; Keen 1 gebruikt ze niet.
+- Gemaskeerde tiles (gedrag -2) zonder zwart-wit masker als volgende tile (Keen 2: 371-373) worden als gewone voorgrond-tiles getekend, zoals Commander Genius ze als tile-fout ziet; of het origineel ze anders tekent, is niet nagekeken.
 - In de data viewer wordt de info-laag nog alleen gemarkeerd, zonder namen van de vijanden.
 - Zodra het beeld niet het originele is (xBRZ, HD of vloeiende beweging), scrolt de camera ook in delen van een spelpixel, ook als vloeiende beweging uit staat. Sprites staan dan wel op hele spelpixels.
 - Real-ESRGAN is gemaakt voor foto's en tekeningen, niet voor pixelart; of `realesrgan-x4plus-anime` mooi is, moet blijken. Een ander model kiezen kan met `MODEL=`.
@@ -976,10 +1820,14 @@ het origineel. Details in `docs/world-map.md` onder "Extra levels".
 - **HD met nieuwe details (generatieve AI)**, besproken op 14-10-2026, voor nu geparkeerd door de gebruiker. Oordeel van de gebruiker: de Real-ESRGAN-HD is "best lelijk", xBRZ ziet er mooier uit, maar hij mist nieuwe details. Real-ESRGAN kan geen details verzinnen; daarvoor is een generatief model nodig. Het plan staat in `docs/graphics.md` onder "Plan: HD with new details". Eerste stap als de gebruiker verder wil: toestemming vragen om Stable Diffusion 1.5 + ControlNet Tile te downloaden (~6 GB, Hugging Face, naar een map die git negeert) en een proef doen met ~10 plaatjes naast xBRZ.
 
 - **Keen 2: besluiten van de gebruiker (16-10-2026, B1).** Gedeelde code mag alleen toevoegingen krijgen met Keen 1 als standaard; Keen 1-code blijft onaangeroerd. Chocolate Keen mag als bron voor datatabellen (adressen, namen, groottes), nooit voor code met gedrag. De architect (deze sessie) stuurt een developer-subagent aan en controleert zijn werk.
+- **Keen 3: besluiten van de gebruiker (17-10-2026, C1).** Keen 1- en Keen 2-code blijven onaangeroerd; Keen 3 mag hun klassen gebruiken en er subklassen van maken. Branches `milestone-c<n>-<onderwerp>`. Uit Chocolate Keen mogen nu ook de feiten en getallen uit de gedragscode komen (gemarkeerd `(Choco)`), nooit de code zelf (`CLAUDE.md`). Versie 1.00 is goed genoeg; geen nieuwere versie nodig.
+- **Keen 3: besluiten van de architect (C1), te melden aan de gebruiker.** De lijst-van-spellen-asserties in `tests/test_launcher.gd` en `tests/test_keen2_files.gd` gaan van twee naar drie (zoals in B2); `GameLaunch.skips_launcher`/`scene_for`, de data viewer en `export_graphics.gd` kiezen uit drie spellen, met hetzelfde antwoord voor alles wat vroeger werkte. De bugs van versie 1.00 (level 10, level 13) blijven zoals ze zijn.
+- **Keen 3: antwoorden van de gebruiker op de vragen van C1 (17-10-2026).** (1) Real-ESRGAN voor Keen 3: overslaan, zoals bij Keen 2. (2) Geluidssnelheid: alle drie de delen naar 145,65 Hz (de gedeelde `SpeakerSynth`; verandert Keen 1 en 2 een klein beetje, goedgekeurd); gebeurt in C8. (3) Keen 1 en 2 bijwerken met de getallen uit Chocolate Keen: later, na Keen 3, in een eigen mijlpaal (C12), samen met de te hoge sprongen voor alle drie. (4) De randflits bij een geraakte vonk of het hart in level 16: als korte flits van de rand rond het 4:3-beeld (C7).
+- **Sprongen te hoog in Keen 1 en 2 (en dus ook Keen 3)** (gemeten door de gebruiker in een ander venster, 17-10-2026; nog niets aangepast). In het originele Keen 2 is de gewone sprong ~54-55 px (wij 58), de pogo zonder springknop 50 px (wij 58, een halve tile te hoog) en met springknop ~104 px (wij 109); de tijd van een stuit klopt. Chocolate Keen geeft dezelfde hoogtes (48 en 104 px, sprong 55,7 px), dus de oorzaak zit in onze natuurkunde-getallen (overgenomen van Commander Genius). Details: [docs/keen3/choco-keen1-keen2.md](docs/keen3/choco-keen1-keen2.md). Keuzes: (a) de gedeelde `src/keen/keen_physics.gd` aanpassen naar de getallen van Chocolate Keen, voor alle drie de delen (verandert Keen 1 en 2, mag alleen met toestemming); (b) eerst nog nauwkeuriger meten (de eerste hoge stuit, Keen 1 op een vrije plek); (c) alleen voor Keen 3 lager (`Keen3Body`), Keen 1 en 2 laten zoals ze zijn. **Beslissen vóór C3**, want daar gaat Keen 3 springen. *Besluit van de gebruiker (C3): de sprongen blijven voorlopig zoals ze zijn, later beslissen voor alle delen samen; Keen 3 gebruikt de gedeelde natuurkunde ongewijzigd.*
 - **Keen 2: de knop op het startscherm** (besluit van de gebruiker, 16-10-2026): lettertype en Keen-mannetje komen altijd uit de Keen 2-data. Zonder die bestanden blijft de knop grijs met een gewoon lettertype (geen Keen 1-data als vervanging).
 - **Keen 2: speldata.** De gebruiker heeft Keen 2 op floppies maar geen floppylezer. Keen 2 is geen shareware en wordt nog verkocht, dus het wordt niet gedownload van onofficiële sites. Opties: de Complete Pack op Steam/GOG, of een USB-floppylezer. Tot dan: bouwen en testen met zelfgemaakte testdata; de suites met echte data slaan zich over, en de vragen die alleen de echte bestanden beantwoorden blijven open (research.md).
 - **Keen 2: sprong van de youth** (B4, architect): met de getallen uit Commander Genius (200/32 omhoog, zwaartekracht 4/32) springt hij ruim 10 tiles hoog. Dat lijkt te veel; vermoedelijk heeft de youth in het origineel een eigen zwaartekracht. Naast het origineel leggen in B10.
-- **Geluidssnelheid (ook Keen 1):** Commander Genius speelt de geluiden met 145,6 Hz, `docs/sounds.md` zegt 140 Hz. Niet aangepast (Keen 1 blijft zoals het is); naast het origineel leggen.
+- **Geluidssnelheid (ook Keen 1):** Commander Genius speelt de geluiden met 145,6 Hz, `docs/sounds.md` zei 140 Hz. *Besluit van de gebruiker (17-10-2026): alle drie de delen 145,65 Hz; gedaan in C8.* Nog naast het origineel leggen (met het oor).
 
 ### Toegevoegd op 15-10-2026 (op `milestone-10-menu`)
 
@@ -990,6 +1838,62 @@ Na de eerste eigen test van de gebruiker:
 - Tests in `test_online_menus.gd`: adressen in de setup, het hosting-venster ververst, `address_lines`, eigen wachtwoord typen en onthouden.
 
 ## Volgende stap
+
+Keen 3:
+
+1. **Voor de gebruiker (C6):** Keen 3 proberen in `build/` (Mac en Windows): de
+   wereldkaart (lopen, levels in en uit, de bordjes, de muren die opengaan),
+   de teleporters, het schip, Messie (opstappen door tegen haar aan te
+   lopen, afstappen met een pijltje naar het eiland van level 16 of naar
+   de Hidden City), het statusscherm (Enter) op de kaart en in een level.
+2. **Voor de gebruiker:** Keen 3 van begin tot eind spelen in `build/`
+   (Mac en Windows): level 16 met Mortimer (Spatie slaat over), de
+   machine (vonken, armen, benen, het hart), de randflits, het einde; of
+   direct met `-- --game=3 --level=16` en `-- --game=3 --ending`.
+3. **Architect:** C9 controleren (branch `milestone-c9-extras`), de app
+   bouwen op de Mac met `tools/build_macos.sh` en `tools/build_windows.sh`
+   (kon hier niet: macOS alleen op de Mac, geen export templates).
+4. **Voor de gebruiker (C8):** in `build/` proberen: de titel en de
+   highscores (wisselen elke 16,5 s, een toets opent het menu), het menu
+   (Story, High Scores, Controls, Options, Choose Game), een nieuw spel,
+   opslaan op de kaart (Escape, Save Game) en weer laden (Continue Game),
+   GAME OVER en de highscores met je naam (ook na het einde), en de
+   geluiden met het oor: alle drie de delen spelen nu op 145,65 Hz
+   (luister ook even naar Keen 1 en 2), een pogo-stuit klinkt als een
+   sprong, van een rand lopen, tegen een muur springen, de eindtekst
+   (eerst keensleft, dan MORTIMER).
+5. **Voor de gebruiker (C9):** in `build/` proberen: F5 (xBRZ) en F6
+   (vloeiende beweging) in een level, op de kaart (Messie, een
+   teleporter), in level 16 (de machine) en in het einde; en eventueel
+   een eigen plaatje achter een level met lucht (1-8, 11, 13, 14, 15):
+   `game_data/keen3/backgrounds/level01.png` (breedbeeld, optie
+   Backgrounds aan).
+6. **Architect:** C10 controleren (branch `milestone-c10-coop`), de app
+   bouwen op de Mac met `tools/build_macos.sh` en `tools/build_windows.sh`.
+7. **Voor de gebruiker (C10):** in `build/` proberen: F7 in een level
+   (split screen, de ankh per speler in de HUD en op het statusscherm),
+   op de kaart met twee spelers (Messie, een teleporter), level 16 met
+   twee spelers; online met een vriend (via Steam, of IP op twee
+   computers): Keen 3 hosten en meedoen, en meedoen met een Keen 3-host
+   vanuit Keen 1 of 2 (het spel schakelt over).
+8. **Architect:** C11 controleren (branch `milestone-c11-origineel`), de
+   app bouwen op de Mac met `tools/build_macos.sh` en `tools/build_windows.sh`.
+9. **Voor de gebruiker (C11):** in `build/` het einde van Keen 3 bekijken
+   (`-- --game=3 --ending`, of level 16 uitspelen): de vakken staan nu
+   onderaan zoals in het origineel, het balletje onder "The End... For
+   now!", de eindtekst met de grijze titelbalk en de regel "ESC to Exit";
+   en de highscores van een nieuwe lijst (zeven namen; eerst
+   `keen3/high_scores.json` in de gebruikersmap weggooien).
+10. Daarna C12 (Keen 1 en 2 bijwerken, branch `milestone-c12-keen1-keen2`):
+   de natuurkunde voor alle drie (Keen 3 gemeten: 53/50/105 px), en wat in
+   C11 aan Keen 3 is gezien om in Keen 1 en 2 na te kijken
+   (`docs/keen3/choco-keen1-keen2.md`). Eventueel ook het GAME OVER-venster
+   met naaminvoer (alle drie). **Vraag aan de gebruiker:** het schot dat
+   vlak bij een muur door die muur gaat (in Keen 3 en Keen 2 opgelost na
+   C11) zit nog in Keen 1; daar ook oplossen (in C12, met
+   `Keen2Shot.put_against_wall`)?
+11. Later: Eigen achtergrondplaatjes voor Keen 1 en Keen 2, later in een
+   eigen branch (wens van de gebruiker, 19-10-2026).
 
 Keen 2:
 

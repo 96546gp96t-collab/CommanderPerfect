@@ -3,14 +3,14 @@ extends Control
 ## The start screen: CommanderPerfect always begins here. The picture of
 ## CommanderPerfect fills the screen, whole; below it, in a dark gray bar,
 ## an icon for each game ([GameCatalog]) from the left: Keen 1, then Keen
-## 2. Picking one
+## 2, then Keen 3. Picking one
 ## starts that game with its main menu open. See docs/menus.md.
 ##
 ## The mouse, the arrow keys and the controller pick an icon; a click,
 ## Enter or A starts it. Escape twice closes the program. With
 ## [code]-- --level=N[/code] or [code]-- --ending[/code] on the command
 ## line Keen 1 starts at once, for testing ([GameLaunch]); with
-## [code]-- --game=2[/code] Keen 2 does.
+## [code]-- --game=2[/code] Keen 2 does, with [code]-- --game=3[/code] Keen 3.
 
 const BACKGROUND := preload("res://assets/launcher/background.png")
 const BAR_COLOR := Color("303030")
