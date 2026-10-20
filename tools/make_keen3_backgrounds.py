@@ -3,11 +3,13 @@
 
 Our own pictures, drawn from code: nothing in them comes from the game files.
 Each picture is painted small, in the chunky pixels of the game, and then
-blown up without smoothing, so that it sits well behind the level's tiles.
-Only the levels with sky get one (see Keen3BackdropPictures): 1-8, 11, 13,
-14 and 15. Every level has its own scene that fits what the level shows: a
-city at dusk behind a city level, castles behind the castles, a mountain
-range behind the mountain.
+blown up without smoothing (tools/keen3_canvas.py), so that it sits well
+behind the level's tiles. Only the levels with sky get one (see
+Keen3BackdropPictures): 1-11, 13, 14 and 15. Every level has its own scene
+that fits what the level shows: a city at dusk behind a city level, a
+fortress behind the fortress, a mountain range behind the mountain. What
+stands on the land stands on it: the ground runs on behind far buildings,
+and houses and castles reach down to the lowest ground under them.
 
 Usage:
     python3 tools/make_keen3_backgrounds.py [OUT_DIR]
@@ -15,285 +17,12 @@ Usage:
 Needs Pillow and NumPy. The same picture comes out every time (fixed seeds).
 """
 
-import math
 import os
 import sys
 
 import numpy as np
-from PIL import Image
 
-# One picture pixel becomes this many screen pixels: 216 rows become 1080,
-# about the size of a game pixel on a 1080-pixel screen (200 rows).
-PIXEL = 5
-HEIGHT = 216
-# Narrow pictures are 16:9; wide ones twice as wide, for levels much wider
-# than the view, so the picture glides further.
-NARROW = 384
-WIDE = 768
-# The 4x4 ordered dither that blends two bands of a gradient, as an old
-# palette picture would.
-BAYER = (
-    np.array([[0, 8, 2, 10], [12, 4, 14, 6], [3, 11, 1, 9], [15, 7, 13, 5]], dtype=float)
-    + 0.5
-) / 16.0
-
-
-def rgb(hex_color):
-    """A colour written as 0xRRGGBB, as floats 0-255."""
-    return np.array(
-        [(hex_color >> 16) & 0xFF, (hex_color >> 8) & 0xFF, hex_color & 0xFF], dtype=float
-    )
-
-
-def mix(a, b, t):
-    return a + (b - a) * t
-
-
-class Canvas:
-    """A small picture being painted, with the helpers every scene uses."""
-
-    def __init__(self, width, seed):
-        self.w = width
-        self.h = HEIGHT
-        self.px = np.zeros((self.h, self.w, 3), dtype=float)
-        self.rng = np.random.default_rng(seed)
-        self.sky_bottom = None
-
-    # The sky ---------------------------------------------------------------
-
-    def sky(self, stops, bands=14):
-        """A vertical gradient through (position 0-1, colour) stops, cut into
-        bands that are dithered into each other."""
-        rows = np.linspace(0.0, 1.0, self.h)
-        colours = np.array([self._gradient(stops, t) for t in rows])
-        ys, xs = np.mgrid[0 : self.h, 0 : self.w]
-        level = rows[ys] * bands + BAYER[ys % 4, xs % 4] - 0.5
-        band = np.clip(np.floor(level), 0, bands - 1) / (bands - 1)
-        row = np.clip(np.round(band * (self.h - 1)).astype(int), 0, self.h - 1)
-        self.px = colours[row]
-        self.sky_bottom = colours[-1]
-
-    @staticmethod
-    def _gradient(stops, t):
-        for (p0, c0), (p1, c1) in zip(stops, stops[1:]):
-            if t <= p1:
-                return mix(rgb(c0), rgb(c1), (t - p0) / max(p1 - p0, 1e-6))
-        return rgb(stops[-1][1])
-
-    def stars(self, count, top, bottom, colour=0xFFFFFF, bright=0.12):
-        """Scattered stars, a few of them bright crosses."""
-        for _ in range(count):
-            x = int(self.rng.integers(0, self.w))
-            y = int(self.rng.integers(int(top * self.h), int(bottom * self.h)))
-            dim = 0.45 + 0.55 * self.rng.random()
-            self._dot(x, y, mix(self.px[y, x], rgb(colour), dim))
-            if self.rng.random() < bright:
-                for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)):
-                    self._dot(x + dx, y + dy, mix(self.px[y, x], rgb(colour), 0.5))
-
-    def disc(self, cx, cy, r, colour, glow=None, glow_size=0.0, shade=None):
-        """A sun, moon or planet: a round disc, optionally with banded rings
-        of glow around it and a darker crescent on one side."""
-        ys, xs = np.mgrid[0 : self.h, 0 : self.w]
-        d = np.hypot(xs - cx, ys - cy)
-        if glow is not None and glow_size > 0:
-            for step in range(4, 0, -1):
-                ring = d < r + glow_size * step / 4
-                self.px[ring] = mix(self.px[ring], rgb(glow), 0.16)
-        inside = d < r
-        self.px[inside] = rgb(colour)
-        if shade is not None:
-            off = np.hypot(xs - (cx + r * 0.45), ys - (cy - r * 0.3)) < r
-            self.px[inside & ~off] = rgb(shade)
-
-    def craters(self, cx, cy, r, colour, count):
-        for _ in range(count):
-            a = self.rng.random() * math.tau
-            dist = self.rng.random() * r * 0.6
-            cr = max(1.0, r * (0.12 + 0.12 * self.rng.random()))
-            self._blob(cx + math.cos(a) * dist, cy + math.sin(a) * dist, cr, colour)
-
-    def ring(self, cx, cy, r, colour, tilt=0.28):
-        """A flat ring around a planet (the part in front of it)."""
-        for x in range(int(cx - r * 2.1), int(cx + r * 2.1) + 1):
-            for width in (1.0, 1.7):
-                y = cy + (x - cx) * tilt * 0.3
-                outer = (x - cx) ** 2 / (r * 2.0 * width / 1.7) ** 2
-                if outer <= 1.0:
-                    yy = int(round(y + math.sqrt(1 - outer) * r * 0.35))
-                    if abs(x - cx) > r * 0.95 or yy > cy:
-                        self._dot(x, yy, rgb(colour))
-
-    def clouds(self, count, top, bottom, colour, shadow, size=(10, 26)):
-        """Puffy clouds with a flat bottom and a darker underside."""
-        for _ in range(count):
-            cx = self.rng.integers(0, self.w)
-            cy = int(self.rng.integers(int(top * self.h), int(bottom * self.h)))
-            width = int(self.rng.integers(size[0], size[1]))
-            puffs = [(cx + dx, cy - (width / 2 - abs(dx)) * 0.2, width * 0.3 - abs(dx) * 0.15)
-                     for dx in range(-width // 2, width // 2 + 1, max(2, width // 5))]
-            for x, y, r in puffs:
-                self._blob(x, y + 1, max(r, 2.5), shadow, flat_below=cy + r * 0.45 + 1)
-            for x, y, r in puffs:
-                self._blob(x, y - 1, max(r - 1, 2.0), colour, flat_below=cy + r * 0.3)
-
-    # The land --------------------------------------------------------------
-
-    def ridge(self, base, rough, amplitude, seed_shift=0, spires=0, spire_height=0.0):
-        """A skyline of hills or mountains: a height per column (rows from the
-        top), made by midpoint displacement, with optional sharp spires."""
-        size = 1
-        while size < self.w:
-            size *= 2
-        heights = np.zeros(size + 1)
-        rng = np.random.default_rng(int(self.rng.integers(0, 1 << 30)) + seed_shift)
-        heights[0], heights[-1] = rng.normal(0, 0.5, 2)
-        step, scale = size, 1.0
-        while step > 1:
-            half = step // 2
-            for i in range(half, size, step):
-                heights[i] = (heights[i - half] + heights[i + half]) / 2 + rng.normal(0, scale)
-            step, scale = half, scale * rough
-        heights = heights[: self.w]
-        heights = (heights - heights.mean()) / (heights.std() + 1e-6)
-        line = base * self.h - heights * amplitude * self.h
-        for _ in range(spires):
-            x = int(rng.integers(0, self.w))
-            half = int(rng.integers(3, 9))
-            tall = spire_height * self.h * (0.5 + 0.5 * rng.random())
-            for dx in range(-half, half + 1):
-                if 0 <= x + dx < self.w:
-                    line[x + dx] = min(line[x + dx], line[x] - tall * (1 - abs(dx) / (half + 1)) ** 1.6)
-        return line
-
-    def peaks(self, base, count, height, slope, jitter=0.6):
-        """A mountain range of separate pointed peaks with rough sides."""
-        x = np.arange(self.w, dtype=float)
-        line = np.full(self.w, base * self.h)
-        for i in range(count):
-            px = (i + 0.5 + (self.rng.random() - 0.5) * jitter) * self.w / count
-            tall = height * self.h * (0.55 + 0.45 * self.rng.random())
-            line = np.minimum(line, base * self.h - tall + np.abs(x - px) * slope)
-        return line + self.rng.normal(0, 0.6, self.w).cumsum() % 2
-
-    def hills(self, base, amplitude, waves, phase=0.0):
-        """Gentle rolling hills from a few sine waves."""
-        x = np.arange(self.w)
-        line = np.full(self.w, base * self.h)
-        for i, (length, height) in enumerate(waves):
-            line -= np.sin(x / length + phase + i * 1.7) * height * amplitude * self.h
-        return line
-
-    def fill_below(self, line, colour, rim=None, dark=None):
-        """Paints everything below a skyline, with a lit rim on top and a
-        dithered darkening towards the bottom."""
-        ys, xs = np.mgrid[0 : self.h, 0 : self.w]
-        top = np.round(line).astype(int)
-        below = ys >= top[xs]
-        self.px[below] = rgb(colour)
-        if dark is not None:
-            depth = np.clip((ys - top[xs]) / (self.h * 0.35), 0, 1)
-            darker = below & (depth + BAYER[ys % 4, xs % 4] * 0.35 > 0.7)
-            self.px[darker] = rgb(dark)
-        if rim is not None:
-            edge = ys == top[xs]
-            self.px[edge] = rgb(rim)
-
-    def haze(self, colour, top, bottom, strength):
-        """Air between the viewer and the far land: lighter towards the
-        horizon, dithered."""
-        ys, xs = np.mgrid[0 : self.h, 0 : self.w]
-        t = np.clip((ys / self.h - top) / max(bottom - top, 1e-6), 0, 1) * strength
-        hit = t > BAYER[ys % 4, xs % 4] + 0.25
-        self.px[hit] = mix(self.px[hit], rgb(colour), 0.35)
-
-    # Things on the land ----------------------------------------------------
-
-    def skyline(self, base, colour, window, lit=0.35, heights=(0.08, 0.3), domes=True):
-        """A row of buildings standing on a base line, with lit windows,
-        antennas and round roofs."""
-        x = 0
-        top = base * self.h
-        while x < self.w:
-            width = int(self.rng.integers(8, 22))
-            tall = self.h * (heights[0] + (heights[1] - heights[0]) * self.rng.random())
-            roof = int(top - tall)
-            self._rect(x, roof, width, int(top) - roof + 1, colour)
-            if domes and self.rng.random() < 0.3:
-                self._blob(x + width / 2, roof, width / 2.2, colour, flat_below=roof)
-            elif self.rng.random() < 0.35:
-                mast = int(self.rng.integers(4, 12))
-                self._rect(x + width // 2, roof - mast, 1, mast, colour)
-                self._dot(x + width // 2, roof - mast - 1, rgb(window))
-            for wy in range(roof + 3, int(top) - 2, 4):
-                for wx in range(x + 2, x + width - 2, 3):
-                    if self.rng.random() < lit:
-                        self._rect(wx, wy, 1, 2, window)
-            x += width + int(self.rng.integers(0, 4))
-
-    def trees(self, line, count, trunk, leaves, light, size=(5, 12)):
-        """Round-topped trees standing on a skyline."""
-        for _ in range(count):
-            x = int(self.rng.integers(0, self.w))
-            r = float(self.rng.integers(size[0], size[1]))
-            ground = int(line[min(max(x, 0), self.w - 1)])
-            stem = int(r * (1.2 + self.rng.random()))
-            self._rect(x - 1, ground - stem, 2, stem + 1, trunk)
-            self._blob(x, ground - stem - r * 0.6, r, leaves)
-            self._blob(x - r * 0.3, ground - stem - r * 0.9, r * 0.45, light)
-
-    def castles(self, base, colour, window, count):
-        """Castles with towers, battlements and pointed roofs."""
-        top = int(base * self.h)
-        spacing = self.w / count
-        for i in range(count):
-            cx = int(spacing * (i + 0.5) + self.rng.integers(-15, 15))
-            wall_w = int(self.rng.integers(30, 50))
-            wall_h = int(self.rng.integers(14, 22))
-            self._rect(cx - wall_w // 2, top - wall_h, wall_w, wall_h + 1, colour)
-            for bx in range(cx - wall_w // 2, cx + wall_w // 2, 4):
-                self._rect(bx, top - wall_h - 2, 2, 2, colour)
-            for tx in (cx - wall_w // 2, cx + wall_w // 2 - 7, cx - 4):
-                tower_h = wall_h + int(self.rng.integers(10, 24))
-                self._rect(tx, top - tower_h, 8, tower_h + 1, colour)
-                for k in range(6):
-                    self._rect(tx + 4 - k, top - tower_h - 8 + k, 1 + 2 * k, 1, colour)
-                self._rect(tx + 3, top - tower_h - 13, 1, 5, colour)
-                self._rect(tx + 4, top - tower_h - 13, 3, 2, window)
-                self._rect(tx + 3, top - tower_h + 5, 2, 3, window)
-            self._rect(cx - 3, top - 7, 6, 8, window)
-
-    def birds(self, count, top, bottom, colour):
-        for _ in range(count):
-            x = int(self.rng.integers(0, self.w))
-            y = int(self.rng.integers(int(top * self.h), int(bottom * self.h)))
-            for dx, dy in ((-2, -1), (-1, 0), (1, 0), (2, -1)):
-                self._dot(x + dx, y + dy, rgb(colour))
-
-    # Pixels ----------------------------------------------------------------
-
-    def _dot(self, x, y, colour):
-        if 0 <= x < self.w and 0 <= y < self.h:
-            self.px[int(y), int(x)] = colour
-
-    def _rect(self, x, y, w, h, colour):
-        x0, y0 = max(int(x), 0), max(int(y), 0)
-        x1, y1 = min(int(x + w), self.w), min(int(y + h), self.h)
-        if x0 < x1 and y0 < y1:
-            self.px[y0:y1, x0:x1] = rgb(colour)
-
-    def _blob(self, cx, cy, r, colour, flat_below=None):
-        ys, xs = np.mgrid[0 : self.h, 0 : self.w]
-        inside = np.hypot(xs - cx, (ys - cy) * 1.15) < r
-        if flat_below is not None:
-            inside &= ys <= flat_below
-        self.px[inside] = rgb(colour)
-
-    def save(self, path):
-        small = Image.fromarray(np.clip(self.px, 0, 255).astype(np.uint8), "RGB")
-        big = small.resize((self.w * PIXEL, self.h * PIXEL), Image.NEAREST)
-        big.save(path, "WEBP", lossless=True, quality=100, method=6)
-
+from keen3_canvas import BAYER, NARROW, WIDE, Canvas, rgb
 
 # The scenes, one per level ---------------------------------------------------
 
@@ -310,7 +39,7 @@ def level01(c):
     near = c.hills(0.76, 1.0, [(37, 0.02), (13, 0.006)])
     c.fill_below(near, 0x3E2058, rim=0x6E3A7A, dark=0x2C1440)
     for x in (60, 170, 260, 350, 480, 610, 700):
-        y = int(near[x])
+        y = c.footing(near, x - 6, 13)
         c._blob(x, y, 6, 0x6E3A7A, flat_below=y)
         c._rect(x, y - 9, 1, 4, 0x6E3A7A)
 
@@ -323,6 +52,7 @@ def level02(c):
     c.disc(c.w * 0.22, c.h * 0.22, 18, 0xF2E6D0, glow=0x9A70B0, glow_size=18, shade=0xC8B8A8)
     c.craters(c.w * 0.22 + 4, c.h * 0.22 - 3, 18, 0xD8CBB8, 5)
     c.skyline(0.74, 0x5A2E6E, 0xE0A0C0, lit=0.15, heights=(0.12, 0.34))
+    c.plain(0.74, 0x5A2E6E)
     c.haze(0xC0507A, 0.4, 0.74, 0.6)
     c.skyline(0.8, 0x2A1238, 0xFFD27A, lit=0.4, heights=(0.06, 0.2))
     c._rect(0, int(0.8 * c.h), c.w, c.h, 0x2A1238)
@@ -349,6 +79,7 @@ def level04(c):
     c.craters(c.w * 0.82, c.h * 0.18, 9, 0x4CB050, 4)
     c.clouds(16, 0.08, 0.5, 0xFFFFFF, 0xC8DCF0)
     c.skyline(0.74, 0x8C9CC8, 0xB8C8E8, lit=0.0, heights=(0.06, 0.24))
+    c.plain(0.74, 0xA088C0, rim=0xB8A0D0)
     c.haze(0xD8F4F0, 0.5, 0.74, 0.8)
     near = c.hills(0.8, 1.0, [(41, 0.015), (17, 0.006)])
     c.fill_below(near, 0x8A4AA0, rim=0xB070C0, dark=0x6A3088)
@@ -361,6 +92,7 @@ def level05(c):
     c.disc(c.w * 0.4, c.h * 0.6, 20, 0xFFF4C0, glow=0xFFC870, glow_size=30)
     c.clouds(7, 0.1, 0.35, 0xFFD0A0, 0xE08A80, size=(14, 34))
     c.skyline(0.7, 0xA0507A, 0xFFE0A0, lit=0.1, heights=(0.1, 0.26), domes=False)
+    c.plain(0.7, 0x7A4A80, rim=0x9A5A88)
     c.haze(0xF8A050, 0.45, 0.7, 0.7)
     near = c.hills(0.78, 1.0, [(53, 0.02), (19, 0.007)])
     c.fill_below(near, 0x40306A, rim=0x6A4A8A, dark=0x2C2050)
@@ -378,7 +110,7 @@ def level06(c):
     near = c.hills(0.78, 1.0, [(43, 0.02), (11, 0.004)])
     c.fill_below(near, 0x1E3240, rim=0x36505A, dark=0x14222C)
     for x in range(20, c.w, 64):
-        y = int(near[x])
+        y = c.footing(near, x, 15)
         c._rect(x, y - 12, 15, 13, 0x1E3240)
         for k in range(9):
             c._rect(x + 7 - k, y - 21 + k, 1 + 2 * k, 1, 0x1E3240)
@@ -399,7 +131,7 @@ def level07(c):
     near = c.ridge(0.78, 0.5, 0.04)
     c.fill_below(near, 0x16060C, rim=0x3A1220)
     fx = int(c.w * 0.62)
-    fy = int(near[fx])
+    fy = c.footing(near, fx - 38, 77)
     c._rect(fx - 32, fy - 40, 64, 41, 0x16060C)
     for tx in (fx - 38, fx + 26, fx - 6):
         c._rect(tx, fy - 58, 13, 59, 0x16060C)
@@ -423,6 +155,108 @@ def level08(c):
     c.haze(0xF08C4E, 0.55, 0.7, 0.6)
     near = c.hills(0.74, 1.0, [(90, 0.035), (23, 0.007)])
     c.fill_below(near, 0x26553A, rim=0x3E7A4E, dark=0x1A3E2A)
+
+
+def level09(c):
+    """The tree, the sign and the waterfall over the deep base: a misty green
+    morning in a valley of flat-topped cliffs, with thin waterfalls falling
+    from them into a still lake and fir trees on the near shore."""
+    c.sky([(0, 0x163C44), (0.45, 0x3E7A68), (0.75, 0xA8C47C), (1, 0xEEE0A4)])
+    c.disc(c.w * 0.24, c.h * 0.17, 7, 0xF4F2DC, shade=0xC8CCB0)
+    c.clouds(6, 0.08, 0.32, 0xE4EED0, 0x9CB894, size=(16, 36))
+    c.birds(6, 0.14, 0.34, 0x22403A)
+    cliffs = c.plateaus(0.66, 4, 0.36)
+    c.fill_below(cliffs, 0x4A7062, rim=0x78A08A)
+    _waterfalls(c, cliffs, 0.66)
+    c.haze(0xEEE0A4, 0.45, 0.66, 0.7)
+    _lake(c, 0.66, 0.76)
+    shore = c.hills(0.8, 1.0, [(31, 0.012), (11, 0.004)])
+    c.fill_below(shore, 0x1C3A30, rim=0x2C5444, dark=0x12281F)
+    c.pines(shore, 46, 0x16302A, size=(10, 22))
+
+
+# Picture pixels between two waterfalls at least: one per cliff.
+FALLS_APART = 24
+
+
+def _waterfalls(c, cliffs, lake):
+    """Thin white falls over the right edge of each cliff's flat top, down
+    into the lake."""
+    bottom = int(lake * c.h)
+    flat = np.abs(np.diff(cliffs, prepend=cliffs[0])) < 2
+    edges = [x for x in range(1, c.w - 4) if flat[x] and cliffs[x + 4] - cliffs[x] > 6]
+    falls = []
+    for x in edges:
+        if not falls or x - falls[-1] > FALLS_APART:
+            falls.append(x)
+    for x in falls:
+        top = int(round(cliffs[x]))
+        for y in range(top, bottom):
+            shade = 0xE8F6F2 if (y + x) % 3 else 0xA8D4D8
+            c._rect(x - 1, y, 2, 1, shade)
+        c._rect(x - 3, bottom - 1, 6, 1, 0xE8F6F2)
+
+
+def _lake(c, top, bottom):
+    """A still lake between the cliffs and the shore, with light streaks."""
+    # On down to the bottom: the shore in front covers the rest.
+    c._rect(0, int(top * c.h), c.w, c.h, 0x5A9A92)
+    for _ in range(70):
+        x = int(c.rng.integers(0, c.w))
+        y = int(c.rng.integers(int(top * c.h) + 1, int(bottom * c.h)))
+        c._rect(x, y, int(c.rng.integers(3, 10)), 1, 0xB8DCC4)
+
+
+def level10(c):
+    """The field over the base with the rocket: a hot, hazy afternoon on an
+    olive plain, a rocket waiting on its launch tower far away, radar
+    dishes and flat-crowned trees."""
+    c.sky([(0, 0x0C5470), (0.5, 0x36A0AC), (0.8, 0xC4E0A0), (1, 0xF6F0B0)])
+    c.disc(c.w * 0.18, c.h * 0.16, 9, 0xFFFDE8, glow=0xF0F8C8, glow_size=16)
+    c.clouds(5, 0.1, 0.36, 0xF4FAF0, 0xB0D4C8, size=(18, 40))
+    plain = c.hills(0.7, 1.0, [(43, 0.006)])
+    c.fill_below(plain, 0xA8A868, rim=0xC0C080)
+    tower = int(c.w * 0.64)
+    _launch_tower(c, tower, c.footing(plain, tower - 4, 24) - 2)
+    for x in (int(c.w * 0.3), int(c.w * 0.86)):
+        _radar(c, x, c.footing(plain, x, 2))
+    c.haze(0xF6F0B0, 0.5, 0.7, 0.7)
+    near = c.hills(0.8, 1.0, [(59, 0.015), (17, 0.005)])
+    c.fill_below(near, 0x6A7A34, rim=0x8C9A48, dark=0x4C5A24)
+    for x in (24, 98, 150, 236, 300, 352):
+        _flat_tree(c, near, x)
+
+
+def _launch_tower(c, x, ground):
+    """A rocket on its launch tower: girders, a white body, a red nose and
+    fins."""
+    c.lattice(x, ground - 62, 5, ground, 0x6A6A5A)
+    c._rect(x + 5, ground - 50, 4, 1, 0x6A6A5A)
+    body = x + 9
+    c._rect(body, ground - 52, 6, 46, 0xF0F0E8)
+    c._rect(body + 4, ground - 52, 2, 46, 0xC8C8C0)
+    for k in range(7):
+        c._rect(body + 3 - k // 2, ground - 59 + k, 1 + (k // 2) * 2, 1, 0xC83C30)
+    c._rect(body - 3, ground - 10, 3, 10, 0xC83C30)
+    c._rect(body + 6, ground - 10, 3, 10, 0xC83C30)
+    c._rect(x - 4, ground, 24, 2, 0x6A6A5A)
+
+
+def _radar(c, x, ground):
+    """A radar dish on a short stand, looking up at the sky."""
+    c._rect(x, ground - 6, 2, 7, 0x7A7A68)
+    for k in range(5):
+        c._rect(x - 6 + k, ground - 12 + k, 14 - 2 * k, 1, 0xE0E0D0 if k else 0xFFFFF0)
+    c._rect(x, ground - 15, 1, 4, 0x7A7A68)
+
+
+def _flat_tree(c, line, x):
+    """A tree of the plains: a thin trunk and a wide, flat crown."""
+    ground = c.footing(line, x - 1, 3)
+    c._rect(x - 1, ground - 16, 2, 17, 0x3A3018)
+    c._rect(x - 12, ground - 20, 24, 4, 0x3E5A20)
+    c._rect(x - 9, ground - 23, 18, 3, 0x4E6A28)
+    c._rect(x - 9, ground - 23, 10, 1, 0x6A8A38)
 
 
 def level11(c):
@@ -454,15 +288,77 @@ def level13(c):
 
 
 def level14(c):
-    """The row of castles: castles on the horizon in a sunset, with banners."""
-    c.sky([(0, 0x1E1E5A), (0.45, 0x6A3A8A), (0.72, 0xE0704A), (1, 0xF8B060)])
-    c.stars(40, 0.0, 0.3)
-    c.disc(c.w * 0.5, c.h * 0.7, 18, 0xFFE0A0, glow=0xF89050, glow_size=30)
-    far = c.hills(0.72, 1.0, [(71, 0.02)])
-    c.fill_below(far, 0x5A2E5A, rim=0x8A4A70)
-    c.castles(0.73, 0x3A1E40, 0xFFC060, 5)
-    near = c.hills(0.82, 1.0, [(37, 0.012)])
-    c.fill_below(near, 0x22122A, rim=0x3A2040)
+    """The prison camp by the sea, with its barbed wire and towers: a clear
+    winter night with an aurora over a dark, frozen sea, ice floes, a
+    ringed planet low in the sky and a watchtower whose searchlight sweeps
+    the sky."""
+    c.sky([(0, 0x040714), (0.5, 0x0A1A30), (0.8, 0x123048), (1, 0x1E4858)])
+    c.stars(170, 0.0, 0.7)
+    c.curtains(0.4, 0.3, [(71, 0.08), (23, 0.03), (9, 0.008)], 0x58F8A8, 0x8848C0)
+    c.curtains(0.56, 0.12, [(41, 0.03), (13, 0.01)], 0x38B0A0, 0x3C3C90, strength=0.45)
+    c.disc(c.w * 0.83, c.h * 0.22, 11, 0xC8A8D8, shade=0x8C6CA8)
+    c.ring(c.w * 0.83, c.h * 0.22, 11, 0xE8D8F0)
+    horizon = 0.72
+    _icebergs(c, horizon)
+    c.plain(horizon, 0x0C2232)
+    _ice_floes(c, horizon)
+    _watchtower(c, int(c.w * 0.38), horizon)
+    shore = c.ridge(0.88, 0.5, 0.02)
+    c.fill_below(shore, 0x081420, rim=0x142838)
+
+
+def _icebergs(c, horizon):
+    """Icebergs on the horizon, some flat-topped, some pointed, lit from the
+    left and in shadow on the right."""
+    x = np.arange(c.w, dtype=float)
+    line = np.full(c.w, horizon * c.h)
+    for _ in range(8):
+        centre = c.rng.random() * c.w
+        half = 6 + c.rng.random() * 22
+        tall = 4 + c.rng.random() * 16
+        slope = 0.8 + c.rng.random() * 2.5
+        shape = np.minimum(tall, (half - np.abs(x - centre)) * slope)
+        line = np.minimum(line, horizon * c.h - np.clip(shape, 0, None))
+    c.fill_below(line, 0xB8D4E4, rim=0xEEF8FF)
+    ys, xs = np.mgrid[0 : c.h, 0 : c.w]
+    falling = np.gradient(line) > 0.3
+    shade = falling[xs] & (ys > line[xs]) & (ys < horizon * c.h)
+    c.px[shade] = rgb(0x7896B0)
+
+
+def _ice_floes(c, horizon):
+    """Flat floes on the sea, small and close together far away, larger
+    near; and the aurora's light on the water."""
+    top = int(horizon * c.h) + 2
+    for _ in range(40):
+        y = int(c.rng.integers(top, int(0.9 * c.h)))
+        near = (y - top) / (0.9 * c.h - top)
+        width = int(4 + near * 26 * c.rng.random())
+        x = int(c.rng.integers(0, c.w))
+        c._rect(x, y, width, 1 + int(near * 2), 0xA8C4D4)
+        c._rect(x + 1, y, max(width - 2, 1), 1, 0xE0F0F8)
+    for _ in range(90):
+        y = int(c.rng.integers(top, int(0.86 * c.h)))
+        x = int(c.rng.integers(0, c.w))
+        c._rect(x, y, int(c.rng.integers(2, 7)), 1, 0x2E7A6A)
+
+
+def _watchtower(c, x, horizon):
+    """A tall watchtower on a rock in the sea, its searchlight beam slanting
+    up into the sky."""
+    ground = int(horizon * c.h) + 8
+    c.lattice(x, ground - 64, 9, ground, 0x5A7088)
+    # The rock in front of the tower's feet, so that it stands in it.
+    c._blob(x + 4, ground, 13, 0x1A2A38, flat_below=ground + 4)
+    c._rect(x - 4, ground - 74, 17, 10, 0x4A6078)
+    c._rect(x - 2, ground - 71, 13, 4, 0xF0E090)
+    c._rect(x - 6, ground - 77, 21, 3, 0x5A7088)
+    c._rect(x + 3, ground - 81, 3, 4, 0x5A7088)
+    ys, xs = np.mgrid[0 : c.h, 0 : c.w]
+    dx, dy = xs - (x + 4), (ground - 70) - ys
+    beam = (dy > 0) & (dx < 0) & (np.abs(dy * 1.6 + dx) < -dx * 0.12 + 1)
+    lit = beam & (BAYER[ys % 4, xs % 4] < 0.5 - np.clip(-dx / (c.w * 0.5), 0, 0.45))
+    c.px[lit] = (c.px[lit] + rgb(0xF0E8B0)) / 2
 
 
 def level15(c):
@@ -499,6 +395,8 @@ SCENES = {
     6: (level06, WIDE),
     7: (level07, WIDE),
     8: (level08, WIDE),
+    9: (level09, NARROW),
+    10: (level10, NARROW),
     11: (level11, NARROW),
     13: (level13, NARROW),
     14: (level14, WIDE),

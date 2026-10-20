@@ -426,8 +426,18 @@ tiles). What happens when Keen and a carrier overlap:
 | Where Keen is | Then |
 |---|---|
 | His feet at most 8 px below its top, not rising | put on top (lifted, through the tiles) |
+| His feet below its top while he rises, but no further than it rose this tick | put on top as well: it rose into him just after he jumped (he only starts to move the tick after the jump) or a ball rises faster than him; he keeps his place sideways (fix after C11) |
 | His head at most 12 px above its bottom, while he rises or it comes down | pushed down (through the tiles); his jump ends: he rises no faster than it (*estimate* of the 12 px) |
 | Otherwise | pushed out sideways, to the nearer side (through the tiles) |
+
+**Jumping off** (jump or pogo, fix after C11): Keen leaves from the spot
+where he stands, as in Keen 1 and 2. While he stands (also crouching or on
+the compressed pogo) the carrier carries him; once he is in the air it
+never moves him sideways, also not when it rises after him or he lands back
+on it. Before the fix a lift going up (or a ball) overlapped his feet in
+the tick he jumped, and as he was rising that counted as "otherwise": he
+was thrown to the nearer end of it (`tests/test_keen3_lift_jump.gd`). Only
+a Keen who really walks or flies into a carrier's side is pushed out.
 
 Every push goes through the tiles, so Keen is never put inside a wall.
 **When the tiles hold him, the carrier passes him** and nothing else
@@ -662,31 +672,50 @@ SLAMSND, YORPBUMPSND, YORPBOPSND, GARGSCREAM, KEENCICLE and HISCORESND
   Keen 2 (the user's decision of 17-10-2026).
 - **Pictures behind the levels** (widescreen, the "Backgrounds" option,
   on by default; never in 4:3): Keen 3's own pictures in
-  `assets/backgrounds/keen3/` (twelve pictures painted by
+  `assets/backgrounds/keen3/` (fourteen pictures painted by
   `tools/make_keen3_backgrounds.py`, one per level with sky; nothing in
   them comes from the game files), or the player's in
   `game_data/keen3/backgrounds/` (next to the game files; in the builds
   `build/game_data/keen3/backgrounds/`), which win. Keen 1's and Keen 2's
-  pictures are never used. A picture takes the place of the level's plain
-  background, and of that colour around everything drawn on it
-  (`docs/graphics.md`). **Rule (`Keen3BackdropPictures`): a level gets
-  its picture only when its plain background is the sky** (tile 143,
-  light cyan). The other plain background of Keen 3 is the dark gray
-  inside the bases and caves (tile 195); its colour is also in the cave
-  rock and the patterned walls, so a picture would shine through the
-  rock as well (11-61% of all it would show, levels 9, 10, 12, 16). The
-  sky's colour only sits around clouds, trees, signs, grass and the items
-  in the sky (1-13% of all the picture shows), and an item picked up in
-  the sky leaves tile 143 (the first of its row), so the picture shows
-  there too. Keen 2's rule
-  (the plain background must be the most used tile) would give level 10
-  its picture behind the walls of its base (its sky is the smaller part)
-  and none to levels 8, 11, 13 and 15, whose sky lies beside a building
-  or above a cave.
-  - **Levels with a picture in version 1.00:** 1, 2, 3, 4, 5, 6, 7, 8, 11,
-    13, 14 and 15. Not: 9, 10, 12 (dark gray inside) and 16 (Mortimer's
-    machine). The world map, the ending's map 81 and the title's map 90
+  pictures are never used. **Rule (`Keen3BackdropPictures`): a level
+  gets its picture when it has sky (tile 143, light cyan), and the
+  picture only ever takes the place of the sky** and of the sky's colour
+  around everything drawn on it (`docs/graphics.md`;
+  `Keen3BackdropPictures.backdrop_color`, which `Keen3SceneScreen` uses
+  for the tiles instead of the shared screen's plain background). The
+  other plain background of Keen 3 is the dark gray inside the bases and
+  caves (tile 195); its colour is also in the cave rock and the patterned
+  walls, so a picture would shine through the rock as well (11-61% of all
+  it would show, levels 9, 10, 12, 16): it never lets a picture through.
+  The sky's colour only sits around clouds, trees, signs, grass and the
+  items in the sky (1-13% of all the picture shows; 11% in levels 9 and
+  10), and an item picked up in the sky leaves tile 143 (the first of its
+  row), so the picture shows there too. Keen 2's rule (the plain
+  background must be the most used tile) would give levels 9 and 10 their
+  picture behind the walls of their base and none to levels 8, 11, 13 and
+  15, whose sky lies beside a building or above a cave.
+  - **Levels with a picture in version 1.00:** 1-11, 13, 14 and 15. In
+    levels 9 and 10 the base's dark gray is used more than the sky (882
+    and 538 cells against 713 and 422), so until the fix after C11 they
+    had none (C9's rule was "the plain background is the sky"); now their
+    picture shows through the sky above the base (level 9: the top 17 rows
+    with the tree, the sign and the waterfall; level 10: the field with the
+    sign and Keen's tree) and never in the base. Not: 12 and 16 (no sky
+    at all). The world map, the ending's map 81 and the title's map 90
     never have one.
+  - **The pictures** (fix after C11): what stands on the land stands on
+    it. Levels 4 and 5: the far city stands on a plain that runs on to
+    the hills in front (a light band under the buildings made it float);
+    level 2: the far city goes on down behind the near one; levels 1, 6
+    and 7: the domes, the houses and the fortress reach down to the
+    lowest ground under them (`Canvas.footing`). Level 14 is new: a
+    winter night with an aurora over a frozen sea, icebergs, a ringed
+    planet and a watchtower with a searchlight, for the prison camp by
+    the water. New for levels 9 (a misty green morning in a valley of
+    flat-topped cliffs with waterfalls into a lake) and 10 (a hot
+    afternoon on an olive plain with a rocket on its launch tower and
+    radar dishes, for the base under the field). The others (3, 8, 11,
+    13, 15) only have land below a skyline and did not change.
   - **Adding a picture:** a file `levelNN.png` (or `.webp`, `.jpg`), NN
     the level number with two digits (`level01.png` ... `level15.png`), in
     `game_data/keen3/backgrounds/` to try it without building, or in
@@ -701,7 +730,9 @@ SLAMSND, YORPBUMPSND, YORPBOPSND, GARGSCREAM, KEENCICLE and HISCORESND
     is never shown.
   - Checked with a made-up test picture (not committed) in levels 1, 8, 10
     and 15, original and xBRZ, smooth motion on, widescreen and 4:3: shown
-    behind the sky of 1, 8 and 15, not in level 10 and not in 4:3.
+    behind the sky of 1, 8 and 15, not in level 10 and not in 4:3. After
+    C11, with screenshots: levels 9 and 10 show their picture through the
+    sky only, the rooms and walls of the base stay dark gray.
 
 ## Two players (C10)
 
@@ -929,7 +960,8 @@ jump 53 px, pogo 50 px, pogo with the button 105 px (ours 58, 58, 109).
   only behind a level with sky; the map's view blended between ticks but
   not across a teleporter's jump; Keen 3's moving things drawn half way
   between ticks by `ActorLayer`; real files: the sky is light cyan and
-  levels 1-8, 11, 13, 14, 15 qualify).
+  levels 1-8, 11, 13, 14, 15 qualify; after C11 also 9 and 10, with the
+  sky's colour only).
 - C10: `tests/test_keen3_coop.gd` (hand-made levels and maps: player 2 is
   a Keen 3 Keen with his own buttons and his own ankh and halo, which
   leaves with him; one death ends the attempt, his exit completes it; he

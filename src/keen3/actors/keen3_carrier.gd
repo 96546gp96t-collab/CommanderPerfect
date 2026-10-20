@@ -7,7 +7,9 @@ extends Keen2Carrier
 ##
 ## Standing and riding are Keen 2's ([Keen2Carrier], [Keen2RidingCollision]
 ## and the session's riding step). What Keen 3 adds, in [method touch_keen]:
-##   from above   Keen's feet are just below the top: he is put on top
+##   from above   Keen's feet are just below the top: he is put on top;
+##                while he rises (he has just jumped off it), only as far
+##                as it rose into him, so he keeps his place sideways
 ##   from below   his head is just above its bottom while he rises or it
 ##                comes down: he is pushed down and his jump ends
 ##   from aside   otherwise he is pushed out sideways
@@ -30,7 +32,7 @@ const PUSH_TOLERANCE := 0.001
 func touch_keen(session: LevelSession, keen: KeenBody) -> void:
 	var box := keen.hitbox()
 	var own := hitbox()
-	if box.end.y - own.position.y <= CLIMB_REACH and keen.velocity.y >= 0.0:
+	if _is_under_feet(box, own, keen):
 		_put_on_top(session, keen)
 	elif own.end.y - box.position.y <= HEAD_REACH and _closes_in_from_above(keen):
 		_push_under(session, keen)
@@ -53,6 +55,20 @@ func give_way(session: LevelSession, shift: Vector2) -> void:
 ## [param direction] (one axis: -1 or 1). Each kind fills it in.
 func _stopped(_direction: Vector2) -> void:
 	pass
+
+
+## Whether [param own] (its box) is just under the feet of [param keen]
+## (in [param box]): his feet are up to [constant CLIMB_REACH] into its top
+## while he stands or comes down, or, while he goes up, no further than it
+## rose this tick. That is a lift that rises into a Keen who has just
+## jumped off it (he only starts to move the tick after the jump), or a
+## ball rising faster than him: he goes up on it and keeps his place
+## sideways. A rising Keen that runs into its side is pushed out.
+func _is_under_feet(box: Rect2, own: Rect2, keen: KeenBody) -> bool:
+	var depth := box.end.y - own.position.y
+	if keen.velocity.y >= 0.0:
+		return depth <= CLIMB_REACH
+	return depth <= maxf(-last_move.y, 0.0) + LevelCollision.EDGE_TOLERANCE
 
 
 ## Whether Keen, below it, rises into it or it comes down onto him.

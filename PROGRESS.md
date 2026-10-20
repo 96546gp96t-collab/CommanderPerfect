@@ -133,6 +133,43 @@ met Keen vlak voor het hart. Wat gemeten is staat in
   kladkopie via `--data-dir-keen3`), FINALE.CK3 met het balletje, de
   eindtekst; elk naast het frame van het origineel.
 
+### Fix na C11 (20-10): lift, achtergronden, level 10
+
+Drie bugs die de gebruiker vond, op dezelfde branch.
+- [x] **Springen van een lift:** Keen werd naar het eind van de lift
+  gegooid. Oorzaak: Keen gaat pas de tick ná de sprong omhoog, maar een
+  lift die omhoog gaat (of de bal) schoof in die tick al in zijn voeten;
+  omdat hij al "stijgend" was gold dat als een botsing van opzij.
+  `Keen3Carrier` zet een stijgende Keen nu op de lift zolang die alleen in
+  zijn voeten omhoog kwam, zonder hem opzij te schuiven. Nieuwe suite
+  `test_keen3_lift_jump` (beide platforms beide kanten op, de bal; links,
+  midden, rechts; springen, kort springen, pogo; terug landen; tegen de
+  zijkant lopen duwt nog wel). Ook met de echte levels nagelopen (elke
+  lift en bal, 900 sprongen): van 198 naar 13 met een zijstap, en die 13
+  komen niet van het afspringen: een tweede bal of iets anders dat tegen
+  hem aan komt, een bal die echt van opzij komt, of Keen klem tussen een
+  plafond en een bal (1-2 px, was al zo; open punt).
+- [x] **Achtergronden:** levels 4 en 5: de stad staat nu op een vlakte
+  die doorloopt tot de heuvels; level 2: de verre stad loopt door achter
+  de nabije; levels 1, 6 en 7: koepels, huisjes en het fort staan op de
+  laagste grond eronder. Level 14 is helemaal nieuw (noorderlicht boven
+  een bevroren zee, ijsbergen, een planeet met ring, een wachttoren met
+  zoeklicht). De tekenhulp staat nu in `tools/keen3_canvas.py`. 3, 8, 11,
+  13 en 15 zweefden niet en zijn niet veranderd.
+- [x] **Level 10 (en 9) een plaatje:** een level krijgt nu een plaatje
+  als het lucht heeft, en het plaatje komt alleen door de lucht (tile
+  143), nooit door het donkergrijs van een basis (`Keen3SceneScreen`
+  kiest de kleur van de lucht). Level 9 heeft ook lucht boven zijn basis
+  en kreeg er ook een; 12 en 16 hebben geen lucht. Nieuwe plaatjes: level
+  9 een groene ochtend met kliffen en watervallen, level 10 een vlakte met
+  een raket op een lanceertoren. Gecontroleerd met screenshots: de basis
+  blijft grijs.
+- [x] **Tests:** 67 suites, alle slagen, gdlint schoon. In
+  `test_keen3_extras` was de oude verwachting de bug (levels 9 en 10 geen
+  plaatje; de basis met lucht "past niet"); aangepast. Keen 1- en
+  Keen 2-controle tegen `9fa77d0`: alles gelijk; geen gedeelde code
+  veranderd (alleen de testlijst).
+
 ## Mijlpaal C10: wat er nu is
 
 Gebouwd en getest met de echte Keen 3-bestanden van de gebruiker (1.00).

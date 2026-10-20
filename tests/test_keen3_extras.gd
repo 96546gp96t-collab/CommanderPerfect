@@ -1,16 +1,20 @@
 extends "res://tests/test_case.gd"
 ## Tests for milestone C9: the pictures behind Keen 3's levels
 ## ([Keen3BackdropPictures]) come from Keen 3's own folder or the player's,
-## never Keen 1's, and only show behind a level whose plain background is
-## the sky. Smooth motion: the map's view blends between its last two
+## never Keen 1's, and only show behind a level that has sky, through the
+## sky alone (also where a base's dark gray is the plain background, as in
+## levels 9 and 10). Smooth motion: the map's view blends between its last two
 ## corners but not across a jump, and Keen 3's moving things are drawn in
 ## between ticks by the shared [ActorLayer]. With the player's Keen 3 files:
 ## which of the real levels have sky.
 
 const Fixtures := preload("res://tests/keen3_fixtures.gd")
 const TEST_DIRECTORY := "user://test_keen3_extras"
-## The levels of version 1.00 whose plain background is the sky.
-const SKY_LEVELS: PackedInt32Array = [1, 2, 3, 4, 5, 6, 7, 8, 11, 13, 14, 15]
+## The levels of version 1.00 that have sky (in 9 and 10 the dark gray of
+## the base is the plain background).
+const SKY_LEVELS: PackedInt32Array = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 13, 14, 15]
+## Levels 9 and 10: sky over a base.
+const BASE_LEVELS: PackedInt32Array = [9, 10]
 const SKY := Keen3BackdropPictures.SKY_TILE
 ## The EGA color of Keen 3's sky.
 const LIGHT_CYAN := 11
@@ -59,15 +63,21 @@ func test_a_level_whose_plain_background_is_the_sky_suits_a_picture() -> void:
 	assert_true(Keen3BackdropPictures.suits(building, properties, tiles), "sky beside it")
 
 
-func test_a_level_whose_plain_background_is_inside_a_base_does_not() -> void:
+func test_sky_over_a_base_suits_a_picture_but_a_cave_without_sky_does_not() -> void:
 	var properties := Fixtures.level_properties()
 	var tiles := _tiles()
 	var base := _level(BASE_LEVEL)
 	assert_equal(BackdropPictures.background_tile(base, properties, tiles), INSIDE, "plain")
-	assert_true(not Keen3BackdropPictures.suits(base, properties, tiles), "the base")
-	assert_true(Keen2BackdropPictures.suits(base, properties, tiles), "Keen 2's rule would")
+	assert_true(Keen3BackdropPictures.suits(base, properties, tiles), "the sky over the base")
 	var cave := _level(CAVE_LEVEL)
 	assert_true(not Keen3BackdropPictures.suits(cave, properties, tiles), "no sky")
+
+
+func test_a_picture_only_ever_takes_the_place_of_the_sky() -> void:
+	var tiles := _tiles()
+	var color := Keen3BackdropPictures.backdrop_color(tiles)
+	assert_equal(color, BackdropPictures.color_of(tiles[SKY]), "the sky's color goes")
+	assert_true(color != BackdropPictures.color_of(tiles[INSIDE]), "never the base's gray")
 
 
 func test_keen_3_pictures_come_only_from_keen_3s_folder() -> void:
@@ -77,8 +87,8 @@ func test_keen_3_pictures_come_only_from_keen_3s_folder() -> void:
 	var pictures := Keen3BackdropPictures.for_levels(
 		null, Keen3BackdropPictures.FOLDER_KEEN_3, levels, Fixtures.level_properties(), _tiles()
 	)
-	assert_true(pictures.shows_level(1), "level 1 has sky")
-	assert_true(not pictures.shows_level(2) and not pictures.shows_level(3), "2 and 3 not")
+	assert_true(pictures.shows_level(1) and pictures.shows_level(2), "levels 1 and 2 have sky")
+	assert_true(not pictures.shows_level(3), "level 3 not")
 	var own := pictures.picture(1)
 	var keen_1 := BackdropPictures.create(null).picture(1)
 	assert_true(keen_1 != null, "Keen 1 keeps its picture of level 1")
@@ -86,7 +96,7 @@ func test_keen_3_pictures_come_only_from_keen_3s_folder() -> void:
 		own == null or own.get_size() != keen_1.get_size(),
 		"Keen 1's picture of level 1 is not used"
 	)
-	assert_true(pictures.picture(2) == null, "no picture behind a base level")
+	assert_true(pictures.picture(3) == null, "no picture behind a level without sky")
 
 
 func test_every_level_with_sky_has_its_own_picture() -> void:
@@ -109,7 +119,7 @@ func test_the_players_own_picture_shows_only_behind_a_level_with_sky() -> void:
 		image.save_png(pictures_folder.path_join(file_name))
 	var files := GameFiles.new()
 	files.directory = folder
-	var levels: Dictionary[int, LevelData] = {1: _level(BUILDING_LEVEL), 2: _level(BASE_LEVEL)}
+	var levels: Dictionary[int, LevelData] = {1: _level(BUILDING_LEVEL), 2: _level(CAVE_LEVEL)}
 	var pictures := Keen3BackdropPictures.for_levels(
 		files, Keen3BackdropPictures.FOLDER_KEEN_3, levels, Fixtures.level_properties(), _tiles()
 	)
@@ -117,7 +127,7 @@ func test_the_players_own_picture_shows_only_behind_a_level_with_sky() -> void:
 	assert_true(shown != null, "the player's picture behind level 1")
 	if shown != null:
 		assert_equal(Vector2i(shown.get_size()), PICTURE_SIZE, "its size")
-	assert_true(pictures.picture(2) == null, "none behind the base, file or not")
+	assert_true(pictures.picture(2) == null, "none behind the cave, file or not")
 	_remove_folder(folder)
 
 
@@ -169,7 +179,12 @@ func test_only_the_real_levels_with_sky_suit_a_picture() -> void:
 	for number in range(Keen3Files.FIRST_LEVEL, Keen3Files.LAST_LEVEL + 1):
 		if pictures.shows_level(number):
 			suited.append(number)
-	assert_equal(suited, SKY_LEVELS, "the levels whose plain background is the sky")
+	assert_equal(suited, SKY_LEVELS, "the levels with sky")
+	for number in BASE_LEVELS:
+		var level := LevelData.parse(files.read(files.level_file(number)))
+		var plain := BackdropPictures.background_tile(level, data.properties, tiles)
+		assert_true(plain != SKY, "level %d: the base's gray is its plain background" % number)
+	assert_equal(Keen3BackdropPictures.backdrop_color(tiles), sky_color, "the sky goes")
 
 
 ## A level of [constant LEGEND] characters with Keen 3's border around it.

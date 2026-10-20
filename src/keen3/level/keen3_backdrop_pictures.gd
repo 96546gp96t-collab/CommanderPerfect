@@ -5,30 +5,32 @@ extends BackdropPictures
 ## game_data/keen3/backgrounds), never Keen 1's or Keen 2's, and only for
 ## the levels where they look right.
 ##
-## The picture takes the place of the level's plain background tile
-## ([method BackdropPictures.background_tile]), and of that tile's color
-## around everything drawn on it. Keen 3 has two kinds of plain background:
-##   - the sky (tile 143, light cyan) of the levels outside; its color only
-##     sits around clouds, trees, signs and grass, so a picture shows where
-##     the sky was, also in a level that is mostly a building or a cave
-##     (levels 8, 11, 13 and 15)
-##   - the dark gray inside walls (tile 195) of the bases and caves
-##     (levels 9, 10, 12 and 16); its color is also in the cave rock and the
-##     patterned walls, so a picture would shine through 11-61% of what is
-##     drawn there. Level 10 has some sky above its base, but the base is
-##     larger: its plain background is the dark gray.
-## So a level gets its picture only when its plain background is the sky.
-## Keen 2's rule ([Keen2BackdropPictures]: the plain background must be the
-## most used tile) does not fit Keen 3: it would give level 10 its picture
-## behind the base's walls and none to levels 8, 11, 13 and 15. In version
-## 1.00 the levels with sky are 1-8, 11, 13, 14 and 15.
+## A picture takes the place of the sky (tile 143, light cyan), and of the
+## sky's color around everything drawn on it: [method backdrop_color] is
+## the color the game screen leaves out of the tiles. Keen 3 has two kinds
+## of plain background:
+##   - the sky of the levels outside; its color only sits around clouds,
+##     trees, signs and grass, so a picture shows where the sky was, also
+##     in a level that is mostly a building or a cave (levels 8, 11, 13
+##     and 15) or mostly a base under a field (levels 9 and 10)
+##   - the dark gray inside walls (tile 195) of the bases and caves; its
+##     color is also in the cave rock and the patterned walls, so a picture
+##     would shine through 11-61% of what is drawn there. It never lets a
+##     picture through, not even in a level where it is the plain
+##     background (levels 9 and 10: it is used more than their sky).
+## So a level gets its picture when it has sky, and the picture shows only
+## through the sky. Keen 2's rule ([Keen2BackdropPictures]: the plain
+## background must be the most used tile) does not fit Keen 3: it would
+## give levels 9 and 10 their picture behind the bases' walls and none to
+## levels 8, 11, 13 and 15. In version 1.00 the levels with sky are 1-11,
+## 13, 14 and 15; 12 and 16 have none.
 
 ## Keen 3's own pictures behind the levels (Keen 1's and 2's are never used).
 const FOLDER_KEEN_3 := "res://assets/backgrounds/keen3"
 ## The sky of Keen 3's levels: one light cyan color, nothing to touch.
 const SKY_TILE := 143
 
-## The levels whose plain background is the sky.
+## The levels that have sky.
 var _levels: Dictionary[int, bool] = {}
 
 
@@ -48,7 +50,7 @@ static func for_game(
 
 ## The pictures in [param folder] (and the player's own folder in
 ## [param files]) for the levels in [param levels] (number to [LevelData])
-## whose plain background is the sky.
+## that have sky.
 static func for_levels(
 	files: GameFiles,
 	folder: String,
@@ -65,9 +67,23 @@ static func for_levels(
 	return pictures
 
 
-## Whether [param level]'s plain background is the sky.
-static func suits(level: LevelData, properties: TileProperties, tiles: Array[Image]) -> bool:
-	return background_tile(level, properties, tiles) == SKY_TILE
+## Whether [param level] has sky, so that a picture can show through it.
+## [param properties] and [param tiles] are not needed for that; they are
+## kept so that the rule reads as Keen 2's ([method
+## Keen2BackdropPictures.suits]).
+static func suits(level: LevelData, _properties: TileProperties, _tiles: Array[Image]) -> bool:
+	var area := level.playable_rect()
+	for y in range(area.position.y, area.end.y):
+		for x in range(area.position.x, area.end.x):
+			if level.tile_at(Vector2i(x, y)) == SKY_TILE:
+				return true
+	return false
+
+
+## The color that a picture takes the place of, in every Keen 3 level with
+## a picture: the sky's, never the dark gray of a base.
+static func backdrop_color(tiles: Array[Image]) -> Color:
+	return color_of(tiles[SKY_TILE])
 
 
 ## Whether level [param number] may show a picture.

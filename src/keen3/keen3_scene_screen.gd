@@ -86,7 +86,8 @@ func _set_up_screen() -> void:
 ## Reads the Keen 3 files and gets the drawing ready. Returns the data, or
 ## null (and shows why) when they cannot be read. The pictures behind the
 ## levels are Keen 3's own, for the levels with sky (milestone C9,
-## [Keen3BackdropPictures]); Keen 1's and 2's are never shown.
+## [Keen3BackdropPictures]), and show only through the sky; Keen 1's and
+## 2's are never shown.
 func _load_data() -> Keen3GameData:
 	if files == null:
 		files = Keen3Files.locate()
@@ -116,6 +117,18 @@ func _load_data() -> Keen3GameData:
 	_sounds.load_sounds(data.sounds)
 	_keen_3_sounds.load_sounds(data.sounds)
 	return data
+
+
+## The tiles of the level, without the sky when a picture is behind it.
+## [GameScreen] would leave out the color of the level's plain background,
+## which is the dark gray of a base in levels 9 and 10; a Keen 3 picture
+## only ever shows through the sky ([method
+## Keen3BackdropPictures.backdrop_color]).
+func _level_tile_set() -> TileSet:
+	var color := _backdrop_color
+	if color.a > 0.0:
+		color = Keen3BackdropPictures.backdrop_color(_graphics.tiles)
+	return LevelTileSet.build(_graphics, _textures, color)
 
 
 ## The HUD's pictures of the raygun, the keycards and the ankh: the first

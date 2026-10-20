@@ -687,7 +687,13 @@ on `src/keen2`, `tests/test_keen2_*.gd`, `tests/keen2_fixtures.gd`,
   13 and 15, which have sky beside a building or above a cave, would get
   none. Keen 3's rule is "the plain background is the sky" (tile 143,
   `SKY_TILE`): levels 1-8, 11, 13, 14 and 15 in version 1.00
-  (gameplay.md, "Extras (C9)"). It does not extend `Keen2BackdropPictures`
+  (gameplay.md, "Extras (C9)"). After C11 it became "the level has sky,
+  and the picture shows only through the sky": levels 9 and 10 (sky over
+  a base whose dark gray is the plain background) got theirs too.
+  `Keen3SceneScreen` overrides `GameScreen._level_tile_set` to leave out
+  the sky's colour (`Keen3BackdropPictures.backdrop_color`) where the
+  shared screen would leave out the plain background's; no shared code
+  changed. It does not extend `Keen2BackdropPictures`
   either, because that class's static `for_levels` and `suits` would have
   to be shadowed; the few lines of `shows_level` and `picture` are
   repeated instead.
@@ -697,9 +703,10 @@ on `src/keen2`, `tests/test_keen2_*.gd`, `tests/keen2_fixtures.gd`,
   no `Keen2Darkness` as Keen 2's have.
 - **Our own pictures in `assets/backgrounds/keen3/`** (added after C9 at the
   user's request, 19-10-2026): `tools/make_keen3_backgrounds.py` paints one
-  per level with sky (1-8, 11, 13, 14, 15) from code, in chunky pixels
+  per level with sky (1-11, 13, 14, 15; 9, 10 and a new 14 after C11; its
+  canvas is `tools/keen3_canvas.py`) from code, in chunky pixels
   (216 rows blown up 5 times; 3840x1080 for the wide levels, 1920x1080 for
-  3, 11, 13 and 15), each with a scene that fits the level. Nothing in them
+  3, 9, 10, 11, 13 and 15), each with a scene that fits the level. Nothing in them
   comes from the game files. `test_keen3_extras` checks that exactly those
   levels have a picture.
 - **Builds:** `tools/build_macos.sh` and `tools/build_windows.sh` already

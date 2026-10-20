@@ -184,9 +184,11 @@ stays as it was). A level without a picture looks as in the original.
   levels. Each game decides which levels may show one, because a picture
   shows through the background color in every tile: Keen 2 only where the
   plain background is the level's most used tile (B8, level 12;
-  `docs/keen2/gameplay.md`), Keen 3 only where the plain background is the
-  sky (C9, levels 1-8, 11, 13, 14 and 15; `docs/keen3/gameplay.md`,
-  "Extras (C9)").
+  `docs/keen2/gameplay.md`), Keen 3 where the level has sky, and then only
+  through the sky, never the dark gray of a base (levels 1-11, 13, 14 and
+  15; `docs/keen3/gameplay.md`, "Extras (C9)"). The painter is
+  `tools/make_keen3_backgrounds.py` with its canvas in
+  `tools/keen3_canvas.py`.
 
 ## Still open
 
