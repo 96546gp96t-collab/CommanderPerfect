@@ -36,6 +36,18 @@ const COUNCIL_V1_0 := 0x2F5BC
 const JANITOR_MESSAGES := "janitor"
 const JANITOR_SHAPE: PackedInt32Array = [4, 3, 2, 2]
 const JANITOR_V1_0 := 0x1E280
+## The labels of the status window (files, v1.0), found by their lengths:
+## location, score, extra, rescued, level, the three difficulties, keys,
+## ammo, lives, drops, and the wetsuit or its absence.
+const STATUS_TEXTS := "status"
+const STATUS_LENGTHS: PackedInt32Array = [8, 5, 5, 7, 5, 4, 6, 4, 4, 4, 5, 5, 7, 3]
+const STATUS_V1_0 := 0x2E115
+## The run from "game over" to "one moment" (files, v1.0): game over, two
+## memory errors, the demo texts, the three lines of the box after a
+## death, two more memory errors and the box when Keen leaves the map.
+const GAME_TEXTS := "game"
+const GAME_LENGTHS: PackedInt32Array = [10, 31, 31, 4, 33, 22, 39, 23, 9, 19, 34, 48, 10]
+const GAME_V1_0 := 0x2DD4C
 ## Keen walking to the right (files, v1.0): the start screen's icon, as
 ## Keen 1-3 show him.
 const KEEN_WALK_RIGHT_SPRITE := 7
@@ -93,6 +105,11 @@ static func create() -> GalaxyEpisode:
 	episode.known_message_offsets = {
 		COUNCIL_MESSAGES: PackedInt32Array([COUNCIL_V1_0]),
 		JANITOR_MESSAGES: PackedInt32Array([JANITOR_V1_0]),
+	}
+	episode.text_lengths = {STATUS_TEXTS: STATUS_LENGTHS, GAME_TEXTS: GAME_LENGTHS}
+	episode.known_text_offsets = {
+		STATUS_TEXTS: PackedInt32Array([STATUS_V1_0]),
+		GAME_TEXTS: PackedInt32Array([GAME_V1_0]),
 	}
 	return episode
 

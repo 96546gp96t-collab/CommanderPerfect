@@ -36,6 +36,12 @@ var known_level_name_offsets: PackedInt32Array = []
 var message_shapes: Dictionary[String, PackedInt32Array] = {}
 ## Where those runs were seen in the known versions: name -> offsets.
 var known_message_offsets: Dictionary[String, PackedInt32Array] = {}
+## Runs of one-line texts found by their lengths (labels such as the
+## status window's, where the numbers of lines say nothing): name -> the
+## number of characters of each record in the run.
+var text_lengths: Dictionary[String, PackedInt32Array] = {}
+## Where those runs were seen in the known versions: name -> offsets.
+var known_text_offsets: Dictionary[String, PackedInt32Array] = {}
 
 
 ## The data file [param base] with this episode's extension, such as

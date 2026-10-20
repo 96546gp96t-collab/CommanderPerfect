@@ -120,6 +120,18 @@ func messages(shape_name: String) -> PackedStringArray:
 	return GalaxyExeTexts.records_from(image, start, shape.size())
 
 
+## The run of short texts named [param run_name] in
+## [member GalaxyEpisode.text_lengths]; empty when it is not found.
+func texts(run_name: String) -> PackedStringArray:
+	var lengths: PackedInt32Array = _episode.text_lengths.get(run_name, PackedInt32Array())
+	var known: PackedInt32Array = _episode.known_text_offsets.get(run_name, PackedInt32Array())
+	var start := GalaxyExeTexts.find_by_lengths(image, lengths, known)
+	if start < 0:
+		push_error('The texts "%s" were not found.' % run_name)
+		return PackedStringArray()
+	return GalaxyExeTexts.records_from(image, start, lengths.size())
+
+
 ## Where the level names start, or -1.
 func level_texts_start() -> int:
 	if _level_texts_start == -2:

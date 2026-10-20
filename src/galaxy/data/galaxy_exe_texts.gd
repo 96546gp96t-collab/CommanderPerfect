@@ -11,6 +11,8 @@ extends RefCounted
 ##   ends with the level's name (newlines read as spaces).
 ## - A run of messages: records whose numbers of lines match a shape given
 ##   by the episode ([member GalaxyEpisode.message_shapes]).
+## - A run of short texts: records whose lengths match the episode's
+##   ([member GalaxyEpisode.text_lengths]).
 ##
 ## Places a known version uses are tried first, and only used when the
 ## records there pass the same check.
@@ -52,6 +54,24 @@ static func find_messages(
 		if line_count(ExeStrings.record_at(image, start)) != shape[0]:
 			continue
 		if _has_shape(records_from(image, start, shape.size()), shape):
+			return start
+	return -1
+
+
+## The start of a run of records of [param lengths] characters each; -1
+## when there is none.
+static func find_by_lengths(
+	image: PackedByteArray, lengths: PackedInt32Array, known: PackedInt32Array
+) -> int:
+	if lengths.is_empty():
+		return -1
+	for offset in known:
+		if _has_lengths(records_from(image, offset, lengths.size()), lengths):
+			return offset
+	for start in record_starts(image):
+		if ExeStrings.record_at(image, start).length() != lengths[0]:
+			continue
+		if _has_lengths(records_from(image, start, lengths.size()), lengths):
 			return start
 	return -1
 
@@ -121,6 +141,15 @@ static func _has_shape(records: PackedStringArray, shape: PackedInt32Array) -> b
 		return false
 	for index in shape.size():
 		if line_count(records[index]) != shape[index]:
+			return false
+	return true
+
+
+static func _has_lengths(records: PackedStringArray, lengths: PackedInt32Array) -> bool:
+	if records.size() != lengths.size():
+		return false
+	for index in lengths.size():
+		if records[index].length() != lengths[index]:
 			return false
 	return true
 
