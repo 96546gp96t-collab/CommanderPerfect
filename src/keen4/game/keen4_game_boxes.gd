@@ -42,6 +42,7 @@ const KEEN_TALK_FROM_END := 10
 const CANT_SWIM_MESSAGE := 5
 ## The run of [Keen4Episode.GAME_TEXTS].
 const GAME_OVER_TEXT := 0
+const DEMO_TEXT := 3
 const TRY_AGAIN_INTRO := 7
 const TRY_AGAIN_TEXT := 8
 const EXIT_TEXT := 9
@@ -87,11 +88,20 @@ static func create(data: GalaxyData) -> Keen4GameBoxes:
 ## whole count-down picture, then one per finger counted down (Omni
 ## CK_BeginCacheBox, CK_UpdateCacheBox).
 func entering(map: int) -> Array[Image]:
+	return _loading(_text(_entries, map))
+
+
+## The same box before a demo, with the text "DEMO" (Omni CK_LoadLevel;
+## seen in the original, D8).
+func demo_entering() -> Array[Image]:
+	return _loading(_text(_game, DEMO_TEXT))
+
+
+func _loading(text: String) -> Array[Image]:
 	var window := _window()
 	window.open_centred(WINDOW_CELLS)
 	window.draw_picture(_picture(COUNTDOWN_FROM_END), Vector2i.ZERO)
 	window.narrow(PICTURE_WIDTH, 0)
-	var text := _text(_entries, map)
 	window.skip((window.inside.size.y - window.text_height(text)) / 2 - TEXT_RAISE)
 	window.print_centred(text)
 	var screens: Array[Image] = [window.image()]

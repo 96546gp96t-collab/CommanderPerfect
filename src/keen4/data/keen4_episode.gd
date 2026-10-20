@@ -48,6 +48,18 @@ const STATUS_V1_0 := 0x2E115
 const GAME_TEXTS := "game"
 const GAME_LENGTHS: PackedInt32Array = [10, 31, 31, 4, 33, 22, 39, 23, 9, 19, 34, 48, 10]
 const GAME_V1_0 := 0x2DD4C
+## The story of the title loop (files, v1.0): one record of 30 lines.
+const STORY_MESSAGES := "story"
+const STORY_SHAPE: PackedInt32Array = [30]
+const STORY_V1_0 := 0x1DB40
+## The box of the B+A+T cheat, then "PAUSED" and the drive prompt (files,
+## v1.0), found by their lengths.
+const CHEAT_TEXTS := "cheat"
+const CHEAT_LENGTHS: PackedInt32Array = [70, 6, 3]
+const CHEAT_V1_0 := 0x2E0C3
+## The original's high-score table (files, v1.0): 8 records of 64 bytes.
+const HIGH_SCORE_COUNT := 8
+const HIGH_SCORES_V1_0 := 0x31E9C
 ## Keen walking to the right (files, v1.0): the start screen's icon, as
 ## Keen 1-3 show him.
 const KEEN_WALK_RIGHT_SPRITE := 7
@@ -62,6 +74,8 @@ const WORLD_MAP := 0
 const FIRST_LEVEL := 1
 const LAST_LEVEL := 17
 const LAST_MAP := 19
+## The map of the high scores (Omni CK_highScoreLevel).
+const HIGH_SCORE_MAP := 19
 ## Info values (Omni `ck4_misc.c:CK4_ScanInfoLayer`, research.md §6): Keen
 ## facing right or left, Keen on the world map, Keen swimming (level 17).
 const KEEN_RIGHT_INFO := 1
@@ -101,15 +115,23 @@ static func create() -> GalaxyEpisode:
 	episode.demo_count = DEMO_COUNT
 	episode.level_name_count = LEVEL_NAME_COUNT
 	episode.known_level_name_offsets = PackedInt32Array([LEVEL_NAMES_V1_0])
-	episode.message_shapes = {COUNCIL_MESSAGES: COUNCIL_SHAPE, JANITOR_MESSAGES: JANITOR_SHAPE}
+	episode.message_shapes = {
+		COUNCIL_MESSAGES: COUNCIL_SHAPE,
+		JANITOR_MESSAGES: JANITOR_SHAPE,
+		STORY_MESSAGES: STORY_SHAPE,
+	}
 	episode.known_message_offsets = {
 		COUNCIL_MESSAGES: PackedInt32Array([COUNCIL_V1_0]),
 		JANITOR_MESSAGES: PackedInt32Array([JANITOR_V1_0]),
+		STORY_MESSAGES: PackedInt32Array([STORY_V1_0]),
 	}
-	episode.text_lengths = {STATUS_TEXTS: STATUS_LENGTHS, GAME_TEXTS: GAME_LENGTHS}
+	episode.text_lengths = {
+		STATUS_TEXTS: STATUS_LENGTHS, GAME_TEXTS: GAME_LENGTHS, CHEAT_TEXTS: CHEAT_LENGTHS
+	}
 	episode.known_text_offsets = {
 		STATUS_TEXTS: PackedInt32Array([STATUS_V1_0]),
 		GAME_TEXTS: PackedInt32Array([GAME_V1_0]),
+		CHEAT_TEXTS: PackedInt32Array([CHEAT_V1_0]),
 	}
 	return episode
 
