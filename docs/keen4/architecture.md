@@ -1157,13 +1157,56 @@ and why (developer, D13 B); the measurements are in research.md,
    fits neither order of Omnispeak's moves) and the ledge's lip (the
    original lands where ours hangs); ours stays Omnispeak's there until a
    rule fits, since a wrong one would put Keen inside walls elsewhere.
-4. **Not measured (time)**: looking up (it went by before the recording),
-   the moon, the switch and the platforms' turn, the Dopefish, the
-   sprites under water and the mines, the slug's slime, the Wormmouth, the
-   cloud and its bolt, the inchworms and the Foot, the dart guns, the
-   fireball's burn, the wetsuit's first key press, Smirky's teleport (70 s
-   watched, no puff in the view). They stay Omnispeak's numbers.
+4. **Not measured in the first session (time)**: see 6-9 for what the
+   second one did; Smirky's teleport (70 s watched, no puff in the view)
+   stays Omnispeak's.
 5. **Shared files changed**: only `tests/run_tests.gd` (one suite).
+6. **Changed: a platform or mine turning sideways bounces.** Level 17's
+   mine left each turn point a little behind the original (16-24 units a
+   turn); Omnispeak's CK_AxisPlatform stops on the turn point's edge and
+   drops the rest of the move (its own "TODO"). `GalaxyPlatform
+   _think_axis` now takes that rest back (`BOUNCE` = 2 × what went past
+   the edge); the mine's track is the original's after both turns. The
+   platforms run the same function in the original, so they bounce too;
+   up and down (not seen) still stop on the edge. A logic change: an
+   in-level save made before it is replayed with the bounce (D10), so a
+   platform may end elsewhere; when Keen ends the replay dead or out of
+   the level, it starts anew (D10's fallback); `test_keen4_platforms` now expects the turn within a
+   frame's move before the edge, `test_keen4_d13_seen` pins the bounce.
+7. **Changed: the wetsuit's box waits for the wetsuit's sound.** The
+   original stands still 1.9 s after the touch (CK4_ShowWetsuitMessage:
+   SD_WaitSoundDone, then the pictures load) before the box; ours showed
+   it at once and played the exit sound over the wetsuit's.
+   `Keen4View._finish_level` now queues 73 still tics (the sound's
+   length, `WETSUIT_SOUND_TICS`; the loading not, as decided in D7), then
+   the two boxes, then the exit sound (`_exit_to_map`). The first key
+   press after the box is taken in both (it shows the thumb up); nothing
+   to change there. Outside a level's frames: saved games are untouched.
+8. **Measured and kept** (no code changed; `test_keen4_d13_seen` pins
+   the numbers): the Dopefish (it reaches Keen at the same frame, burps
+   60/60/60, the level lost 180 tics after the swallow), the sprite under
+   water (aim 40, shoot 40 + 30, the shot 64 a tic), the mine's speed and
+   explosion (30 + 30, also in god mode), the slug (64 every 8 tics, the
+   squirt 60, the slime 300 + 60, starting when the squirt ends), the
+   Wormmouth's peek, the cloud's flashes and its 48-tic bolt, the
+   inchworms, the dart guns (all four every 150 tics, darts 64 a tic,
+   pictures to the pixel), the Berkeloid's throw and the fireball's burn,
+   looking up (132-135 tics after the level's first frame in both
+   engines) and the moon's pictures. The ledge's lip facing left was two
+   different scratch starts: from the same start both engines grab the
+   ledge; the landing in the first recording came from the original's
+   6-tic first frame after loading. Not changed.
+9. **Seen and left**: the Dopefish's bite ends 2 pixels higher and 2 tics
+   later than ours (cause not found); the sprite's shot is first drawn
+   one frame after it leaves in the original (ours draws it at once) and
+   its bob after shooting is a frame ahead (both 1 frame; the shot's rule
+   may hold for every spawned object, so not changed in one place); the
+   time from the look up to the moon or boredom depends on the frame
+   phase (Omnispeak's count, see research.md); the random choices (first
+   way of a slug or worm, when the slug squirts, the cloud's drift) are
+   part A's; the Wormmouth's bite, the Foot, the switch's effect on a
+   platform and the climbing pictures of a ledge pull (no rule fits)
+   were not caught or not changed.
 
 ## Deviations in D13 A
 

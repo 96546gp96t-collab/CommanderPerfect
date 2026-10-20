@@ -463,7 +463,7 @@ these rules whole frames of all five equal the original's:
 
 | What (info) | How (Omni unless marked) |
 |---|---|
-| Platform (27-30: up, right, down, left) | At its tile's corner, always awake, behind everything (priority 0). 12 units a tic (seen: 52 px a second). When its leading edge is about to enter a tile whose info value is a **turn point** (31), it stops on that tile's edge and turns. Going up, a second turn point two tiles below the one ahead holds it there; going down, one two tiles above (it stands still while both are there) |
+| Platform (27-30: up, right, down, left) | At its tile's corner, always awake, behind everything (priority 0). 12 units a tic (seen: 52 px a second). When its leading edge is about to enter a tile whose info value is a **turn point** (31), it turns: sideways the part of its move that would have gone past the tile's edge takes it back (it bounces; seen in D13 with the mines, which move by the same rule; Omnispeak stops on the edge), up or down it stops on the edge (Omnispeak). Going up, a second turn point two tiles below the one ahead holds it there; going down, one two tiles above (it stands still while both are there) |
 | The jets (Keen 4) | Going right a side jet at its left; going left one at its right, in front of the platform; going up two jets under it; going down the same two every other 4 tics. Their two pictures change every 4 tics |
 | Riding | Keen landing on a platform (walking, jumping, falling, on the pogo) rides it: he moves with it, standing 16 units above its box, his x keeping its lowest bits (D5's riding). A platform that touches him on a pole or ledge makes him fall onto it |
 | Falling platform (32) | Floats until Keen stands on it; then sinks 16 a tic; half a tile down it falls under gravity high (the whole track seen in D13, to the pixel); its bottom stops on the edge of a turn point below; without Keen it rises 32 a tic to its place and floats; Keen landing on it while it rises makes it fall again. Not clipped by tiles: without a turn point below it falls out of the level |
@@ -478,7 +478,7 @@ these rules whole frames of all five equal the original's:
 | Council member (4) | 369 units above his tile, a random facing; shuffles 64 every 10 tics, turning at walls and ledges; at each step he stops to think with a chance of (tics × 8) in 256 (120 tics, then a step of 128). Keen touching him while standing on something (not on a pole, a ledge, in the air) rescues him: the level is done and the boxes follow |
 | The janitor (4 in level 14) | Touched like a member: five boxes, then he is gone; he does not count, the level goes on (seen) |
 | Princess Lindsey (6) | A tile above her tile, bobbing (1 on odd tics, at most 8 a tic, turning 32 units from her place), four pictures of 20 tics. Keen touching her: her boxes, then she is gone (seen) |
-| The wetsuit (35) | A tile above its tile. Keen touching it while standing: his boxes, Keen has the wetsuit (for the world map, D7), the level is done |
+| The wetsuit (35) | A tile above its tile. Keen touching it while standing: its sound; the game stands still until the sound has played (73 tics; seen in D13: 1.9 s with the pictures loading), then his boxes (a key shows his thumb up, a second key closes it; seen in D13), then the exit sound; Keen has the wetsuit (for the world map, D7), the level is done |
 
 ## Message windows (D6)
 
