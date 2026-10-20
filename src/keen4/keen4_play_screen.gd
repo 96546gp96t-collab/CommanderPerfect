@@ -14,7 +14,8 @@ extends Keen4LevelScreen
 ## Every box is drawn with the original pixels in the middle of the
 ## picture (also in widescreen), over everything.
 ## A map without a Keen to play is only shown, the keys looking around (as
-## in D3).
+## in D3). The sounds and the music are [Keen4Audio]'s: every map plays its
+## song, the objects play their sounds through their world.
 
 ## The pictures of the status window: the window, the arm, the strap.
 enum StatusPart { WINDOW, ARM, STRAP }
@@ -44,13 +45,16 @@ var _queue := GalaxyScreenQueue.new()
 var _window_sprite := Sprite2D.new()
 var _status_drop: GalaxyStatusDrop
 var _status_sprites: Array[Sprite2D] = []
+var _audio := Keen4Audio.new()
 
 @onready var _score_box: GalaxyScoreBox = %ScoreBox
 
 
 ## After the files are read: the score box, the boxes and the sprites
-## that show them.
+## that show them, the sounds (rendered in the background).
 func _set_up_play() -> void:
+	add_child(_audio)
+	_audio.load_sounds(_data, _user_settings)
 	_score_box.use_graphics(_data.graphics, Keen4Sprites.OBJECTS[&"SCOREBOX"])
 	_messages = Keen4Messages.create(_data)
 	_boxes = Keen4GameBoxes.create(_data)
@@ -199,6 +203,8 @@ func _start_playing(map: GalaxyMap, camera: GalaxyCamera, world: GalaxyWorld) ->
 		_galaxy_map.set_tile(GalaxyMap.Layer.FOREGROUND, cell, tile)
 	world.back_tile_writer = func(cell: Vector2i, tile: int) -> void:
 		_galaxy_map.set_tile(GalaxyMap.Layer.BACKGROUND, cell, tile)
+	world.sound_player = _audio.play
+	_audio.play_map_song(_map_number)
 	_objects.show_objects(world.objects)
 	_frame_view()
 	_view_motion.move_to(Vector2(_camera_anchor.position))
@@ -276,6 +282,7 @@ func _open_status() -> void:
 			ImageTexture.create_from_image(picture) if picture != null else null
 		)
 	_status_drop = GalaxyStatusDrop.new()
+	_audio.play(&"status_down")
 	_place_overlays()
 
 
