@@ -40,6 +40,7 @@ static func breathe(
 	if keen.direction.x != -1:
 		at.x += KEEN_RIGHT
 	var kind := world.random() * KINDS / RANDOM_RANGE
+	world.play_sound(&"keen_bubble")
 	return _blow(world, at, KEEN_SPEED, StringName("small_%d" % kind), sprites)
 
 

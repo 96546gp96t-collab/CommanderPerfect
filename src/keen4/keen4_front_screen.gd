@@ -163,6 +163,7 @@ func _start_story() -> void:
 	_story_tics = 0
 	_front = Front.STORY
 	_title_layer.show_story(_story, 0)
+	_audio.play_story_song()
 
 
 ## Demo [param index] after its box (the high scores: map 19 behind the
@@ -284,6 +285,7 @@ func _run_frame(tics: int) -> bool:
 			_story_tics += tics
 			_title_layer.show_story(_story, GalaxyStoryScroller.distance_after(_story_tics))
 			if _story_tics >= _story.total_tics():
+				_audio.stop_music()
 				_next_title_step()
 		Front.ENDING:
 			if _end_pages.advance(tics):
@@ -333,6 +335,7 @@ func _open_help() -> void:
 		_stop_front()
 	_front = Front.HELP
 	_title_layer.show_picture(_help.screen())
+	_audio.stop_music()
 
 
 func _close_help() -> void:
@@ -341,6 +344,7 @@ func _close_help() -> void:
 	else:
 		_title_layer.clear()
 		_front = Front.NONE
+		_audio.play_map_song(_map_number)
 
 
 ## The end pages (after the eighth rescue).
@@ -350,6 +354,7 @@ func _start_ending() -> void:
 	_score_box.visible = false
 	_end_pages = Keen4Ending.create(_data.graphics)
 	_front = Front.ENDING
+	_audio.play_ending_song()
 	_title_layer.show_picture(_end_pages.screen())
 
 

@@ -93,6 +93,8 @@ func _think_move() -> void:
 		var dy := keen.position.y - position.y
 		if absi(dy) <= AIM_HEIGHT and signi(dx) == direction.x:
 			_continue_as(&"throw_1")
+			# Only the aimed throw has its sound (Omni).
+			world.play_sound(&"berkeloid_throw")
 
 
 ## Think: the fireball leaves its hand (Omni CK4_BerkeloidThrow).
@@ -129,6 +131,7 @@ func _react_ball() -> void:
 	if right_hit != 0 or left_hit != 0:
 		velocity.x = 0
 	if top_hit != 0:
+		world.play_sound(&"fireball_land")
 		_become(&"burn_1")
 
 

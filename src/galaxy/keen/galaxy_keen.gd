@@ -70,6 +70,8 @@ const POLE_FEET_MARGIN := 64
 var shows_moon := false
 ## Set when he went through a door: the view is put on him again.
 var went_through_door := false
+## Whether this walking step's sound was played (Omni user3).
+var _stepped := false
 
 
 ## Keen of [param world] at the start of a level: info 1 or 2 at
@@ -170,9 +172,24 @@ func _think_run() -> void:
 		step.x = 0
 		return
 	step.x += SLOPE_PUSH[top_hit & SLOPE_MASK] * world.tics
+	_walk_sound()
+
+
+## His steps: a sound on the first and third frame of the walk, once
+## each (Omni CK_KeenRunningThink, user3).
+func _walk_sound() -> void:
+	if _is_in([&"run_1"]) and not _stepped:
+		world.play_sound(&"keen_walk_1")
+		_stepped = true
+	elif _is_in([&"run_3"]) and not _stepped:
+		world.play_sound(&"keen_walk_2")
+		_stepped = true
+	elif _is_in([&"run_2", &"run_4"]):
+		_stepped = false
 
 
 func _start_jump(speed_x: int) -> void:
+	world.play_sound(&"keen_jump")
 	velocity = Vector2i(speed_x, GalaxyKeenAir.JUMP_SPEED)
 	step = Vector2i.ZERO
 	jump_timer = GalaxyKeenAir.JUMP_TICS
@@ -180,6 +197,7 @@ func _start_jump(speed_x: int) -> void:
 
 
 func _start_pogo(speed_x: int) -> void:
+	world.play_sound(&"keen_jump")
 	_continue_as(&"pogo_1")
 	velocity = Vector2i(speed_x, GalaxyKeenAir.POGO_SPEED)
 	jump_timer = GalaxyKeenAir.POGO_TICS
@@ -189,6 +207,7 @@ func _start_pogo(speed_x: int) -> void:
 ## CK_KeenDrawFunc).
 func _react_ground() -> void:
 	if top_hit == 0:
+		world.play_sound(&"keen_fall")
 		_start_falling()
 	elif GalaxyTileKinds.is_deadly_floor(top_hit):
 		kill()
@@ -236,6 +255,7 @@ func _think_look_down() -> void:
 		step = Vector2i.ZERO
 		_continue_as(&"fall_1")
 		velocity = Vector2i.ZERO
+		world.play_sound(&"keen_fall")
 		return
 	if input.vertical != 1 or input.direction != 0 or _jump_pressed() or _pogo_pressed():
 		_continue_as(&"look_down_4")
@@ -268,6 +288,7 @@ func _press_up() -> bool:
 		spot -= TILE
 	if position.x == spot:
 		safe_tics = DOOR_SAFE_TICS
+		world.play_sound(&"keen_walk_1")
 		_continue_as(&"enter_door_1")
 		priority = 0
 	else:
@@ -315,6 +336,7 @@ func _think_enter_door() -> void:
 func _think_place_gem() -> void:
 	var cell := Vector2i(box.tile_middle, box.tile_bottom)
 	world.set_fore_tile(cell, world.fore_tile(cell.x, cell.y) + GEM_HOLDER_STEP)
+	world.play_sound(&"open_gem_door")
 	var target := world.info_at(cell.x, cell.y)
 	var door := Vector2i(target >> BYTE_SHIFT, target & BYTE_MASK)
 	if door.x < 2 or door.y < 2 or door.x > world.map.width or door.y > world.map.height:
@@ -331,6 +353,8 @@ func _think_press_switch() -> void:
 	var at := Vector2i(target >> BYTE_SHIFT, target & BYTE_MASK)
 	var tile := world.fore_tile(cell.x, cell.y)
 	world.set_fore_tile(cell, world.tile_info.next_fore_tile(tile))
+	# The switch's click is the "no charges" sound (Omni).
+	world.play_sound(&"keen_out_of_ammo")
 	if world.tile_info.fore(GalaxyTileInfo.Fore.MISC, tile) != GalaxyTileKinds.BRIDGE_SWITCH:
 		world.set_info(at, world.info_at(at.x, at.y) ^ TURN_POINT_TOGGLE)
 		return
@@ -385,6 +409,7 @@ func _think_pole() -> void:
 			jump_timer = 0
 			_continue_as(&"fall_1")
 			direction.y = 1
+			world.play_sound(&"keen_fall")
 			return
 	_pole_input()
 
@@ -408,6 +433,7 @@ func _think_pole_down() -> void:
 		box.tile_middle, GalaxyUnits.to_tile(box.bottom - POLE_FEET_MARGIN)
 	)
 	if world.misc_of(under) != GalaxyTileKinds.POLE:
+		world.play_sound(&"keen_fall")
 		_continue_as(&"fall_1")
 		jump_timer = 0
 		velocity = Vector2i(POLE_LEAP_X[input.direction + 1], 0)
@@ -456,6 +482,7 @@ func _pole_input() -> void:
 				_continue_as(&"pole_shoot_1")
 	if _jump_pressed():
 		_use_jump()
+		world.play_sound(&"keen_jump")
 		velocity = Vector2i(POLE_LEAP_X[input.direction + 1], POLE_LEAP_SPEED)
 		clip = Clip.NORMAL
 		jump_timer = POLE_LEAP_TICS

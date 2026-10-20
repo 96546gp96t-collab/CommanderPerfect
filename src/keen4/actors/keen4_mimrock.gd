@@ -100,6 +100,7 @@ func _contact_leaping(other: GalaxyObject) -> void:
 ## React while leaping: landing it bounces (Omni CK4_MimrockJumpDraw).
 func _react_leap() -> void:
 	if top_hit != 0:
+		world.play_sound(Keen4Sounds.MIMROCK_JUMP)
 		velocity.y = BOUNCE
 		_become(&"bounce")
 	if left_hit != 0 or top_hit != 0:
@@ -112,6 +113,7 @@ func _react_leap() -> void:
 ## CK4_MimrockBounceDraw).
 func _react_bounce() -> void:
 	if top_hit != 0:
+		world.play_sound(Keen4Sounds.MIMROCK_JUMP)
 		_become(&"sit")
 	if left_hit != 0 or right_hit != 0:
 		velocity.x = 0

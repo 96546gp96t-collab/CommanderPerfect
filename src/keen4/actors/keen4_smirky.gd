@@ -90,6 +90,7 @@ func _think_look() -> void:
 		velocity = ITEM_JUMP
 		return
 	if misses >= MISSES_TO_TELEPORT:
+		world.play_sound(&"smirky_teleport")
 		_continue_as(&"vanish_1")
 		return
 	if _ground_ahead():
@@ -97,6 +98,7 @@ func _think_look() -> void:
 		return
 	misses += 1
 	if misses == MISSES_TO_TELEPORT:
+		world.play_sound(&"smirky_teleport")
 		_continue_as(&"vanish_1")
 		return
 	velocity = Vector2i(-direction.x * HOP.x, HOP.y)
@@ -126,6 +128,7 @@ func _contact_smirky(other: GalaxyObject) -> void:
 		if not item.taken:
 			item.taken = true
 			world.remove(item)
+			world.play_sound(&"smirky_steal")
 			_show_eaten(item.position, item.direction.y)
 		return
 	var shot := live_shot(other)

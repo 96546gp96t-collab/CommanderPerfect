@@ -16,6 +16,11 @@ const ONLINE := "online"
 var path := DEFAULT_PATH
 var display := DisplaySettings.new()
 var sound_enabled := true
+## Keen 4 and later: the sound device ("off", "pc" for the PC speaker or
+## "adlib") and whether the AdLib music plays; the original's default with
+## a sound card is the AdLib with music (the user's choice).
+var sound_device := "adlib"
+var music_enabled := true
 ## The extras of the game itself, not in the original: the ship as a level
 ## of its own, where Keen puts the parts back ([ShipLevels]), and playing the
 ## level with the pogo stick again until he has it. On unless the player
@@ -58,6 +63,8 @@ static func load_from(file_path := DEFAULT_PATH) -> UserSettings:
 	settings.display.smooth_motion = bool(config.get_value(DISPLAY, "smooth_motion", false))
 	settings.display.backgrounds = bool(config.get_value(DISPLAY, "backgrounds", true))
 	settings.sound_enabled = bool(config.get_value(SOUND, "enabled", true))
+	settings.sound_device = str(config.get_value(SOUND, "device", "adlib"))
+	settings.music_enabled = bool(config.get_value(SOUND, "music", true))
 	settings.extra_levels = bool(config.get_value(GAME, "extra_levels", true))
 	var stored_name := str(config.get_value(ONLINE, "name", "")).strip_edges()
 	settings.online_name = PlayerName.clean(stored_name) if not stored_name.is_empty() else ""
@@ -84,6 +91,8 @@ func save() -> bool:
 	config.set_value(DISPLAY, "smooth_motion", display.smooth_motion)
 	config.set_value(DISPLAY, "backgrounds", display.backgrounds)
 	config.set_value(SOUND, "enabled", sound_enabled)
+	config.set_value(SOUND, "device", sound_device)
+	config.set_value(SOUND, "music", music_enabled)
 	config.set_value(GAME, "extra_levels", extra_levels)
 	config.set_value(CONTROLS, "keys", KeyBindings.to_dict())
 	config.set_value(ONLINE, "name", online_name)

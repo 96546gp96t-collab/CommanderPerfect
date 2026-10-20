@@ -517,6 +517,20 @@ per object (as numbers, marked `(Omni)`, if the user allows that).
 - 1.0 (files): `AUDIOHED` chunks 0-51 are the PC sounds, 52-103 the
   AdLib sounds, 104-155 empty, **156-161 the six songs** (3734 … 2282
   bytes, starting with a 16-bit length).
+- D9 (Omni `id_sd.c`, facts only): the timer is set with 1192030 / rate,
+  so the music ticks at 1193182 / 2128 = **560.7 Hz** and the sounds (every
+  4th tick with AdLib music) at **140.2 Hz**. A sound plays when its
+  priority is at least that of the sound playing; when its steps are done
+  the priority is 0. PC sound bytes × 60 are the timer divisor. AdLib
+  sounds: channel 0, the instrument's ten operator bytes (not its
+  connection byte), block | 0x20 in 0xB0, notes in 0xA0, 0 = key off.
+  Songs: every command whose time has come is written in a tick, and after
+  the last command the song starts again on the next tick (a round = delay
+  sum − last delay + 1). Starting a song (StartMusic) always starts it
+  from its beginning; StartMusic(−1) plays the special song 5 (council,
+  janitor); the end plays map 7's song, the story map 12's; the help and
+  the pause stop the music. The sound list, the song table and where each
+  sound is played: gameplay.md, "Sound and music".
 
 ## 11. Things an implementer will trip over
 
@@ -875,6 +889,34 @@ original's (Keen's own track is equal in every frame, D8). Not part of
 D8.1: the creatures' use of the random table (Omnispeak deactivates an
 object off screen only when `US_RndT() < sprite sync × 2`, which draws a
 random number) is a candidate for a later look.
+
+### Watched in D9 (js-dos, the user's v1.0)
+
+Headless js-dos as before, with the bundle's `dosbox.conf` given a
+`[mixer]` (44.1 kHz) and `[sblaster]` (OPL2) section. js-dos 8 sends
+DOSBox's audio from its worker straight to an AudioWorklet that
+time-stretches it to keep up; the page replaced `AudioWorkletNode` by a
+subclass whose `port` is a MessageChannel of its own, so the raw samples
+were recorded on their way (and passed on). The game waits on its sign-on
+screen ("Ready - Press a Key", AdLib detected) for a key. Recorded: the
+title loop with the user's `CONFIG.CK4` (AdLib sounds and music) and with
+music set off in a copy of it (bytes 520-521 = 0). Ours: the cached
+renderings and our demo 0 with its sounds logged per tic.
+
+| What | The original (v1.0, DOSBox's OPL) | Ours (D9) |
+|---|---|---|
+| Story song (song 2) | at its start the same partials (65, 129, 522, 781, 980 Hz; then 393, 312, 75 Hz …) | the same; laid side by side second by second the spectra correlate 0.8-0.93 for the whole round |
+| Demo 0's song (song 4) | the same notes and timbre; per-second spectra correlate 0.5-0.9 (Keen's and the Bounder's sounds on top) | the same |
+| Tempo | the song drifts steadily against ours by 11.8 % (both runs: cycles=auto and fixed 30000), and so do the sounds' steps and Keen's walk sounds (12 tics apart: 0.195 s instead of 0.171) | 560.7 ticks a second, 8 per game tic |
+| Sounds in demo 0 | the Bounder's leap (sound 16) every 48 tics, Keen's steps every 12 tics, a step hidden when the leap (priority 60) plays over it (20); a leap: loudest 86 Hz, 0.29 s, average spectrum correlates 0.84 with ours; steps 0.02 and 0.05 s (3 and 7 heard steps) | the same order and intervals; the leap 86 Hz, 0.30 s; the steps 0.02 and 0.05 s |
+| Loudness | about a third of ours (RMS) | chosen against the PC speaker |
+
+So the songs, the sounds, their priorities and the "last step is never
+heard" rule are confirmed. The 11.8 % applies to the music, the sounds and
+the game's own tics alike: js-dos's emulated time runs slower than its
+audio stream (its pitches are right), so the absolute tempo cannot be read
+from it, but the music's tempo relative to the game is ours. The 560.7 Hz
+stays Omnispeak's PIT divisor (1192030 / 560).
 
 ## Lessons for the new-episode guide
 

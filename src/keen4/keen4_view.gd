@@ -24,7 +24,8 @@ extends Keen4FrontScreen
 ##
 ## Keys: the shared ones (arrows, jump, pogo, fire); Enter the status
 ## window; F1 the help; Escape back to the start screen; Shift+N / Shift+P
-## the next or previous map; Shift+G god mode; Shift+F1 and F2-F6 as in
+## the next or previous map; Shift+G god mode; Shift+S the sound and
+## Shift+M the music; Shift+F1 and F2-F6 as in
 ## Keen 1-3 (help line, widescreen, pixel shape, full screen, graphics:
 ## original or xBRZ, smooth motion).
 
@@ -73,6 +74,8 @@ func _unhandled_input(event: InputEvent) -> void:
 	if _status_drop != null:
 		if _is_new_press(event):
 			get_viewport().set_input_as_handled()
+			if _status_drop.stage == GalaxyStatusDrop.Stage.DOWN:
+				_audio.play(&"status_up")
 			_status_drop.release()
 		return
 	if _choice >= 0:
@@ -157,9 +160,13 @@ func _after_map_frame() -> void:
 func _after_level_frame() -> void:
 	var asked := _played.take_conversation()
 	if asked == Keen4Lindsey.MESSAGE:
-		_show_screens(_messages.lindsey(_map_number), Callable())
+		# Her message stops the music; the map's song starts again after it
+		# (Omni CK4_ShowPrincessMessage).
+		_audio.stop_music()
+		_show_screens(_messages.lindsey(_map_number), _audio.play_map_song.bind(_map_number))
 	elif asked == Keen4Council.JANITOR:
-		_show_screens(_messages.janitor(), Callable())
+		_audio.play_council_song()
+		_show_screens(_messages.janitor(), _audio.play_map_song.bind(_map_number))
 	if _played.is_done():
 		_finish_level()
 	elif _played.is_lost():
@@ -174,8 +181,10 @@ func _finish_level() -> void:
 	_game_progress.mark_done(_map_number)
 	_game_progress.last_finished = _map_number
 	_game_progress.foot_flight = ending == Keen4Inchworm.FOOT_ENDING
+	_audio.play(&"level_exit")
 	match ending:
 		Keen4Council.RESCUED:
+			_audio.play_council_song()
 			var before := _game_progress.rescue()
 			_show_screens(_messages.council(_map_number, before), _after_rescue)
 		Keen4Wetsuit.TAKEN:
@@ -265,6 +274,7 @@ func _check_cheats() -> bool:
 			if map >= Keen4Episode.FIRST_LEVEL and map <= Keen4Episode.LAST_LEVEL:
 				_game_progress.mark_done(map)
 			var before := _game_progress.rescue()
+			_audio.play_council_song()
 			_show_screens(_messages.council(map, before), _start_ending)
 			return true
 		Keen4Cheats.Cheat.ITEMS:
@@ -310,7 +320,9 @@ func _leave() -> void:
 
 
 ## Shift+N and Shift+P: the next or previous map; Shift+G: god mode, as
-## the original's debug key F10+G (nothing kills Keen, D5).
+## the original's debug key F10+G (nothing kills Keen, D5); Shift+S the
+## sound (AdLib, PC speaker, off) and Shift+M the music (until the menus
+## of D10 have them).
 func _handle_map_keys(event: InputEvent) -> bool:
 	var key := event as InputEventKey
 	if key == null or not key.pressed or key.echo or not key.shift_pressed:
@@ -325,6 +337,14 @@ func _handle_map_keys(event: InputEvent) -> bool:
 			_god_mode = not _god_mode
 			if _played != null:
 				_played.player.god_mode = _god_mode
+			return true
+		KEY_S:
+			_show_message(_audio.next_mode(_user_settings))
+			_user_settings.save()
+			return true
+		KEY_M:
+			_show_message(_audio.toggle_music(_user_settings))
+			_user_settings.save()
 			return true
 		_:
 			return false

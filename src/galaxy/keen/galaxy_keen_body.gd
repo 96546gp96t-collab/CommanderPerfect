@@ -18,6 +18,22 @@ const DEATH_SAFE_TICS := 30
 const DEATH_SPEED := Vector2i(16, -40)
 ## Half the random range: which of the two death sprites.
 const RANDOM_HALF := 0x80
+## The sound of each item (Omni ck_itemSounds): the gems, the points, the
+## extra life, the stunner.
+const ITEM_SOUNDS: Array[StringName] = [
+	&"got_gem",
+	&"got_gem",
+	&"got_gem",
+	&"got_gem",
+	&"got_item",
+	&"got_item",
+	&"got_item",
+	&"got_item",
+	&"got_item",
+	&"got_item",
+	&"got_extra_life",
+	&"got_stunner",
+]
 ## Where his shots start, from his position, in units (Omni
 ## CK_KeenSpawnShot).
 const SHOT_STANDING_RIGHT := Vector2i(256, 64)
@@ -118,6 +134,7 @@ func kill() -> void:
 	priority = GalaxyObjectLayer.TOP_PRIORITY
 	set_action(actions[&"die_1" if world.random() < RANDOM_HALF else &"die_2"])
 	velocity = DEATH_SPEED
+	world.play_sound(&"keen_die")
 
 
 func is_dying() -> bool:
@@ -193,8 +210,10 @@ func _think_shoot() -> void:
 ## A shot from [param offset] (from his position), if he has a charge.
 func _shoot(offset: Vector2i, heading: Vector2i) -> void:
 	if inventory.shots <= 0:
+		world.play_sound(&"keen_out_of_ammo")
 		return
 	inventory.shots -= 1
+	world.play_sound(&"keen_shoot")
 	GalaxyStunnerShot.fire(world, position + offset, heading, _shot_actions)
 
 
@@ -231,13 +250,16 @@ func _touch_tiles() -> void:
 
 func _take_drop(cell: Vector2i) -> void:
 	world.set_fore_tile(cell, GalaxyTileKinds.EMPTY_TILE)
+	world.play_sound(&"got_drop")
 	var life := inventory.add_drop()
+	if life:
+		world.play_sound(&"got_extra_life")
 	GalaxyItem.splash_at(world, cell, life, sprites, _item_actions)
 
 
 func _take_item_tile(cell: Vector2i, item: int) -> void:
 	world.set_fore_tile(cell, GalaxyTileKinds.EMPTY_TILE)
-	inventory.collect(item, true)
+	_collect(item, true)
 	GalaxyItem.rise_from(world, cell, item, sprites, _item_actions)
 
 
@@ -263,9 +285,17 @@ func _contact_normal(other: GalaxyObject) -> void:
 	var item := other as GalaxyItem
 	if item != null:
 		if not item.taken:
-			inventory.collect(item.collect(sprites))
+			_collect(item.collect(sprites))
 		return
 	other.touched_by_player(self, false)
+
+
+## Takes item [param item] with its sound, and the extra life's sound
+## when its points give one (Omni CK_KeenColFunc, CK_IncreaseScore).
+func _collect(item: int, as_tile := false) -> void:
+	world.play_sound(ITEM_SOUNDS[mini(item, ITEM_SOUNDS.size() - 1)])
+	if inventory.collect(item, as_tile):
+		world.play_sound(&"got_extra_life")
 
 
 ## Contact while on a pole, hanging or looking (Omni CK_KeenSpecialColFunc).

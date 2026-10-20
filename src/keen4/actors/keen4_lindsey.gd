@@ -46,6 +46,7 @@ func touched_by_player(_player: GalaxyObject, holding: bool) -> void:
 	if holding or removed:
 		return
 	world.ask(MESSAGE)
+	world.play_sound(&"foot_appear")
 	world.remove(self)
 
 

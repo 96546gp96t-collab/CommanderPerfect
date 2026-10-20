@@ -318,6 +318,45 @@ Each chunk: a 32-bit expanded length, then Huffman data (`AUDIODCT`).
 `GalaxyAudioFile` (D2) gives the expanded chunks as bytes; the bogus
 AUDIOHED block (104-155) is empty, chunk 103 ends where 156 starts.
 
+What D9 learned (files, 1.0; Omni `id_sd.c` for how they are played):
+
+- **Lengths**: a PC chunk is 6 + length + 1 bytes, an AdLib chunk 23 +
+  length + 1 (a trailing byte); only `length` steps are played. The PC
+  and AdLib versions of a sound have the same priority (all 52); their
+  lengths differ for some sounds (the jump: 45 and 45 steps, the shot 54
+  and 67, the death 283 and 283).
+- **The AdLib instrument** (16 bytes): modulator and carrier of register
+  0x20, 0x40, 0x60, 0x80 and 0xE0 (in that order, modulator first), then
+  the connection byte (feedback and connection, register 0xC0), then five
+  bytes Muse used. The original writes the ten operator bytes to channel 0
+  (operators at offsets 0 and 3) and **not** the connection byte (Omni);
+  the files have connection bytes 0-15, mostly with the additive bit set,
+  so writing it would change most sounds. The block byte goes to register
+  0xB0 as (block << 2) | 0x20 with every note; the note is the F-number's
+  low byte (0xA0), its top two bits stay 0; a 0 note turns the key off.
+- **The songs** never write register 0x01: the original's reset (all
+  registers 0, then 0x01 = 0x20) enables the waveforms, and songs 0 and 1
+  use waveform 3. They start with (0, 0, 0), (0xBD, 0, 0), (8, 0, 0), write
+  0xBD only as 0 (no rhythm mode, shallow tremolo and vibrato), use all
+  nine channels (0-8, also the sounds' channel 0), feedback/connection
+  values 0-14 (channel 0: 6) and key-scale levels 0-3; some operators have
+  tremolo or vibrato set. Their last delay is 0.
+
+| Song | Bytes | Commands | Delay sum (ticks) | One round at 560.7 Hz |
+|---|---|---|---|---|
+| 0 | 3734 | 933 | 11688 | 20.85 s |
+| 1 | 9906 | 2476 | 29941 | 53.40 s |
+| 2 | 2742 | 685 | 9057 | 16.15 s |
+| 3 | 14422 | 3605 | 25384 | 45.27 s |
+| 4 | 7202 | 1800 | 18354 | 32.74 s |
+| 5 | 2282 | 570 | 7187 | 12.82 s |
+
+The rendered sounds and songs are cached in `user://keen4/cache/`
+(`GalaxySoundCache`): one `<sha-256>.pcm` per chunk, two little-endian
+32-bit numbers (the loop's first and last sample, −1 for a sound) and then
+16-bit mono samples at 49716 Hz. Never shipped: they are made from the
+player's files.
+
 ## Texts and tables in KEEN4E.EXE (D2)
 
 All found by **shape**, never by their words (`GalaxyExecutable`,

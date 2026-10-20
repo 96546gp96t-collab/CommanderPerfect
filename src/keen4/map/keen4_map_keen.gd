@@ -134,6 +134,7 @@ func _think_swim() -> void:
 			facing = way
 	sprite = swim_picture(facing, walk_step)
 	walk_step = (walk_step + 1) % SWIM_FRAMES
+	world.play_sound(&"keen_swim_high" if walk_step != 0 else &"keen_swim_low")
 
 
 ## After the contacts: water under the middle of his box (Omni
@@ -146,6 +147,7 @@ func _touch_tiles() -> void:
 	if kind < WATER_NORTH or kind > WATER_WEST:
 		return
 	if not wetsuit:
+		world.play_sound(&"need_key")
 		world.ask(CANT_SWIM)
 		step = -moved
 		direction = Vector2i.ZERO

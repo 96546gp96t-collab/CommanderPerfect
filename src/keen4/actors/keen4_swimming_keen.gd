@@ -150,7 +150,7 @@ func _contact_swim(other: GalaxyObject) -> void:
 	var item := other as GalaxyItem
 	if item != null:
 		if not item.taken:
-			inventory.collect(item.collect(sprites))
+			_collect(item.collect(sprites))
 	elif other is Keen4Council:
 		(other as Keen4Council).rescue()
 

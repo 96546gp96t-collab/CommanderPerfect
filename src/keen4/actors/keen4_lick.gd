@@ -66,6 +66,7 @@ func _think_hop() -> void:
 	var dy := keen.position.y - position.y
 	var reach := FLAME_RIGHT if direction.x == 1 else FLAME_LEFT
 	if absi(dy) <= FLAME_HEIGHT and dx > reach.x and dx < reach.y:
+		world.play_sound(&"lick_flame")
 		_become(&"flame_1")
 		return
 	var hop := LONG_HOP if absi(dx) > LONG_HOP_DISTANCE else SHORT_HOP

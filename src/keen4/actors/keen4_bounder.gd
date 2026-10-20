@@ -93,6 +93,8 @@ func _react_bounce() -> void:
 
 
 func _bounce() -> void:
+	if world.on_screen(self):
+		world.play_sound(&"mushroom_leap")
 	bounces += 1
 	velocity.y = BOUNCE_SPEED
 	var keen := world.player() as GalaxyKeenBody

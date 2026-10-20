@@ -816,3 +816,98 @@ A small fix decided by the user on 20-10-2026 (developer, D8.1):
    loop").
 5. **Shared files changed**: none. Only `src/galaxy` and `src/keen4`, and
    two existing Keen 4/Galaxy suites got tests.
+
+## Deviations in D9
+
+What D9 built differently from the plan above, and why (developer, D9):
+
+1. **Where the classes went.** `src/galaxy/sound/`: `GalaxyOpl` (the chip:
+   registers, channels, the tables, the stream helpers), `GalaxyOplOperator`
+   (one operator's settings and the per-sample numbers derived from them),
+   `GalaxyOplVoice` (the hot sample loop of one channel, on local copies),
+   `GalaxyPcSound`, `GalaxyAdlibSound`, `GalaxyMusic`, `GalaxySoundCache`,
+   `GalaxySoundLibrary` (the background work: one WorkerThreadPool task per
+   sound and song) and `GalaxySoundPlayer` (a node: one sound by priority,
+   one looping song). Keen 4: `Keen4Sounds` (`data/`: the 52 names and
+   numbers, the song of every map) and `Keen4Audio` (`game/`, extends
+   `GalaxySoundPlayer`: the settings and which song plays where). The plan's
+   `GalaxyMusic` is the song; there is no separate IMF reader.
+2. **The OPL2 is our own**, written from the YM3812 application manual's
+   descriptions and tables (frequency formula, multiples, total level 0.75
+   dB, key-scale level 1.5 / 3 / 6 dB per octave, sustain 3 dB steps, the
+   attack and decay time tables, feedback pi/16 … 4 pi, tremolo 3.7 Hz 1 /
+   4.8 dB, vibrato 6.4 Hz 7 / 14 cents) and the publicly known structure
+   (a 20-bit phase read by its top 10 bits, 0.1875 dB envelope steps, an
+   exponential attack). Envelopes are floats that move every sample by the
+   manual's times, not the chip's counter steps; the waveforms are float
+   tables, not the chip's log-sine and exponent ROMs; the modulator's output
+   (±4096 at full volume) is added to the carrier's 10-bit phase. So it
+   sounds like the AdLib but is not bit-exact. The rhythm mode (0xBD bit 5)
+   is not built: no Keen 4 sound or song uses it (all six songs write 0xBD
+   = 0).
+3. **The chip's rate is kept**: the streams are 16-bit at 49716 Hz and
+   Godot resamples them to the output rate (no resampler of our own). One
+   channel at full volume is 0.4 of full scale: the AdLib sounds about as
+   loud as the PC speaker's (0.18 square), the loudest song peaks at 0.7,
+   so a sound on top of it stays below full scale.
+4. **Timing**: the original programs the timer with 1192030 / 560 = 2128,
+   so its music ticks at 1193182 / 2128 = **560.7 Hz** and its sounds at a
+   quarter of that, **140.2 Hz** (Omni `id_sd.c`). Both are used; the PC
+   sounds too (through the new optional rate of `SpeakerSynth`).
+5. **A song loops as the original's**: after the last command's tick the
+   first command follows on the next tick (the last delay is never waited
+   for; Omni SD_AL_MusicService), so a round lasts delay sum − last delay +
+   1 ticks (the last delay is 0 in all six songs). The stream holds the
+   first round from a reset chip plus 3 s of the second round, and loops
+   from 3 s to one round later: the loop's start has the end of the
+   previous round still sounding, as in the original.
+6. **Sounds and music are two streams**, not one chip. In the original the
+   sound effects use channel 0, which the songs use too (all six songs
+   write all nine channels): a sound cuts the song's channel-0 voice until
+   the song sets it again, and a sound inherits register 0xC0 of channel 0
+   (the songs leave feedback 3 there; the instrument's own connection byte
+   is never written). Ours renders each sound on a fresh chip (0xC0 = 0, as
+   after the original's reset with music off) and plays it over the whole
+   song.
+7. **A sound counts as playing for the length of its steps** (wall-clock
+   time) less the last one, which the original never sounds (its service
+   turns the speaker or the key off right after reading it; found by the
+   tester). The stream also holds the release after the last note until it
+   is 60 dB down (the carrier; in additive mode both operators), at most 3
+   s, faded out over 30 ms when it still sounds then: in the original it
+   rings until the next sound.
+8. **Cache**: one file per AdLib sound and song in `user://keen4/cache/`,
+   named by SHA-256 of `RENDER_VERSION` and the chunk's bytes; an 8-byte
+   header (loop start and end) and the 16-bit samples. About 20 MB for the
+   six songs. PC sounds are rendered at every start (quick) and not stored.
+   Rendering order: all sounds first (high priority), then map 0's song,
+   then the others (low priority). Measured on this machine (4 cores):
+   all 52 AdLib sounds in 2.9 s, map 0's song after 9 s, everything after
+   42 s; with the cache everything is ready after 0.5 s. A song that is not
+   ready yet starts as soon as it is; a sound that is not ready is silent.
+9. **Which song where** (Omni): every map its own on entering it (also
+   demos, also after "Try Again"), none on the high-score map; the council
+   song for the council's and the janitor's boxes (after the janitor the
+   map's song starts again); Lindsey's box stops the music and the map's
+   song starts again after it; map 7's song for the end pages; map 12's for
+   the story (stopped after it, as Omni's StopMusic). The help stops the
+   music and starts the map's song again when it closes in a game. Between
+   the title loop's steps nothing stops a demo's song (Omni's demo loop
+   does not either); the high-score demo (map 19) is silent.
+10. **The sounds' places** follow Omnispeak's `SD_PlaySound` calls, with
+    names instead of numbers (`GalaxyWorld.play_sound(name)`, the episode's
+    `Keen4Sounds.NUMBERS`), so Keen 5 and 6 can give the same names their
+    own numbers. Where Omnispeak plays two sounds at once (the water
+    sprite's shot, a death by falling out of the level), ours does too: the
+    priorities decide.
+11. **Settings**: `UserSettings.sound_device` ("off" / "pc" / "adlib",
+    default "adlib") and `UserSettings.music_enabled` (default on), new keys
+    in the `sound` section; Keen 1-3's `sound/enabled` is not used by Keen
+    4. Until the menus (D10): Shift+S switches AdLib → PC speaker → off and
+    Shift+M the music, each stored at once.
+12. **Not built**: the original's pause stops the music (no pause yet), the
+    quiet AdLib sounds option (`sd_quietAdlibSfx`, a menu item), Paddle
+    War's sounds (D11).
+13. **Shared files changed**: `SpeakerSynth.render` and `render_samples`
+    got an optional `steps_per_second` (default the old rate), and
+    `UserSettings` two new keys; `tests/run_tests.gd` the new suites.

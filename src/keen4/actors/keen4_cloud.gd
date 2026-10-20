@@ -97,6 +97,7 @@ func _think_strike() -> void:
 	bolt.priority = 0
 	bolt.direction = Vector2i.ZERO
 	bolt.enter(world, position + BOLT_OFFSET, ROWS, sprites, &"bolt_1")
+	world.play_sound(&"lightning_bolt")
 
 
 ## Contact while asleep: Keen wakes it (Omni CK4_CloudCol).

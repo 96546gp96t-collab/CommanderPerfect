@@ -63,6 +63,8 @@ func _contact_dopefish(other: GalaxyObject) -> void:
 		fish.be_caught()
 	elif keen == null or not keen.be_eaten():
 		return
+	else:
+		world.play_sound(&"keen_die")
 	prey = other
 	eat_start = position
 	direction.x = -1 if other.box.middle < box.middle else 1
@@ -92,6 +94,7 @@ func _think_eat() -> void:
 ## Think: a big bubble (Omni CK4_DopefishBurp).
 func _think_burp() -> void:
 	Keen4Bubble.burp(world, self, sprites)
+	world.play_sound(&"dopefish_burp")
 
 
 ## Think: back to where it began to eat, then it swims on (Omni

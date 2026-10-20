@@ -107,6 +107,7 @@ func _contact_worm(other: GalaxyObject) -> void:
 
 
 func _become_foot() -> void:
+	world.play_sound(&"foot_appear")
 	position.y -= FOOT_RISE
 	is_foot = true
 	_become(&"foot")
