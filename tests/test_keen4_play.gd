@@ -7,12 +7,12 @@ extends "res://tests/test_case.gd"
 
 const UNITS := 16
 const TILE := 256
-## The maps Keen walks in (D4); the world map (0) and the Well of Wishes
-## (17) follow in D7 and D6.
+## The maps Keen walks in (D4); the world map (0) follows in D7; the Well
+## of Wishes (17) is swum since D6 (test_keen4_d6_play.gd).
 const PLAYED_MAPS: PackedInt32Array = [
 	1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 18, 19
 ]
-const NOT_PLAYED_MAPS: PackedInt32Array = [0, 17]
+const NOT_PLAYED_MAPS: PackedInt32Array = [0]
 const HELD_JUMP_PIXELS := 67
 ## Level 1 (files, v1.0): the house door at (66-67, 15) leads to (74, 48).
 const LEVEL_1_DOOR_RIGHT := 67

@@ -11,6 +11,7 @@ extends RefCounted
 ##   d  a door (misc 2)     *  a lifewater drop       $  100 points (misc 21)
 ##   +  an extra life (27)  G  a red gem holder (7)   B  a gem door (3 steps)
 ##   s  a bridge switch (15) b a bridge tile that moves on
+##   S  a platform switch (5), which flips to the next tile and back
 ## and on the info plane: K Keen facing right, k facing left, P Keen
 ## facing right in front of a pole; [method put_info] adds other values.
 
@@ -38,6 +39,7 @@ const GEM_HOLDER_FULL := GEM_HOLDER + 18
 const GEM_DOOR := 40
 const SWITCH := 45
 const BRIDGE := 47
+const PLATFORM_SWITCH := 50
 ## Sprite boxes: Keen's (Omni sprite 6: 4-19 × 0-31 pixels), a shot's.
 const KEEN_BOX := Rect2i(64, 0, 240, 496)
 const SHOT_BOX := Rect2i(32, 32, 176, 176)
@@ -70,6 +72,7 @@ const CHARACTERS: Dictionary[String, int] = {
 	"B": GEM_DOOR,
 	"s": SWITCH,
 	"b": BRIDGE,
+	"S": PLATFORM_SWITCH,
 }
 
 
@@ -148,6 +151,10 @@ static func _tile_sides() -> Array[Array]:
 		[misc, SWITCH, GalaxyTileKinds.BRIDGE_SWITCH],
 		[offset, SWITCH, 1],
 		[offset, BRIDGE, 1],
+		[misc, PLATFORM_SWITCH, GalaxyTileKinds.PLATFORM_SWITCH_ON],
+		[offset, PLATFORM_SWITCH, 1],
+		[misc, PLATFORM_SWITCH + 1, GalaxyTileKinds.PLATFORM_SWITCH_ON],
+		[offset, PLATFORM_SWITCH + 1, -1],
 	]
 	for slope in 6:
 		sides.append([top, SLOPE_FIRST + slope, slope + 2])

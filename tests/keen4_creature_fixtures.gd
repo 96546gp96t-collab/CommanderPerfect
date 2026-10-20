@@ -14,7 +14,8 @@ const FRAME_TICS := 2
 ## names (the first that fits): left, top, right, bottom in units. The
 ## bottom is chosen so that a creature placed by its info value stands on
 ## the floor under its tile (its rise + 255); a bite and a flame reach
-## forward. Not the game's own boxes.
+## forward. Not the game's own boxes (D6's are close to them, so a council
+## member and the platforms stand and ride as in the levels).
 const BOXES: Array = [
 	["SLUG", [32, 128, 240, 368]],
 	["MUSHROOM", [64, 0, 400, 496]],
@@ -33,6 +34,16 @@ const BOXES: Array = [
 	["LICK_FLAME_R", [0, 0, 528, 255]],
 	["CLOUD", [0, 0, 1008, 368]],
 	["BOLT", [128, 0, 240, 1136]],
+	["MEMBER", [64, 0, 304, 624]],
+	["LINDSEY", [32, 32, 336, 464]],
+	["SCUBA", [32, 32, 592, 464]],
+	["PLATFORM", [240, 96, 688, 240]],
+	["MINE", [48, 48, 320, 320]],
+	["DOPEFISH", [256, 128, 1264, 880]],
+	["SCHOOLFISH", [48, 0, 192, 112]],
+	["SPRITE_FIRE", [48, 48, 192, 192]],
+	["SPRITE", [48, 48, 320, 368]],
+	["BUBBLE", [0, 0, 112, 112]],
 ]
 const OTHER_BOX: Array[int] = [32, 32, 240, 255]
 ## A shot starts this far left of what it is fired at, its position this
@@ -59,7 +70,7 @@ static func world(
 ) -> GalaxyWorld:
 	var world := Fixtures.world(rows)
 	world.random_table = random_table()
-	_give_boxes(world)
+	give_boxes(world)
 	for cell in cells:
 		Fixtures.put_info(world.map, cell, info)
 	Keen4Creatures.place_all(world, difficulty, Keen4Sprites.all())
@@ -76,7 +87,7 @@ static func random_table() -> PackedByteArray:
 
 
 ## Gives the creatures' sprites the boxes above.
-static func _give_boxes(world: GalaxyWorld) -> void:
+static func give_boxes(world: GalaxyWorld) -> void:
 	var sprites := Keen4CreatureSprites.SPRITES
 	for name in sprites:
 		var rect: Array = OTHER_BOX
@@ -90,6 +101,15 @@ static func _give_boxes(world: GalaxyWorld) -> void:
 		info.box_right = rect[2]
 		info.box_bottom = rect[3]
 		world.sprite_infos[sprites[name]] = info
+
+
+## Places what info value [param info] places at [param cell] (a cell of
+## the rows) in a world already made, on Hard (everything).
+static func place_more(world: GalaxyWorld, info: int, cell: Vector2i) -> GalaxyCreature:
+	Fixtures.put_info(world.map, cell, info)
+	return Keen4Creatures.place_info(
+		world, info, cell + Vector2i(2, 2), GalaxyDifficulty.Level.HARD, Keen4Sprites.all()
+	)
 
 
 ## The first object of [param world] that is a [param type].

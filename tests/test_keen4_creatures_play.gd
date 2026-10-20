@@ -1,16 +1,17 @@
 extends "res://tests/test_case.gd"
 ## Checks Keen 4's creatures with the player's real files (milestone D5):
 ## every info value in levels 1-16 places something or is knowingly left
-## for D6/D7, the difficulty decides which creatures level 1 has, every
-## sprite name the creatures use is a real sprite, and every level runs a
-## while with its creatures (Keen in god mode). Skipped without the files.
+## for D7 (D6 placed the rest: test_keen4_d6_play.gd), the difficulty
+## decides which creatures level 1 has, every sprite name the creatures use
+## is a real sprite, and every level runs a while with its creatures (Keen
+## in god mode). Skipped without the files.
 
 const FIRST_LEVEL := 1
 const LAST_LEVEL := 16
 ## Info values that are not creatures (Omni, research.md §6): Keen 1 / 2,
 ## the scroll blocks 25 / 26, the stunner for few charges 34, the items
-## 57-68.
-const NOT_CREATURES: PackedInt32Array = [1, 2, 25, 26, 34]
+## 57-68; since D6 also the platforms' turn point 31 (the platforms read it).
+const NOT_CREATURES: PackedInt32Array = [1, 2, 25, 26, 31, 34]
 const FIRST_ITEM := 57
 const LAST_ITEM := 68
 ## Values from this on are targets under doors and switches.
