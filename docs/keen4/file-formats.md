@@ -178,15 +178,40 @@ The code keeps **indices inside a range**, never chunk numbers.
   chunk), 256 widths (bytes), then the pixels: per character `height` rows
   of ⌈width ÷ 8⌉ bytes, the leftmost pixel in the highest bit. Font 0 is
   the menu font, font 1 a small one, font 2 large (D2, 1.0).
-- **Misc**: two 80×25 text screens (an 8-byte header, then 4000 bytes of
-  characters and colours) and two tables used by the intro credits.
-- **Texts**: help, story, keys, about id, end, "level not available", how
-  to order. Lines end in CR LF; commands start with `^`: `^P` new page,
-  `^E` end, `^G<chunk>,<x>,<y>` a picture, `^T<chunk>,<x>,<y>,<tics>` a
-  timed picture, `^C`/`^c<colour>`, `^L<x>,<y>`. The picture numbers are
-  **chunk numbers of this version**; subtract the picture range start.
-- **Demos**: a 16-bit map number (1, 9, 11, 15, 19 in 1.0), a 16-bit
-  length, then the recorded input.
+- **Misc** (D8, 1.0; Omni's 1.4 names): 0 the ordering text screen, 1
+  and 2 the two words of the intro credits, 3 the "out of memory" text
+  screen. A text screen is an 8-byte header, then 4000 bytes of characters
+  and colours (80 × 25). An intro word (`GalaxyIntroBitmap`) is a 16-bit
+  height (200) and width (1.0: 1664 and 668 pixels), 200 16-bit offsets
+  (one per row, from the start of the chunk), then per row 16-bit run
+  lengths, dark and light in turn starting with dark, ended by 0xFFFF; every
+  row of 1.0's second word starts with a dark run of 20.
+- **Texts** (D8, 1.0's order): 0 the ComputerWrist help, 1 the story, 2
+  the keys ("The keys to excitement"), 3 about Id, 4 the end, 5 "not in the
+  demo version", 6 how to order (Omni's 1.4 names put the controls before
+  the story; not checked in a 1.4). Lines end in CR LF; commands start with
+  `^` (`GalaxyTextPages`, `GalaxyPageLayout`):
+  - `^P` a new page (the rest of the line is skipped), `^E` the end;
+  - `^G y,x,chunk` a picture (**y first**), its x rounded down to 8;
+  - `^T y,x,chunk,tics` a picture after a pause (the page so far is shown
+    meanwhile);
+  - `^L y,x` the next word's line (rounded to the 10-pixel lines) and x;
+  - `^C` / `^c` and one hex digit: the text colour (1.0: the EGA colour
+    itself, on light grey);
+  - `^B y,x,width,height,colour` a bar in the background colour (the end
+    uses it to wipe a line).
+  The picture numbers are **chunk numbers of this version**; subtract the
+  picture range start (6 in 1.0 and 1.4).
+- **Pictures by place** (D8): counted from the start, the same in 1.0 and
+  1.4 (1.0 lacks 1.4's five border pictures and three bar pictures, which
+  come after these): 0 the help menu (136 × 184), 5 the help's "PAGE / ESC
+  BACKS OUT" bar, 39 the pointing hand, 41 and 42 the end's dim and bright
+  arrow (16 × 16). Counted from the end: 17-14 the four intro credits, 13
+  the story's picture, 12 the title picture (both 320 × 200).
+- **Demos** (D8): a 16-bit map number (1, 9, 11, 15, 19 in 1.0), a 16-bit
+  length in bytes, then pairs of bytes: how many logic frames, and what is
+  held (bits 0-1 up/down + 1, bits 2-3 left/right + 1, bit 4 jump, bit 5
+  pogo). 1.0's demos are 744, 687, 749, 645 and 271 frames of 3 tics.
 
 ### Decoding time (D2, GDScript, this machine)
 
@@ -309,10 +334,14 @@ All found by **shape**, never by their words (`GalaxyExecutable`,
 | Status window (D7) | 0x2E115 | 14 one-line records, one zero apart, of 8, 5, 5, 7, 5, 4, 6, 4, 4, 4, 5, 5, 7 and 3 characters: location, score, extra, rescued, level, the three difficulties, keys, ammo, lives, drops, the wetsuit and its absence. One-line labels say nothing by their lines, so this run is found by its **lengths** (`GalaxyEpisode.text_lengths`, `GalaxyExeTexts.find_by_lengths`) |
 | Game texts (D7) | 0x2DD4C | 13 records of 10, 31, 31, 4, 33, 22, 39, 23, 9, 19, 34, 48 and 10 characters: "game over", two memory errors, the demo texts, the three lines of the box after a death (0-based 7, 8, 9), two memory errors, and the box when Keen leaves the world map (12). Found by its lengths too |
 
+| Story (D8) | 0x1DB40 | One record of 30 lines (the title loop's story), found by that shape |
+| Cheat box (D8) | 0x2E0C3 | 3 records of 70, 6 and 3 characters: the B+A+T box, "PAUSED", the drive prompt; right before the status labels |
+| High scores (D8) | 0x31E9C | 8 records of 64 bytes: a name of 58 bytes (printable, then zeros), a 32-bit score, a 16-bit number (council members rescued). Found by that shape (`GalaxyHighScores.find_defaults`); the same records are kept in `CONFIG.CK4` after its 6-byte header |
+
 A record is a run of printable characters and newlines ending in a zero.
 The shapes and lengths are Keen 4's numbers (`Keen4Episode`); the Galaxy
 code knows none of them. Not searched yet (for later milestones): the
-menus' texts and the high-score texts. "I can't swim!" is in the council
+menus' texts. "I can't swim!" is in the council
 block (record 5).
 
 D6, the order in the council block as the boxes use it (seen in the

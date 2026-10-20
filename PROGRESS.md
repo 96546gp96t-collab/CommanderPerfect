@@ -87,12 +87,102 @@ bestanden in [docs/keen4/file-formats.md](docs/keen4/file-formats.md).
 | D5 | Vijanden | ✅ Klaar, wacht op controle door de architect (branch `milestone-d5-vijanden`) |
 | D6 | Platforms, schakelaars, de raad, onder water | ✅ Klaar, wacht op controle door de architect (branch `milestone-d6-mechaniek`) |
 | D7 | De wereldkaart | ✅ Klaar, wacht op controle door de architect (branch `milestone-d7-kaart`) |
-| D8 | Het einde, de titel en de demo's | ⬜ |
+| D8 | Het einde, de titel en de demo's | ✅ Klaar, wacht op controle door de architect (branch `milestone-d8-einde-titel`) |
 | D9 | Geluid en muziek (eigen OPL2-synthesizer) | ⬜ |
 | D10 | Menu's en opslaan | ⬜ |
 | D11 | Mooier maken en Paddle War | ⬜ |
 | D12 | Co-op | ⬜ |
 | D13 | Naast het origineel | ⬜ |
+
+## Mijlpaal D8: wat er nu is
+
+Keen 4 is nu van de titel tot de highscores te spelen. Het spel begint met
+de titellus van het origineel: de intro-aftiteling (de twee grote woorden
+die over elkaar schuiven, de vier namen die omhoog vliegen, het inzoomen en
+het titelplaatje dat erin "fizzlet"), demo 0, het verhaal dat in de verte
+wegschuift, demo 1, de highscores (demo 4 op map 19 achter de tabel), demo
+2 en demo 3, en weer opnieuw. Een toets start een nieuw spel (de menu's
+komen in D10), Escape gaat terug naar het startscherm, F1 opent de help.
+Na de achtste redding (of de cheat E+N+D) komen de eindpagina's met de
+knipperende pijl, daarna typ je je naam op map 19 als je score in de tabel
+komt, dan de highscores en weer de titellus. De regels staan in
+`docs/keen4/gameplay.md` ("The title loop", "Help", "The end and the high
+scores"), de afwijkingen van het plan in `docs/keen4/architecture.md`
+("Deviations in D8"), wat het origineel liet zien in
+`docs/keen4/research.md` ("Watched in D8").
+
+- [x] **Teksten met opmaak** (`GalaxyTextPages`, `GalaxyPageLayout`): ^P,
+  ^E, ^G (y eerst!), ^T met pauze, ^L, ^C, ^B; 18 regels van 10 pixels,
+  woorden die passen, ruimte naast plaatjes. Alle help- en eindpagina's die
+  we naast het origineel legden: **pixel voor pixel gelijk**.
+- [x] **Help (F1)** (`Keen4Help`): het menu met de wijzende hand, vijf
+  onderwerpen (ComputerWrist, The Game, The Story, Order Info, About Id),
+  bladeren zoals het origineel, "pg 1 of 13" rechtsonder. Gelijk aan het
+  origineel (menu en pagina's: 0 pixels verschil). In een spel wacht het
+  spel erachter; Shift+F1 is nu de hulpregel van Keen 1-3.
+- [x] **Het einde** (`Keen4Ending`): 16 pagina's, de getimede plaatjes met
+  de pauzes van het origineel (gemeten: dezelfde), de pijl rechtsonder die
+  elke 70 tics knippert; een toets tijdens de plaatjes doet niets. Pagina's
+  1, 3 en 16 en de naam typen (met en zonder cursor): 0 pixels verschil.
+- [x] **Highscores** (`GalaxyHighScores`, `Keen4HighScoreBoard`): acht
+  plaatsen, de standaardtabel uit de EXE (gevonden op vorm: 8 records van
+  64 bytes), bij gelijke score wint wie meer raadsleden redde; de tabel op
+  map 19 met XOR in het plaatje van de map (0 pixels verschil met het
+  origineel), de raadsleden als icoontjes, de naam typen met de knipperende
+  cursor; bewaard in `user://keen4/high_scores.json`.
+- [x] **Cheats** (`Keen4Cheats`): E+N+D (de achtste redding op de plek
+  waar Keen is, dan het einde) en B+A+T (het vak "Cheat Option!", dan de
+  vier edelstenen, 99 schoten en een leven).
+- [x] **De titellus** (`Keen4TitleLoop`, `Keen4FrontScreen`,
+  `GalaxyTitleLayer`): de intro (`GalaxyIntroCredits`,
+  `GalaxyIntroBitmap`: de twee woorden uit de misc-chunks), het verhaal
+  (`GalaxyStoryScroller`, met een shader; **pixel voor pixel gelijk** aan
+  het origineel), het schuiven en inzoomen ook (de eerste naam staat bij het
+  origineel 4 pixels verder naar rechts: gecentreerd op hele bytes,
+  gerepareerd), de demo's met het vak "DEMO" en het DEMO-bord, de
+  highscores. Tijden gemeten: fizzle 1 tic per stap, titel 6,0 s.
+- [x] **De vijf demo's** (`GalaxyDemo`, `GalaxyTwoButtonFiring`): kaart en
+  invoer uit EGAGRAPH, 3 tics per frame, de vaste toevalstabel vanaf 0,
+  "two-button firing", geen extra leven voor punten. **Alle vijf demo's lopen
+  frame voor frame gelijk aan het origineel** (Keen gezocht in elk opgenomen
+  frame van het origineel en naast onze frames gelegd: sprite en plek gelijk
+  tot het eind van elke demo). Er hoefde niets in Keen, de natuurkunde of de
+  wezens gerepareerd te worden.
+- [x] **Tests**: nieuwe suites `test_galaxy_front` (zelfgemaakte data:
+  opmaak, demo-invoer, two-button firing, highscores met gelijke scores,
+  opslaan en laden, de standaardtabel op vorm, de intro, het verhaal, de
+  volgorde van de titellus, cheats) en `test_keen4_front_play` (echte
+  data: de pagina's van de help en het einde, bladeren, de pauzes van het
+  einde, de tabel, de vijf demo's, de eerste seconden van demo 0 tegen het
+  origineel, het einde tot de naam in de tabel). 91 suites, 991 tests
+  (was 89 en 964), alle slagen, geen SCRIPT ERROR, gdlint schoon.
+- [x] **Keen 1-3-controle:** `keen1_regression.sh` en `keen2_regression.sh`
+  tegen D7 (lege gebruikersmap): alles gelijk. `git diff
+  milestone-d7-kaart` op `src/keen2`, `src/keen3`, hun tests en fixtures,
+  `src/actors`, `src/map` en `src/game/level_view.gd` is leeg. Gedeeld
+  bestand veranderd: alleen de testlijst (`tests/run_tests.gd`). De Keen
+  4-regressie: levels 1 en 11, de kaart en het statusvenster gelijk aan D7;
+  nieuw erbij: de intro (breedbeeld en 4:3), het helpmenu en een helppagina.
+- [x] **Gerepareerd na de screenshots:** de highscore-stap van de titellus
+  bleef hangen (een getypte array uit `[] if … else …`); geen suite speelt
+  de flow van de view (die heeft een draaiende scene tree nodig), de
+  screenshots van de hele lus vonden het. De tabel blijft nu onder het vak
+  van de volgende demo staan, zoals bij het origineel.
+- [x] **Bekeken** (scratchpad `d8shots/`): intro, zoom, fizzle, titel,
+  het verhaal, elke demo, de highscores, de help, de eindpagina's, de naam
+  typen, in 4:3 en breedbeeld.
+- **Niet gedaan:** het tekstscherm vooraf (DOS), de menu's (D10), muziek
+  (D9). Gezien maar niet veranderd (voor D13): het origineel tekent sprites
+  op stappen van 8 / (shifts) pixels (2 pixels voor de meeste, 8 voor Keen
+  die een deur in gaat) en scrollt het beeld in stappen van 2 pixels; bij
+  ons kan iets 1 tot 7 pixels opzij staan.
+- **Om te proberen:** `godot --path . -- --game=4`: kijk naar de intro, het
+  verhaal en de demo's; F1 voor de help; een toets voor een nieuw spel; in
+  het spel E+N+D tegelijk ingedrukt voor het einde (daarna je naam typen;
+  met 0 punten kom je niet in de tabel, speel eerst wat), B+A+T voor de
+  edelstenen. Het hele spel van titel tot highscores kan nu, zonder geluid.
+- **Volgende stap: D9**, geluid en muziek (`milestone-d9-geluid`): de
+  PC-speaker-geluiden en een eigen OPL2-synthesizer voor AdLib en de liedjes.
 
 ## Mijlpaal D7: wat er nu is
 

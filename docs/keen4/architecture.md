@@ -708,3 +708,77 @@ What D7 built differently from the plan above, and why (developer, D7):
     for D13 because it moves every sprite in every level).
 13. **Shared files changed**: only `tests/run_tests.gd` (three suites).
     `tools/keen4_regression.sh` (Keen 4's own) takes the world map too.
+
+## Deviations in D8
+
+What D8 built differently from the plan above, and why (developer, D8):
+
+1. **Where the classes went.** Galaxy: `GalaxyTextPages` (`data/`, the
+   page mark-up), `GalaxyPageLayout` (`ui/`, the original's page layout:
+   18 lines, words, pictures with room around them, timed pictures),
+   `GalaxyDemo` (`data/`), `GalaxyTwoButtonFiring` (`keen/`),
+   `GalaxyHighScores` (`data/`: the table, its order, the defaults found in
+   the program by their shape, JSON), `GalaxyIntroBitmap` and
+   `GalaxyIntroCredits` (`ui/`, the "terminator"), `GalaxyStoryScroller`
+   (`ui/`), `GalaxyTitleLayer` (`ui/`, the node that shows the full
+   screens) and `GalaxyEga` (`ui/`, EGA numbers and XOR). Keen 4:
+   `Keen4Help`, `Keen4Ending`, `Keen4HighScoreBoard`, `Keen4TitleLoop`
+   and `Keen4Cheats` (`game/`). The plan's `GalaxyTextScreen` became the
+   layout plus the layer; the plan's `Keen4HighScores` became the Galaxy
+   table plus Keen 4's board on map 19.
+2. **The view is a chain of four.** `Keen4FrontScreen` (between
+   `Keen4PlayScreen` and `Keen4View`) runs the title loop, the demos, the
+   help, the end and the name on the table; `Keen4View` keeps the game's
+   flow and calls the front's hooks (`_front_input`, `_after_demo_frame`,
+   `_start_ending`, `_game_ended`). `Keen4PlayScreen` got one hook,
+   `_frame_input` (the keys, or a demo's recorded input). The loading
+   box's queue (`_queue_loading`) moved from `Keen4View` to the front, so
+   the demos' "DEMO" box is the same box.
+3. **Full screens are a layer over the game**, not message boxes:
+   `GalaxyTitleLayer` lies in the World viewport's `Ui` layer under the
+   boxes (the "DEMO" box shows over it), black around the original's
+   320 × 200 in widescreen. The intro's two words are additive sprites
+   (alone dark grey, together light grey, as the original's palette);
+   the story is one rectangle with a shader that squeezes the rows as the
+   original (pixel for pixel the same, checked by rendering it on the
+   processor too); the help, end, zoom and fizzle are pictures.
+4. **The table is printed into the map's picture** as the original: a
+   see-through 320 × 200 picture placed at the view's corner in the world,
+   drawn after the foreground tiles and before the sprites, with each
+   letter's pixels XORed with the map's tile colour under it.
+5. **Keys of the title loop** (the menus are D10's): Escape goes back to
+   the start screen, F1 opens the help, any other key or button starts a
+   new game on Normal on the world map. In the original any key opens the
+   wrist-watch menu.
+6. **F1 is the original's help**, in the title loop and in a game (the game
+   waits behind it). Keen 1-3's help line moved to Shift+F1 for Keen 4.
+7. **After a game** (game over or the end): the name is typed on map 19
+   when the score makes the table (a tie goes above on more rescues), then
+   the high scores (demo 4) and the title picture for 420 tics, then the
+   title loop goes on (Omni CK_DemoLoop); D7's game over went to the start
+   screen.
+8. **The end after E+N+D** counts as rescuing the eighth member on the map
+   Keen is on (Omni: the level is marked done, the member's boxes with
+   Keen's eighth answer, the end), also on the world map (seen in the
+   original: the elder's box over the map).
+9. **Demos**: a new game on Normal, the random table from index 0 after
+   the objects are placed (the original sets it again in its play loop), 3
+   tics a frame from the first (the level's first frame is 3 tics anyway),
+   no extra lives for points (`GalaxyInventory.extra_lives_for_points`),
+   the DEMO sign (sprite 5) at the view's top middle instead of the score
+   box, nothing in the high scores. A demo ends after the frame that uses
+   its last input, or when Keen leaves or loses the level.
+10. **Not built**: the sign-on text screen (the original's DOS screen
+    before the intro), the menus (D10), music (D9), the original's
+    different fizzle order (it shuffles with the C library's random
+    numbers; ours with a fixed seed), the original's sprite and scroll
+    steps (see "Watched in D8" in research.md: 2 or 8 pixels; left for
+    D13 as in D7).
+11. **Fixed during D8**: `[] if ... else ...` gives an untyped `Array`,
+    which cannot be stored in an `Array[Image]`: the high-score step of the
+    title loop stopped with a script error. No suite runs the view's flow
+    (it needs a running scene tree); the screenshots of the whole loop
+    caught it. `test_keen4_front_play` tests the flow's pieces instead.
+12. **Shared files changed**: only `tests/run_tests.gd` (two suites).
+    `tools/keen4_regression.sh` (Keen 4's own) takes the intro (in both
+    shapes), the help menu and a help page too.

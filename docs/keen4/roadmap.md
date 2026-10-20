@@ -339,9 +339,10 @@ start zonder rekenen).
 | D6 Mechaniek | 20-10-2026 | Klaar; platforms, keerpunten, vallend platform, schakelaars en bruggen, de raad (en de conciërge), Lindsey, het wetsuit, level 17 onder water; alle berichtvakken pixel voor pixel gelijk aan het origineel, platformsnelheid en zwemmen gemeten in js-dos; afwijkingen in architecture.md, "Deviations in D6" |
 | D7 Kaart | 20-10-2026 | Klaar; de wereldkaart gespeeld (lopen, zwaaien, levels in, vlaggen gegooid en wapperend, hekken weg, water en zwemmen, Miragia, de Foot-vlucht, map 18), de vakken tussen de levels en het statusvenster; alle vakken en het statusvenster pixel voor pixel gelijk aan het origineel, lopen, zwemmen, Miragia en de vlag frame voor frame vergeleken in js-dos; afwijkingen in architecture.md, "Deviations in D7" |
 
-Volgende stap: D8, het einde, de titel en de demo's
-(`milestone-d8-einde-titel`): de achtste redding gaat nu nog via een
-melding terug naar de kaart; het eindverhaal, de highscores (map 19), de
-cheat E+N+D en de titel met de demo's volgen. De wereldkaart, de vakken en
-het statusvenster (`Keen4View`, `Keen4PlayScreen`, `GalaxyScreenQueue`)
-bestaan sinds D7.
+| D8 Einde, titel, demo's | 20-10-2026 | Klaar; de titellus (intro, verhaal, vijf demo's, highscores), help (F1), het einde met de pijl, de highscores met de naam op map 19, E+N+D en B+A+T; help- en eindpagina's, het verhaal en de tabel pixel voor pixel gelijk aan het origineel, de vijf demo's frame voor frame naast het origineel gelegd; afwijkingen in architecture.md, "Deviations in D8" |
+
+Volgende stap: D9, geluid en muziek (`milestone-d9-geluid`): de 52
+PC-speaker-geluiden en een eigen OPL2-synthesizer voor de AdLib-geluiden en
+de zes liedjes (ook het lied van het einde en van het verhaal). Het spel is
+sinds D8 van titel tot highscores te spelen (`Keen4FrontScreen`,
+`Keen4View`).

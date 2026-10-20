@@ -485,7 +485,9 @@ per object (as numbers, marked `(Omni)`, if the user allows that).
   Try Again / Exit to Shadowlands"; game over with no lives left.
 - **Cheats** (original): B+A+T (all gems, 99 charges, a life), E+N+D (to
   the end), A+2+Enter turns on F10 debug keys (god mode, warp, …). The
-  warp and god mode make js-dos checks easy.
+  warp and god mode make js-dos checks easy. D8, seen: E+N+D on the world
+  map shows the elder's box, Keen's eighth answer and his thumb, then the
+  end pages.
 
 ## 10. Screens, menus, sound
 
@@ -495,13 +497,15 @@ per object (as numbers, marked `(Omni)`, if the user allows that).
 - **Status window** (Enter): drops down; location, score, extra life at,
   rescued (one icon each), difficulty, gems, charges, lives, drops,
   wetsuit.
-- **Help** (F1): five topics from the texts.
+- **Help** (F1): five topics from the texts. D8: v1.0's help has no
+  border pictures and a light grey background ("Watched in D8").
 - **Menus**: the original's "control panel" with cards: New Game (Easy,
   Normal, Hard), Load/Save (6 slots), Configure (sound off/PC/AdLib, music
   off/AdLib, options, keyboard, joystick), **Paddle War**, End Game, Quit.
 - **Demo loop**: intro credits → demo → story → demo → high scores (demo
   on map 19) → demo → demo. Demos run at 3 tics per frame with "two-button
-  firing" and the fixed random table.
+  firing" and the fixed random table. D8: seen so, and all five demos play
+  frame for frame as in the original ("Watched in D8").
 - **High scores**: 8 entries with the number of rescued elders as icons;
   typed in on map 19.
 - **Sound**: 52 sounds, each as PC speaker and as AdLib version, 140 Hz,
@@ -789,6 +793,54 @@ difference is at most one pixel sideways, in levels too. Left for D13 (a
 change in `GalaxyObjectLayer.pixel_of`, which would move sprites in every
 level).
 
+### Watched in D8 (js-dos, the user's v1.0)
+
+Headless js-dos as before; a bundle without `CONFIG.CK4` (the original's
+own high scores) and one whose `CONFIG.CK4` had every score set to 0 (to
+reach the name entry with E+N+D's 0 points). Every changed frame recorded;
+Keen found in each frame by matching our decoded sprites exactly; pages
+and tables laid over the original's frames pixel by pixel.
+
+| What | Omnispeak | The original (v1.0) | Ours (D8) |
+|---|---|---|---|
+| Title loop | intro, demo 0, story, demo 1, high scores (demo 4), demo 2, demo 3 | the same; after the fizzle the title stays 6.0 s (420 tics), then black and the "DEMO" box | the same |
+| Intro scroll | 1864 tics (1.0's words), credits at 160 − width / 2 | ~26.6 s; frames at 2-tic steps match ours exactly (**0 pixels differ** at tics 498 … 1398); the 72-pixel credit sits at 128, not 124: centred by **whole bytes** (160 − (bytes / 2) × 8) | the same (fixed in D8) |
+| Zoom | 30 tics | 11 frames, each equal to one of ours (**0 pixels differ**) | the same |
+| Fizzle | 360 steps, `VL_DelayTics(1)` | a step every 14 ms (one tic), over the zoom's last picture with the words white | the same (our own random order) |
+| Story | a row every 4 tics, squeezed rows | **0 pixels differ** (frame of run 2b, distance 277) | the same |
+| Demo box | `CK_LoadLevel` with "DEMO" | the loading box with "DEMO", over black after a full screen, over the last picture after a demo; the high scores without a box | the same |
+| Help (1.0) | 1.4 has borders and red | light grey, no borders, text dark grey, "pg n of m" at (248, 190), menu picture at (96, 8), hand at (48, 48 + 24 n); **0 pixels differ** (menu and 8 pages) | the same |
+| End pages | `help_endgame` | light grey; the ^T pauses as written (100, 10, 140, 1, 10, 140, 10, 140 tics on page 1); keys during them are lost; arrow at (296, 184), dim / bright every ~1 s; **0 pixels differ** (pages 1, 3, 16) | the same |
+| B+A+T | box 20 × 7 | lives + 1, 99 charges (the box itself was not caught: it went by with the keys) | the same |
+| E+N+D | rescued = 7, council rescued | on the world map too: the elder's box over the map, "You're the last one, fella …", Keen's thumb, then the end; with 0 points no name (the table has 10,000) | the same |
+| High scores | names at (24, 51 + 16 n), icons at 152, scores right at 296, colour 15 | XOR into the map's picture; **0 pixels differ** (the table over map 19) | the same |
+| Name entry | `US_LineInput`, cursor 0x80 | map 19's tiles only (no Keen, no creatures), the new row empty with its icons; "AB" typed: **0 pixels differ**, with the cursor and without (it blinks every ~0.51 s) | the same |
+
+**Demos.** Each demo recorded in full (every changed frame) and Keen
+found in every frame; our engine played the same demo headless and the
+two lists laid side by side (aligned on the first movement, a frame of 3
+tics = 42.9 ms, one frame of slack for the recorder's timing):
+
+| Demo | Map | Frames | Compared | Result |
+|---|---|---|---|---|
+| 0 | 1 (Border Village) | 744 | 525 recorded frames, to the last | in sync to the end: sprite and place equal in every frame (Keen walks, jumps, pogoes, goes through two doors) |
+| 1 | 9 | 687 | 470 | in sync to the end |
+| 2 | 11 | 749 | 418 | in sync to the end |
+| 3 | 15 | 645 | 463 | in sync to the end |
+| 4 | 19 (high scores) | 271 | 243 | in sync to the end |
+
+So D3-D7's Keen, physics and creatures play the demos as the original
+does; nothing needed fixing. The random table from index 0 and
+two-button firing (Omnispeak's facts) are confirmed by it.
+
+**Sprites and scrolling in steps.** Measured on Keen in the demos: the
+original draws a sprite at its x rounded down to 8 / (the sprite's shifts
+in the sprite table) pixels: 2 pixels for most sprites (4 shifts), 8 for
+Keen going through a door (sprites 73-76 have 1 shift: he jumps 6 pixels
+left at the door), and it scrolls the view in steps of 2 pixels. With that
+rule ours and the original's places are equal in every frame of all five
+demos. Ours draws on whole pixels (left for D13, as in D7).
+
 ## Lessons for the new-episode guide
 
 
@@ -838,3 +890,17 @@ file is not changed now because another session is working on it.)
 - D7: a box of the original over a moving scene can be caught mid-draw
   (one row in the old colour); compare the rest before doubting the
   layout.
+- D8: a demo is the best check of the whole engine: play it headless,
+  find Keen in every recorded frame of the original (exact sprite match)
+  and compare the lists, aligned on the best offset. Account for the
+  original's drawing: sprites at 8 / (shifts) pixel steps, the view at
+  2-pixel steps.
+- D8: the recorder in js-dos loses keys and frames when the machine is
+  busy; drive menus step by step with snapshots in between.
+- D8: a full screen effect (the story) can be checked by rendering the same
+  rule on the processor in a scratch script and searching the scroll
+  distance that matches the original's frame.
+- D8: in GDScript `[] if condition else typed_array` is an untyped
+  `Array`; assigning it to an `Array[Image]` stops the function with a
+  script error at run time. Screenshots of a whole flow catch what the
+  suites (without a running scene tree) cannot.

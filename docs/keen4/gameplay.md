@@ -2,9 +2,10 @@
 
 What a Keen 4 level does in CommanderPerfect so far, and where its numbers
 come from. Written in milestone D3 (drawing a level), D4 (Keen moves), D5 (the
-creatures), D6 (platforms, the council, under water) and D7 (the world map,
-the boxes between the levels, the status window); later milestones add to
-it. The facts and their sources are in
+creatures), D6 (platforms, the council, under water), D7 (the world map,
+the boxes between the levels, the status window) and D8 (the title loop,
+the demos, the help, the end, the high scores, the cheats); later
+milestones add to it. The facts and their sources are in
 [research.md](research.md), the code layout in
 [architecture.md](architecture.md), the files in
 [file-formats.md](file-formats.md). Numbers from Omnispeak are marked
@@ -13,26 +14,99 @@ it. The facts and their sources are in
 All positions are the original's **global units**: 16 per pixel, 256 per
 tile. Times are **tics** of 1/70 s.
 
-## The course of the game (D7)
+## The course of the game (D7, D8)
 
 | What | Then |
 |---|---|
-| Keen 4 picked on the start screen, or `-- --game=4` | A new game on the world map, after the box "Keen enters the Shadowlands"; there is no title or menu yet (D8, D10) |
+| Keen 4 picked on the start screen, or `-- --game=4` | The title loop (below); a key starts a new game on Normal on the world map, after the box "Keen enters the Shadowlands" (the menus are D10's); Escape: the start screen; F1: the help |
 | `-- --game=4 --level=N` | Map N at once: 0 the world map, 1-19 played (17 swum); another number: a message |
 | On the world map: jump, pogo or fire on an entrance | "One moment", then the level's "Keen enters …" box with Keen counting down, a fade, the level |
 | Keen walks out of a level (left or right), the Foot carries him off, he rescues a council member or takes the wetsuit | The level is done (the rescue's and the wetsuit's boxes first); the map's box; Keen back on the map where he entered, the level's flag thrown to its holder, its fence gone; after the Foot he flies |
-| Keen dies | One life less, the gems gone; the box "You didn't make it past …": Try Again (the level again, with its box) or Exit to Shadowlands (the map); with no life left (fewer than 0): "Game Over!" for 4 s or a key, then the start screen (the high scores are D8's) |
-| The eighth rescue | The status line says so; the map follows (the end is D8's) |
+| Keen dies | One life less, the gems gone; the box "You didn't make it past …": Try Again (the level again, with its box) or Exit to Shadowlands (the map); with no life left (fewer than 0): "Game Over!" for 4 s or a key, then the high scores (below) |
+| The eighth rescue | The end pages, then the high scores |
+| E, N and D held (cheat) | The level counts as the eighth rescue on the map Keen is on: the elder's box, Keen's eighth answer, the end |
+| B, A and T held (cheat) | The box "Cheat Option! …" until a key; then all four gems, 99 charges and a life more |
+| F1 | The help; the game waits behind it |
 | Enter (the shared status key) | The status window drops down, in a level and on the map; a key lifts it |
 | Lindsey, the janitor (D6) | Their boxes; the level goes on |
 | Shift+N / Shift+P | The next or previous map (0-19, round) |
 | Arrows / WASD, jump, pogo, fire | Keen (the shared keys: Ctrl or Z jump, Alt or X pogo, Space or C fire); on the world map the arrows walk in eight directions |
 | Shift+G | God mode on/off (the original's debug key F10+G): nothing kills Keen, except falling out of the level |
 | Escape | Back to the start screen |
-| F1-F6 | As in Keen 1-3: help line, widescreen, pixel shape, full screen, graphics (original / xBRZ), smooth motion |
+| Shift+F1, F2-F6 | As in Keen 1-3: help line, widescreen, pixel shape, full screen, graphics (original / xBRZ), smooth motion |
 
 A new game starts with 3 lives, 5 stunner charges and the first extra life
 at 20,000 points (Omni); what Keen carries goes from level to level.
+
+## The title loop (D8)
+
+Seen in the original (js-dos, the user's v1.0), in this order (Omni
+CK_DemoLoop), and round again:
+
+| Step | What (Omni unless marked) |
+|---|---|
+| Intro credits | The two words of the series name (misc chunks 1 and 2): the second comes in from the left (its left edge 200 pixels into a buffer that pans back), the first from the right a pixel a tic (only its even rows, each twice), both in proportion to the time, 1864 tics (1.0: \|120 − 1664 − 320\|), until the first word's right edge is at x 120. Either word alone dark grey, both light grey. Meanwhile the four credit pictures (17-14 from the end), at x 160 − (bytes / 2) × 8 (seen: centred by whole bytes), fly up from y 240 (their middle) to 100 at 2 pixels a tic, wait 200 tics and fly out at the top, blue / light blue / light cyan from their blue and green planes (seen) |
+| Zoom | Both words joined (80 pixels apart, the second without its first dark run) shrink in 30 tics to 33/256 at the top (4 pixels down), dark grey |
+| Fizzle | The title picture (12 from the end) appears pixel by pixel: 360 steps of one tic, each row from its own step for 160 steps, two pixels a step, over the zoom's last picture with the words white (seen: 14 ms a step) |
+| Title | 420 tics (seen: 6.0 s); then black |
+| Demo 0 | Map 1; the box with "DEMO" (over black after a full screen, over the last picture after a demo; seen), the fade, the demo |
+| Story | The story text from the program (30 lines) in the large font, squeezed into the distance over the story picture (13 from the end, magenta as dark grey), a row every 4 tics, until it has moved its height and 400 rows more (1.0: 4008 tics); pixel for pixel the original's |
+| Demo 1 | Map 9 |
+| High scores | Demo 4 on map 19 behind the table, no box (a fade), no DEMO sign; the table stays under the next demo's box (it is part of the map's picture; seen) |
+| Demo 2, 3 | Maps 11, 15 |
+
+**Demos** (Omni `ck_inter.c`, `id_in.c`, `ck_play.c`): a new game on
+Normal, the random table from its start, 3 tics a frame, no extra life for
+points, the DEMO sign (sprite 5) at 128, 8 of the view instead of the score
+box. The input is the recorded one through **two-button firing**: both
+buttons fire, pogo counts only after it is held more than 8 tics (let go
+earlier: one frame of pogo). A demo ends after its last input, or when Keen
+leaves the level. All five demos play as in the original, frame for frame
+(research.md, "Watched in D8").
+
+**Keys in the title loop**: Escape the start screen, F1 the help (then the
+loop goes on), any other key or button a new game (the original opens its
+menu, D10).
+
+## Help (D8)
+
+F1 in the title loop or in a game (seen in the original: 0 pixels differ):
+
+- The menu: light grey, the help picture at (96, 8), the pointing hand at
+  (48, 48 + 24 × topic); up and down (not past the ends), Enter, jump or
+  pogo open the topic; Escape leaves the help.
+- The topics: ComputerWrist (13 pages), The Game (21), The Story (9), Order
+  Info (18), About Id (2): texts 0, 2, 1, 6 and 3.
+- A page (`GalaxyPageLayout`): light grey, text dark grey unless `^C` says
+  otherwise, 18 lines of 10 pixels from (10, 10) to x 310, a space 7
+  pixels, pictures with 8 pixels of room; "pg 1 of 13" at (248, 190). Left,
+  up and page up go back, right, down and page down on; Escape: the menu
+  again, on the same topic.
+
+## The end and the high scores (D8)
+
+- **The end pages** (text 4, 16 pages): laid out as the help pages without
+  a page number; timed pictures follow each other after their pauses
+  (keys do nothing meanwhile; seen: the same pauses); then the arrow at
+  (296, 184) blinks dim / bright every 70 tics (seen: about 1 s) and a key
+  goes on. After the last page the high scores follow.
+- **The table** (`GalaxyHighScores`, kept in `user://keen4/high_scores.json`):
+  8 places, new: the original's (found in the program: "Id Software - '91",
+  an empty one, the five of the team, an empty one, 10,000 each, 0
+  rescued). A score enters above every lower score, and above an equal
+  score with fewer rescued members.
+- **On map 19** (`Keen4HighScoreBoard`, seen: 0 pixels differ): rows 16
+  pixels apart from y 51 of the view; the name from x 24, one council
+  icon (8×8 tile 71) per rescued member from x 152, the score right-aligned
+  at x 296 in the font's score digits; all XORed with 15 into the map's
+  picture (light grey becomes dark grey).
+- **A new name**: when the score made the table, map 19 is shown (Keen
+  standing) with the table, the new row empty and a blinking cursor (the
+  font's character 0x80, XOR, every 35 tics); typing (at most 57
+  characters, while narrower than 112 pixels), Backspace, Delete, left,
+  right, Home, End; Enter keeps it, Escape leaves it empty. Then the
+  high-score demo, the title picture and the title loop. Without a place
+  (as the original with 0 points) straight to the high scores.
 
 ## The world map (D7)
 
