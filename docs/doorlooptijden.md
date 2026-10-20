@@ -85,4 +85,5 @@ Keen 4 is een andere engine (Galaxy); de schatting per mijlpaal staat in
 | D2 Bestanden | 20-10 | ~40 min | 36 min | Galaxy-lezers (Huffman, Carmack, RLEW, de zes headers op inhoud), graphics in ~1 s, data viewer, vierde icoon; alles in een cloud-sessie met Keen 4 v1.0 |
 | D3 Een level tekenen | 20-10 | ~50 min | 45 min | Drie tilelagen, animaties op de tic, camera met scroll-blokken, breedbeeld afgedekt, xBRZ per level; eerste beeld van 5 levels en de kaart pixel voor pixel gelijk aan het origineel (headless js-dos) |
 | D4 Keen beweegt | 20-10 | ~75 min | 70 min | Actiesysteem, botsingen met hellingen, alle toestanden van Keen, items, edelsteendeuren, scorebord; sprong 67 px en pogo 105 px gemeten in het origineel (v1.0) |
-| D5 Vijanden | | | | |
+| D5 Vijanden | 20-10 | ~55 min | 51 min | 15 soorten wezens op het land, de verdoving, moeilijkheidsgraad; Bounder, paddenstoel, vogel, Arachnut, Skypest, Lick, Berkeloid en Mimrock nagekeken in het origineel |
+| D6 Mechaniek | | | | |
