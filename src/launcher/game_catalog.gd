@@ -1,7 +1,7 @@
 class_name GameCatalog
 extends RefCounted
 ## The games the start screen offers, one icon each: Keen 1, then Keen 2,
-## then Keen 3. Later games are added here.
+## then Keen 3, then Keen 4. Later games are added here.
 
 
 ## One game: its name on the icon, the scene that plays it, and the
@@ -15,6 +15,14 @@ class Game:
 	var data_folder := GameFiles.DEFAULT_SUBFOLDER
 	## The game's id online ([constant OnlineProtocol.GAME_ID] for Keen 1).
 	var game_id := OnlineProtocol.GAME_ID
+	## Makes the picture on the icon (a [Texture2D], or null) for a game
+	## whose graphics the shared Keen 1-3 code cannot read. Not set: Keen
+	## from the game's own sprites, as for Keen 1-3.
+	var icon_picture := Callable()
+	## Makes the game's name in its own font for the icon (a [Texture2D],
+	## or null), used with [member icon_picture]. Not set: the name in the
+	## shared font.
+	var icon_title := Callable()
 
 	func is_available() -> bool:
 		return files != null
@@ -38,7 +46,15 @@ static func games() -> Array[Game]:
 	keen_3.files = Keen3Files.locate()
 	keen_3.data_folder = Keen3Files.SUBFOLDER
 	keen_3.game_id = OnlineProtocol.GAME_ID_KEEN_3
-	return [keen_1, keen_2, keen_3]
+	var keen_4 := Game.new()
+	keen_4.title = "Keen 4"
+	keen_4.scene = GameLaunch.KEEN_4_SCENE
+	keen_4.files = Keen4Files.locate()
+	keen_4.data_folder = Keen4Files.SUBFOLDER
+	keen_4.game_id = Keen4Files.GAME_ID
+	keen_4.icon_picture = Keen4Icon.picture.bind(keen_4.files)
+	keen_4.icon_title = Keen4Icon.title.bind(keen_4.files, keen_4.title)
+	return [keen_1, keen_2, keen_3, keen_4]
 
 
 ## The game with online id [param game_id], or null.

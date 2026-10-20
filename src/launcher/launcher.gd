@@ -3,14 +3,15 @@ extends Control
 ## The start screen: CommanderPerfect always begins here. The picture of
 ## CommanderPerfect fills the screen, whole; below it, in a dark gray bar,
 ## an icon for each game ([GameCatalog]) from the left: Keen 1, then Keen
-## 2, then Keen 3. Picking one
+## 2, then Keen 3, then Keen 4. Picking one
 ## starts that game with its main menu open. See docs/menus.md.
 ##
 ## The mouse, the arrow keys and the controller pick an icon; a click,
 ## Enter or A starts it. Escape twice closes the program. With
 ## [code]-- --level=N[/code] or [code]-- --ending[/code] on the command
 ## line Keen 1 starts at once, for testing ([GameLaunch]); with
-## [code]-- --game=2[/code] Keen 2 does, with [code]-- --game=3[/code] Keen 3.
+## [code]-- --game=2[/code] Keen 2 does, with [code]-- --game=3[/code] Keen 3,
+## with [code]-- --game=4[/code] Keen 4.
 
 const BACKGROUND := preload("res://assets/launcher/background.png")
 const BAR_COLOR := Color("303030")
@@ -131,7 +132,11 @@ func _make_icon(game: GameCatalog.Game) -> GameIcon:
 	var icon := GameIcon.new()
 	icon.title = game.title
 	icon.available = game.is_available()
-	if game.is_available():
+	if game.is_available() and game.icon_picture.is_valid():
+		icon.sprite = game.icon_picture.call()
+		if game.icon_title.is_valid():
+			icon.title_picture = game.icon_title.call()
+	elif game.is_available():
 		var graphics := EgaGraphics.load_from(game.files, game.files.extension)
 		if graphics != null:
 			icon.textures = GraphicsTextures.create(graphics)

@@ -9,16 +9,18 @@ const LAUNCHER_SCENE := "res://src/launcher/launcher.tscn"
 const KEEN_1_SCENE := "res://src/game/level_view.tscn"
 const KEEN_2_SCENE := "res://src/keen2/keen2_view.tscn"
 const KEEN_3_SCENE := "res://src/keen3/keen3_view.tscn"
+const KEEN_4_SCENE := "res://src/keen4/keen4_view.tscn"
 ## Start in level N (80 is the world map) instead of at the title.
 const LEVEL_OPTION := "--level="
 ## Show the ending straight away.
 const ENDING_OPTION := "--ending"
 ## Which game the other options are for: --game=2 starts Keen 2, --game=3
-## Keen 3 (also in the data viewer and the graphics export). Without it
-## everything is Keen 1.
+## Keen 3, --game=4 Keen 4 (also in the data viewer and the graphics
+## export). Without it everything is Keen 1.
 const GAME_OPTION := "--game="
 const KEEN_2_GAME := "2"
 const KEEN_3_GAME := "3"
+const KEEN_4_GAME := "4"
 
 static var _menu_requested := false
 static var _join_requested: OnlineJoin
@@ -60,7 +62,7 @@ static func take_menu_request() -> bool:
 
 
 ## Whether [param arguments] (the user arguments on the command line) ask
-## to start in a level or in the ending, or pick Keen 2 or Keen 3: then that
+## to start in a level or in the ending, or pick Keen 2, 3 or 4: then that
 ## game starts at once ([method scene_for]).
 static func skips_launcher(arguments: PackedStringArray) -> bool:
 	for argument in arguments:
@@ -79,22 +81,33 @@ static func wants_keen_3(arguments: PackedStringArray) -> bool:
 	return arguments.has(GAME_OPTION + KEEN_3_GAME)
 
 
+## Whether [param arguments] pick Keen 4 with [constant GAME_OPTION].
+static func wants_keen_4(arguments: PackedStringArray) -> bool:
+	return arguments.has(GAME_OPTION + KEEN_4_GAME)
+
+
 ## The game that [param arguments] pick: 2 with --game=2, 3 with --game=3,
-## otherwise 1. --game=2 wins when both are given, as it did before Keen 3.
+## 4 with --game=4, otherwise 1. When several are given the lowest wins, so
+## every combination that worked before Keen 4 gives the same game.
 static func game_number(arguments: PackedStringArray) -> int:
 	if wants_keen_2(arguments):
 		return 2
 	if wants_keen_3(arguments):
 		return 3
+	if wants_keen_4(arguments):
+		return 4
 	return 1
 
 
 ## The scene that [param arguments] start when they skip the start screen:
-## Keen 2 with --game=2, Keen 3 with --game=3, otherwise Keen 1.
+## Keen 2 with --game=2, Keen 3 with --game=3, Keen 4 with --game=4,
+## otherwise Keen 1.
 static func scene_for(arguments: PackedStringArray) -> String:
 	match game_number(arguments):
 		2:
 			return KEEN_2_SCENE
 		3:
 			return KEEN_3_SCENE
+		4:
+			return KEEN_4_SCENE
 	return KEEN_1_SCENE

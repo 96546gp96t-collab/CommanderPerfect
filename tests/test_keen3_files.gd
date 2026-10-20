@@ -224,7 +224,7 @@ func test_version_from_the_sizes() -> void:
 
 func test_catalog_lists_three_games() -> void:
 	var games := GameCatalog.games()
-	assert_equal(games.size(), 3, "three games")
+	assert_equal(games.size(), 4, "four games")
 	assert_equal(games[0].title, "Keen 1", "Keen 1 first")
 	assert_equal(games[0].scene, GameLaunch.KEEN_1_SCENE, "plays Keen 1")
 	assert_equal(games[0].game_id, OnlineProtocol.GAME_ID, "Keen 1's id")
