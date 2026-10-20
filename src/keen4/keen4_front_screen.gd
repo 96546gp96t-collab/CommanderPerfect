@@ -72,6 +72,10 @@ func _set_up_front() -> void:
 	ui.move_child(_title_layer, _window_sprite.get_index())
 	_demo_sign.centered = false
 	_demo_sign.visible = false
+	# The sign, the boxes and the table keep the original pixels, also with
+	# xBRZ (D11; as the score box).
+	_demo_sign.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	_board_sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	_demo_sign.texture = ImageTexture.create_from_image(_data.graphics.sprite(DEMO_SIGN_SPRITE))
 	var origin := _data.graphics.sprite_infos[DEMO_SIGN_SPRITE].origin
 	_demo_sign.offset = Vector2(origin / GalaxyUnits.PER_PIXEL)

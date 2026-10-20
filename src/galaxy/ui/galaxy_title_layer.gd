@@ -56,6 +56,9 @@ var _credit_shown := -1
 
 func _init() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
+	# Always the original pixels, also when xBRZ makes the World viewport
+	# filter its textures smoothly (D11).
+	texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	_black.color = Color.BLACK
 	_black.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_black)

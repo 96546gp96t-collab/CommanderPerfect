@@ -37,6 +37,9 @@ var _backdrops: GalaxyBackdropPictures
 var _sky_color := Color.TRANSPARENT
 ## Whether the atlases and sprites now show xBRZ graphics.
 var _showing_scaled := false
+## Whether the xBRZ atlases hold stand-ins (original tiles made larger) for
+## tiles a switch or a gem put there that are still being scaled.
+var _stand_ins := false
 ## Background tiles with their sky made see-through, by tile.
 var _cleared_tiles: Dictionary[int, Image] = {}
 var _cleared_color := Color.TRANSPARENT
@@ -110,6 +113,7 @@ func _show_map(map: GalaxyMap, sprites: PackedInt32Array) -> void:
 	_sprites_shown = sprites
 	_sky_color = _wanted_sky_color()
 	_showing_scaled = _settings.graphics == DisplaySettings.Graphics.XBRZ and _scaled_ready()
+	_stand_ins = false
 	_galaxy_map.show_map(
 		map,
 		_data.tile_info,
@@ -128,10 +132,10 @@ func _apply_graphics() -> void:
 		return
 	var want_scaled := _settings.graphics == DisplaySettings.Graphics.XBRZ
 	if want_scaled and not _scaled_ready():
-		if _scaled.is_busy():
+		if _scaled.is_busy() and not _showing_scaled:
 			_show_message("Preparing %s..." % GRAPHICS_TITLES[_settings.graphics])
 		return
-	if want_scaled != _showing_scaled:
+	if want_scaled != _showing_scaled or (want_scaled and _stand_ins):
 		_showing_scaled = want_scaled
 		_rebuild_atlases()
 		_objects.use_graphics(_data.graphics, _scaled if want_scaled else null)
@@ -238,17 +242,19 @@ func _tiles_of(layer: GalaxyMap.Layer) -> PackedInt32Array:
 func _rebuild_atlases() -> void:
 	if _galaxy_map.map == null:
 		return
+	_stand_ins = false
 	_galaxy_map.use_atlases(
 		_atlas(GalaxyMap.Layer.BACKGROUND, _galaxy_map.wanted_tiles(GalaxyMap.Layer.BACKGROUND)),
 		_atlas(GalaxyMap.Layer.FOREGROUND, _galaxy_map.wanted_tiles(GalaxyMap.Layer.FOREGROUND))
 	)
 
 
+## A switch or a gem put tiles the atlases lack: with xBRZ they get stand-ins
+## until they are scaled ([method _apply_graphics] then builds them again),
+## so the level does not flash back to the original graphics (D11).
 func _on_tiles_missing(_layer: GalaxyMap.Layer) -> void:
-	if _showing_scaled and not _scaled_ready():
-		# Original tiles until the new ones are scaled.
-		_showing_scaled = false
-		_objects.use_graphics(_data.graphics)
+	if _showing_scaled:
+		_scaled_ready()
 	_rebuild_atlases()
 
 
@@ -269,11 +275,23 @@ func _atlas(layer: GalaxyMap.Layer, tiles: PackedInt32Array) -> GalaxyTileAtlas:
 			var big := _scaled.back_tile(tile) if back else _scaled.fore_tile(tile)
 			if big != null and back and _sky_color.a > 0.0:
 				big = GalaxyBackdropPictures.with_holes_of(big, image)
-			if big != null:
-				scaled[tile] = big
-	if scaled.size() != images.size():
-		scaled.clear()
+			if big == null:
+				big = _stand_in(image)
+			scaled[tile] = big
 	return GalaxyTileAtlas.build(images, scaled, _scaled.factor)
+
+
+## Tile [param image] made larger without smoothing, in place of its xBRZ
+## version while that is being made.
+func _stand_in(image: Image) -> Image:
+	_stand_ins = true
+	var big := image.duplicate() as Image
+	big.resize(
+		image.get_width() * _scaled.factor,
+		image.get_height() * _scaled.factor,
+		Image.INTERPOLATE_NEAREST
+	)
+	return big
 
 
 ## Background tile [param tile] with the sky colour made see-through, kept

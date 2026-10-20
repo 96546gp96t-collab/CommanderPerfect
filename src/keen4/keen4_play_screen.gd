@@ -61,6 +61,8 @@ func _set_up_play() -> void:
 	_status = Keen4StatusWindow.create(_data)
 	for sprite: Sprite2D in [_window_sprite, Sprite2D.new(), Sprite2D.new(), Sprite2D.new()]:
 		sprite.centered = false
+		# The boxes keep the original pixels, also with xBRZ (D11).
+		sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 		sprite.visible = false
 		_score_box.get_parent().add_child(sprite)
 		if sprite != _window_sprite:
