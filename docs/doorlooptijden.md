@@ -82,4 +82,5 @@ Keen 4 is een andere engine (Galaxy); de schatting per mijlpaal staat in
 | Mijlpaal | Datum | Werktijd | Agent | Opmerking |
 |---|---|---|---|---|
 | D1 Onderzoek | 19-10 | ~1 u 30 | developer-agent 5 min, onderzoeksagent 13 min | In een cloud-sessie; Keen 4 v1.0 geüpload door de gebruiker en zelf uitgelezen door de architect; vragen als keuzemenu |
-| D2 Bestanden | | | | |
+| D2 Bestanden | 20-10 | ~40 min | 36 min | Galaxy-lezers (Huffman, Carmack, RLEW, de zes headers op inhoud), graphics in ~1 s, data viewer, vierde icoon; alles in een cloud-sessie met Keen 4 v1.0 |
+| D3 Een level tekenen | | | | |
