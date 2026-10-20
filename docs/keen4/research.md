@@ -789,9 +789,8 @@ by pixel by laying ours over the original's frame.
 showed on even x pixels (272, 268, 266, 262 … where our positions give
 272, 269, 266, 263): the original keeps four shifts of a sprite, so it
 draws them at x steps of 2 pixels. Ours draws on whole pixels; the
-difference is at most one pixel sideways, in levels too. Left for D13 (a
-change in `GalaxyObjectLayer.pixel_of`, which would move sprites in every
-level).
+difference is at most one pixel sideways, in levels too. Built in D8.1
+(see "Watched in D8.1").
 
 ### Watched in D8 (js-dos, the user's v1.0)
 
@@ -839,7 +838,43 @@ in the sprite table) pixels: 2 pixels for most sprites (4 shifts), 8 for
 Keen going through a door (sprites 73-76 have 1 shift: he jumps 6 pixels
 left at the door), and it scrolls the view in steps of 2 pixels. With that
 rule ours and the original's places are equal in every frame of all five
-demos. Ours draws on whole pixels (left for D13, as in D7).
+demos. Ours drew on whole pixels until D8.1, which draws the same way
+(see "Watched in D8.1").
+
+### Watched in D8.1 (js-dos recordings of D8, the user's v1.0)
+
+The rule of D8, now in the engine (`GalaxyObjectLayer.pixel_of`,
+`GalaxyCamera.view_pixels`), checked against Omnispeak's `id_rf.c` and
+`id_ca.c`: a sprite is cached in 1, 2 or 4 shifted copies (the sprite
+table's count); with 4 the shift used is (x & 7) / 2 (2-pixel steps), with
+2 the copies cover shifts 0-1 and 2-3 (4-pixel steps), with 1 there is only
+the unshifted one (8-pixel steps). The view's left is panned by the scroll's
+units & 0xef (an even pixel); its top is not rounded. The score box (sprite
+129) and the DEMO sign (sprite 5) are sprites with 4 shifts and origin x 0
+placed at the scroll + 4 and + 128 pixels, so they keep their place in the
+view; the DEMO sign's origin puts it 3 pixels lower (y 11), which D8 had
+missed (fixed).
+
+**Whole frames compared.** Our engine played each demo in the real Keen 4
+view (4:3, xvfb, OpenGL) and saved the World viewport after every logic
+frame; the original's recorded frames of D8 were aligned with them by
+Keen's track (as in D8) and compared pixel by pixel with our frames n − 1,
+n and n + 1:
+
+| Demo | Recorded frames compared | Identical (D8 code) | Identical (D8.1) | What still differs |
+|---|---|---|---|---|
+| 0 (map 1) | 639 | 40.7 % | **91.2 %** (583) | the stars over a stunned creature in another phase (two runs of ~35 frames, 39-79 pixels), a tile animation 1 frame apart (18 pixels), a poison slug drawn one frame later after a door (1 frame), and in the last 18 frames a Bounder that bounces elsewhere (its random choices) |
+| 1 (map 9) | 662 | 26.4 % | **100 %** (662) | nothing |
+| 2 (map 11) | 664 | – | 85.2 % (566) | the drops from the ceiling and the inchworms in another phase or place (33-600 pixels) |
+| 3 (map 15) | 599 | – | 41.7 % (250) | the poison slugs walk elsewhere from the first seconds (their random turns); Keen and the view stay in sync |
+
+(The D8 column masks the DEMO sign, which D8 drew 3 pixels too high.)
+Sprites and the view are drawn exactly as the original's; what remains
+are creatures whose random choices or animation phases differ from the
+original's (Keen's own track is equal in every frame, D8). Not part of
+D8.1: the creatures' use of the random table (Omnispeak deactivates an
+object off screen only when `US_RndT() < sprite sync × 2`, which draws a
+random number) is a candidate for a later look.
 
 ## Lessons for the new-episode guide
 
@@ -895,6 +930,10 @@ file is not changed now because another session is working on it.)
   and compare the lists, aligned on the best offset. Account for the
   original's drawing: sprites at 8 / (shifts) pixel steps, the view at
   2-pixel steps.
+- D8.1: compare whole frames, not only Keen: render the demo in the real
+  view (xvfb), save the viewport after every logic frame and lay it over
+  the original's recorded frame. It found the DEMO sign 3 pixels off and
+  creatures that drift from the original, which a track of Keen cannot.
 - D8: the recorder in js-dos loses keys and frames when the machine is
   busy; drive menus step by step with snapshots in between.
 - D8: a full screen effect (the story) can be checked by rendering the same

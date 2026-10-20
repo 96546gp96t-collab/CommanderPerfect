@@ -33,7 +33,8 @@ tile. Times are **tics** of 1/70 s.
 | Arrows / WASD, jump, pogo, fire | Keen (the shared keys: Ctrl or Z jump, Alt or X pogo, Space or C fire); on the world map the arrows walk in eight directions |
 | Shift+G | God mode on/off (the original's debug key F10+G): nothing kills Keen, except falling out of the level |
 | Escape | Back to the start screen |
-| Shift+F1, F2-F6 | As in Keen 1-3: help line, widescreen, pixel shape, full screen, graphics (original / xBRZ), smooth motion |
+| F1 | The original's help (the game waits behind it) |
+| Shift+F1, F2-F6 | As in Keen 1-3: help line (on Shift+F1 in Keen 4 because F1 is the original's help; decided by the user, 20-10-2026), widescreen, pixel shape, full screen, graphics (original / xBRZ), smooth motion |
 
 A new game starts with 3 lives, 5 stunner charges and the first extra life
 at 20,000 points (Omni); what Keen carries goes from level to level.
@@ -57,16 +58,18 @@ CK_DemoLoop), and round again:
 
 **Demos** (Omni `ck_inter.c`, `id_in.c`, `ck_play.c`): a new game on
 Normal, the random table from its start, 3 tics a frame, no extra life for
-points, the DEMO sign (sprite 5) at 128, 8 of the view instead of the score
-box. The input is the recorded one through **two-button firing**: both
-buttons fire, pogo counts only after it is held more than 8 tics (let go
-earlier: one frame of pogo). A demo ends after its last input, or when Keen
-leaves the level. All five demos play as in the original, frame for frame
-(research.md, "Watched in D8").
+points, the DEMO sign (sprite 5) at 128, 8 of the view plus its origin (3
+pixels down; D8.1) instead of the score box. The input is the recorded one
+through **two-button firing**: both buttons fire, pogo counts only after it
+is held more than 8 tics (let go earlier: one frame of pogo). A demo ends
+after its last input, or when Keen leaves the level. All five demos play as
+in the original, frame for frame (research.md, "Watched in D8"); since
+D8.1 whole frames of the 4:3 view are compared too ("Watched in D8.1").
 
-**Keys in the title loop**: Escape the start screen, F1 the help (then the
-loop goes on), any other key or button a new game (the original opens its
-menu, D10).
+**Keys in the title loop** (decided by the user, 20-10-2026): Escape the
+start screen, F1 the help (then the loop goes on), any other key or button
+a new game on Normal, until D10 brings the menus (the original opens its
+wrist-watch menu).
 
 ## Help (D8)
 
@@ -390,9 +393,15 @@ and the swimming Keen too.
   decides what is in front (seen: in level 1 the rock beside Keen's start
   covers his leg when he stands behind it).
 - **Sprites** (`GalaxyObjectLayer`) are drawn at position + the sprite's
-  origin, on whole pixels: pixel = (position + origin) >> 4 (Omni). With
-  smooth motion (F6, off by default) the shared `Interpolation` draws them
-  between the last two logic frames.
+  origin, where the original draws them (D8.1): pixel = (position +
+  origin) >> 4, and x rounded down to 8 / shifts pixels, the shifts being
+  the sprite table's count of shifted copies (Omni `id_rf.c`
+  RF_AddSpriteDraw, `id_ca.c` CAL_CacheSprite): 2 pixels for 4 shifts
+  (most sprites), 4 for 2, 8 for 1 (Keen 4 v1.0: 155, 53 and 189 sprites).
+  So Keen jumps 6 pixels left as he steps into a door (sprites 73-76 have
+  1 shift), as in the original. The y is the whole pixel. With smooth
+  motion (F6, off by default) the shared `Interpolation` draws them
+  between the last two logic frames at their exact places, as before D8.1.
 - **Draw order** (Omni `RFL_DrawSpriteList`): the tiles, then the sprites of
   priority 0, 1 and 2, then the in-front tiles, then priority 3. Within a
   priority the sprite placed last is drawn first (under the others).
@@ -459,6 +468,15 @@ shown). Everything in units (Omni `id_rf.c`, `ck_play.c`):
   view ends the level, his feet below the bottom limit plus the view kill
   him; after a death the view stands still. Through a door the view is put
   on him again as at the start.
+- **Drawing the view** (D8.1): the EGA card pans the picture sideways in
+  steps of 2 pixels, so the view's left is drawn at the scroll's pixel
+  rounded down to even (Omni `RF_Refresh`: the units & 0xef); its top is
+  the whole pixel. The in-front tiles are tiles and move with the map; the
+  score box and the DEMO sign are sprites placed at the scroll + 4 and +
+  128 pixels with 4 shifts and origin x 0, so they keep their place in the
+  view. With smooth motion the view moves on whole pixels between the
+  frames, as before D8.1. In widescreen the wider view is centred on the
+  original's view as drawn.
 - **Looking around** (D3, `FreeLook`): the arrows move a point at 240 px/s;
   the view is put on it by the rules above, so it never shows what lies
   beyond a block or the border, and jumps across a block as the original's
@@ -513,7 +531,8 @@ test picture, not committed).
 
 ## Graphics
 
-- **Original**: the tiles and sprites as decoded, on whole pixels.
+- **Original**: the tiles and sprites as decoded, at the original's
+  pixel steps (sprites at 8 / shifts, the view at 2; "Drawing").
 - **xBRZ** (F5): `GalaxyScaledGraphics` scales the tiles a level shows and
   its sprites six times with the shared `XbrzScaler`, on worker threads
   (~0.6 s for a level on 4 cores), keeps them for the next level, and shows

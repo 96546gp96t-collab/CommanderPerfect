@@ -217,7 +217,9 @@ machine it runs **one logic frame per 2 tics (35 per second)**; demos use 3
 - Positions, velocities, boxes and timers are integers in the original's
   units. The research's numbers go into the action tables unchanged.
 - The picture: without smooth motion, objects are drawn where the last
-  logic frame put them, on whole pixels (the original's 35 fps steps).
+  logic frame put them, at the original's pixel steps (since D8.1:
+  sprites at 8 / shifts pixels, the view at 2; the original's 35 fps
+  steps).
   With smooth motion (the shared option, off by default) the shared
   `Interpolation` draws between the last two logic frames, so a 120 Hz
   screen shows smooth movement.
@@ -243,8 +245,8 @@ the original's ledge grabbing breaks at 1 tic (research §2).
 - **Sprites**: each sprite has an origin and a hit box from the sprite
   table; an object's position is the original's (global units) and the
   sprite is drawn at position + origin, rounded to the original's pixel
-  (the original draws sprites on whole pixels; smooth motion is the
-  existing option).
+  (since D8.1 also to its shift step; smooth motion is the existing
+  option).
 - **Draw order**: the original gives every object a priority (0-3, Keen in
   front of most things, some in front of the foreground). Map it onto
   `z_index` between the three layers.
@@ -705,7 +707,7 @@ What D7 built differently from the plan above, and why (developer, D7):
     D8's), then the map.
 12. **Not built**: sounds (D9), the E+N+D cheat (D8), the original's EGA
     sprite shifts (sprites on even pixels, research.md "Watched in D7"; left
-    for D13 because it moves every sprite in every level).
+    for D13 because it moves every sprite in every level; built in D8.1).
 13. **Shared files changed**: only `tests/run_tests.gd` (three suites).
     `tools/keen4_regression.sh` (Keen 4's own) takes the world map too.
 
@@ -773,7 +775,7 @@ What D8 built differently from the plan above, and why (developer, D8):
     different fizzle order (it shuffles with the C library's random
     numbers; ours with a fixed seed), the original's sprite and scroll
     steps (see "Watched in D8" in research.md: 2 or 8 pixels; left for
-    D13 as in D7).
+    D13 as in D7; built in D8.1 after all, decided by the user).
 11. **Fixed during D8**: `[] if ... else ...` gives an untyped `Array`,
     which cannot be stored in an `Array[Image]`: the high-score step of the
     title loop stopped with a script error. No suite runs the view's flow
@@ -782,3 +784,35 @@ What D8 built differently from the plan above, and why (developer, D8):
 12. **Shared files changed**: only `tests/run_tests.gd` (two suites).
     `tools/keen4_regression.sh` (Keen 4's own) takes the intro (in both
     shapes), the help menu and a help page too.
+
+## Deviations in D8.1
+
+A small fix decided by the user on 20-10-2026 (developer, D8.1):
+
+1. **Drawn at the original's pixel steps**, in 4:3 and widescreen:
+   `GalaxyObjectLayer.pixel_of` rounds a sprite's x down to
+   `x_step(shifts)` = 8 / shifts pixels (the sprite table's count; any
+   other count than 1, 2 or 4 stays on whole pixels, which keeps
+   hand-made sprite tables in the tests as they were), and
+   `GalaxyCamera.view_pixels` rounds the view's x down to an even pixel
+   (`PAN_STEP`, the EGA's panning). Every user of `view_pixels` (the
+   camera node, the cover, the pictures behind the levels, the high-score
+   table on map 19, the free look) follows the view as drawn. Keen jumps
+   6 pixels into a door as in the original. Nothing in the game's logic
+   changed: positions, boxes and the camera's rules are the same units.
+2. **Smooth motion stays as it was**: with the option on, the sprites are
+   drawn between the last two logic frames at their exact places and the
+   view on its whole pixel (`GalaxyCamera.scroll_pixels`,
+   `wide_view_left(width, true)`), as before D8.1. Rounding them to the
+   original's steps would make the option jerky again, and the option is
+   off by default, so the picture is the original's unless the player
+   asks for smoothness.
+3. **The DEMO sign** gets its sprite's origin (3 pixels lower), found by
+   the whole-frame comparison (research.md, "Watched in D8.1").
+4. **The user's answers recorded** (20-10-2026): in the title loop any key
+   starts a new game on Normal until D10's menus (Escape the start screen,
+   F1 the help); in Keen 4 the help line of Keen 1-3 is on Shift+F1, F1
+   is the original's help (gameplay.md, the key table and "The title
+   loop").
+5. **Shared files changed**: none. Only `src/galaxy` and `src/keen4`, and
+   two existing Keen 4/Galaxy suites got tests.

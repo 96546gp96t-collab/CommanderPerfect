@@ -88,11 +88,63 @@ bestanden in [docs/keen4/file-formats.md](docs/keen4/file-formats.md).
 | D6 | Platforms, schakelaars, de raad, onder water | ✅ Klaar, wacht op controle door de architect (branch `milestone-d6-mechaniek`) |
 | D7 | De wereldkaart | ✅ Klaar, wacht op controle door de architect (branch `milestone-d7-kaart`) |
 | D8 | Het einde, de titel en de demo's | ✅ Klaar, wacht op controle door de architect (branch `milestone-d8-einde-titel`) |
+| D8.1 | Fix: tekenen op de pixelstappen van het origineel | ✅ Klaar, wacht op controle door de architect (branch `milestone-d8.1-pixelstappen`) |
 | D9 | Geluid en muziek (eigen OPL2-synthesizer) | ⬜ |
 | D10 | Menu's en opslaan | ⬜ |
 | D11 | Mooier maken en Paddle War | ⬜ |
 | D12 | Co-op | ⬜ |
 | D13 | Naast het origineel | ⬜ |
+
+## Fix D8.1: wat er nu is
+
+Besloten door de gebruiker op 20-10-2026: Keen 4 tekent nu precies zoals
+het origineel. Het origineel heeft van elke sprite maar 1, 2 of 4
+verschoven kopieën (staat in de spritetabel) en zet een sprite dus op x
+afgerond naar beneden op 8 / shifts pixels; het beeld schuift opzij in
+stappen van 2 pixels (de EGA-kaart). Bij ons stond iets tot 7 pixels
+opzij en sprong Keen niet bij een deur; nu wel (6 pixels naar links, zoals
+het origineel). De regels staan in `docs/keen4/gameplay.md` ("Drawing", "The
+camera"), de keuzes in `docs/keen4/architecture.md` ("Deviations in
+D8.1"), de vergelijking in `docs/keen4/research.md` ("Watched in D8.1").
+
+- [x] **Sprites op hun stap** (`GalaxyObjectLayer.pixel_of`, `x_step`): 2
+  pixels bij 4 shifts (155 sprites), 4 bij 2 (53), 8 bij 1 (189, onder
+  andere Keen in een deur). De y blijft de hele pixel.
+- [x] **Het beeld in stappen van 2 pixels** (`GalaxyCamera.view_pixels`,
+  `PAN_STEP`), in 4:3 en breedbeeld; het scorebord, het DEMO-bord en de
+  voorgrondtegels gaan mee zoals bij het origineel.
+- [x] **Vloeiende beweging** (F6, standaard uit) blijft zoals hij was:
+  sprites tussen de frames op hun precieze plek en het beeld op hele
+  pixels (`scroll_pixels`); afronden zou de optie weer schokkerig maken.
+- [x] **Het DEMO-bord** stond 3 pixels te hoog (de oorsprong van de sprite
+  ontbrak); gevonden met de vergelijking van hele frames, gerepareerd.
+- [x] **Naast het origineel** (de opnames van D8, nu hele frames van het
+  4:3-beeld pixel voor pixel): demo 1 **100 % gelijk** (662 frames, was
+  26 %), demo 0 **91 %** (583 van 639, was 41 %), demo 2 85 %, demo 3 42 %.
+  Wat nog verschilt zijn wezens: sterren boven een verdoofd wezen in een
+  andere fase, druppels en rupsen, een Bounder en slakken die door hun
+  toeval ergens anders lopen. Keen en het beeld zelf zijn in elk frame
+  gelijk.
+- [x] **De antwoorden van de gebruiker vastgelegd:** in de titellus start
+  elke toets een nieuw spel tot de menu's van D10 (Escape = startscherm,
+  F1 = help); in Keen 4 staat de hulpregel van Keen 1-3 op Shift+F1 (F1 is
+  de help van het origineel).
+- [x] **Tests**: `test_galaxy_level` (zelfgemaakte data: x per aantal
+  shifts, de sprong bij de deur, het beeld in stappen van 2, breedbeeld en
+  vloeiend) en `test_keen4_front_play` (de deur-sprite op de laag, met en
+  zonder vloeiende beweging). 91 suites, 995 tests (was 991), alle slagen,
+  geen SCRIPT ERROR, gdlint schoon.
+- [x] **Regressie** (lege gebruikersmap): Keen 1 en 2 gelijk aan D8; Keen 4
+  ook helemaal gelijk aan D8 (de beginbeelden van level 1, 11 en de kaart
+  staan al op even pixels, en de intro en help zijn geen levelbeeld).
+  Alleen `src/galaxy` en `src/keen4` veranderd, geen gedeelde bestanden.
+- **Gezien, niet veranderd:** de wezens lopen in demo 2 en 3 na een tijd
+  anders dan in het origineel (hun toeval); een kandidaat om later naar te
+  kijken (Omnispeak trekt een toevalsgetal als een wezen buiten beeld gaat).
+- **Om te proberen:** `godot --path . -- --game=4`: kijk naar de demo's en
+  ga in een spel door een deur (Keen schuift 6 pixels naar links, zoals het
+  origineel).
+- **Volgende stap: D9**, geluid en muziek (`milestone-d9-geluid`).
 
 ## Mijlpaal D8: wat er nu is
 
@@ -175,7 +227,7 @@ scores"), de afwijkingen van het plan in `docs/keen4/architecture.md`
   (D9). Gezien maar niet veranderd (voor D13): het origineel tekent sprites
   op stappen van 8 / (shifts) pixels (2 pixels voor de meeste, 8 voor Keen
   die een deur in gaat) en scrollt het beeld in stappen van 2 pixels; bij
-  ons kan iets 1 tot 7 pixels opzij staan.
+  ons kan iets 1 tot 7 pixels opzij staan. (Toch gedaan in D8.1.)
 - **Om te proberen:** `godot --path . -- --game=4`: kijk naar de intro, het
   verhaal en de demo's; F1 voor de help; een toets voor een nieuw spel; in
   het spel E+N+D tegelijk ingedrukt voor het einde (daarna je naam typen;
@@ -2493,9 +2545,10 @@ Keen 3:
 
 Keen 4:
 
-1. **D8** (branch `milestone-d8-einde-titel`, vanaf `milestone-d7-kaart`):
-   het einde, de titel en de demo's; zie `docs/keen4/roadmap.md`.
-2. **Voor de gebruiker:** D7 proberen (`godot --path . -- --game=4`, zie
+1. **D9** (branch `milestone-d9-geluid`, vanaf `milestone-d8.1-pixelstappen`):
+   geluid en muziek; zie `docs/keen4/roadmap.md`.
+2. **Architect:** D8.1 controleren (branch `milestone-d8.1-pixelstappen`).
+3. **Voor de gebruiker:** D7 proberen (`godot --path . -- --game=4`, zie
    "Mijlpaal D7"): de kaart lopen, levels in en uit, de vlaggen, zwemmen
    na het wetsuit, Miragia, de Foot, het statusvenster (Enter), Try Again;
    zeg wat anders voelt dan het origineel. (D6: platforms, de raad,
