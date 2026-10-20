@@ -79,6 +79,8 @@ static func start(
 	else:
 		session.keen = GalaxyKeen.spawn(world, start_place.cell, start_place.facing, sprites)
 		session.keen.shows_moon = true
+		session.keen.easy_jumps = level == GalaxyDifficulty.Level.EASY
+	carried.charges_per_stunner = Keen4Inventory.charges_for(level)
 	session.player.inventory = carried
 	session._place_objects(sprites)
 	session.camera.centre_on(session.player.position.x, session.player.box.bottom)
