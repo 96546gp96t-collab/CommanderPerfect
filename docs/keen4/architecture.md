@@ -526,3 +526,61 @@ What D4 built differently from the plan above, and why (developer, D4):
     exists only in level 11 (works, not compared with the original),
     difficulty (Normal; Easy's gravity and +8 charges in D10).
 13. **Shared files changed**: only `tests/run_tests.gd` (four suites).
+
+## Deviations in D5
+
+What D5 built differently from the plan above, and why (developer, D5):
+
+1. **Where the classes went.** `src/galaxy/actors/`: `GalaxyCreature` (the
+   base of every creature and of what they leave: its own action table,
+   the stun with its hop and stars, walking and turning, falling,
+   gliding), `GalaxyEnemyShot` (a lethal shot that ends at a wall; Keen 4's
+   darts, later Keen 5 and 6's shots), `GalaxyDifficulty` (Easy / Normal /
+   Hard, default Normal). `src/keen4/actors/`: one class per creature
+   (`Keen4Slug`, `Keen4Mushroom`, `Keen4Egg`, `Keen4Bird`, `Keen4Arachnut`,
+   `Keen4Skypest`, `Keen4Wormmouth`, `Keen4Cloud`, `Keen4Berkeloid`,
+   `Keen4Lick`, `Keen4Mimrock`, `Keen4Bounder`, `Keen4Smirky`,
+   `Keen4Inchworm` (also the Foot), `Keen4DartGun`) and `Keen4Creatures`
+   (info value → creature and lowest difficulty; the values left for D6 /
+   D7 in a list). The sprite numbers are `Keen4CreatureSprites`.
+2. **What a creature leaves is an object of its own class.** Slime,
+   egg-shell bits, the bolt, fireballs, puffs and what Smirky ate are
+   instances of the creature's class (or plain `GalaxyCreature` when they
+   only need `_contact_lethal`), so their think / contact / react names
+   resolve and their actions are held by their own table (the actions
+   only hold each other weakly, D4).
+3. **Three small additions to `GalaxyObject`**, each for something the
+   original draws differently from "one sprite at the position":
+   `overlays` (a second sprite with the object: the stars; the platform
+   flames of D6 can use it), `draw_offset` (the Berkeloid's picture bobs,
+   its box does not) and `hidden` (the dart gun has a box but no picture).
+   `GalaxyObjectLayer.show_objects` draws them.
+4. **What Keen does with a creature is the creature's.** Instead of
+   Omnispeak's type checks inside Keen's contact functions,
+   `GalaxyObject.touched_by_player(player, holding)` is called by Keen's
+   `_contact_normal` / `_contact_special`; the Bounder pushes, carries or
+   knocks him off, the Foot ends the level. What kills Keen does that in
+   its own contact (Omnispeak's extra kill in Keen's special contact for
+   the Mushroom, Arachnut and Berkeloid is redundant: their own contact
+   already kills).
+5. **Riding is Galaxy's now** (planned for D6): `GalaxyKeenBody.platform`,
+   `push_out` (Omni CK_PhysPushXY), `land_on` (CK_PhysPushY), `knock_off`
+   and `_ride_platform` (CK_KeenRidePlatform), called by `GalaxyWorld`
+   between the objects' moves and the contacts, as the original.
+6. **The Foot** sets `GalaxyWorld.ending = &"foot"` and completes the
+   level; `Keen4LevelSession.ending()` tells it apart from walking out (the
+   flight is D7's).
+7. **Difficulty is a parameter** of `Keen4LevelSession.start` (default
+   `GalaxyDifficulty.DEFAULT`, Normal); the view does not choose yet (D10).
+8. **God mode for watching**: Shift+G in `Keen4View` (the original's
+   F10+G); it uses `GameScreen`'s `_god_mode` field, nothing shared
+   changed.
+9. **Smirky's teleport** (research §12 point 4): Omnispeak's loop always
+   removes him; ours puts him at the last item still lying in the level
+   and lets him come out of the puff, and removes him only when no item
+   is left. Not yet confirmed in the original (see research.md, "Watched
+   in D5").
+10. **Smirky's jump for items lying as sprites** follows Omnispeak, whose
+    test (item bottom above his top *and* more than 3 tiles below it) no
+    item can pass: he only jumps for item *tiles* above him.
+11. **Shared files changed**: only `tests/run_tests.gd` (four suites).

@@ -84,7 +84,7 @@ bestanden in [docs/keen4/file-formats.md](docs/keen4/file-formats.md).
 | D2 | De bestanden van Keen 4 inlezen, data viewer, vierde icoon | ✅ Klaar, wacht op controle door de architect (branch `milestone-d2-bestanden`) |
 | D3 | Een level tekenen | ✅ Klaar, wacht op controle door de architect (branch `milestone-d3-level`) |
 | D4 | Keen beweegt (klok, acties, hellingen, palen, randen) | ✅ Klaar, wacht op controle door de architect (branch `milestone-d4-keen`) |
-| D5 | Vijanden | ⬜ |
+| D5 | Vijanden | ✅ Klaar, wacht op controle door de architect (branch `milestone-d5-vijanden`) |
 | D6 | Platforms, schakelaars, de raad, onder water | ⬜ |
 | D7 | De wereldkaart | ⬜ |
 | D8 | Het einde, de titel en de demo's | ⬜ |
@@ -93,6 +93,72 @@ bestanden in [docs/keen4/file-formats.md](docs/keen4/file-formats.md).
 | D11 | Mooier maken en Paddle War | ⬜ |
 | D12 | Co-op | ⬜ |
 | D13 | Naast het origineel | ⬜ |
+
+## Mijlpaal D5: wat er nu is
+
+Alle wezens die op het land leven lopen, springen, vliegen en schieten in
+de levels van Keen 4; de verdover verdooft ze (met sterretjes) of doet
+niets, zoals in het origineel. De regels staan in `docs/keen4/gameplay.md`
+("The creatures", "The stun", "Difficulty"), de afwijkingen van het plan in
+`docs/keen4/architecture.md` ("Deviations in D5"), wat het origineel liet
+zien in `docs/keen4/research.md` ("Watched in D5").
+
+- [x] **Een basis voor wezens** (`GalaxyCreature`, Galaxy): eigen
+  actietabel per wezen, de verdoving (sprongetje −24, hoogstens −48), de
+  sterretjes (drie beelden van 10 tics, per soort op een eigen plek), lopen
+  en omkeren bij muren en randen, vallen; `GalaxyEnemyShot` (dodelijk
+  schot, weg bij een muur), `GalaxyDifficulty` (Easy/Normal/Hard).
+- [x] **Vijftien soorten** (`src/keen4/actors/`, elk een eigen klasse met
+  de getallen van Omnispeak): slak met slijm, Mad Mushroom, ei en vogel
+  (uitkomen, lopen, vliegen als Keen hoog staat, landen), Arachnut,
+  Skypest (alleen dood door de pogo als hij op de grond zit), Wormmouth,
+  wolk met bliksem, Berkeloid met vuurbal die brandt, Lick, Mimrock,
+  Bounder, Smirky (eet items en item-tiles, teleporteert), inchworms en de
+  Foot (11 wormen tegen elkaar → de Foot; de Foot aanraken = level klaar,
+  de vlucht komt in D7), dart guns in vier richtingen.
+- [x] **Meerijden**: Keen landt op een Bounder (of een verdoofde) en rijdt
+  mee; op een levende Bounder stuurt hij (links, rechts of recht omhoog).
+  Een Bounder duwt Keen opzij en stoot hem van een paal. Dit is meteen de
+  basis voor de platforms van D6.
+- [x] **Moeilijkheidsgraad**: de info-waarden per graad
+  (`Keen4Creatures`), als parameter van de sessie; voorlopig Normal (het
+  menu komt in D10).
+- [x] **Naast het origineel (js-dos)**, met een kopie van `GAMEMAPS` in de
+  scratchpad waarin een wezen bij de start staat: Bounder (39 px, 24
+  opzij), paddenstoel (twee hopjes van 31 px, dan een grote sprong),
+  ei op Normal (dus geen vogel; research §12 punt 5 opgelost), vogel (8 px
+  per 7 tics), Arachnut (128 per 6 tics), Skypest (poetsen 10 tics per
+  beeld, rust 100), Lick (vlam 4 tics per beeld), Berkeloid (vuurbal 48
+  opzij), Mimrock (sluipt als Keen wegkijkt): allemaal zoals Omnispeak.
+  Het teleporteren van Smirky is niet gezien (punt 4 blijft open).
+- [x] **Tests**: nieuwe suites `test_galaxy_creatures`,
+  `test_keen4_creatures`, `test_keen4_creatures_more` (mini-levels,
+  `keen4_creature_fixtures.gd`) en `test_keen4_creatures_play` (echte
+  data: elke info-waarde in level 1-16 is bekend, level 1 per graad, elk
+  level loopt met zijn wezens). 82 suites, 901 tests (was 78 en 870), alle
+  slagen, gdlint schoon.
+- [x] **Keen 1-3-controle:** `keen1_regression.sh` en `keen2_regression.sh`
+  tegen D4 (lege gebruikersmap): alles gelijk. `git diff
+  milestone-d4-keen` op `src/keen2`, `src/keen3`, hun tests en fixtures,
+  `src/actors`, `src/map` en `src/game/level_view.gd` is leeg. Gedeeld
+  bestand veranderd: alleen de testlijst (`tests/run_tests.gd`). De Keen
+  4-regressie verschilt alleen in level 1: de Bounder links in beeld
+  (level 11 heeft geen wezen in het eerste beeld).
+- [x] **Bekeken** (scratchpad `d5shots/`): elk wezen in zijn level, actief
+  en na een schot (verdoofd met sterretjes, of niets), in 4:3 en
+  breedbeeld.
+- **Niet gedaan:** de apps zijn hier niet gebouwd (Mac-build alleen op de
+  Mac; voor Windows ontbreken hier de export templates). In het origineel
+  nog niet gezien: het slijm van de slak, Wormmouth, wolk, inchworms en de
+  Foot, dart guns, het teleporteren van Smirky (open voor D13).
+- **Om te proberen:** `godot --path . -- --game=4` (level 1: de Bounders
+  links; spring erop en laat je meevoeren, ga links of rechts staan om te
+  sturen; schiet er een met Spatie: dan staat hij stil en kun je erop
+  staan), `--level=2` (paddenstoel en slakken), `--level=14` (Licks bij de
+  start), `--level=11` (dart guns, inchworms). Shift+G zet god mode aan of
+  uit om rustig te kijken.
+- **Volgende stap: D6**, platforms, schakelaars, de raad en onder water
+  (`milestone-d6-mechaniek`).
 
 ## Mijlpaal D4: wat er nu is
 

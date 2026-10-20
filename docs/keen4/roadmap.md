@@ -335,8 +335,9 @@ start zonder rekenen).
 | D2 Bestanden | 20-10-2026 | Klaar; afwijkingen in architecture.md, "Deviations in D2" |
 | D3 Level tekenen | 20-10-2026 | Klaar; eerste beeld van levels 1, 4, 11, 14, 17 en de kaart pixel voor pixel gelijk aan het origineel; afwijkingen in architecture.md, "Deviations in D3"; de regels in gameplay.md |
 | D4 Keen beweegt | 20-10-2026 | Klaar; sprong (67 px), pogo (105 / 41 px), lopen, helling, paal en deur nagemeten in js-dos; afwijkingen in architecture.md, "Deviations in D4"; de regels in gameplay.md |
+| D5 Vijanden | 20-10-2026 | Klaar; alle landwezens met eigen actietabel, verdoving, moeilijkheidsgraad; Bounder, paddenstoel, Arachnut, vogel (ei op Normal), Skypest, Lick, Berkeloid en Mimrock bekeken in js-dos; afwijkingen in architecture.md, "Deviations in D5" |
 
-Volgende stap: D5, vijanden (`milestone-d5-vijanden`): elk wezen een eigen
-klasse met een actietabel als rijen (zoals `GalaxyKeenActions`), de
-verdoving, wat Keen doodt; Keens contact-functies krijgen de wezens die hem
-duwen of doden.
+Volgende stap: D6, mechaniek (`milestone-d6-mechaniek`): platforms (Keen
+rijdt al mee: `GalaxyKeenBody.platform`, D5), schakelaars, de raad,
+Lindsey, het wetsuit en level 17 onder water; de wezens onder water erven
+van `GalaxyCreature`.

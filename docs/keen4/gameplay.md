@@ -1,8 +1,8 @@
 # Keen 4: the rules of a level in our engine
 
 What a Keen 4 level does in CommanderPerfect so far, and where its numbers
-come from. Written in milestone D3 (drawing a level) and D4 (Keen moves);
-later milestones add to it (D5 enemies, …). The facts and their sources are in
+come from. Written in milestone D3 (drawing a level), D4 (Keen moves) and D5 (the
+creatures); later milestones add to it (D6 platforms, …). The facts and their sources are in
 [research.md](research.md), the code layout in
 [architecture.md](architecture.md), the files in
 [file-formats.md](file-formats.md). Numbers from Omnispeak are marked
@@ -19,9 +19,11 @@ tile. Times are **tics** of 1/70 s.
 | `-- --game=4` | Level 1 |
 | `-- --game=4 --level=N` | Map N: 1-16, 18 (the Megarocket) and 19 (the high-score map) are played; 0 (the world map) and 17 (the Well of Wishes) are only shown, with the D3 look-around (D7, D6); another number: a message |
 | Keen walks out of the level (left or right) | The next level (after 16, and after 18 and 19, level 1 again: 17 is swum, D6); the world map comes in D7 |
+| The Foot carries Keen off (D5) | The level is done (the flight over the world map is D7's) |
 | Keen dies | One life less; the level starts again (fresh, without the gems); with no lives left (fewer than 0): "Game over" and the start screen |
 | Shift+N / Shift+P | The next or previous map (0-19, round) |
 | Arrows / WASD, jump, pogo, fire | Keen (the shared keys: Ctrl or Z jump, Alt or X pogo, Space or C fire); on maps 0 and 17 the arrows look around |
+| Shift+G | God mode on/off (the original's debug key F10+G): nothing kills Keen, except falling out of the level |
 | Escape | Back to the start screen |
 | F1-F6 | As in Keen 1-3: help line, widescreen, pixel shape, full screen, graphics (original / xBRZ), smooth motion |
 
@@ -62,6 +64,69 @@ first tic is moved. Omnispeak's numbers in the research (70 px for a jump)
 came from a scratch model with frames on even tics; in the original the
 held jump rises 5 pixels a frame for 9 frames and then 4, 4, 4, 3, 2, 2, 2,
 1, 0, 0: 67 pixels, exactly what our engine does with the odd frames.
+
+## The creatures (D5)
+
+Every creature is its own class with its own action table (rows as for
+Keen; `src/keen4/actors/`), numbers from Omnispeak (Omni) unless marked
+(seen). A creature is placed by its info value, with its own rise above
+the info tile's corner, and faces right or left by a coin toss of the
+random table unless said otherwise. "Kills" means touching it kills Keen
+in any state (on a pole too); the original does that in the creature's
+own contact.
+
+| Creature (info) | What it does | Kills Keen | The stunner |
+|---|---|---|---|
+| Poison slug (22, 43, 44) | Crawls 64 units every 8 tics, turns at walls, ledges and deadly floors; 16 in 256 at every second step it stops 60 tics facing Keen and leaves slime (kills 300 tics, fades 60) | touching it, the slime | stunned for good: hops −24, slides 8, stars half a tile above |
+| Mad Mushroom (21) | Hops in place under gravity mid, facing Keen: −40, −40, −68 (seen: 31 px hops and a big leap) | touching it | nothing (the shot stops) |
+| Egg (13) | Lies still; Keen or a shot breaks it: the shell stays, three bits fly off (−28/−40, 28/−40, 0/−56), the bird hatches facing Keen (seen: an egg on Normal) | no | breaks it |
+| Bird (77, 78; hatched) | Stands 120 tics, walks 128 units every 7 tics to Keen (seen), turns at walls; when Keen stands on the ground 3 tiles higher it flies (speeds up 1 on odd tics, at most 16, plain box 1024 × 512) and lands near his height; off a ledge it flies too | touching it walking or flying | 240 tics, blinks 80, walks again |
+| Arachnut (20, 73, 74) | Runs 128 units every 6 tics (seen), to Keen every 4th step | touching it | 240 tics (no stars), blinks 80, runs again; stunned again by a shot meanwhile |
+| Skypest (8, 45, 46) | Flies at random (1 a tic on odd tics, at most 20; turns with tics in 256 a frame); a ceiling sends it down, a wall turns it; lands on a floor and preens 400 tics (seen: 10-tic pictures, 100-tic rest), takes off at −16 | in the air | only pushed (20 the shot's way); **squashed for good when Keen lands on it on his pogo stick while it preens** |
+| Wormmouth (7, 51, 52) | A mound sliding 16 a tic to Keen; far from him (over 3 tiles) it sometimes peeks left and right; close in front (right 128-384 units, left 128-512, within a tile up or down) it bites (8, 8, 16, 8, 8 tics) | only the bite, only in front | as a mound nothing; peeking or biting stunned for good |
+| Cloud (9) | Sleeps until Keen touches it, wakes 100 tics, drifts after him (1 on odd tics, at most 10); with Keen under it (his head at most 4 tiles below) it lines up on 8 pixels, flashes 8 × 10 tics and strikes at the 4th; the bolt kills 48 tics; then drifts 60 tics | the bolt | nothing (the shot flies through) |
+| Berkeloid (5, 49, 50) | Floats 8 a tic along the ground, turning at walls and ledges; its picture bobs between 0 and a tile up (8 a tic); throws (12 × 6 tics, the ball at the 6th) with 8 in 256 a step, or 64 in 256 when Keen is ahead within a tile up or down. The fireball flies 48 sideways from −8 under gravity mid (seen) and burns 102 tics on the ground | touching it, the fireball (flying and burning) | nothing |
+| Lick (14, 47, 48) | Hops after Keen: long (32, −32) when he is more than 3 tiles away, else short (16, −16), resting 10 tics before and after; close in front it breathes fire 8 × 4 tics (seen) | only the flame, only in front | stunned for good (hops −8) |
+| Mimrock (19) | A rock that looks every 20 tics; Keen within 5 tiles up or down, more than 3 away and facing away: it sneaks 64 every 6 tics; still behind him within 4 tiles it leaps (20, −40, gravity mid) and bounces once (−20); he turns round: it sits | only the leap | sitting nothing; sneaking or leaping stunned for good (hops −16) |
+| Bounder (12) | Bounces −50 (gravity high; seen: 39 px, 24 sideways); three bounces in place, then every other one left (100 in 256), right (100 in 256) or up, 24 sideways; walls turn it | never: it pushes Keen out of its way and knocks him off a pole or ledge | stunned for good (hops −32), and then a platform |
+| Smirky (18) | Stands 40 tics, looks: jumps (−48) for item tiles up to 3 above, hops (20, −24) where there is ground 4 tiles ahead, else back; after two misses (no ground, or walls) it vanishes in a puff (4 × 20 tics) and appears at an item still lying in the level; with none left it is gone. It eats item tiles and drops its box touches in the air, and items lying as sprites it touches | no | stunned for good (hops −16) |
+| Inchworm (11) | Creeps 128 every 30 tics to Keen, out of step; a worm touching 11 others in one frame becomes the Foot (5 tiles higher, four puffs), the other worms are gone | no | nothing |
+| The Foot (10, or from the worms) | Stands; Keen walking into it is carried off: the level is done | no | nothing |
+| Dart gun (53-56 all, 79-82 Normal, 83-86 Hard: up, right, down, left) | Unseen (part of the tiles); every 150 tics while near the view a dart, 64 a tic, gone at a wall or off the screen | the dart | nothing |
+
+**Riding the Bounder.** Keen lands on a Bounder (or a stunned one) and
+rides it: every frame he moves with it, standing on it (Omni
+CK_KeenRidePlatform); he leaves it by jumping, walking off its sides or
+bumping his head. While he rides a living Bounder, he steers it: standing
+more than 64 units left of its box it goes left, right of it right,
+otherwise straight up.
+
+## The stun (D5)
+
+A stunner shot that touches a creature calls its contact; the creatures
+that can be stunned stop the shot, switch to their stunned action and hop:
+their vertical speed −24, at most −48 up (Omni CK_StunCreature; the
+Bounder, Mimrock and Smirky add −32 / −16 / −16 themselves, the slug sets
+−24 and slides 8, the Lick hops 16 less). A stunned creature counts as
+stunned: Keen's checks no longer see the living creature (the stunned
+Bounder carries him instead of pushing). Its stunned action falls under
+gravity high; when it lands the stunned picture follows. **Stars** turn
+over it (sprites 40-42, three frames of 10 tics, in front of everything)
+at an offset per kind: slug and Lick half a tile up, Bounder 64 right and
+half a tile up, Wormmouth 64 right and 350 up, Smirky half a tile right,
+Mimrock none. The Arachnut and the bird show no stars and wake up again
+(240 + 80 tics). Stunned creatures give no points. Off the screen a shot
+still stuns what sleeps in its way (D4).
+
+## Difficulty (D5)
+
+The info plane places some creatures only from Normal on and some only on
+Hard (Omni CK4_ScanInfoLayer; research.md §6); `Keen4Creatures.PLACED`
+lists each value with its lowest difficulty. The level session takes the
+difficulty as a parameter; until the menu lets the player choose (D10) it
+is **Normal**. In v1.0 the info planes of levels 1-16 hold over 300 creature values;
+level 1 has two Bounders and two slugs on Easy, a third slug on Normal, two
+Licks more on Hard.
 
 ## Items and tiles (D4)
 

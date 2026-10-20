@@ -544,9 +544,14 @@ branches; the cheats and warp in §9 help):
    the slope table to x; the disassemblers disagree).~~ Done in D4: uphill
    20 a tic instead of 24, as Omnispeak adds.
 4. **Smirky's teleport**: Omnispeak removes it after the first teleport,
-   which is probably wrong.
-5. **Info 13**: an egg on every difficulty (Omnispeak) or a bird on
-   Normal/Hard (CG)?
+   which is probably wrong. D5: in the original (level 6 with Smirky put
+   next to Keen, 25 s) he hopped about and against the edge of the view
+   but no teleport was caught; ours teleports to the last item still lying
+   in the level and is gone only when there is none (architecture.md,
+   "Deviations in D5", 9). Still open.
+5. ~~**Info 13**: an egg on every difficulty (Omnispeak) or a bird on
+   Normal/Hard (CG)?~~ Done in D5: an egg on Normal (the shot broke it: the
+   shell, the bits and the bird appeared), as Omnispeak.
 6. **Map 18** (the Megarocket): entrance 0xC012 is on the map in 1.0; what
    happens when Keen enters?
 7. **Differences 1.0 / 1.4** in anything we measure.
@@ -555,7 +560,10 @@ branches; the cheats and warp in §9 help):
    at 2 tics per frame most do not show; reproduce what shows.
 9. **The speeds and timers of every enemy**, as far as Omnispeak's numbers
    are not trusted; looking at an enemy while Keen stands still is enough
-   for most.
+   for most. D5: the Bounder, Mad Mushroom, bird, Arachnut, Skypest,
+   Lick, Berkeloid and Mimrock watched (see "Watched in D5"); all as
+   Omnispeak. Not watched: the slug's slime, Wormmouth, cloud, inchworms
+   and the Foot, the dart guns, Smirky's teleport.
 
 ## 13. Questions for the user
 
@@ -676,6 +684,36 @@ are too shallow: the spikes touch Keen before his hands reach the line;
 level 4 has ledges, our engine grabs and pulls up there), the gem door,
 items' rising shadows, the idle animations' timing. Open for D13.
 
+### Watched in D5 (js-dos, the user's v1.0)
+
+Headless js-dos as in D4, Normal, god mode (F10+G), warp (F10+W).
+Creatures that are not near a level's start were watched in a **scratch
+copy of `GAMEMAPS.CK4`** (scratchpad only, never in the repository): one
+info value added in the first view of levels 1-7 (the info plane written
+back as plain Carmack and RLEW words at the end of the file, the map
+header pointing at it). Recordings of every frame with Keen standing
+still; creatures found by their colour or by what changes in a region.
+
+| What | Omnispeak | The original (v1.0) | Ours (D5) |
+|---|---|---|---|
+| Bounder (level 1) | −50 from every landing, gravity high; 24 sideways | 39 px up in 12 frames (6, 5, 5, 5, 4, 3, 3, 3, 2, 1, 1, 1), down in 12; landings 26 frames apart; 3 px a frame sideways | −50, 24; 36-39 px depending on the tic parity (below) |
+| Mad Mushroom (level 2, placed) | hops −40, −40, then −68, gravity mid; in place, facing Keen | two hops of 30-32 px, then a leap of 22 frames up, again and again; it stays in place | the same (31 px a hop) |
+| Egg, info 13 (level 1, placed) | an egg on every difficulty | an egg on Normal; a shot broke it into the shell, three bits and a bird | an egg |
+| Bird | stands 120 tics, then 128 units every 7 tics | stood ~1 s after the recording began, then 8 px every 3-4 frames (7 tics) towards Keen | the same |
+| Arachnut (level 3, placed) | 128 units every 6 tics, to Keen every 4 steps | 145 px in 1.5 s (~8 px every 86 ms), turning back past Keen | 128 / 6 tics (140 px in 1.5 s) |
+| Skypest (level 9) | preening frames 10 tics, rests 100 / 60 / 100 tics | preening pictures 143 ms (10 tics) each, the last rest 1427 ms (100 tics), then it takes off; wing frames 5 tics | the same |
+| Lick (level 14) | flame frames 4 tics | 57 ms (4 tics) a frame; two Licks hop to Keen and burn him | the same |
+| Berkeloid (level 4, placed) | fireball 48 sideways from −8, gravity mid, burns on the ground | 70 px in 24 tics (48 a tic) sideways; the fire burns on the ground | the same |
+| Mimrock (level 7, placed) | sits; sneaks when Keen looks away | sat, and sneaked a few steps back and forth as Keen's facing changed | the same rules |
+| Smirky (level 6, placed) | teleports after two misses | hopped about, also against the view's edge, for 25 s; no teleport seen | see §12 point 4 |
+
+**The tic parity drifts in the original.** The Bounder's 39 px fit −50
+with gravity on the *second* tic of every frame (frames starting on even
+tics); D4 measured Keen's jump at a level's start, where frames start on
+odd tics. Any frame of 3 tics (js-dos jitter, a slow machine) flips the
+parity for the rest of the level, so a rise of the same speed can differ
+by 3 px in the original. Ours keeps odd tics while the clock runs evenly.
+
 ## Lessons for the new-episode guide
 
 
@@ -705,3 +743,10 @@ file is not changed now because another session is working on it.)
   pixels off in every jump.
 - D4: a `const` array of `PackedInt32Array`s returned garbage in Godot
   4.7.2: keep constant tables flat or computed.
+- D5: to watch a creature that is not near a level's start, write a
+  scratch copy of `GAMEMAPS` with the creature's info value in the first
+  view (plain Carmack/RLEW words appended, the map header pointing at
+  them) and play it in js-dos; the same copy, given with
+  `--data-dir-keen4=`, puts it in our view for screenshots.
+- D5: in the original the tic parity of the frames drifts (a 3-tic frame
+  flips it); compare speeds over several frames, not single steps.
