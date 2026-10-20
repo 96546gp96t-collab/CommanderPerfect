@@ -2,9 +2,16 @@ class_name GalaxyObjectLayer
 extends Node2D
 ## Draws the sprites of a Galaxy level: every object's sprite at its
 ## position + the sprite's origin (both in global units, 16 per pixel;
-## [GalaxySpriteInfo]), on whole pixels as the original does, or with the
-## shared [Interpolation] between the last two logic frames when motion is
-## smooth.
+## [GalaxySpriteInfo]), where the original draws it ([method pixel_of]), or
+## with the shared [Interpolation] between the last two logic frames, at
+## the exact place, when motion is smooth.
+##
+## The original keeps only a few shifted copies of each sprite (the
+## sprite table's shift count: 1, 2 or 4), so it can only draw a sprite at
+## x steps of 8 / shifts pixels: its x is rounded down to that step (Omni
+## `id_rf.c:RF_AddSpriteDraw`, `id_ca.c:CAL_CacheSprite`; measured on the
+## demos in D8). Most sprites have 4 shifts (2-pixel steps); Keen going
+## through a door has 1 (8-pixel steps: he jumps up to 7 pixels left).
 ##
 ## The original sorts its sprites by priority 0-3 (Omni `id_rf.c`): 0-2 are
 ## drawn over the tiles but under the foreground tiles that are in front
@@ -24,6 +31,8 @@ class Item:
 	var sprite := 0
 	## The object's position, in units.
 	var position := Vector2i.ZERO
+	## Where the original draws the sprite, in pixels ([method pixel_of]).
+	var pixel := Vector2i.ZERO
 	var priority := 1
 	var node := Sprite2D.new()
 	var motion := Interpolation.new()
@@ -32,6 +41,12 @@ class Item:
 ## Priorities run from 0 to this.
 const TOP_PRIORITY := 3
 const UNITS_PER_PIXEL := 16.0
+## A byte of a planar EGA row holds 8 pixels; the shifted copies of a
+## sprite share them out (Omni CAL_CacheSprite).
+const PIXELS_PER_BYTE := 8
+## The shift counts the original knows; any other is drawn on whole
+## pixels.
+const SHIFT_COUNTS: Array[int] = [1, 2, 4]
 
 var _graphics: GalaxyGraphics
 var _scaled: GalaxyScaledGraphics
@@ -52,10 +67,21 @@ static func z_of(priority: int) -> int:
 
 
 ## Where the picture of a sprite with [param info] goes for an object at
-## [param position] (units), in pixels, as the original draws it.
+## [param position] (units), in pixels, as the original draws it: x
+## rounded down to [method x_step] pixels, y on its whole pixel.
 static func pixel_of(info: GalaxySpriteInfo, position: Vector2i) -> Vector2i:
 	var corner := position + info.origin
-	return Vector2i(corner.x >> 4, corner.y >> 4)
+	# The steps are powers of two: clearing the low bits rounds down.
+	return Vector2i((corner.x >> 4) & ~(x_step(info.shifts) - 1), corner.y >> 4)
+
+
+## The x step, in pixels, of a sprite with [param shifts] shifted copies:
+## 8 for 1, 4 for 2, 2 for 4 (whole pixels for a count the original does
+## not know).
+static func x_step(shifts: int) -> int:
+	if not SHIFT_COUNTS.has(shifts):
+		return 1
+	return PIXELS_PER_BYTE / shifts
 
 
 ## Draws the sprites of [param graphics] from now on, scaled ones from
@@ -92,8 +118,10 @@ func move(item: Item, sprite: int, position: Vector2i) -> void:
 	item.sprite = sprite
 	item.position = position
 	var info := _info(sprite)
-	var corner := Vector2(position + (info.origin if info != null else Vector2i.ZERO))
-	item.motion.move_to(corner / UNITS_PER_PIXEL)
+	if info == null:
+		info = GalaxySpriteInfo.new()
+	item.motion.move_to(Vector2(position + info.origin) / UNITS_PER_PIXEL)
+	item.pixel = pixel_of(info, position)
 
 
 func remove(item: Item) -> void:
@@ -141,11 +169,11 @@ func items() -> Array[Item]:
 
 
 ## Puts every sprite [param blend] of the way from the previous logic frame
-## to the last one when [param smooth]; otherwise on the last one, on a
-## whole pixel.
+## to the last one when [param smooth] (at its exact place, as before
+## D8.1); otherwise on the last one, where the original draws it.
 func place(blend: float, smooth: bool) -> void:
 	for item in _items:
-		item.node.position = item.motion.at(blend, smooth)
+		item.node.position = item.motion.at(blend, true) if smooth else Vector2(item.pixel)
 
 
 func _show(item: Item, shown: bool, sprite: int, position: Vector2i, priority: int) -> void:

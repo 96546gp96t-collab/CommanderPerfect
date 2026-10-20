@@ -24,6 +24,13 @@ extends RefCounted
 ##     from the top, settles his feet back to 140 while he stands, and
 ##     lets him look up and down 1 pixel per tic. It moves at most 255
 ##     units per frame.
+## The view is drawn where the original shows it ([method view_pixels]):
+## the EGA card pans the picture sideways in steps of 2 pixels, so its x
+## is rounded down to an even pixel (Omni `id_rf.c:RF_Refresh`, the
+## scroll's units & 0xef; measured on the demos in D8); its y is a whole
+## pixel. The in-front tiles, the score box and the DEMO sign move with
+## it, as in the original (they are tiles, or sprites placed at the
+## scroll + whole even pixels).
 ## A wider view than the original's (widescreen) is centred on the
 ## original's view and kept inside the area between the blocks around it
 ## ([method wide_view_left], [method area_pixels]); what it would show
@@ -75,6 +82,8 @@ const CENTRE_X := 152
 const MAP_CENTRE_Y := 80
 ## The view moves at most this many units per frame (Omni).
 const MAX_STEP := 255
+## The view is drawn at x steps of this many pixels (the EGA's panning).
+const PAN_STEP := 2
 ## The world-map camera (Omni CK_MapCamera): the box stays between these
 ## pixels from the top; its right edge counts 16 units more.
 const MAP_TOP := 80
@@ -208,9 +217,16 @@ func limits() -> Rect2i:
 	return Rect2i(_min, _max - _min)
 
 
-## The top left of the view in pixels (the original scrolls by whole
-## pixels).
+## The top left of the view in pixels as the original draws it: x
+## rounded down to [constant PAN_STEP] pixels.
 func view_pixels() -> Vector2i:
+	var exact := scroll_pixels()
+	return Vector2i(exact.x & ~(PAN_STEP - 1), exact.y)
+
+
+## The top left of the view on its whole pixel, not panned in steps: for
+## smooth motion, which draws everything at its exact place.
+func scroll_pixels() -> Vector2i:
 	return Vector2i(scroll.x >> 4, scroll.y >> 4)
 
 
@@ -232,10 +248,12 @@ func area_pixels() -> Rect2i:
 
 ## The left pixel of a view [param width] pixels wide: centred on the
 ## original's view and inside [method area_pixels]; centred on that area
-## when it is narrower (the rest is covered).
-func wide_view_left(width: int) -> int:
+## when it is narrower (the rest is covered). With [param exact] around
+## [method scroll_pixels] (smooth motion) instead of [method view_pixels].
+func wide_view_left(width: int, exact := false) -> int:
 	var area := area_pixels()
-	var left := view_pixels().x + VIEW_PIXELS.x / 2 - width / 2
+	var view_left := scroll_pixels().x if exact else view_pixels().x
+	var left := view_left + VIEW_PIXELS.x / 2 - width / 2
 	if area.size.x < width:
 		return area.position.x - (width - area.size.x) / 2
 	return clampi(left, area.position.x, area.end.x - width)

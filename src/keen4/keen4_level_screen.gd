@@ -172,13 +172,16 @@ func _fit_screen() -> void:
 
 
 ## Puts the camera node where [member _galaxy_camera] has the view, widened
-## in widescreen and kept inside the area between the scroll blocks.
+## in widescreen and kept inside the area between the scroll blocks: in
+## the original's 2-pixel steps, or on whole pixels with smooth motion
+## (which draws the sprites at their exact places too).
 func _frame_view() -> void:
 	if _galaxy_camera == null or _cover == null:
 		return
 	var view_size := _settings.game_size()
+	var exact := _settings.smooth_motion
 	var top_left := Vector2i(
-		_galaxy_camera.wide_view_left(view_size.x), _galaxy_camera.view_pixels().y
+		_galaxy_camera.wide_view_left(view_size.x, exact), _galaxy_camera.view_pixels().y
 	)
 	_camera_anchor.position = Vector2(top_left) + Vector2(view_size) / 2.0
 	_camera.reset_smoothing()

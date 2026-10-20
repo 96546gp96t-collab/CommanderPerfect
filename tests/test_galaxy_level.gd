@@ -2,8 +2,10 @@ extends "res://tests/test_case.gd"
 ## Checks how a Galaxy level is drawn (milestone D3) with hand-made maps and
 ## tile information: the clock, the tile animation, the three tile layers,
 ## the atlas, the camera with its scroll blocks and the widescreen area,
-## the sprite layer's order and the rule for pictures behind levels. The
-## numbers of the camera are Omnispeak's (docs/keen4/research.md).
+## the sprite layer's order, the original's drawing steps (D8.1: sprites
+## at 8 / shifts pixels, the view at 2) and the rule for pictures behind
+## levels. The numbers of the camera are Omnispeak's
+## (docs/keen4/research.md).
 
 const BACK_TILES := 8
 const FORE_TILES := 8
@@ -208,6 +210,53 @@ func test_sprites_by_priority() -> void:
 		second.node.get_index() < first.node.get_index(), "the newest is drawn under the others"
 	)
 	layer.free()
+
+
+func test_sprites_drawn_in_their_shift_steps() -> void:
+	var info := GalaxySpriteInfo.new()
+	info.origin = Vector2i(-16, 0)
+	# Position + origin is pixel 87 and a bit: rounded down per shift count.
+	var position := Vector2i(88 * UNITS + 5, 10 * UNITS)
+	var drawn := PackedInt32Array()
+	for shifts in [4, 2, 1, 0]:
+		info.shifts = shifts
+		drawn.append(GalaxyObjectLayer.pixel_of(info, position).x)
+	assert_equal(drawn, PackedInt32Array([86, 84, 80, 87]), "steps of 2, 4, 8, 1 pixels")
+	assert_equal(GalaxyObjectLayer.pixel_of(info, position).y, 10, "y on its whole pixel")
+	info.shifts = 4
+	assert_equal(
+		GalaxyObjectLayer.pixel_of(info, Vector2i(-3 * UNITS, 0)).x, -4, "left of 0: down, too"
+	)
+
+
+func test_door_sprite_jumps_to_its_byte() -> void:
+	# Keen walking (4 shifts) at pixel 94, then the door's sprite (1 shift,
+	# same origin): the original draws it at 88, 6 pixels left (D8).
+	var walking := GalaxySpriteInfo.new()
+	walking.shifts = 4
+	var door := GalaxySpriteInfo.new()
+	door.shifts = 1
+	var position := Vector2i(94 * UNITS + 9, 0)
+	var jump := (
+		GalaxyObjectLayer.pixel_of(walking, position).x
+		- GalaxyObjectLayer.pixel_of(door, position).x
+	)
+	assert_equal(jump, 6, "6 pixels left into the door")
+
+
+func test_view_pans_in_two_pixel_steps() -> void:
+	var camera := GalaxyCamera.for_map(MAP_SIZE)
+	var at := Vector2i(41 * UNITS + 15, 37 * UNITS + 3)
+	camera.reposition(at)
+	assert_equal(camera.view_pixels(), Vector2i(40, 37), "x to an even pixel, y whole")
+	assert_equal(camera.scroll_pixels(), Vector2i(41, 37), "smooth motion: the whole pixel")
+	assert_equal(camera.wide_view_left(320), 40, "4:3 in the original's step")
+	assert_equal(camera.wide_view_left(320, true), 41, "smooth motion: exact")
+	var lefts := PackedInt32Array()
+	for step in 4:
+		camera.smooth_scroll(Vector2i(UNITS, 0))
+		lefts.append(camera.view_pixels().x)
+	assert_equal(lefts, PackedInt32Array([42, 42, 44, 44]), "1 px a frame: 2 px every other")
 
 
 func test_pictures_only_behind_sky() -> void:

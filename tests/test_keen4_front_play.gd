@@ -3,8 +3,8 @@ extends "res://tests/test_case.gd"
 ## own files (milestone D8; skipped without them): the texts' pages, the
 ## help's paging, the end's timed pictures, the original's high-score
 ## table, the five demos and the first seconds of demo 0 against Keen's
-## places measured in the original, and the end's flow up to the name on
-## the table.
+## places measured in the original, Keen's door sprite drawn in its 8-pixel
+## step (D8.1), and the end's flow up to the name on the table.
 
 const HELP_PAGES: PackedInt32Array = [13, 21, 9, 18, 2]
 const END_PAGES := 16
@@ -19,7 +19,7 @@ const SCROLL_TICS := 1864
 ## demo, Keen's sprite and where it is on the screen (four numbers a row:
 ## a flat table, Godot reads a constant array of arrays back wrongly). The original draws a
 ## sprite at its x rounded down to 8 / (its shifts) pixels and scrolls the
-## view in steps of 2 pixels; the test draws ours the same way.
+## view in steps of 2 pixels; since D8.1 ours draws the same way.
 const DEMO_0_SEEN: PackedInt32Array = [
 	16,
 	15,
@@ -119,8 +119,9 @@ const DEMO_0_SEEN: PackedInt32Array = [
 	110,
 ]
 const SEEN_ROW := 4
-const VIEW_STEP := 2
-const SHIFT_PIXELS := 8
+## Keen's second door sprite: 1 shift in the sprite table (the first,
+## his back as he starts, has 4).
+const DOOR_SPRITE := &"ENTER_2"
 const SCORES_PATH := "user://test_keen4_front/high_scores.json"
 const NEW_SCORE := 20000
 
@@ -250,6 +251,21 @@ func test_demo_0_plays_as_in_the_original() -> void:
 	assert_equal(different, [], "Keen's sprite and place in every measured frame")
 
 
+func test_layer_draws_the_door_sprite_in_its_step() -> void:
+	var layer := GalaxyObjectLayer.new()
+	layer.use_graphics(_data.graphics)
+	var sprite := Keen4Sprites.KEEN[DOOR_SPRITE]
+	var info := _data.graphics.sprite_infos[sprite]
+	assert_equal(info.shifts, 1, "the door sprite has one shift")
+	var position := Vector2i(1000, 2000) - info.origin
+	var item := layer.add(sprite, position, 1)
+	layer.place(0.0, false)
+	assert_equal(item.node.position, Vector2(56, 125), "x 62 drawn at 56: its byte")
+	layer.place(1.0, true)
+	assert_equal(item.node.position, Vector2(62.5, 125), "smooth motion: the exact place")
+	layer.free()
+
+
 func test_story_text_and_cheat_box_are_found() -> void:
 	var story := _data.executable.messages(Keen4Episode.STORY_MESSAGES)
 	assert_equal(GalaxyExeTexts.line_count(story[0]), 30, "the story's 30 lines")
@@ -296,12 +312,11 @@ func test_the_end_flow_after_the_eighth_rescue() -> void:
 	DirAccess.remove_absolute(SCORES_PATH.get_base_dir())
 
 
-## Keen's sprite and screen place, drawn the way the original draws.
+## Keen's sprite and screen place, where the engine draws them (since
+## D8.1 in the original's steps: the measured places hold as they are).
 func _as_drawn(session: Keen4LevelSession) -> PackedInt32Array:
 	var keen := session.player
 	var info := _data.graphics.sprite_infos[keen.sprite]
 	var pixel := GalaxyObjectLayer.pixel_of(info, keen.position)
 	var view := session.camera.view_pixels()
-	var step := SHIFT_PIXELS / maxi(info.shifts, 1)
-	var x := floori(float(pixel.x) / step) * step - floori(float(view.x) / VIEW_STEP) * VIEW_STEP
-	return PackedInt32Array([keen.sprite, x, pixel.y - view.y])
+	return PackedInt32Array([keen.sprite, pixel.x - view.x, pixel.y - view.y])

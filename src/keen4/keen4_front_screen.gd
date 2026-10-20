@@ -37,7 +37,8 @@ const RIGHT_WORD_MISC := 2
 ## The story's font: the large one.
 const STORY_FONT := 2
 ## The DEMO sign (sprite 5) at the top middle of the view (Omni
-## CK_DemoSign: 128 and 8 pixels from its corner).
+## CK_DemoSign: 128 and 8 pixels from its corner, plus the sprite's origin:
+## 3 pixels lower in v1.0, compared with the original's frames in D8.1).
 const DEMO_SIGN_SPRITE := 5
 const DEMO_SIGN_AT := Vector2(128, 8)
 const HIGH_SCORES_PATH := "user://keen4/high_scores.json"
@@ -72,6 +73,8 @@ func _set_up_front() -> void:
 	_demo_sign.centered = false
 	_demo_sign.visible = false
 	_demo_sign.texture = ImageTexture.create_from_image(_data.graphics.sprite(DEMO_SIGN_SPRITE))
+	var origin := _data.graphics.sprite_infos[DEMO_SIGN_SPRITE].origin
+	_demo_sign.offset = Vector2(origin / GalaxyUnits.PER_PIXEL)
 	ui.add_child(_demo_sign)
 	_board_sprite.centered = false
 	_board_sprite.visible = false
