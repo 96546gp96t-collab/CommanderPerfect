@@ -83,7 +83,7 @@ bestanden in [docs/keen4/file-formats.md](docs/keen4/file-formats.md).
 | D1 | Onderzoek: code in kaart, Keen 4 v1.0 van de gebruiker uitgelezen, Omnispeak, architectuur, mijlpalen | ✅ Klaar (branch `milestone-d1-onderzoek`); vragen beantwoord op 19-10-2026 |
 | D2 | De bestanden van Keen 4 inlezen, data viewer, vierde icoon | ✅ Klaar, wacht op controle door de architect (branch `milestone-d2-bestanden`) |
 | D3 | Een level tekenen | ✅ Klaar, wacht op controle door de architect (branch `milestone-d3-level`) |
-| D4 | Keen beweegt (klok, acties, hellingen, palen, randen) | ⬜ |
+| D4 | Keen beweegt (klok, acties, hellingen, palen, randen) | ✅ Klaar, wacht op controle door de architect (branch `milestone-d4-keen`) |
 | D5 | Vijanden | ⬜ |
 | D6 | Platforms, schakelaars, de raad, onder water | ⬜ |
 | D7 | De wereldkaart | ⬜ |
@@ -93,6 +93,75 @@ bestanden in [docs/keen4/file-formats.md](docs/keen4/file-formats.md).
 | D11 | Mooier maken en Paddle War | ⬜ |
 | D12 | Co-op | ⬜ |
 | D13 | Naast het origineel | ⬜ |
+
+## Mijlpaal D4: wat er nu is
+
+Keen loopt, springt, pogot, klimt, hangt aan randen, schiet, gaat door
+deuren en pakt items in elk level van Keen 4 (nog zonder vijanden). Het
+scorebord staat linksboven. De regels staan in `docs/keen4/gameplay.md`
+("Keen's moves", "Items and tiles", "The score box"), de afwijkingen van
+het plan in `docs/keen4/architecture.md` ("Deviations in D4"), wat het
+origineel liet zien in `docs/keen4/research.md` ("Watched in D4").
+
+- [x] **Het actiesysteem** (`GalaxyAction`, `GalaxyObject`, `GalaxyWorld`):
+  elke toestand een regel tekst (sprites, soort, protect, aan de grond
+  plakken, timer, snelheid, think/contact/react als methodenaam, volgende),
+  wakker worden en slapen, beide contact-functies, de volgorde van een
+  frame zoals het origineel.
+- [x] **Botsen met tiles** (`GalaxyClip`): vloeren en hellingen onder de
+  middenkolom (Omnispeaks hoogtetabel), muren links en rechts, plafonds,
+  paalgaten, de grens per frame (239/255), het "eenvoudige" vak voor later;
+  zwaartekracht en versnellen op oneven tics (`GalaxyPhysics`).
+- [x] **Keen** (`GalaxyKeen`, in drie bestanden): staan met de
+  wachtanimaties (omhoog kijken, verveeld, de maan, het boek), lopen (ook
+  op hellingen), omhoog/omlaag kijken, door een dunne vloer zakken,
+  springen, vallen, pogo, schieten in alle richtingen (ook aan een paal en
+  omlaag in de lucht), palen (pakken, klimmen 8, glijden 24, afspringen),
+  randen (hangen, optrekken, loslaten), deuren (naar het doel in de
+  info-laag), schakelaars en bruggen, dood (dodelijke tiles en uit het
+  level vallen) met de doodsanimatie.
+- [x] **Items en tiles**: punten (sprites en tiles, met de "schaduw" die
+  opstijgt), edelstenen, extra leven, lading (+5), druppels (100 = een
+  leven), extra leven bij 20.000 en dan steeds het dubbele, edelsteenhouders
+  en de deur die in drie stappen opengaat. De verdover: 64 per tic, 4
+  beelden, stopt tegen muren, gaat door paalgaten, kost een lading.
+- [x] **Het scorebord** (`GalaxyScoreBox`): de eigen sprite van het spel
+  met de cijfers erin zoals het origineel, linksboven in het zichtbare
+  beeld, in 4:3 en breedbeeld.
+- [x] **Het verloop** (`Keen4LevelSession`, `Keen4Inventory`, `Keen4View`):
+  de camera volgt Keen met de regels uit D3; uit het level lopen → het
+  volgende level (1-16, daarna weer 1); dood → het level opnieuw (een leven
+  minder); geen levens meer → startscherm. De kaart (0) en level 17
+  (zwemmen) blijven nog "rondkijken".
+- [x] **Naast het origineel (js-dos)**: de sprong is 67 px (niet 70: het
+  eerste frame van een level duurt 3 tics, daarna begint elk frame op een
+  oneven tic), de pogo vastgehouden 105 px en los 41 px, lopen 24 per tic,
+  heuvelop 20, paal klimmen 8 en glijden 24, de deur naar de juiste kamer,
+  het scorebord gelijk. Onze getallen zijn daarop gezet.
+- [x] **Tests**: nieuwe suites `test_galaxy_actions`, `test_galaxy_keen`,
+  `test_galaxy_items` (zelfgemaakte mini-levels, `galaxy_keen_fixtures.gd`)
+  en `test_keen4_play` (echte data: alle levels, de sprong, de deur in
+  level 1, items, scorebord). 78 suites, 870 tests (was 74 en 836), alle
+  slagen, gdlint schoon.
+- [x] **Keen 1-3-controle:** `keen1_regression.sh` en `keen2_regression.sh`
+  tegen D3 (lege gebruikersmap): alles gelijk. `git diff
+  milestone-d3-level` op `src/keen2`, `src/keen3`, hun tests en fixtures,
+  `src/actors`, `src/map` en `src/game/level_view.gd` is leeg. Gedeeld
+  bestand veranderd: alleen de testlijst (`tests/run_tests.gd`). De Keen
+  4-regressie verschilt alleen in het scorebord (bekeken).
+- [x] **Bekeken** (scratchpad `d4shots/`): lopen, helling, sprong, pogo,
+  deur, paal, rand (level 4), edelsteendeur (level 4), items, scorebord, in
+  4:3 en breedbeeld, met xBRZ en vloeiende beweging.
+- **Niet gedaan:** de apps zijn hier niet gebouwd (Mac-build alleen op de
+  Mac; voor Windows ontbreken hier de export templates). In het origineel
+  nog niet nagemeten: het hangen aan een rand, de edelsteendeur, de
+  wachtanimaties (open voor D13).
+- **Om te proberen:** `godot --path . -- --game=4` (level 1: naar links
+  lopen, de heuvel op, springen met Ctrl, pogo met Alt, schieten met
+  Spatie; de deur van het linker huis met pijl omhoog leidt naar de kamer
+  met de paal), `-- --game=4 --level=4` (randen, edelstenen en de deur),
+  F5 (xBRZ), F6 (vloeiende beweging), F2 (breedbeeld).
+- **Volgende stap: D5**, vijanden (`milestone-d5-vijanden`).
 
 ## Mijlpaal D3: wat er nu is
 
@@ -2098,10 +2167,11 @@ Keen 3:
 
 Keen 4:
 
-1. **D2** (branch `milestone-d2-bestanden`, vanaf `milestone-d1-onderzoek`
-   met `main` erin): de bestanden van Keen 4 inlezen, de data viewer en het
-   vierde icoon; zie `docs/keen4/roadmap.md`.
-2. Daarna D3 (een level tekenen).
+1. **D5** (branch `milestone-d5-vijanden`, vanaf `milestone-d4-keen`):
+   de vijanden van Keen 4, elk met een eigen actietabel; zie
+   `docs/keen4/roadmap.md`.
+2. **Voor de gebruiker:** D4 proberen (`godot --path . -- --game=4`, of
+   `--level=N`): zeg wat anders voelt dan het origineel.
 
 Keen 2:
 

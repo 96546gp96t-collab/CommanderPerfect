@@ -454,3 +454,75 @@ What D3 built differently from the plan above, and why (developer, D3):
 9. **The camera's settle step** follows Omnispeak's 32-bit arithmetic
    (`(distance << 4) >> 7`, an eighth); the 16-bit original may differ for
    distances over 128 px. Only matters once Keen moves (D4).
+
+## Deviations in D4
+
+What D4 built differently from the plan above, and why (developer, D4):
+
+1. **Where the classes went.** `src/galaxy/actors/`: `GalaxyAction`,
+   `GalaxyObject`, `GalaxyWorld` (the object list and the frame),
+   `GalaxyItem`, `GalaxyStunnerShot`, `GalaxyGemDoor`;
+   `src/galaxy/physics/`: `GalaxyUnits`, `GalaxyClip`, `GalaxyPhysics`
+   (gravity, acceleration, damping), `GalaxyTileKinds` (the misc values);
+   `src/galaxy/keen/`: `GalaxyKeen`, `GalaxyKeenActions` (his table),
+   `GalaxyInventory`; `src/galaxy/ui/GalaxyScoreBox`. Keen 4:
+   `Keen4LevelSession` (`level/`), `Keen4Inventory` (`game/`, the new-game
+   numbers on top of `GalaxyInventory`), `Keen4Sprites` (`data/`, the
+   sprite numbers by name). `Keen4View` plays the maps where Keen stands.
+2. **Keen in three files.** Keen's think, contact and react functions are
+   methods of his own class (the world calls them by name). All of them
+   in one class would be ~1000 lines, so the class is split by topic in a
+   chain: `GalaxyKeenBody` (what he carries and holds down, dying,
+   shooting, the tiles and items he touches) ← `GalaxyKeenAir` (jumping,
+   falling, the pogo, ledges) ← `GalaxyKeen` (the ground, looking, poles,
+   doors, switches, gem holders). Only Keen does this; enemies (D5) are one
+   class each.
+3. **Action tables are text rows**, one line per action ("stand STAND_L
+   STAND_R step+ -s 4 0 32 standing normal ground stand"), read by
+   `GalaxyAction.table_from`; the think, contact and react names get the
+   prefixes `_think_`, `_contact_`, `_react_`. Not read from the EXE (the
+   records there hold code addresses), as research §3 planned.
+4. **Weak references.** `GalaxyAction.next` and `GalaxyObject.world` are
+   weak (a `WeakRef` behind a property): the actions of a table form
+   loops and the world holds its objects, so strong references would never
+   be freed. The owner of a table keeps the table (Keen, items, shots, the
+   gem door each hold theirs).
+5. **"Protect" means something else than research §3 said** (corrected
+   there): it lets leftover tics run an action *to its end* in the frame
+   it was reached; without it such an action stops one tic short and the
+   rest of the frame is lost (Omni CK_RunAction checks the new action).
+6. **A level's first frame is 3 tics** (`GalaxyClock.start_level`, Omni
+   CK_PlayLoop), so every later frame starts on an odd tic. This is not a
+   detail: gravity then changes the speed before the frame's first tic
+   moves, and the held jump is 67 pixels, as the original shows (Omnispeak's
+   scratch model with even frames gave 70). Maps that are only shown keep
+   `reset` (D3's tests unchanged).
+7. **Gravity low is no gravity** (`GalaxyPhysics.gravity_low`): seen in the
+   original (a held pogo bounce rises 6 pixels in each of its 12 frames).
+8. **The slope table is start + step per slope value** (exactly
+   Omnispeak's 8 × 16 numbers, each row a straight line): a `const` array
+   of `PackedInt32Array`s read back garbage in Godot 4.7.2 (random heights,
+   so Keen sometimes fell through floors); a flat table of 128 numbers is
+   what gdformat writes one per line.
+9. **The score box** is a `Sprite2D` (`GalaxyScoreBox`) in the World
+   viewport's `Ui` canvas layer (a new node `ScoreBox` in
+   `keen4_view.tscn`), 4 pixels from the top-left corner of the visible
+   picture, in front of the widescreen cover; always drawn with the
+   original pixels (also with xBRZ). The original only redraws it when a
+   number changes; so does ours.
+10. **Objects on the screen**: `GalaxyObjectLayer.show_objects` follows the
+    world after every logic frame (an item per object, hidden while it
+    sleeps, its priority as it changes); `GalaxyCamera.limits` gives the
+    level's edges for leaving it.
+11. **The flow before the world map**: walking out of a level opens the
+    next (1-16, then 1 again: 17 is swum, D6); maps 0 and 17 are still
+    only shown (D3's look-around); a death starts the level again at
+    once (the "Try Again / Exit to Shadowlands" box is D7's) and costs a
+    life; below 0 lives "Game over" and the start screen. The random table
+    starts at a random place per level (the original takes the clock).
+12. **Not yet**: platforms (Keen's `_contact_normal` and `_contact_special`
+    only take items; D6), enemies and stunning (D5; the shot already calls
+    the contact of what sleeps in its way), sounds (D9), the moon spot
+    exists only in level 11 (works, not compared with the original),
+    difficulty (Normal; Easy's gravity and +8 charges in D10).
+13. **Shared files changed**: only `tests/run_tests.gd` (four suites).

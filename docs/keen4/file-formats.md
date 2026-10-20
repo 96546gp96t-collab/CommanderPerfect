@@ -156,6 +156,18 @@ The code keeps **indices inside a range**, never chunk numbers.
   sprite 10 of 1.0 has origin y 32 and box y 48-496 in a 29-pixel picture,
   so the box ends at the picture's bottom row; the standing Keen's feet).
   The data viewer draws the box this way.
+- **Sprite order** (D4): the 397 sprites of 1.0 are in the order of
+  Omnispeak's v1.4 list (`GFXCHUNK.CK4`, chunk − 124): Keen standing
+  right 6 and left 14, running 7-10 / 15-18, jumping 11-13 / 19-21, … the
+  stunner shot 50-53, its hit 54-55, the items 103-128, the score box 129,
+  Keen showing the moon 395-396 (checked on a sheet of all sprites;
+  `Keen4Sprites` names them). The hit box changes from frame to frame
+  (Keen's pogo sprites start 64 or 128 units lower than his standing one).
+- **8×8 tiles in the score box** (D4, Omni CK_UpdateScoreBox): the digits
+  '0'-'9' are unmasked 8×8 tiles 42-51 (character code − 6), tile 41 is the
+  dim "8" of an unused place; the original draws them into the SCOREBOX
+  sprite (88 × 32 pixels in 1.0): the score at (8, 4), the lives at
+  (24, 20), the charges at (64, 20).
 - **Fonts**: height (16 bit), 256 offsets (16 bit, from the start of the
   chunk), 256 widths (bytes), then the pixels: per character `height` rows
   of ⌈width ÷ 8⌉ bytes, the leftmost pixel in the highest bit. Font 0 is

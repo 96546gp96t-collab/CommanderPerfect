@@ -334,8 +334,9 @@ start zonder rekenen).
 | D1 Onderzoek | 19-10-2026 | Klaar; de vragen zijn beantwoord (research.md §13) |
 | D2 Bestanden | 20-10-2026 | Klaar; afwijkingen in architecture.md, "Deviations in D2" |
 | D3 Level tekenen | 20-10-2026 | Klaar; eerste beeld van levels 1, 4, 11, 14, 17 en de kaart pixel voor pixel gelijk aan het origineel; afwijkingen in architecture.md, "Deviations in D3"; de regels in gameplay.md |
+| D4 Keen beweegt | 20-10-2026 | Klaar; sprong (67 px), pogo (105 / 41 px), lopen, helling, paal en deur nagemeten in js-dos; afwijkingen in architecture.md, "Deviations in D4"; de regels in gameplay.md |
 
-Volgende stap: D4, Keen beweegt (`milestone-d4-keen`): het actiesysteem,
-`GalaxyClip` met hellingen, Keen met lopen, springen, pogo, palen en
-randen, de camera die hem volgt (`GalaxyCamera.follow` staat al klaar) en
-het scorebord.
+Volgende stap: D5, vijanden (`milestone-d5-vijanden`): elk wezen een eigen
+klasse met een actietabel als rijen (zoals `GalaxyKeenActions`), de
+verdoving, wat Keen doodt; Keens contact-functies krijgen de wezens die hem
+duwen of doden.

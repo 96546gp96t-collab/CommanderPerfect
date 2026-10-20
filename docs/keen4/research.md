@@ -219,7 +219,7 @@ data segment (Omni `ACTION.CK4` gives the offsets in 1.4, stepping 0x1E):
 |---|---|
 | left / right sprite | the sprite for each facing (one if only "left" is set) |
 | type | 0 step once at the end of the timer; 1 slide (velocity × tics every frame), think at the end; 2 think every frame, no timer; 3 step + think every frame; 4 slide + think every frame |
-| protect | 0: a frame never runs past the end of the action (leftover tics are lost); 1: leftover tics carry into the next action |
+| protect | when an action is reached with leftover tics: 1 lets them run it to its end in that frame; 0 stops it one tic short and the rest is lost (D4: corrected; Omni CK_RunAction tests the action reached, not the one that ended) |
 | stick to ground | the object never walks off a ledge (it is pushed down, and moved back if there is no floor; its react sees "no floor" and turns) |
 | timer | tics |
 | vel x, vel y | multiplied by the facing |
@@ -249,7 +249,7 @@ other places in 1.0; we write our own tables (question for the user,
 |---|---|
 | Gravity high | on each odd tic vel y += 4, at most **70**; a value −4…−1 becomes 0 |
 | Gravity mid | the same with +3 (Keen on Easy, mushrooms, fireballs, death) |
-| Gravity low | Omnispeak's condition is never true: constant velocity (§12) |
+| Gravity low | Omnispeak's condition is never true: constant velocity (§12; D4: the original does the same) |
 | Accel horizontal (a, max) | += a on odd tics up to ±max, turns the facing |
 | Damp horizontal | ±1 towards 0 on odd tics |
 
@@ -310,7 +310,11 @@ Timers in tics, speeds in units/tic.
 Heights (Omnispeak's numbers in a scratch model without walls): jump held
 **70 px** (4.4 tiles), tapped 30-40 px; pogo held **108 px**, not held
 ~45-49 px; the first pogo from the ground ~126 px. These are the first
-things to check in js-dos (§12).
+things to check in js-dos (§12). **D4, seen in the original:** held jump
+67 px, pogo held 105 px, not held 41 px, the first bounce from the ground
+50 px: the scratch model ran its frames on even tics; the original's first
+frame of a level is 3 tics, so its frames start on odd tics ("Watched in
+D4").
 
 ### The neural stunner
 
@@ -530,12 +534,15 @@ per object (as numbers, marked `(Omni)`, if the user allows that).
 To check in js-dos with the user's own 1.0 (`tools/original/` on the C
 branches; the cheats and warp in §9 help):
 
-1. **The pogo**: Omnispeak's "gravity low" never accelerates (its own
-   comment calls this suspect). It decides the pogo height (108 px held).
-2. **The jump**: 70 px held? (Keen 1-3's jumps turned out too high in our
-   engine; measure Keen 4's in D3, not at the end.)
-3. **Walking on slopes**: faster downhill and slower uphill (Omnispeak adds
-   the slope table to x; the disassemblers disagree).
+1. ~~**The pogo**: Omnispeak's "gravity low" never accelerates (its own
+   comment calls this suspect). It decides the pogo height (108 px held).~~
+   Done in D4: the original does not accelerate either; a held bounce is
+   105 px (see "Watched in D4").
+2. ~~**The jump**: 70 px held? (Keen 1-3's jumps turned out too high in our
+   engine; measure Keen 4's in D3, not at the end.)~~ Done in D4: 67 px.
+3. ~~**Walking on slopes**: faster downhill and slower uphill (Omnispeak adds
+   the slope table to x; the disassemblers disagree).~~ Done in D4: uphill
+   20 a tic instead of 24, as Omnispeak adds.
 4. **Smirky's teleport**: Omnispeak removes it after the first teleport,
    which is probably wrong.
 5. **Info 13**: an egg on every difficulty (Omnispeak) or a bird on
@@ -643,7 +650,34 @@ and 2 and presses Enter: "Debug keys active") and the warp (hold F10 for
   Forbidden / Try Again / Exit to Shadowlands"); Try Again restarts the
   level with the same first view.
 
+### Watched in D4 (js-dos, the user's v1.0)
+
+Headless js-dos as in D3 (warp needs F10 held ~500 ms with W held 400 ms;
+the first try often fails). Keys: Ctrl jump, Alt pogo. Recordings of every
+frame (`rec 400 0`), Keen found by his shirt colour (255, 85, 255) and the
+view's movement by matching the background between frames (scratchpad
+scripts; frames never in the repository). Positions are the sprite's top
+row; the shirt's row in each sprite was read from our own decoding.
+
+| What | Omnispeak (scratch model) | The original (v1.0) | Ours (D4) |
+|---|---|---|---|
+| Jump, held | 70 px | 67 px: 9 frames of 5 px (−40 for 18 tics), then 4, 4, 4, 3, 2, 2, 2, 1, 0, 0; airtime 35 frames | 67 px, the same frames |
+| Jump, held ~90 ms (3 frames) | 30-40 px | 37 px | 37 px |
+| Pogo, held | 108 px | 6 px in each of 12 frames (−48 kept for 24 tics: no gravity), then gravity: ~105 px | 105 px |
+| Pogo, not held | 45-49 px | 41 px a bounce; the first from the ground 50 px (−14 px in its first frame: the 6 × −48 lift clamped to 239 units) | 41; the first 50 or 56 (by when the standing timer ends) |
+| Walking, flat | 24 a tic | 36 px per 24 tics | 24 |
+| Walking up a gentle slope | 24 − 4 | 30 px per 24 tics (level 1's hill) | 20 |
+| Pole: sliding / climbing | 24 / 8 a tic | the view follows him 3 / 1 px a frame | 24 / 8 |
+| Door | 5 × 9 tics in, info target | he walks to the door, walks in, stands in the room; level 1's door at x 77-78 leads to the room with four sodas, the one at 66-67 to the room with the pole (two stunners, two candy bars) | the same rooms |
+| Score box | — | the box with dim "8"s, 0, 3 lives, 5 charges, 4 px from the corner | the same |
+
+Not measured in the original yet (time): grabbing a ledge (level 1's pits
+are too shallow: the spikes touch Keen before his hands reach the line;
+level 4 has ledges, our engine grabs and pulls up there), the gem door,
+items' rising shadows, the idle animations' timing. Open for D13.
+
 ## Lessons for the new-episode guide
+
 
 (To be added to `docs/new-episode-guide.md` when Keen 3 is merged; that
 file is not changed now because another session is working on it.)
@@ -663,3 +697,11 @@ file is not changed now because another session is working on it.)
 - D3: atlases per level (only the tiles a level shows) keep xBRZ for
   Galaxy's 4212 tiles fast and small.
 - D3: the debug warp in js-dos needs F10 held a few hundred ms before W.
+- D4: in js-dos measure from **recordings of every frame**, not single
+  snapshots: Keen's shirt colour finds him, matching the background
+  between frames finds the view's movement.
+- D4: the phase of the frames matters: the first frame of a Galaxy level
+  is 3 tics, so the others start on odd tics; a model on even tics was 3
+  pixels off in every jump.
+- D4: a `const` array of `PackedInt32Array`s returned garbage in Godot
+  4.7.2: keep constant tables flat or computed.
