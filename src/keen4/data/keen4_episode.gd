@@ -94,6 +94,19 @@ const SKY_TILES: PackedInt32Array = [478, 1085, 1086, 1087, 1088, 1104, 1105]
 ## Keen 4's own pictures behind the levels (none yet; the player can add
 ## his own in game_data/keen4/backgrounds).
 const BACKDROP_FOLDER := "res://assets/backgrounds/keen4"
+## The control panel (D10): the cards' title pictures and the wrist watch,
+## counted from the end of the picture range (the same in v1.0 and v1.4;
+## Omni PIC_MENUCARD ... PIC_WRISTWATCH; seen in v1.0).
+const MENU_CARDS_FROM_END: Dictionary[StringName, int] = {
+	MenuController.MAIN: 33,
+	GalaxyMenuController.NEW_GAME: 32,
+	MenuController.SLOTS_LOAD: 31,
+	MenuController.SLOTS_SAVE: 30,
+	GalaxyMenuController.CONFIGURE: 29,
+	MenuController.KEY_SET: 24,
+	MenuController.OPTIONS: 22,
+}
+const WATCH_FROM_END := 18
 
 
 ## The numbers above as a [GalaxyEpisode].
@@ -134,6 +147,14 @@ static func create() -> GalaxyEpisode:
 		CHEAT_TEXTS: PackedInt32Array([CHEAT_V1_0]),
 	}
 	return episode
+
+
+## The control panel's pictures in a picture range of [param picture_count].
+static func menu_cards(picture_count: int) -> GalaxyMenuCards:
+	var pictures: Dictionary[StringName, int] = {}
+	for kind in MENU_CARDS_FROM_END:
+		pictures[kind] = picture_count - MENU_CARDS_FROM_END[kind]
+	return GalaxyMenuCards.create(picture_count - WATCH_FROM_END, pictures)
 
 
 ## All of Keen 4 in [param files]; null when something is missing.
