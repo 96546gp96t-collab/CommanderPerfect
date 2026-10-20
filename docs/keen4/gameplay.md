@@ -3,9 +3,10 @@
 What a Keen 4 level does in CommanderPerfect so far, and where its numbers
 come from. Written in milestone D3 (drawing a level), D4 (Keen moves), D5 (the
 creatures), D6 (platforms, the council, under water), D7 (the world map,
-the boxes between the levels, the status window) and D8 (the title loop,
-the demos, the help, the end, the high scores, the cheats); later
-milestones add to it. The facts and their sources are in
+the boxes between the levels, the status window), D8 (the title loop,
+the demos, the help, the end, the high scores, the cheats) and D10 (the
+control panel, the difficulty, saving and loading); later milestones add
+to it. The facts and their sources are in
 [research.md](research.md), the code layout in
 [architecture.md](architecture.md), the files in
 [file-formats.md](file-formats.md). Numbers from Omnispeak are marked
@@ -18,7 +19,7 @@ tile. Times are **tics** of 1/70 s.
 
 | What | Then |
 |---|---|
-| Keen 4 picked on the start screen, or `-- --game=4` | The title loop (below); a key starts a new game on Normal on the world map, after the box "Keen enters the Shadowlands" (the menus are D10's); Escape: the start screen; F1: the help |
+| Keen 4 picked on the start screen, or `-- --game=4` | The title loop (below); any key opens the control panel (below): New Game on Easy, Normal or Hard starts on the world map, after the box "Keen enters the Shadowlands"; F1: the help |
 | `-- --game=4 --level=N` | Map N at once: 0 the world map, 1-19 played (17 swum); another number: a message |
 | On the world map: jump, pogo or fire on an entrance | "One moment", then the level's "Keen enters …" box with Keen counting down, a fade, the level |
 | Keen walks out of a level (left or right), the Foot carries him off, he rescues a council member or takes the wetsuit | The level is done (the rescue's and the wetsuit's boxes first); the map's box; Keen back on the map where he entered, the level's flag thrown to its holder, its fence gone; after the Foot he flies |
@@ -32,7 +33,7 @@ tile. Times are **tics** of 1/70 s.
 | Shift+N / Shift+P | The next or previous map (0-19, round) |
 | Arrows / WASD, jump, pogo, fire | Keen (the shared keys: Ctrl or Z jump, Alt or X pogo, Space or C fire); on the world map the arrows walk in eight directions |
 | Shift+G | God mode on/off (the original's debug key F10+G): nothing kills Keen, except falling out of the level |
-| Escape | Back to the start screen |
+| Escape | The control panel (the game waits behind it); Return to Game goes on, Choose Game goes back to the start screen |
 | Shift+F1, F2-F6 | As in Keen 1-3: help line, widescreen, pixel shape, full screen, graphics (original / xBRZ), smooth motion |
 
 A new game starts with 3 lives, 5 stunner charges and the first extra life
@@ -64,9 +65,77 @@ earlier: one frame of pogo). A demo ends after its last input, or when Keen
 leaves the level. All five demos play as in the original, frame for frame
 (research.md, "Watched in D8").
 
-**Keys in the title loop**: Escape the start screen, F1 the help (then the
-loop goes on), any other key or button a new game (the original opens its
-menu, D10).
+**Keys in the title loop**: F1 the help (then the loop goes on), any other
+key or button the control panel (D10, as the original); Return to Demo
+goes on with the loop.
+
+## The control panel (D10)
+
+The original's wrist-watch menu (Omni `id_us_2.c`, `ck_us_2.c`), drawn as
+v1.0 draws it (seen: 0 pixels differ for the main, new game, load and save
+cards, typing a name, the dialogs and the PAUSED box):
+
+- **The look**: the wrist watch (picture 18 from the end) over the whole
+  screen; the card's title picture at (80, 48) on a light green line at
+  y 55 (from x 77 to 231); the choices in the watch font (font 1) from x
+  (card x + 74) rounded up to 8 and y card y + 60, 8 pixels apart, each
+  with an 8×8 icon (tiles 92 normal, 93 under the cursor, 96 / 97 cannot be
+  picked); dark green (2) on dark grey (8), the choice under the cursor
+  light green (10); the footer under a line at y 133: "Arrows move" at x
+  78, "Enter selects" ending at 230, "ESC to quit" (main card) or "ESC to
+  back out" centred under them. The cursor's icon blinks every 35 tics
+  (seen).
+- **Cards** (title pictures counted from the end of the picture range,
+  the same in v1.0 and 1.4; places Omni): main 33 (32, 4), new game 32
+  (8, 0), load 31 and save 30 (4, 3), configure 29 (0, 0), keys
+  ("BUTTON SETUP") 24 (0, 0), options 22 (8, 0).
+- **Keys**: up and down move the cursor and stop at the ends; it can rest
+  on a choice that cannot be picked (nothing happens there); a letter puts
+  it on the choice starting with it (1-6 on the slots); Enter, jump or pogo
+  picks; Escape backs out, and on the main card asks "REALLY QUIT?".
+- **Main card**: NEW GAME, LOAD GAME, SAVE GAME, CONFIGURE, RETURN TO GAME
+  (RETURN TO DEMO out of a game), END GAME, CHOOSE GAME (ours: the start
+  screen; the original has PADDLE WAR here, D11), QUIT. Save and End only
+  in a game; the cursor starts on Return to Game in a game, else on New
+  Game.
+- **New game**: BEGIN EASY / NORMAL / HARD GAME, the cursor on Normal
+  (seen); in a game first "YOU'RE IN A GAME / PRESS Y FOR NEW GAME / ESC TO
+  BACK OUT".
+- **Dialogs** (Omni USL_CtlDialog): the watch's screen (masked picture 0,
+  at x 72: the original puts pictures on whole bytes) dots out the card; a
+  box as wide as the longest line + 7 in the middle of the screen
+  (74 + (160 − w) / 2, 48 + (102 − h) / 2), framed light green, the first
+  line light green, a line under it, the others dark green. Y or jump says
+  yes, any other key no. Asked: Quit always; New Game, Load and End Game in
+  a game unless it was saved since the panel opened (Omni game_unsaved).
+- **Configure**: OPTIONS (SCORE BOX (ON/OFF), with the original's message
+  "Score box now on/off"; then the shared display settings WIDESCREEN,
+  4:3 PIXELS, FULL SCREEN, SMOOTH MOTION, BACKGROUNDS (only in widescreen),
+  GRAPHICS), KEYBOARD (one row per action, its key in a box at x + 90;
+  Enter waits for a new key with a blinking cursor, Escape keeps the old
+  one) and RESET KEYS. The keys and the picture are shared with Keen 1-3;
+  the score box is Keen 4's own (`user://keen4/settings.cfg`), on by
+  default.
+- **End Game**: the game stops, the map fades, the high scores (nothing
+  enters the table) and the title loop (seen).
+
+## Saving and loading (D10)
+
+- **Six slots** (`user://keen4/saves/slot1.json` … `slot6.json`, apart from
+  Keen 1-3), each with a name. Saving: pick a slot, its box empties (or
+  keeps the old name), type up to 32 characters (cursor 0x80 on the last
+  column of the text), Enter saves ("Untitled" when empty), Escape keeps
+  the slot; the panel stays on the save card with the new name (seen).
+- **Anywhere in a game**, as the original: on the world map (Keen's place),
+  in a level (the level as it was at that moment, below).
+- **Loading**: empty slots cannot be picked; black, then the game with the
+  box "PAUSED" (8 × 3 cells, the word in its middle; seen) until a key.
+- **What is kept** (`Keen4SavedGame`): the difficulty, what Keen carries
+  (score, next extra life, lives, charges, drops, gems), the progress
+  (rescues, wetsuit, levels done, the place on the map). In a level: those
+  as they were when he entered it, the random table's start and every
+  logic frame since (keys and tics), plus B+A+T and god mode; loading
+  plays the frames again (architecture.md, "Deviations in D10", 3).
 
 ## Help (D8)
 
@@ -318,15 +387,24 @@ Mimrock none. The Arachnut and the bird show no stars and wake up again
 (240 + 80 tics). Stunned creatures give no points. Off the screen a shot
 still stuns what sleeps in its way (D4).
 
-## Difficulty (D5)
+## Difficulty (D5, D10)
 
-The info plane places some creatures only from Normal on and some only on
-Hard (Omni CK4_ScanInfoLayer; research.md §6); `Keen4Creatures.PLACED`
-lists each value with its lowest difficulty. The level session takes the
-difficulty as a parameter; until the menu lets the player choose (D10) it
-is **Normal**. In v1.0 the info planes of levels 1-16 hold over 300 creature values;
-level 1 has two Bounders and two slugs on Easy, a third slug on Normal, two
-Licks more on Hard.
+Chosen on the New Game card (D10); demos and the high-score map are
+Normal. It is kept in a saved game and shown in the status window.
+
+- **The info plane** places some creatures only from Normal on and some
+  only on Hard (Omni CK4_ScanInfoLayer; research.md §6);
+  `Keen4Creatures.PLACED` lists each value with its lowest difficulty. In
+  v1.0 the info planes of levels 1-16 hold over 300 creature values; level
+  1 has two Bounders and two slugs on Easy, a third slug on Normal, two
+  Licks more on Hard.
+- **Easy: the stunner** item (sprite or tile, also under water) gives 8
+  charges instead of 5 (Omni CK_KeenGetItem).
+- **Easy: gravity mid** once a jump's or a pogo bounce's push is over
+  (Omni CK_KeenJumpThink, CK_KeenPogoThink): the held jump reaches 75
+  pixels instead of 67; seen in v1.0 by the tester, frame for frame the
+  same (9 frames of 5 pixels, then 4, 4, 4, 4, 3, 3, 2, 2, 2, 1, 1, four at
+  the top, down in 19 frames).
 
 ## Items and tiles (D4)
 

@@ -782,3 +782,67 @@ What D8 built differently from the plan above, and why (developer, D8):
 12. **Shared files changed**: only `tests/run_tests.gd` (two suites).
     `tools/keen4_regression.sh` (Keen 4's own) takes the intro (in both
     shapes), the help menu and a help page too.
+
+## Deviations in D10
+
+What D10 built differently from the plan above, and why (developer, D10):
+
+1. **Where the classes went.** Galaxy: `GalaxyMenuController` (`ui/`, a
+   subclass of the shared `MenuController`: its stack, its key-set and
+   press-a-key menus and its display options are reused; the cards,
+   the cursor rules and the dialogs are the original's), `GalaxyMenuView`
+   (`ui/`, draws the panel on a 320 × 200 picture), `GalaxyMenuCards`
+   (`ui/`, the cards' places, the same in Keen 4-6; the episode gives the
+   pictures) and `GalaxySaveSlots` (`data/`, six named JSON slots). Keen 4:
+   `Keen4MenuScreen` (a fifth link in the view chain, between
+   `Keen4FrontScreen` and `Keen4View`), `Keen4SavedGame` and
+   `Keen4Settings` (`game/`). The plan's "a Galaxy view for the shared
+   `MenuView`" became a controller subclass too: the shared controller
+   draws through `GameWindow`, wraps the cursor round and skips disabled
+   choices, and knows nine unnamed slots; none of that is the original's.
+2. **No shared file changed** except `tests/run_tests.gd` (two suites, plus
+   the tester's). The keys and the display settings are the shared
+   `UserSettings`/`KeyBindings` (changed in the panel, used by Keen 1-3
+   too); the score box is Keen 4's own setting in
+   `user://keen4/settings.cfg` (the original keeps it in CONFIG.CK4), so
+   `UserSettings` did not need a new field.
+3. **Saving in a level replays the level.** The original saves the game
+   state, the three planes and every object (Omni CK_SaveGame). Writing
+   out every `GalaxyObject` subclass (actions, timers, references between
+   objects, weak references) would touch every creature class. Instead a
+   save in a level keeps the level's start (inventory, progress,
+   difficulty, the random table's start) and every logic frame since (the
+   input bits and the tics, 2 bytes, plus the B+A+T cheat and god mode as
+   events); loading starts the level and plays the frames again behind
+   black. The engine is deterministic (D8: the demos play frame for frame),
+   so the level is exactly as it was: checked by saving in level 1 and
+   loading, the picture outside the PAUSED box is identical. The cost: about
+   0.25-0.9 ms per frame in this container (a minute in a level is 2100
+   frames: 0.5-2 s to load; ten minutes 5-19 s), spread over the screen's
+   frames (50 ms each) behind black so the window stays responsive. If a
+   later engine change makes old frames end differently (Keen dead or out
+   of the level), the level starts anew from the saved start.
+4. **The map save** keeps Keen's place (the original's mapPosX/Y): he
+   starts there; a thrown flag or the Foot's flight is not repeated.
+5. **Configure** has only what this engine has: Options (the score box,
+   then the shared display settings in the original's "NAME (ON)" style:
+   widescreen, 4:3 pixels, full screen, smooth motion, backgrounds,
+   graphics), Keyboard (the one-player keys on the Button Setup card, each
+   key in the original's box; the first key of each action, which is the
+   one that changes) and Reset Keys. Sound and Music come in D11 (D9's
+   sound), the joysticks and two-button firing are not offered, Paddle
+   War is D11's. "Choose Game" (back to the start screen) is ours, in
+   place of Paddle War.
+6. **Escape** in a game opens the panel (D3-D8: the start screen); Escape
+   on the main card asks "REALLY QUIT?" as the original. Any key in the
+   title loop opens the panel (D8: a new game on Normal); the
+   launcher's "open the menu" request is still ignored, the title loop
+   comes first as in the original.
+7. **F1 is not taken while the panel is open** (the original opens its
+   help from the panel); F2-F6 still work.
+8. **The panel is a picture on the title layer** (D8's `GalaxyTitleLayer`),
+   with black around it in widescreen, always with the original pixels.
+   While it is open the game and the title loop stand still; its cursor
+   blinks on the game's clock (35 tics).
+9. **The original's cards not built**: Sound, Music, Joystick, Movement
+   Setup (our keys are one list), the "CONTROL: KEYBOARD" line.
