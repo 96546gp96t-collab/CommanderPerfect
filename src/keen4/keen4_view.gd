@@ -1,11 +1,12 @@
 class_name Keen4View
-extends Keen4FrontScreen
-## The Keen 4 game screen that the start screen opens (milestones D3-D8):
-## the flow of a game on top of [Keen4FrontScreen] (docs/keen4/architecture.md,
+extends Keen4MenuScreen
+## The Keen 4 game screen that the start screen opens (milestones D3-D10):
+## the flow of a game on top of [Keen4MenuScreen] (docs/keen4/architecture.md,
 ## "The flow of Keen 4"; Omni `ck_game.c:CK_GameLoop`, facts only):
 ##   - it starts with the title loop (intro, story, demos, high scores); a
-##     key starts a new game on the world map, with the box "Keen enters
-##     the Shadowlands" (Escape: the start screen; F1: the help);
+##     key opens the control panel (new game on Easy, Normal or Hard on the
+##     world map, with the box "Keen enters the Shadowlands"; load, save,
+##     configure, end game, choose game, quit; F1: the help);
 ##     [code]-- --game=4 --level=N[/code] opens map N at once (0 the world
 ##     map, 1-17 the levels, 18 the Megarocket, 19 the high-score map);
 ##   - on the world map jump, pogo or fire on an entrance: "One moment",
@@ -23,7 +24,7 @@ extends Keen4FrontScreen
 ##     loop again; B+A+T gives the gems, 99 charges and a life.
 ##
 ## Keys: the shared ones (arrows, jump, pogo, fire); Enter the status
-## window; F1 the help; Escape back to the start screen; Shift+N / Shift+P
+## window; F1 the help; Escape the control panel; Shift+N / Shift+P
 ## the next or previous map; Shift+G god mode; Shift+F1 and F2-F6 as in
 ## Keen 1-3 (help line, widescreen, pixel shape, full screen, graphics:
 ## original or xBRZ, smooth motion).
@@ -44,14 +45,16 @@ var _cheats := Keen4Cheats.new()
 
 
 func _ready() -> void:
-	# Picking the game on the start screen asks for its menu; there is none
-	# yet (D10), so the request is taken here and not left for the next game.
+	# Picking the game on the start screen asks for its menu; Keen 4 starts
+	# with its title loop as the original (a key opens the menu), so the
+	# request is taken here and not left for the next game.
 	GameLaunch.take_menu_request()
 	_set_up_screen()
 	if not _load_data():
 		return
 	_set_up_play()
 	_set_up_front()
+	_set_up_panel()
 	var requested := _requested_map()
 	if requested < 0:
 		_start_title_loop()
@@ -86,7 +89,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	if event.is_action_pressed("ui_cancel"):
 		get_viewport().set_input_as_handled()
-		_leave()
+		_open_panel()
 	elif event.is_action_pressed("status") and (_played != null or _on_map != null):
 		get_viewport().set_input_as_handled()
 		_open_status()
@@ -96,7 +99,7 @@ func _unhandled_input(event: InputEvent) -> void:
 
 ## Shows map [param number] at once: played when Keen is in it, otherwise
 ## with Keen standing still and the view on him.
-func _show_level(number: int) -> void:
+func _show_level(number: int, random_start := -1) -> void:
 	_map_number = number
 	# A fresh copy: playing changes the map's tiles.
 	var map := _data.maps.load_map(number) if _data.maps.has_map(number) else null
@@ -106,7 +109,8 @@ func _show_level(number: int) -> void:
 	_start = Keen4Start.find(map)
 	_objects.clear()
 	_keen_item = null
-	var random_start := randi() & GalaxyWorld.RANDOM_MASK
+	if random_start < 0:
+		random_start = randi() & GalaxyWorld.RANDOM_MASK
 	if _start.is_world_map():
 		var on_map := Keen4MapSession.start(_data, map, _game_progress, random_start)
 		_game_progress.foot_flight = false
@@ -116,6 +120,7 @@ func _show_level(number: int) -> void:
 			return
 	var played := Keen4LevelSession.start(_data, map, _inventory, random_start, _difficulty, number)
 	if played != null:
+		_level_began(number, random_start)
 		_play(played, map)
 	else:
 		_look_at(map)
@@ -268,6 +273,7 @@ func _check_cheats() -> bool:
 			_show_screens(_messages.council(map, before), _start_ending)
 			return true
 		Keen4Cheats.Cheat.ITEMS:
+			_record_event(Keen4SavedGame.Event.ITEMS_CHEAT)
 			_show_screens([Keen4Cheats.items_box(_data)], _give_items)
 			return true
 	return false
@@ -278,21 +284,6 @@ func _give_items() -> void:
 	_update_score_box()
 
 
-## A new game from the title loop: on the world map with its box.
-func _new_game() -> void:
-	_in_title_loop = false
-	_after_game = false
-	_queue.clear()
-	_played = null
-	_on_map = null
-	_stop_front()
-	_title_layer.clear()
-	_inventory = Keen4Inventory.new_game()
-	_game_progress = Keen4Progress.new()
-	_difficulty = GalaxyDifficulty.DEFAULT
-	_enter(Keen4Episode.WORLD_MAP, false)
-
-
 ## F1 alone (Shift+F1 keeps Keen 1-3's help line); not over the end or
 ## the name being typed.
 func _is_help_key(event: InputEvent) -> bool:
@@ -300,6 +291,8 @@ func _is_help_key(event: InputEvent) -> bool:
 	if key == null or not key.pressed or key.echo or key.shift_pressed:
 		return false
 	if _data == null or _front in [Front.HELP, Front.ENDING, Front.NAME_ENTRY]:
+		return false
+	if _panel.is_open():
 		return false
 	return event.is_action_pressed("toggle_help")
 
@@ -325,6 +318,13 @@ func _handle_map_keys(event: InputEvent) -> bool:
 			_god_mode = not _god_mode
 			if _played != null:
 				_played.player.god_mode = _god_mode
+				_record_event(
+					(
+						Keen4SavedGame.Event.GOD_MODE_ON
+						if _god_mode
+						else Keen4SavedGame.Event.GOD_MODE_OFF
+					)
+				)
 			return true
 		_:
 			return false

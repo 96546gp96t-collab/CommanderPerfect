@@ -74,5 +74,12 @@ func start_level() -> void:
 	_next_frame_tics = LEVEL_START_TICS
 
 
+## Goes on after a level was played to absolute tic [param at] at once
+## (a loaded game): the next frame is an ordinary one.
+func resume_at(at: int) -> void:
+	reset()
+	tic = at
+
+
 func _frame_tics() -> int:
 	return _next_frame_tics if _next_frame_tics > 0 else tics_per_frame
