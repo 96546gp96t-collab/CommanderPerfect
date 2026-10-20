@@ -178,12 +178,16 @@ func test_wide_view_stays_between_the_blocks() -> void:
 	assert_equal(camera.wide_view_left(320), 32, "4:3 as the original")
 	assert_equal(camera.wide_view_left(352), 32, "wider: inside the area")
 	assert_equal(camera.wide_view_left(400), 32 - 24, "wider than the area: centred on it")
-	var clip := GalaxyViewClip.new()
-	clip.show_area(camera.area_pixels(), Rect2i(32, 32, 320, 200))
-	assert_true(not clip.is_clipping(), "4:3 is never clipped")
-	clip.show_area(camera.area_pixels(), Rect2i(8, 32, 400, 200))
-	assert_true(clip.is_clipping(), "beyond the block it is covered")
-	clip.free()
+	var cover := GalaxyViewCover.new()
+	cover.cover(camera.area_pixels(), Rect2i(32, 32, 320, 200))
+	assert_true(not cover.is_covering(), "4:3 is never covered")
+	var strips := GalaxyViewCover.strips(camera.area_pixels(), Rect2i(8, 32, 400, 200))
+	assert_equal(
+		strips,
+		[Rect2i(8, 32, 24, 200), Rect2i(384, 32, 24, 200)] as Array[Rect2i],
+		"beyond the border and the block it is covered"
+	)
+	cover.free()
 
 
 func test_sprites_by_priority() -> void:

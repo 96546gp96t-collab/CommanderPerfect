@@ -9,8 +9,8 @@ extends GameScreen
 ##   - the original graphics or xBRZ ([GalaxyScaledGraphics], F5), made
 ##     on worker threads for each level the first time;
 ##   - the camera node put where [GalaxyCamera] says, widened in
-##     widescreen, with the level clipped to the area between the scroll
-##     blocks ([GalaxyViewClip]);
+##     widescreen, with what lies beyond the area between the scroll
+##     blocks covered ([GalaxyViewCover]);
 ##   - the picture behind the level, in widescreen, when the option is on
 ##     and the level has sky ([GalaxyBackdropPictures]).
 ## The node layout is [code]level_view.tscn[/code]'s, as Keen 2 and 3 copy
@@ -42,10 +42,12 @@ var _cleared_tiles: Dictionary[int, Image] = {}
 var _cleared_color := Color.TRANSPARENT
 ## The sprites a level draws, for xBRZ.
 var _sprites_shown := PackedInt32Array()
+## The picture behind the level shown now, or null.
+var _backdrop_picture: Texture2D
 
 @onready var _galaxy_map: GalaxyLevelMap = %GalaxyMap
 @onready var _objects: GalaxyObjectLayer = %Objects
-@onready var _clip: GalaxyViewClip = %LevelArea
+@onready var _cover: GalaxyViewCover = %Cover
 
 
 func _exit_tree() -> void:
@@ -143,9 +145,10 @@ func _apply_backdrop() -> void:
 	var picture: Texture2D = null
 	if _backdrops != null and _map != null and _settings.shows_backgrounds():
 		picture = _backdrops.picture_for(_map)
+	_backdrop_picture = picture
 	_backdrop.show_picture(picture, _playable_pixels())
 	_backdrop_2.show_picture(picture, _playable_pixels())
-	_update_backdrops()
+	_frame_view()
 	var color := _wanted_sky_color() if picture != null else Color.TRANSPARENT
 	if color != _sky_color:
 		_sky_color = color
@@ -171,7 +174,7 @@ func _fit_screen() -> void:
 ## Puts the camera node where [member _galaxy_camera] has the view, widened
 ## in widescreen and kept inside the area between the scroll blocks.
 func _frame_view() -> void:
-	if _galaxy_camera == null or _clip == null:
+	if _galaxy_camera == null or _cover == null:
 		return
 	var view_size := _settings.game_size()
 	var top_left := Vector2i(
@@ -179,8 +182,18 @@ func _frame_view() -> void:
 	)
 	_camera_anchor.position = Vector2(top_left) + Vector2(view_size) / 2.0
 	_camera.reset_smoothing()
-	_clip.show_area(_galaxy_camera.area_pixels(), Rect2i(top_left, view_size))
 	_update_backdrops()
+	var view := Rect2i(top_left, view_size)
+	var picture_rect := Rect2()
+	if _backdrop_picture != null:
+		picture_rect = LevelBackdrop.picture_rect(
+			_backdrop_picture.get_size(),
+			_playable_pixels(),
+			Vector2(view.get_center()),
+			Vector2(view_size)
+		)
+		picture_rect.position += Vector2(top_left)
+	_cover.cover(_galaxy_camera.area_pixels(), view, _backdrop_picture, picture_rect)
 
 
 ## The sky colour the picture behind [member _map] would replace; the

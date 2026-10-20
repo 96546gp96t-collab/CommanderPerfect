@@ -16,7 +16,7 @@
 [ext_resource type="Script" path="res://src/game/partner_arrow.gd" id="15_arrow"]
 [ext_resource type="Script" path="res://src/game/remote_game.gd" id="16_remote"]
 [ext_resource type="Script" path="res://src/level/level_backdrop.gd" id="17_backdrop"]
-[ext_resource type="Script" path="res://src/galaxy/level/galaxy_view_clip.gd" id="18_clip"]
+[ext_resource type="Script" path="res://src/galaxy/level/galaxy_view_cover.gd" id="18_cover"]
 [ext_resource type="Script" path="res://src/galaxy/level/galaxy_level_map.gd" id="19_galaxy_map"]
 [ext_resource type="Script" path="res://src/galaxy/actors/galaxy_object_layer.gd" id="20_objects"]
 
@@ -62,17 +62,17 @@ script = ExtResource("17_backdrop")
 unique_name_in_owner = true
 script = ExtResource("2_map")
 
-[node name="LevelArea" type="Node2D" parent="World"]
-unique_name_in_owner = true
-script = ExtResource("18_clip")
-
-[node name="GalaxyMap" type="Node2D" parent="World/LevelArea"]
+[node name="GalaxyMap" type="Node2D" parent="World"]
 unique_name_in_owner = true
 script = ExtResource("19_galaxy_map")
 
-[node name="Objects" type="Node2D" parent="World/LevelArea"]
+[node name="Objects" type="Node2D" parent="World"]
 unique_name_in_owner = true
 script = ExtResource("20_objects")
+
+[node name="Cover" type="Node2D" parent="World"]
+unique_name_in_owner = true
+script = ExtResource("18_cover")
 
 [node name="FreeLook" type="Node2D" parent="World"]
 unique_name_in_owner = true
