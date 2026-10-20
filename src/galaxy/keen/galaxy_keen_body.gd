@@ -330,6 +330,17 @@ func knock_off(pusher: GalaxyObject) -> void:
 	push_out(pusher)
 
 
+## A platform [param carrier] touches him on a pole or ledge: he falls and
+## lands on it (Omni CK_KeenSpecialColFunc; Keen 4 keeps his drawing
+## priority, the bug only Keen 6 fixed).
+func fall_onto(carrier: GalaxyObject) -> void:
+	clip = Clip.NORMAL
+	_become(&"fall_1")
+	jump_timer = 0
+	velocity = Vector2i.ZERO
+	land_on(carrier)
+
+
 ## After everything moved: he moves with what he stands on, or leaves it
 ## (Omni CK_KeenRidePlatform).
 func _ride_platform() -> void:

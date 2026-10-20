@@ -46,8 +46,15 @@ var tics := GalaxyClock.NORMAL_TICS
 var tic := 0
 var state := LevelState.PLAYING
 ## How a completed level was left, when not by walking out of it: the name
-## an object gave (Keen 4: [code]&"foot"[/code], the Foot carries Keen off).
+## an object gave (Keen 4: [code]&"foot"[/code], the Foot carries Keen off;
+## [code]&"council"[/code], an elder rescued; [code]&"wetsuit"[/code]).
 var ending := &""
+## A message an object asks to show after this frame (Keen 4: Lindsey's,
+## the janitor's); the view shows it and clears it ([method ask]).
+var conversation := &""
+## Which map of the episode this is (some objects act differently in one
+## level: Keen 4's janitor, the elder under water); -1 unknown.
+var map_number := -1
 ## The fixed table of random numbers ([method random]).
 var random_table := PackedByteArray()
 var random_index := 0
@@ -80,6 +87,17 @@ func add(object: GalaxyObject) -> GalaxyObject:
 	object.world = self
 	objects.append(object)
 	return object
+
+
+## The level ends now, as [param how] says ([member ending]).
+func complete(how: StringName) -> void:
+	state = LevelState.COMPLETED
+	ending = how
+
+
+## Asks for message [param name] to be shown after this frame.
+func ask(name: StringName) -> void:
+	conversation = name
 
 
 ## Takes [param object] out at the end of the frame.

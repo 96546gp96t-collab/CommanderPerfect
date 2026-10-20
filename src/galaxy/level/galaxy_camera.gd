@@ -75,6 +75,11 @@ const CENTRE_X := 152
 const MAP_CENTRE_Y := 80
 ## The view moves at most this many units per frame (Omni).
 const MAX_STEP := 255
+## The world-map camera (Omni CK_MapCamera): the box stays between these
+## pixels from the top; its right edge counts 16 units more.
+const MAP_TOP := 80
+const MAP_BOTTOM := 112
+const MAP_RIGHT_SLACK := 16
 ## Settling his feet: an eighth of the distance a tic, at most 48 units,
 ## at least 16 (or what is left) per frame (Omni).
 const SETTLE_DIVISOR := 8
@@ -174,6 +179,24 @@ func follow(target: Target) -> void:
 	top = scroll.y + delta.y
 	if target.feet > top + FEET_BOTTOM * UNITS_PER_PIXEL:
 		delta.y += target.feet - (top + FEET_BOTTOM * UNITS_PER_PIXEL)
+	if delta != Vector2i.ZERO:
+		smooth_scroll(delta.clamp(-Vector2i(MAX_STEP, MAX_STEP), Vector2i(MAX_STEP, MAX_STEP)))
+
+
+## Moves the view after a logic frame as on the world map and, in Keen 4,
+## under water (Omni CK_MapCamera): the box [param left] … [param right],
+## [param top] … [param bottom] (units) stays between 144 and 192 pixels
+## from the left and 80 and 112 from the top; at most 255 units a frame.
+func follow_map(left: int, top: int, right: int, bottom: int) -> void:
+	var delta := Vector2i.ZERO
+	if left < scroll.x + KEEN_LEFT * UNITS_PER_PIXEL:
+		delta.x = left - (scroll.x + KEEN_LEFT * UNITS_PER_PIXEL)
+	elif right > scroll.x + KEEN_RIGHT * UNITS_PER_PIXEL:
+		delta.x = right + MAP_RIGHT_SLACK - (scroll.x + KEEN_RIGHT * UNITS_PER_PIXEL)
+	if top < scroll.y + MAP_TOP * UNITS_PER_PIXEL:
+		delta.y = top - (scroll.y + MAP_TOP * UNITS_PER_PIXEL)
+	elif bottom > scroll.y + MAP_BOTTOM * UNITS_PER_PIXEL:
+		delta.y = bottom - (scroll.y + MAP_BOTTOM * UNITS_PER_PIXEL)
 	if delta != Vector2i.ZERO:
 		smooth_scroll(delta.clamp(-Vector2i(MAX_STEP, MAX_STEP), Vector2i(MAX_STEP, MAX_STEP)))
 
