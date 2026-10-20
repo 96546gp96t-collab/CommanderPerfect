@@ -850,3 +850,27 @@ scratchpad.
   user's decision: C12 changes them for all three games).
 - Not built: the original's GAME OVER window with the name entry over the
   hall (research.md); our GAME OVER bitmap and the shared name box stay.
+
+## Shots at a wall: Keen 2 too, approved by the user 20-10
+
+After C11, Keen 3's shot learned to splash against a wall right in front of
+Keen instead of starting inside it (`Keen3Shot.fired_by_keen`). Keen 2 had
+the same bug; the user approved changing Keen 2's behaviour for it (an
+exception to "Keen 2 is never changed for Keen 3 milestones"). The rule
+lives in Keen 2's code and Keen 3 reuses it:
+
+- `Keen2Shot.put_against_wall(shot, collision, way)` sweeps a shot's box
+  over the `way` pixels from its shooter's middle to its start and, when a
+  wall is in the way, moves the shot against it. The caller splashes it
+  with SHOTHIT (Keen 2 with `play_sound_at`, Keen 3 with `play_sound`, as
+  each episode's flying shots already do).
+- Keen 2: `Keen2LevelSession._create_shot` uses `Keen2Shot.fired_by_keen`;
+  the Elite's and the Guard robot's shots (`Keen2Enemy._fire_shot`) use
+  `Keen2EnemyShot.fired_from`, which sweeps from the enemy's middle.
+- Keen 3: `Keen3Shot._stop_at_wall_behind_start` calls the same helper
+  with `Keen2Shot.FROM_KEENS_MIDDLE`; its behaviour is unchanged.
+- Keen 1 keeps the bug: `RaygunShot`, `LevelSession._create_shot` and
+  `KeenBody` are untouched and do not call the helper (a question for C12).
+
+Tests: `test_keen2_shot_wall` (Keen standing, jumping and on the pogo, both
+ways, thin and thick walls, and both enemies) next to `test_keen3_shot_wall`.

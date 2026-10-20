@@ -17,7 +17,8 @@ extends RaygunShot
 ## only looks at the tiles ahead of the shot, would let it fly on behind a
 ## thin wall. In the original a shot that starts against a wall splashes at
 ## once (Choco), so [method fired_by_keen] checks the way from Keen's middle
-## to the start and splashes at the wall when it is blocked.
+## to the start and splashes at the wall when it is blocked, the same rule
+## as Keen 2's ([method Keen2Shot.put_against_wall]).
 
 const KEEN_SHOT_SPRITE := 102
 const ENEMY_SHOT_SPRITE := 103
@@ -27,10 +28,6 @@ const SPLASH_LEFT_SPRITE := 106
 const SPEED := 121 * KeenPhysics.SUBPIXEL
 ## 20 clock ticks (Choco).
 const SPLASH_TICKS_KEEN_3 := 8
-## From Keen's middle to the back of a shot that starts in front of him:
-## half his box and the shot's own width (the speed he moves with this tick
-## is at most a few pixels, well inside the other half of his box).
-const FROM_KEENS_MIDDLE := KeenPhysics.HITBOX.size.x / 2.0 + KeenPhysics.SHOT_SIZE.x
 
 
 ## A shot from [param start] towards [param flying_direction] (1 right, -1
@@ -83,13 +80,8 @@ func sprite_index() -> int:
 ## Sweeps the shot's box from Keen's middle to where it starts; a wall on
 ## the way stops it there, splashing.
 func _stop_at_wall_behind_start(session: LevelSession) -> void:
-	var way := direction * FROM_KEENS_MIDDLE
-	var from_middle := hitbox()
-	from_middle.position.x -= way
-	var moved := session.collision.sweep_x(from_middle, way)
-	if moved == way:
+	if not Keen2Shot.put_against_wall(self, session.collision, Keen2Shot.FROM_KEENS_MIDDLE):
 		return
-	position.x += moved - way
 	session.play_sound(Sound.Id.SHOT_HIT)
 	splash()
 

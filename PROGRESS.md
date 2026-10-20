@@ -197,6 +197,19 @@ Bug van de gebruiker, op dezelfde branch.
   code: 120 gevallen); 68 suites, alle slagen, gdlint schoon. Keen 1- en
   Keen 2-controle tegen `cd8be97`: alles gelijk; geen gedeelde code
   veranderd (alleen de testlijst). Apps opnieuw gebouwd.
+- [x] **Keen 2 nu ook opgelost** (gevraagd door de gebruiker, 20-10): de
+  regel staat in Keen 2-code, `Keen2Shot.put_against_wall` (veegt het schot
+  van het midden van de schutter naar zijn begin), en Keen 3 gebruikt
+  dezelfde helper (gedrag gelijk). Keen 2: Keens schot via
+  `Keen2Shot.fired_by_keen` (`Keen2LevelSession._create_shot`); ook de
+  schoten van de Elite en de Guard robot hadden de bug (vlak bij een muur
+  vloog het schot door een dunne muur) en gaan nu via
+  `Keen2EnemyShot.fired_from`. Nieuwe suite `test_keen2_shot_wall` (faalt
+  op de oude code: 172 gevallen); 69 suites, alle slagen, gdlint schoon.
+  Keen 1- en Keen 2-controle tegen `fea79ad`: alles gelijk; geen gedeelde
+  code veranderd. Apps opnieuw gebouwd.
+- [ ] **Keen 1 heeft de bug nog** (`RaygunShot`, niet gevraagd): open vraag
+  voor C12.
 
 ## Mijlpaal C10: wat er nu is
 
@@ -1876,8 +1889,9 @@ Keen 3:
    C11 aan Keen 3 is gezien om in Keen 1 en 2 na te kijken
    (`docs/keen3/choco-keen1-keen2.md`). Eventueel ook het GAME OVER-venster
    met naaminvoer (alle drie). **Vraag aan de gebruiker:** het schot dat
-   vlak bij een muur door die muur gaat (in Keen 3 opgelost na C11) zit
-   ook in Keen 1 en 2; daar ook oplossen (in C12)?
+   vlak bij een muur door die muur gaat (in Keen 3 en Keen 2 opgelost na
+   C11) zit nog in Keen 1; daar ook oplossen (in C12, met
+   `Keen2Shot.put_against_wall`)?
 11. Later: Eigen achtergrondplaatjes voor Keen 1 en Keen 2, later in een
    eigen branch (wens van de gebruiker, 19-10-2026).
 

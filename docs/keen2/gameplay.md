@@ -180,6 +180,13 @@ grunts, youths and Scrubs, and an Elite's shot hurts grunts, youths and
 Scrubs. An Elite stops a Guard robot's shot unharmed, the Guard robot stops
 an Elite's shot unharmed, and the platform swallows every shot.
 
+- **A shot at a wall close by** (fixed after C11 on the user's request, as
+  in Keen 3): a shot starts just in front of its shooter, so close to a wall
+  it would start inside the wall and fly on behind a thin one. Now it
+  splashes against the wall's near side at once, with SHOTHIT
+  (`Keen2Shot.fired_by_keen`; the Elite's and Guard robot's shots through
+  `Keen2EnemyShot.fired_from`). Keen 1 still has the old behaviour.
+
 ## Switches
 
 Keen uses a switch with the **pogo button** (`Keen2Switches`, through
