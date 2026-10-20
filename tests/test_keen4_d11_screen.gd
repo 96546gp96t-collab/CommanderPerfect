@@ -164,6 +164,20 @@ func test_f1_does_nothing_over_a_question_or_paddle_war() -> void:
 	assert_true(menus.paddle_war() != null, "still playing")
 
 
+func test_f1_only_answers_a_waiting_box_in_a_game() -> void:
+	# As after loading a game: "PAUSED" waits for a key. The original reads
+	# F1 only while Keen plays (D13: the help opened under the box).
+	_create_view()
+	_start_game_on(WORLD_MAP)
+	_view._queue.clear()
+	_view._queue.add_box(_view._boxes.paused())
+	_key(KEY_F1)
+	assert_true(_view._front != Keen4FrontScreen.Front.HELP, "no help under the box")
+	assert_true(_view._queue.is_empty(), "F1 was the box's key")
+	_key(KEY_F1)
+	assert_equal(_view._front, Keen4FrontScreen.Front.HELP, "then F1 opens the help")
+
+
 func test_the_music_stops_in_the_panel_and_starts_again_from_its_beginning() -> void:
 	for number in [WORLD_MAP, FIRST_LEVEL]:
 		_create_view()
