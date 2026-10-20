@@ -50,6 +50,8 @@ var _left_word := Sprite2D.new()
 var _credit := Sprite2D.new()
 var _story := ColorRect.new()
 var _story_material := ShaderMaterial.new()
+## The credit whose picture [member _credit] holds.
+var _credit_shown := -1
 
 
 func _init() -> void:
@@ -120,7 +122,9 @@ func show_scroll(intro: GalaxyIntroCredits) -> void:
 	_left_word.visible = true
 	_right_word.visible = true
 	if intro.credit >= 0:
-		_credit.texture = ImageTexture.create_from_image(intro.credits[intro.credit])
+		if intro.credit != _credit_shown:
+			_credit_shown = intro.credit
+			_credit.texture = ImageTexture.create_from_image(intro.credits[intro.credit])
 		_credit.position = Vector2(intro.credit_corner())
 		_credit.visible = true
 

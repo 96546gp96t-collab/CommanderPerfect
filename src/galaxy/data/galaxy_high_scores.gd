@@ -123,19 +123,21 @@ static func defaults_at(image: PackedByteArray, start: int, count: int) -> Array
 static func _are_defaults(image: PackedByteArray, start: int, count: int) -> bool:
 	if start < 0 or start + count * RECORD_SIZE > image.size():
 		return false
-	var named := 0
+	# The numbers first: they rule out most places at once.
 	for index in count:
 		var at := start + index * RECORD_SIZE
-		var length := _name_length(image, at)
-		if length < 0:
-			return false
-		if length > 0:
-			named += 1
 		var score := image.decode_u32(at + SCORE_AT)
 		if score <= 0 or score > MAX_DEFAULT_SCORE:
 			return false
 		if image.decode_u16(at + COUNT_AT) > MAX_DEFAULT_COUNT:
 			return false
+	var named := 0
+	for index in count:
+		var length := _name_length(image, start + index * RECORD_SIZE)
+		if length < 0:
+			return false
+		if length > 0:
+			named += 1
 	return named > 0
 
 

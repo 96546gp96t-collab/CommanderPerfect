@@ -24,6 +24,7 @@ enum CreditStage { LOADING, RISING, WAITING, LEAVING, GONE }
 
 const SCREEN_SIZE := Vector2i(320, 200)
 const SCREEN_MIDDLE := 160
+const BYTE_PIXELS := 8
 ## The second word starts this far right of the buffer's left edge.
 const RIGHT_WORD_MARGIN := 200
 ## The first word's right edge ends here.
@@ -139,7 +140,10 @@ func credit_corner() -> Vector2i:
 	if credit < 0 or credit >= credits.size():
 		return Vector2i(0, SCREEN_SIZE.y)
 	var size := credits[credit].get_size()
-	return Vector2i(SCREEN_MIDDLE - size.x / 2, credit_y - size.y / 2)
+	# Half its width in whole bytes (seen in the original, D8: the 72-pixel
+	# credit is 4 pixels right of the middle Omnispeak gives).
+	var half := size.x / BYTE_PIXELS / 2 * BYTE_PIXELS
+	return Vector2i(SCREEN_MIDDLE - half, credit_y - size.y / 2)
 
 
 ## The zoom's picture [param tics] tics into it (palette: the joined
