@@ -297,7 +297,7 @@ All found by **shape**, never by their words (`GalaxyExecutable`,
 | Version | the sign-on screen | A text-mode screen: each character followed by its colour byte, so "(v1.0)" has its letters two bytes apart. The search reads "(v" + digits and a dot + ")" two (or one) bytes apart. Without it: the size of the EXE (1.0: 102,355; 1.4: 263,488) |
 | Random numbers | 0x1DA32 | 256 bytes starting 0, 8, 109, 220, 222, 241, 149 (Omni `US_RndT`) |
 | Level names | 0x1DD40 | 19 zero-terminated records (maps 0-18), each on a 16-byte boundary (zeros in between), then 19 "Keen enters …" texts. The test: every entry text, newlines read as spaces, ends with its level's name (1.0: also map 3 "the The …"). Names may hold a newline (maps 13 and 18) |
-| The janitor | 0x1E280 | Right after the entry texts: 4 records with 4, 3, 2 and 2 lines (his three boxes and Keen's reply; the fifth box of research §9 is not a separate text here) |
+| The janitor | 0x1E280 | Right after the entry texts: 4 records with 4, 3, 2 and 2 lines: his first two boxes, Keen's reply, his last box (D6: the fifth box has no text, only Keen's picture with the cross face; seen in the original) |
 | Council, Lindsey, wetsuit | 0x2F5BC | 17 records, one zero apart, with 4, 4, 1, 3, 1, 1, 2, 2, 2, 1, 3, 1, 3, 2, 4, 5, 5 lines: Lindsey's two hints, Keen's two thanks, "Princess Lindsey says:", Keen without and with the wetsuit, Keen's eight answers to the council members, the member's message under water and on land. The first record follows code bytes, not a zero |
 
 A record is a run of printable characters and newlines ending in a zero.
@@ -305,3 +305,23 @@ The shapes are Keen 4's numbers (`Keen4Episode`); the Galaxy code knows
 none of them. Not searched yet (for later milestones): the status window's
 words, the menus' texts, the "Try Again" box, the high-score texts,
 "I can't swim!" is in the council block.
+
+D6, the order in the council block as the boxes use it (seen in the
+original, the same order as Omnispeak's strings): 0 the hint of level 7
+(the wetsuit), 1 the hint of level 5 (the Pyramid of the Forbidden), 2 and
+3 Keen's thanks for them, 4 "Princess Lindsey says:", 5 "I can't swim!"
+(the world map, D7), 6 Keen with the wetsuit, 7-14 Keen's answers to the
+first … eighth council member, 15 the member under water (level 17), 16
+the member on land.
+
+## The pictures of the message boxes (D6)
+
+The last eleven pictures of the picture range are the same in 1.0 and
+1.4 (Omni `GFXCHUNK.CK4`: PIC_ORACLE … PIC_COUNTDOWN0, 110-120 in 1.4;
+1.0: pictures 96-106 of 107, looked at in the scratchpad): counted from
+the end, 11 the council elder (48 × 64), 10 Keen talking (48 × 64), 9 Keen
+with his thumb up (48 × 64), 8 Keen's cross face (24 × 24), 7 Lindsey
+(48 × 64), 6-1 the count-down of the "Keen enters …" box (one 48 × 64 and
+five 24 × 24; D7). `Keen4Messages` takes them by that place, never by
+chunk number. The window's frame is the masked 8×8 tiles 0-8 (corners,
+edges); the text is font 0, the menu font.

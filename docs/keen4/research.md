@@ -467,10 +467,13 @@ per object (as numbers, marked `(Omni)`, if the user allows that).
   the bubbly version), Keen's answer (8 different ones), the level is
   done. The one in level 14 is the **janitor**: a five-box conversation;
   he does not count. (D2: the EXE holds four records for it, three of his
-  and Keen's reply; the fifth box is probably made of one of them or of a
-  shared text: check in D6.)
+  and Keen's reply. D6, seen in the original: the fifth box has no text,
+  only Keen's talking picture with his cross face over it; then the
+  janitor is gone and the level goes on.)
 - **Lindsey** (levels 5 and 7): hints (the wetsuit in Miragia; the way to
-  the Pyramid of the Forbidden lies under the Pyramid of the Moons).
+  the Pyramid of the Forbidden lies under the Pyramid of the Moons). D6,
+  seen in the original: level 7 gives the wetsuit hint (Omni
+  CK4_LindseyMessage1Level 7), level 5 the pyramid.
 - **The end**: after the 8th rescue the end text pages (`^P` pages with a
   blinking arrow), then the high scores.
 - **Try again**: after a death a box "You didn't make it past <level> /
@@ -558,7 +561,14 @@ branches; the cheats and warp in §9 help):
 8. **The original's bugs** (1-tic ledge grabbing at high speed, the
    platform draw order fixed only in Keen 6, the Bounder pole/door glitch):
    at 2 tics per frame most do not show; reproduce what shows.
-9. **The speeds and timers of every enemy**, as far as Omnispeak's numbers
+9. **D6: what was not measured.** The falling platform (Keen did not land
+   on the one put next to him in level 2 in three tries), the switch's
+   effect on a platform, a horizontal platform's turn, the Dopefish (it
+   was not reached in level 17 within the time; a scratch map with it
+   next to Keen is the way), the sprites under water and the mines: all
+   Omnispeak's numbers. Also open: after the wetsuit's first box the
+   first key press seemed not to be taken (one try).
+10. **The speeds and timers of every enemy**, as far as Omnispeak's numbers
    are not trusted; looking at an enemy while Keen stands still is enough
    for most. D5: the Bounder, Mad Mushroom, bird, Arachnut, Skypest,
    Lick, Berkeloid and Mimrock watched (see "Watched in D5"); all as
@@ -714,6 +724,26 @@ odd tics. Any frame of 3 tics (js-dos jitter, a slow machine) flips the
 parity for the rest of the level, so a rise of the same speed can differ
 by 3 px in the original. Ours keeps odd tics while the clock runs evenly.
 
+### Watched in D6 (js-dos, the user's v1.0)
+
+Headless js-dos as in D5, Normal, god mode, warp (F10+W: the W held when
+the prompt opens is typed into it; a Backspace clears it). A scratch
+`GAMEMAPS.CK4` (scratchpad only) put a council member next to Keen in
+levels 1 and 14, Lindsey in 5 and 7, the wetsuit in 9, a falling platform
+in 2.
+
+| What | Omnispeak | The original (v1.0) | Ours (D6) |
+|---|---|---|---|
+| Message boxes (council, Keen's answer and thumb up, janitor ×5, Lindsey ×3, wetsuit) | US_CenterWindow(26, 8), picture left or right, text 6 / 12 down | every box compared pixel by pixel with ours: **0 pixels differ** (frame, white inside, centred text in the menu font, the pictures) | `GalaxyWindow`, `Keen4Messages` |
+| The janitor's fifth box | Keen talking + cross face, no text | the same; then he is gone, the level goes on | the same |
+| Lindsey's hint by level | level 7: the wetsuit | level 7: "There's gear to help you swim …" | the same |
+| After the third council box | — | a key: back on the world map, "Keen enters …" | the next level (D7: the map) |
+| Platform (level 8, info 29) | 12 units a tic | 170 px in 3.25 s: 52.3 px a second (12 × 70 / 16 = 52.5) | 12 |
+| Swimming, nothing held | every 8th tic towards (0, +4); 0 → +1 → 0 sideways | sinks 19.4-19.8 px a second (4 and 5 by turns: 4.5 a tic = 19.7); drifts right 2 px a second | the same rules |
+| Swimming, right held | stick +2 every 8th tic | 50 px a second after a second (12-13 a tic: 55) | the same rules |
+| Swimming, kick with nothing held | the kick only sets the held directions | no change of speed | the same |
+| Level 17's view | CK_MapCamera | moves once Keen's box leaves 80-112 px from the top | `GalaxyCamera.follow_map` |
+
 ## Lessons for the new-episode guide
 
 
@@ -750,3 +780,8 @@ file is not changed now because another session is working on it.)
   `--data-dir-keen4=`, puts it in our view for screenshots.
 - D5: in the original the tic parity of the frames drifts (a 3-tic frame
   flips it); compare speeds over several frames, not single steps.
+- D6: a message box can be checked to the pixel by drawing ours on a
+  transparent 320 × 200 picture and laying it over the original's frame
+  (scratchpad script): no shift, no differing pixel means done.
+- D6: the debug warp types the W still held into its prompt; press
+  Backspace before the level number.

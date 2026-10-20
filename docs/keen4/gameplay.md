@@ -1,8 +1,9 @@
 # Keen 4: the rules of a level in our engine
 
 What a Keen 4 level does in CommanderPerfect so far, and where its numbers
-come from. Written in milestone D3 (drawing a level), D4 (Keen moves) and D5 (the
-creatures); later milestones add to it (D6 platforms, …). The facts and their sources are in
+come from. Written in milestone D3 (drawing a level), D4 (Keen moves), D5 (the
+creatures) and D6 (platforms, the council, under water); later milestones
+add to it. The facts and their sources are in
 [research.md](research.md), the code layout in
 [architecture.md](architecture.md), the files in
 [file-formats.md](file-formats.md). Numbers from Omnispeak are marked
@@ -17,9 +18,11 @@ tile. Times are **tics** of 1/70 s.
 |---|---|
 | Keen 4 picked on the start screen | Level 1 (Border Village), played; there is no title or menu yet (D8, D10) |
 | `-- --game=4` | Level 1 |
-| `-- --game=4 --level=N` | Map N: 1-16, 18 (the Megarocket) and 19 (the high-score map) are played; 0 (the world map) and 17 (the Well of Wishes) are only shown, with the D3 look-around (D7, D6); another number: a message |
-| Keen walks out of the level (left or right) | The next level (after 16, and after 18 and 19, level 1 again: 17 is swum, D6); the world map comes in D7 |
+| `-- --game=4 --level=N` | Map N: 1-19 are played (17, the Well of Wishes, swum: D6); 0 (the world map) is only shown, with the D3 look-around (D7); another number: a message |
+| Keen walks out of the level (left or right) | The next level (after 16 the Well of Wishes, after 17, 18 and 19 level 1 again); the world map comes in D7 |
 | The Foot carries Keen off (D5) | The level is done (the flight over the world map is D7's) |
+| Keen rescues a council member, or takes the wetsuit (D6) | The message boxes, each until a key is pressed; then the next level. After the eighth rescue the status line says so (the end is D8's) |
+| Lindsey, the janitor (D6) | Their boxes; the level goes on |
 | Keen dies | One life less; the level starts again (fresh, without the gems); with no lives left (fewer than 0): "Game over" and the start screen |
 | Shift+N / Shift+P | The next or previous map (0-19, round) |
 | Arrows / WASD, jump, pogo, fire | Keen (the shared keys: Ctrl or Z jump, Alt or X pogo, Space or C fire); on maps 0 and 17 the arrows look around |
@@ -52,7 +55,7 @@ original's order). Speeds are units per tic.
 | Poles (misc 1) | Up (the pole at his head + 96) or down (the pole under his feet) grabs it: he goes to its column and is not clipped. Climbing 8 a tic, sliding 24 (both seen: the view follows him 1 and 3 px a frame); at the top he stops with his head just over it; at a floor he stands looking down; at the pole's end without a floor he falls. Jump: −20 for 10 tics, sideways −8 / 0 / 8 by left / none / right; no grabbing for 19 tics. Left/right at the bottom (a floor under him) steps off |
 | Ledges | Falling with left or right held, when the top of his box passes 64 units under a tile's top where that tile is a wall (side and top) and the tile above it is free: he hangs (12 tics, then waits). Up or towards the wall: four pulling steps of 10 tics (128 units each) and he stands on top, drawn in front of the ledge's tile unless that one is in front anyway; down or away: he falls |
 | Doors (misc 2) | Up at a door: he walks to its spot (96 into the door tile, a tile less for a two-wide door) 16 a tic, then 5 × 9 tics walking in (−64 each); then he stands at the info plane's target under the door (x high byte, y low byte), one tile above it; the view is put on him again; 110 tics nothing hurts him. Seen in level 1: the door at x 77-78 leads to the room with four sodas, the one at 66-67 to the room with the pole, as ours |
-| Switches (misc 5, 6, 15) | Up at a switch: he walks to its spot (−64 from the tile), presses it (8 + 8 tics): the switch tile moves on by its animation offset; a bridge switch moves the bridge's two rows (the second from one tile further left) on by their offsets; another switch turns the platform turn point at its target on or off (info XOR 0x1F; platforms come in D6) |
+| Switches (misc 5, 6, 15) | Up at a switch: he walks to its spot (−64 from the tile), presses it (8 + 8 tics): the switch tile moves on by its animation offset; a bridge switch moves the bridge's two rows (the second from one tile further left) on by their offsets; another switch turns the platform turn point at its target on or off (info XOR 0x1F; the platforms follow it since D6) |
 | Dying | A deadly tile (misc 3) under his box, a deadly floor (top 8-15), or falling below the level (also in god mode): one of two death sprites at random, −40 up and 16 sideways under gravity +3, nothing clips him, the view stands still; once he has left the view the level is lost. Nothing kills him for 30 tics after a death started and 110 after a door |
 
 ### The frames and the odd tics (seen in the original, D4)
@@ -100,6 +103,71 @@ CK_KeenRidePlatform); he leaves it by jumping, walking off its sides or
 bumping his head. While he rides a living Bounder, he steers it: standing
 more than 64 units left of its box it goes left, right of it right,
 otherwise straight up.
+
+## Platforms and switches (D6)
+
+| What (info) | How (Omni unless marked) |
+|---|---|
+| Platform (27-30: up, right, down, left) | At its tile's corner, always awake, behind everything (priority 0). 12 units a tic (seen: 52 px a second). When its leading edge is about to enter a tile whose info value is a **turn point** (31), it stops on that tile's edge and turns. Going up, a second turn point two tiles below the one ahead holds it there; going down, one two tiles above (it stands still while both are there) |
+| The jets (Keen 4) | Going right a side jet at its left; going left one at its right, in front of the platform; going up two jets under it; going down the same two every other 4 tics. Their two pictures change every 4 tics |
+| Riding | Keen landing on a platform (walking, jumping, falling, on the pogo) rides it: he moves with it, standing 16 units above its box, his x keeping its lowest bits (D5's riding). A platform that touches him on a pole or ledge makes him fall onto it |
+| Falling platform (32) | Floats until Keen stands on it; then sinks 16 a tic; half a tile down it falls under gravity high; its bottom stops on the edge of a turn point below; without Keen it rises 32 a tic to its place and floats; Keen landing on it while it rises makes it fall again. Not clipped by tiles: without a turn point below it falls out of the level |
+| Platform switch (misc 5) | Up at it: the switch flips and the turn point at its target (info under the switch: x high byte, y low byte) is turned on or off (info XOR 31), so a platform stops, turns or goes on at once (D4's switch) |
+| Bridge switch (misc 15) | The bridge's two rows at its target (the second from a tile further left) move on by their animation offset: the bridge extends or retracts (D4) |
+| Mine (69-72, level 17) | Moves like a platform; touching Keen it explodes (two pictures of 30 tics) and kills him; he cannot ride it |
+
+## The council, Lindsey and the wetsuit (D6)
+
+| Who (info) | What (Omni unless marked) |
+|---|---|
+| Council member (4) | 369 units above his tile, a random facing; shuffles 64 every 10 tics, turning at walls and ledges; at each step he stops to think with a chance of (tics × 8) in 256 (120 tics, then a step of 128). Keen touching him while standing on something (not on a pole, a ledge, in the air) rescues him: the level is done and the boxes follow |
+| The janitor (4 in level 14) | Touched like a member: five boxes, then he is gone; he does not count, the level goes on (seen) |
+| Princess Lindsey (6) | A tile above her tile, bobbing (1 on odd tics, at most 8 a tic, turning 32 units from her place), four pictures of 20 tics. Keen touching her: her boxes, then she is gone (seen) |
+| The wetsuit (35) | A tile above its tile. Keen touching it while standing: his boxes, Keen has the wetsuit (for the world map, D7), the level is done |
+
+## Message windows (D6)
+
+Every box is the original's window (`GalaxyWindow`; seen in the
+original: the same pixels): 26 × 8 cells of 8 pixels in the middle of the
+320 × 200 screen (inside 56, 64 to 264, 128), white, framed by the masked
+8×8 tiles 0-8; the text in the menu font, black, each line centred. The
+one who speaks first has his picture at the window's left edge and his
+text 6 pixels down beside it; Keen's picture is at the right edge, his
+text 12 pixels down. The game stands still while a box shows; every new
+key or button press shows the next (F1-F6 still change the picture).
+
+| Box | Screens |
+|---|---|
+| Council member | The elder's thanks (in level 17 the bubbly version); Keen's answer (eight different ones, by how many were rescued before); the same box with Keen's thumb up |
+| The janitor | His first two texts; Keen's reply; his last text; Keen alone with his cross face, no text |
+| Lindsey | "Princess Lindsey says:" and her hint (level 7: the wetsuit in Miragia; level 5: the way to the Pyramid of the Forbidden); Keen's thanks; his thumb up |
+| The wetsuit | Keen's words; his thumb up |
+
+The texts are the player's own, read from the program; the pictures are
+the last ones of the picture range (file-formats.md). In widescreen the
+window is in the middle of the wide picture.
+
+## The Well of Wishes (D6)
+
+Level 17 is swum (`Keen4SwimmingKeen`, info 42 at the tile's corner,
+facing right, priority 1):
+
+| What | How (Omni unless marked) |
+|---|---|
+| Moving | Every tic by his speed; every 8th tic the speed relaxes: sideways towards 0 (3 above 12 either way, else 1), up and down towards 4 (3 above 12, 1 above 4, 1 from below 4, 3 below −12); the stick adds 2 the way it is held. Nothing held: he sinks 4 and 5 by turns (seen: 20 px a second) and drifts 2 px a second right (seen); held: about 12 a tic (seen: 50 px a second after a second) |
+| Kick | Jump: 18 in each direction held, and his other picture (50 tics each otherwise); with nothing held no change (seen) |
+| Clip | A simple box of 640 × 384 units; walls stop him sideways, floors and ceilings up and down |
+| Bubbles | One every 60 tics from his head; they rise 24 a tic, wobble, and are gone at the top or off the screen |
+| Taking | Items as on land; touching the council member rescues him (the bubbly thanks) |
+| Dying | A mine, a sprite or its shot: he flies off in his suit as on land. The Dopefish eats him (not in god mode): he is held in its mouth, swallowed, and 180 tics later the level is lost |
+| The view | As on the world map: his box stays between 144 and 192 pixels from the left and 80 and 112 from the top, at most 255 units a frame (seen: the view starts to follow when he sinks below 112) |
+
+| Creature (info) | What it does (Omni) |
+|---|---|
+| Dopefish (15; 87 from Normal, 88 on Hard) | Three tiles above its tile, priority 2, a box of 1408 × 1024; swims after Keen (1 on odd tics, at most 10 a tic); a wall turns it. Touching a school fish or Keen it eats: swims 32 a tic until its mouth is at the prey (32 beyond its box, a tile above), swallows, rests 60, burps a bubble after 60 more, rests 60, swims back to where it began and on |
+| School fish (16) | Swims after Keen like the Dopefish, a box of 256 × 128; harmless |
+| Sprite (17; 23 from Normal, 24 on Hard) | Bobs around its place (1 on odd tics, at most 8, turning 32 away); Keen level with it: it faces him, aims 40 tics, and if he is still level shoots (64 a tic sideways, gone at a wall), then rests 30. Touching it or the shot kills |
+| Mine (69-72) | See "Platforms and switches" |
 
 ## The stun (D5)
 

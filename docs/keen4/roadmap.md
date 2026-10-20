@@ -336,8 +336,9 @@ start zonder rekenen).
 | D3 Level tekenen | 20-10-2026 | Klaar; eerste beeld van levels 1, 4, 11, 14, 17 en de kaart pixel voor pixel gelijk aan het origineel; afwijkingen in architecture.md, "Deviations in D3"; de regels in gameplay.md |
 | D4 Keen beweegt | 20-10-2026 | Klaar; sprong (67 px), pogo (105 / 41 px), lopen, helling, paal en deur nagemeten in js-dos; afwijkingen in architecture.md, "Deviations in D4"; de regels in gameplay.md |
 | D5 Vijanden | 20-10-2026 | Klaar; alle landwezens met eigen actietabel, verdoving, moeilijkheidsgraad; Bounder, paddenstoel, Arachnut, vogel (ei op Normal), Skypest, Lick, Berkeloid en Mimrock bekeken in js-dos; afwijkingen in architecture.md, "Deviations in D5" |
+| D6 Mechaniek | 20-10-2026 | Klaar; platforms, keerpunten, vallend platform, schakelaars en bruggen, de raad (en de conciërge), Lindsey, het wetsuit, level 17 onder water; alle berichtvakken pixel voor pixel gelijk aan het origineel, platformsnelheid en zwemmen gemeten in js-dos; afwijkingen in architecture.md, "Deviations in D6" |
 
-Volgende stap: D6, mechaniek (`milestone-d6-mechaniek`): platforms (Keen
-rijdt al mee: `GalaxyKeenBody.platform`, D5), schakelaars, de raad,
-Lindsey, het wetsuit en level 17 onder water; de wezens onder water erven
-van `GalaxyCreature`.
+Volgende stap: D7, de wereldkaart (`milestone-d7-kaart`): `Keen4Progress`
+(geredde raadsleden, wetsuit, gedane levels) bestaat al sinds D6, net als
+de kaartcamera (`GalaxyCamera.follow_map`) en de berichtvakken
+(`GalaxyWindow`, voor "I can't swim!" en "Keen enters …").

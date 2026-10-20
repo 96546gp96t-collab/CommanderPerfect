@@ -85,7 +85,7 @@ bestanden in [docs/keen4/file-formats.md](docs/keen4/file-formats.md).
 | D3 | Een level tekenen | ✅ Klaar, wacht op controle door de architect (branch `milestone-d3-level`) |
 | D4 | Keen beweegt (klok, acties, hellingen, palen, randen) | ✅ Klaar, wacht op controle door de architect (branch `milestone-d4-keen`) |
 | D5 | Vijanden | ✅ Klaar, wacht op controle door de architect (branch `milestone-d5-vijanden`) |
-| D6 | Platforms, schakelaars, de raad, onder water | ⬜ |
+| D6 | Platforms, schakelaars, de raad, onder water | ✅ Klaar, wacht op controle door de architect (branch `milestone-d6-mechaniek`) |
 | D7 | De wereldkaart | ⬜ |
 | D8 | Het einde, de titel en de demo's | ⬜ |
 | D9 | Geluid en muziek (eigen OPL2-synthesizer) | ⬜ |
@@ -93,6 +93,90 @@ bestanden in [docs/keen4/file-formats.md](docs/keen4/file-formats.md).
 | D11 | Mooier maken en Paddle War | ⬜ |
 | D12 | Co-op | ⬜ |
 | D13 | Naast het origineel | ⬜ |
+
+## Mijlpaal D6: wat er nu is
+
+Platforms varen heen en weer en Keen rijdt mee, schakelaars zetten
+keerpunten aan en uit, bruggen schuiven uit, de raadsleden worden gered
+met de berichtvakken van het origineel, Lindsey geeft haar hint, het
+wetsuit maakt het level af, en in level 17 (de Well of Wishes) zwemt Keen
+tussen de Dopefish, scholen vissen, sprites en mijnen. De regels staan in
+`docs/keen4/gameplay.md` ("Platforms and switches", "The council,
+Lindsey and the wetsuit", "Message windows", "The Well of Wishes"), de
+afwijkingen van het plan in `docs/keen4/architecture.md` ("Deviations in
+D6"), wat het origineel liet zien in `docs/keen4/research.md` ("Watched
+in D6").
+
+- [x] **Platforms** (`GalaxyPlatform`, Galaxy): vier richtingen, 12 per
+  tic (gemeten: 52 px per seconde), keren bij een keerpunt (info 31); een
+  verticaal platform tussen twee keerpunten die twee tiles uit elkaar
+  liggen blijft staan. In Keen 4 met de straalmotortjes eronder of
+  erachter (`Keen4Platform`). Keen rijdt mee (de basis van D5); een
+  platform dat hem van een paal haalt, zet hem erop.
+- [x] **Het vallende platform** (`GalaxyFallingPlatform`): zakt onder
+  Keen, valt na een halve tile, stopt boven een keerpunt, stijgt zonder
+  Keen terug naar zijn plek.
+- [x] **Schakelaars en bruggen**: de schakelaar van D4 zet nu echt een
+  keerpunt aan of uit (de platforms reageren meteen); de brug schuift uit
+  en in.
+- [x] **De raad** (`Keen4Council`): schuifelen en nadenken; staand
+  aanraken = gered, level klaar; het bedankje van de oudere, Keens
+  antwoord (acht verschillende, op volgorde van het aantal geredde) en
+  zijn duim omhoog; in level 17 de "bubbelende" tekst. **De conciërge** in
+  level 14: vijf vakken (vier teksten en een vak met alleen Keens boze
+  gezicht, zo gezien in het origineel), daarna is hij weg en gaat het
+  level door; hij telt niet mee. **Lindsey** (`Keen4Lindsey`): drijft,
+  geeft haar hint (level 7: het wetsuit, level 5: de piramide) en
+  verdwijnt. **Het wetsuit** (`Keen4Wetsuit`): bericht, level klaar, Keen
+  heeft het wetsuit.
+- [x] **Berichtvakken in de stijl van het origineel** (`GalaxyWindow`,
+  `Keen4Messages`): het venster van 26 × 8 vakjes met de randtiles, het
+  menulettertype en de plaatjes (de laatste van het plaatjesbereik, in
+  1.0 en 1.4 gelijk). Alle vakken (raad, conciërge, Lindsey, wetsuit)
+  zijn **pixel voor pixel gelijk** aan het origineel. Het spel staat stil
+  tot een toets; F1-F6 blijven werken; in breedbeeld midden in beeld.
+- [x] **Voortgang** (`Keen4Progress`): het aantal geredde raadsleden, het
+  wetsuit en de gedane levels, klaar voor de kaart (D7) en het einde
+  (D8). Gekozen voor nu: na de achtste redding een melding "All eight
+  council members are rescued" en gewoon het volgende level.
+- [x] **Level 17 onder water** (`Keen4SwimmingKeen`): eigen acties,
+  eenvoudige botsing, elke 8e tic remmen naar langzaam zinken (gemeten:
+  20 px per seconde, zoals Omnispeak), de stick, de trap (18), belletjes,
+  geen verdover; de kaartcamera. De **Dopefish** eet Keen (en scholen
+  vissen) en boert; **scholen vissen** volgen Keen; **sprites** dobberen,
+  mikken en schieten; **mijnen** varen als platforms en ontploffen.
+- [x] **Volgorde zonder kaart**: na level 16 komt 17, na 17 weer 1; een
+  redding of het wetsuit opent het volgende level.
+- [x] **Tests**: nieuwe suites `test_keen4_platforms`, `test_keen4_people`,
+  `test_keen4_water` (mini-levels) en `test_keen4_d6_play` (echte data:
+  elke info-waarde in level 1-17 maakt iets, alleen de kaartwaarden 3 en
+  33 blijven voor D7; level 17 wordt gezwommen; de teksten per
+  reddingsnummer en per level; de vensterplaats; de view compileert).
+  86 suites, 942 tests (was 82 en 901), alle slagen, geen SCRIPT ERROR,
+  gdlint schoon.
+- [x] **Keen 1-3-controle:** `keen1_regression.sh` en `keen2_regression.sh`
+  tegen D5 (lege gebruikersmap): alles gelijk. `git diff
+  milestone-d5-vijanden` op `src/keen2`, `src/keen3`, hun tests en
+  fixtures, `src/actors`, `src/map` en `src/game/level_view.gd` is leeg.
+  Gedeeld bestand veranderd: alleen de testlijst (`tests/run_tests.gd`).
+  De Keen 4-regressie is gelijk aan D5 (in het eerste beeld van level 1
+  en 11 staat niets van D6).
+- [x] **Bekeken** (scratchpad `d6shots/`): Keen op een platform, het
+  vallende platform, schakelaar en brug voor en na, de vakken van de raad,
+  de conciërge, Lindsey en het wetsuit, level 17 met de Dopefish, vissen
+  en mijnen, in 4:3 en breedbeeld.
+- **Niet gedaan:** de apps zijn hier niet gebouwd (Mac-build alleen op de
+  Mac; voor Windows ontbreken hier de export templates). In het origineel
+  niet gemeten (blijft Omnispeak): het vallende platform, het effect van
+  een schakelaar op een platform, het keren van een horizontaal platform,
+  de Dopefish, de sprites en mijnen onder water.
+- **Om te proberen:** `godot --path . -- --game=4 --level=3` (een
+  raadslid), `--level=14` (de conciërge), `--level=7` (Lindsey),
+  `--level=9` (het wetsuit, en platforms vlak bij de start), `--level=8`
+  (platforms, schakelaars en de brug), `--level=17` (zwemmen: pijlen om te
+  sturen, springen om te trappen; de Dopefish zit rechts). Shift+G zet
+  god mode aan of uit.
+- **Volgende stap: D7**, de wereldkaart (`milestone-d7-kaart`).
 
 ## Mijlpaal D5: wat er nu is
 
@@ -2233,11 +2317,11 @@ Keen 3:
 
 Keen 4:
 
-1. **D5** (branch `milestone-d5-vijanden`, vanaf `milestone-d4-keen`):
-   de vijanden van Keen 4, elk met een eigen actietabel; zie
-   `docs/keen4/roadmap.md`.
-2. **Voor de gebruiker:** D4 proberen (`godot --path . -- --game=4`, of
-   `--level=N`): zeg wat anders voelt dan het origineel.
+1. **D7** (branch `milestone-d7-kaart`, vanaf `milestone-d6-mechaniek`):
+   de wereldkaart van Keen 4; zie `docs/keen4/roadmap.md`.
+2. **Voor de gebruiker:** D6 proberen (`godot --path . -- --game=4
+   --level=N`, zie "Mijlpaal D6"): platforms, de raad, Lindsey, het
+   wetsuit en zwemmen in level 17; zeg wat anders voelt dan het origineel.
 
 Keen 2:
 

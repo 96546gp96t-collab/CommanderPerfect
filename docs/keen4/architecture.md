@@ -584,3 +584,64 @@ What D5 built differently from the plan above, and why (developer, D5):
     test (item bottom above his top *and* more than 3 tiles below it) no
     item can pass: he only jumps for item *tiles* above him.
 11. **Shared files changed**: only `tests/run_tests.gd` (four suites).
+
+## Deviations in D6
+
+What D6 built differently from the plan above, and why (developer, D6):
+
+1. **Where the classes went.** `src/galaxy/actors/`: `GalaxyPlatform`
+   (moving along one axis, turn points, held between two, Keen riding or
+   falling onto it) and `GalaxyFallingPlatform`; `src/galaxy/ui/`:
+   `GalaxyWindow` (the original's centred message window). Keen 4, in
+   `src/keen4/actors/` like the creatures: `Keen4Platform` (the jets),
+   `Keen4Mine`, `Keen4Council` (the janitor too), `Keen4Lindsey`,
+   `Keen4Wetsuit`, `Keen4SwimmingKeen`, `Keen4Bubble`, `Keen4Schoolfish`,
+   `Keen4Dopefish` (extends the school fish: same swimming), and
+   `Keen4WaterSprite` (named so it is not taken for a picture sprite);
+   `src/keen4/game/`: `Keen4Messages` (the boxes' screens) and
+   `Keen4Progress`. The plan's `Keen4Platforms`, `Keen4Switches` and
+   `Keen4Council` in `level/` were not needed: the switches are Keen's
+   (D4), the rest are objects like the creatures.
+2. **`Keen4Progress` already in D6** (the plan put it in D7): the rescue
+   count picks Keen's answer and the wetsuit must be kept. It holds the
+   rescues, the wetsuit and the levels done; the view keeps one per game.
+3. **The swimming Keen is Keen 4's**, not Galaxy's (Keen 5 and 6 do not
+   swim): `Keen4SwimmingKeen` extends `GalaxyKeenBody` (inventory, input,
+   dying, tiles) with its own actions. `Keen4LevelSession` has `keen`
+   (walking, null under water), `swimmer` (null on land) and `player`
+   (whichever is played); level 17 uses the world-map camera
+   (`GalaxyCamera.follow_map`, which D7 reuses for the map).
+4. **Messages after the frame.** The original shows Lindsey's and the
+   janitor's boxes inside the contact, in the middle of a frame; ours ask
+   for them (`GalaxyWorld.ask`) and the view shows them after the frame
+   (the rest of that frame has run). The council and the wetsuit end the
+   level (`GalaxyWorld.complete` with `&"council"` / `&"wetsuit"`) and the
+   view shows their boxes before the next level, as the original does
+   after its play loop. A box stops the clock; any key or joypad button
+   pressed (not held from before) goes on; F1-F6 stay display keys.
+5. **The boxes are pictures, not live text**: `Keen4Messages` draws each
+   screen into a 320 × 200 transparent image with `GalaxyWindow`; the view
+   shows it in the World viewport's `Ui` layer (a `Sprite2D` made in code,
+   no change to `keen4_view.tscn`), over everything, always with the
+   original pixels (as the score box), centred in the wide picture in
+   widescreen. Compared with the original pixel by pixel: no difference.
+6. **The pictures by their place from the end of the picture range** (11
+   the elder … 7 Lindsey), the same in 1.0 and 1.4; never chunk numbers.
+7. **After the eighth rescue** (the end is D8's): the status line says
+   "All eight council members are rescued" and the next level follows.
+   Until the world map exists the round is levels 1-17 (17 after 16, then
+   1 again); a rescue or the wetsuit opens the next level like walking out.
+8. **Platforms and mines share `GalaxyPlatform`'s move** (Omni uses
+   CK_AxisPlatform for both); the mine is a `GalaxyPlatform` that kills
+   instead of carrying. The vertical stop rule is Omnispeak's: going up a
+   turn point two tiles *below* the one ahead holds it, going down one two
+   tiles *above* (the roadmap's "2 tiles beyond").
+9. **Keen 4's drawing priority bug kept**: a platform that takes Keen off
+   a pole leaves his priority as it was (only Keen 6 resets it; Omni).
+10. **A falling platform without a turn point below** falls to the map's
+    last row and is removed (level 1's has none); Keen riding it lands on
+    whatever floor stops him (Omni's logic, not seen in the original).
+11. **Fixed during D6**: the view's `_progress` field shadowed
+    `GameScreen`'s and the scene did not compile; no suite loaded the
+    view, so a test now checks that `keen4_view.gd` compiles.
+12. **Shared files changed**: only `tests/run_tests.gd` (four suites).
