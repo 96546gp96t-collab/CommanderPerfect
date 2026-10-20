@@ -333,3 +333,70 @@ or the Keen Dreams source (all GPL; documentation only). Extras are off by
 default, with the user's exceptions (widescreen with the score box,
 pictures behind levels in widescreen). Talk to the user in Dutch; code,
 comments and commit messages in English.
+
+## Deviations in D2
+
+What D2 built differently from the plan above, and why (developer, D2):
+
+1. **More, smaller classes in `src/galaxy/data/`.** The plan's
+   `GalaxyExecutable` became five: `GalaxyExecutable` (unpacking, the
+   version, the random numbers, the texts), `GalaxyExeTexts` (the search
+   for texts by their shape), `GalaxyHeaderSearch` (the searches for the
+   six headers), `GalaxyHeaders` (the six pieces, from the EXE or from
+   header files next to the game) and `GalaxyEpisode` (the numbers of one
+   episode: names, known places, the counts no table gives, the shapes of
+   the message runs; Keen 4 fills it in `Keen4Episode`). The chunk ranges
+   are `GalaxyChunkRanges`, the whole episode `GalaxyData`. A picture of a
+   whole map for the viewer and the export is `GalaxyMapImage`.
+   `GalaxyFont` (reading and drawing a font) lives in `data/`; the
+   in-game text drawing of later milestones can build on it in `ui/`.
+   Reason: the 500-line and 20-method limits, and every class one job.
+2. **`GalaxyMap.Layer`** instead of `Plane` (`Plane` is a Godot type).
+3. **The counts that no table gives come from the episode**: 3 fonts,
+   4 misc chunks, 7 texts, 5 demos (the same in 1.0 and 1.4). Everything
+   else is worked out from the file: pictures, masked pictures, sprites
+   (the tables), the 8×8 counts (expanding the chunk), the border between
+   the background and foreground tiles (a background chunk cannot hold 160
+   bytes; around empty chunks the border goes on a whole row of 18), and
+   so `TILEINFO`'s size. The plan said the tile counts follow from
+   `TILEINFO`'s size; that size is not stored anywhere, so it is the other
+   way round.
+4. **A second launcher seam**: besides `GameCatalog.Game.icon_picture`,
+   `GameCatalog.Game.icon_title` (the name in the game's own font) and
+   `GameIcon.title_picture`. Without them Keen 4's name was drawn in the
+   plain fallback font that the grey "no files" icons use, so an
+   available Keen 4 looked unavailable. Both are optional and unset for
+   Keen 1-3 (the regression's `launcher.png` differs only inside the
+   fourth icon). Keen 4's sprite is 30 px high, the icon's panel 30 px
+   inside its outline, so his helmet and shoe touch the outline.
+5. **Keen 4's online id** is `Keen4Files.GAME_ID`
+   ("commanderperfect-keen4"), deliberately *not* in
+   `OnlineProtocol.GAME_IDS` until D12, so no lobby or host matches it (an
+   empty id would have matched the "unknown game" of a lobby).
+6. **`GameLaunch.game_number`**: when several `--game=` options are given,
+   the lowest wins (2 before 3 before 4), so every old combination gives
+   the same answer.
+7. **The "coming soon" screen** (`Keen4View`, `src/keen4/keen4_view.gd`) is
+   a plain `Control` built in code: Keen walking (sprite 7) and the title
+   in Keen 4's menu font, the level name for `--level=N`, Enter/Escape back
+   to the start screen. D3 replaces it with the real view (node layout of
+   `level_view.tscn`). As for Keen 2 and 3, started with `--game=4` the
+   start screen at once opens Keen 4 again (the option is still on the
+   command line).
+8. **The data viewer's Galaxy page** is a new file,
+   `src/viewer/galaxy_viewer_page.gd` (`GalaxyViewerPage`); `data_viewer.gd`
+   only gets the branch that shows it for `--game=4`. Each tab is decoded
+   the first time it is shown.
+9. **No thread**: decoding all of EGAGRAPH takes about 1 s, loading 70 ms,
+   the launcher's sprite under 1 ms (file-formats.md, "Decoding time"), so
+   everything is decoded lazily on the main thread.
+10. **Tests**: besides `galaxy_fixtures.gd`, `test_galaxy_data.gd` and
+    `test_keen4_data.gd`, a second fixture file
+    `tests/galaxy_file_fixtures.gd` (the hand-made EGAGRAPH, AUDIO and
+    program image) and a suite `tests/test_galaxy_files.gd` (what the
+    readers make of those files), to keep each file small.
+11. **Texts found so far**: the level names, the "Keen enters …" texts,
+    the janitor's records and the run of council, Lindsey and wetsuit
+    messages, plus the random numbers. Not yet: the status window, the
+    menus, the "Try Again" box, the high-score defaults (the milestones
+    that need them search for them, by shape, the same way).

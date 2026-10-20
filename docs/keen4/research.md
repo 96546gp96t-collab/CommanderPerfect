@@ -102,7 +102,11 @@ The empty chunks (1344 in 1.0) are all 16×16 tiles that are never used.
   number of shifts. Origin and box are in **global units** (1/16 px):
   checked, sprite 10 has the box 64-304 × 48-496 = 4-19 px × 3-31 px in a
   24 × 29 px picture (files). The box is what the game collides with; it
-  changes with every frame (Omni `ck_phys.c:CK_ResetClipRects`).
+  changes with every frame (Omni `ck_phys.c:CK_ResetClipRects`). **D2:**
+  both origin and box are relative to the object's position, and the
+  picture is drawn at position + origin: sprite 10's origin is (0, 32), so
+  its box covers pixels 4-19 × 1-29 of the picture and ends on its bottom
+  row (files).
 - **Texts** use `^P` (page), `^E` (end), `^G<chunk>,<x>,<y>` (a picture),
   `^C`/`^c<colour>`, `^L<x>,<y>`, `^T<chunk>,<x>,<y>,<tics>` (a timed
   picture), with CR LF line ends (files). **The picture numbers in `^G`
@@ -138,9 +142,12 @@ width × height words per plane, and carry the `!ID!` signature.
 | 18 | BWB Megarocket | 24 × 17 | Bean-with-Bacon Megarocket |
 | 19 | HighScores | 24 × 17 | the high-score screen |
 
-The names shown to the player come from the EXE's string table (D2: find
-them by content; 1.0 has the story text at raw 0x1DB40 and the council
-messages around 0x2F7DB).
+The names shown to the player come from the EXE (found by shape in D2;
+file-formats.md, "Texts and tables in KEEN4E.EXE"): in 1.0 the story text
+is at raw 0x1DB40, the 19 level names (maps 0-18) at 0x1DD40, each on a
+16-byte boundary, then the 19 "Keen enters …" texts and the janitor's
+records; the council, Lindsey and wetsuit messages are 17 records from
+0x2F5BC (files).
 
 ### TILEINFO (files, 1.0; layout Omni `id_ti.c`)
 
@@ -199,8 +206,9 @@ For readers who think in our old units: a velocity of v units/tic is
 
 A fixed 256-byte table, read in order from an index; the index starts from
 the clock at every level load, and from 0 in demos. The table is data in
-the EXE: read it from there (D2, by content: it starts 0, 8, 109, 220,
-222, 241, 149). Exactness matters only for demos.
+the EXE: read it from there (by content: it starts 0, 8, 109, 220,
+222, 241, 149; D2 found it at raw 0x1DA32 in 1.0). Exactness matters only
+for demos.
 
 ## 3. The action (state) system (Omni `ck_def.h`, `ck_play.c`)
 
@@ -454,7 +462,9 @@ per object (as numbers, marked `(Omni)`, if the user allows that).
   standing: the Oracle message box ("Oh thank you so much …", in level 17
   the bubbly version), Keen's answer (8 different ones), the level is
   done. The one in level 14 is the **janitor**: a five-box conversation;
-  he does not count.
+  he does not count. (D2: the EXE holds four records for it, three of his
+  and Keen's reply; the fifth box is probably made of one of them or of a
+  shared text: check in D6.)
 - **Lindsey** (levels 5 and 7): hints (the wetsuit in Miragia; the way to
   the Pyramid of the Forbidden lies under the Pyramid of the Moons).
 - **The end**: after the 8th rescue the end text pages (`^P` pages with a

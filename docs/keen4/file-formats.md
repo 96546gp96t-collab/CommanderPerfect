@@ -1,10 +1,11 @@
 # Keen 4 file formats
 
-How CommanderPerfect will read the files of episode 4 ("Secret of the
+How CommanderPerfect reads the files of episode 4 ("Secret of the
 Oracle"). Written in milestone D1 by the architect, from Omnispeak and
 Commander Genius and **checked against the user's own files (v1.0)** with
-scratch scripts (nothing from the files is in the repository). D2 builds
-the readers and corrects this page where the code learns more. The facts
+scratch scripts (nothing from the files is in the repository). D2 built
+the readers (`src/galaxy/data/`, `src/keen4/data/`) and corrected this page
+where the code learned more (marked "D2"). The facts
 behind the numbers are in [research.md](research.md). This page holds
 descriptions and numbers only, never data from the files.
 
@@ -28,7 +29,11 @@ app) for a folder that holds:
 
 External header files (`EGAHEAD.CK4`, `EGADICT.CK4`, `MAPHEAD.CK4`,
 `AUDIOHED.CK4`, `AUDIODCT.CK4`) exist for mods and in Omnispeak's own data
-folder. If present, use them; normally they are found in the EXE.
+folder. If present, they are used (`GalaxyHeaders`); normally the pieces
+are found in the EXE. `MAPHEAD.CK4` holds the tag, the 100 offsets and the
+tile information after them, as in the EXE. `Keen4Files` needs
+`EGAGRAPH.CK4`, `GAMEMAPS.CK4`, `AUDIO.CK4` and `KEEN4E.EXE` or
+`KEEN4.EXE` (`KEEN4E.EXE` is taken when both are there).
 
 ## Inside KEEN4E.EXE: the six headers
 
@@ -53,11 +58,43 @@ Search by content first; the positions above are only the first place to
 look. Never read program code. (The action records are data too, but they
 hold code addresses: we do not read them; see research §3.)
 
+How `GalaxyHeaderSearch` does it (D2):
+
+- **Offset tables**: first the known places; then every place where the
+  data file's size is stored as an entry (3 or 4 bytes, little-endian),
+  walking back over entries that are at most that size (or 0xFFFFFF) to
+  the 0 that starts the table. A table passes when it starts with 0, ends
+  with the size, has at least 8 entries, and never goes down except for
+  **one block of equal entries larger than the ones after them** (the
+  AUDIOHED gap). Such entries count as empty chunks; every other chunk
+  ends where the next non-empty one starts (`without_bogus`).
+- **MAPHEAD**: the known places, then the place that holds the offset of
+  the first map header in GAMEMAPS (found by its `!ID!`), minus the 2-byte
+  tag. It passes when every non-zero slot (and slot 0) points at a header
+  with `!ID!` 38 bytes in.
+- **TILEINFO**: always right after MAPHEAD; its length follows from the
+  tile counts (below).
+- **The dictionaries**: the known places that hold a complete tree; when
+  one is still missing, the whole image is scanned (about 0.1 s in
+  GDScript). A tree is EGADICT when it expands the first three EGAGRAPH
+  chunks to their stored lengths, reading all but at most 8 of their bytes;
+  AUDIODCT likewise with AUDIO. One small chunk can fit a wrong tree by
+  chance; three in a row do not.
+- In 1.0 the known places hit at once (the whole load, LZEXE included,
+  takes ~70 ms); without them the search finds the same six places in
+  ~0.2 s.
+
 ## Huffman
 
 Start at node 254; read the bits of each byte from the lowest up; follow the
 0- or 1-value; at a leaf, write the byte and start again at node 254; stop
 after the expanded length.
+
+A chunk is not always exactly as long as its Huffman data (D2, 1.0): of
+the chunks with a length, 459 are exact, 65 one byte longer, 5 four or five
+bytes longer; of the tile chunks 2382 exact, 485 one byte longer, one four
+bytes longer. So "expands its length reading at most its own bytes, and
+at most 8 fewer" is the test, never "exactly".
 
 ## EGAGRAPH.CK4: chunks
 
@@ -83,19 +120,46 @@ bytes (the mask plane, then four planes) for a foreground tile. An empty
 | Texts | 4731-4737 | 4739-4745 | 7 |
 | Demos | 4738-4742 | 4746-4750 | 5 |
 
-The range starts follow from the tables: pictures start at 6, then come the
-counts read from chunks 0, 1 and 2 (bytes ÷ 4, ÷ 4, ÷ 18), then the tiles,
-whose counts follow from `TILEINFO`'s size and from the chunks without a
-length prefix. The code keeps **indices inside a range**, never chunk
-numbers.
+The range starts follow from the tables (`GalaxyChunkRanges`, D2): after
+the three tables come the fonts (their number, 3, from the episode),
+then the counts read from chunks 0, 1 and 2 (bytes ÷ 4, ÷ 4, ÷ 18), then
+one chunk of 8×8 tiles and one of masked 8×8 tiles. At the end of the file
+come the episode's misc chunks (4), texts (7) and demos (5). Everything in
+between is 16×16 tiles:
+
+- **8×8 counts**: expand the whole chunk (until its stored end) and divide
+  by 32 (40 for masked): the padding bits give less than a tile extra
+  (1.0: 3336 bytes → 104, 809 → 20).
+- **Background or foreground**: a background tile holds 128 bytes, a
+  foreground tile 160. Expanding 160 bytes from a background tile's chunk
+  reads past its end (true for all 1296 in 1.0), so the first foreground
+  tile is found by halving. Empty chunks next to the border could belong to
+  either set; the border is then put on a whole row of TED5's tile sheet
+  (18 tiles; Keen 4's 1296 and 2916, Keen 5's and 6's sets are all
+  multiples of 18). In 1.0 the last background tile is not empty, so this
+  does not matter there.
+- `TILEINFO`'s size then follows: 2 × 1296 + 7 × 2916 = 23,004.
+
+The code keeps **indices inside a range**, never chunk numbers.
 
 - **Picture tables** (chunks 0, 1): per picture its width in bytes (× 8
-  pixels) and its height. A picture is stored plane by plane.
-- **Sprite table** (chunk 2): 18 bytes per sprite: width in bytes, height,
-  origin x and y, hit box xl, yl, xh, yh, shifts. Origin and hit box are in
-  **global units (1/16 pixel)** (checked in 1.0). A sprite chunk is the mask
-  plane and four colour planes.
-- **Fonts**: height, 256 offsets, 256 widths, then one bit per pixel.
+  pixels) and its height. A picture is stored plane by plane, in the
+  order **blue, green, red, intensity** (D2: checked by eye in 1.0, the
+  title, the help pictures and the cards come out in their colours).
+- **Masked pictures, sprites, foreground tiles, masked 8×8 tiles**: the
+  **mask plane first** (a set bit is see-through), then the four colour
+  planes in the same order (D2, checked by eye in 1.0).
+- **Sprite table** (chunk 2): 18 bytes per sprite (signed 16-bit): width in
+  bytes, height, origin x and y, hit box xl, yl, xh, yh, shifts. Origin and
+  hit box are in **global units (1/16 pixel)** and both relative to the
+  object's position: the picture is drawn at **position + origin** (D2:
+  sprite 10 of 1.0 has origin y 32 and box y 48-496 in a 29-pixel picture,
+  so the box ends at the picture's bottom row; the standing Keen's feet).
+  The data viewer draws the box this way.
+- **Fonts**: height (16 bit), 256 offsets (16 bit, from the start of the
+  chunk), 256 widths (bytes), then the pixels: per character `height` rows
+  of ⌈width ÷ 8⌉ bytes, the leftmost pixel in the highest bit. Font 0 is
+  the menu font, font 1 a small one, font 2 large (D2, 1.0).
 - **Misc**: two 80×25 text screens (an 8-byte header, then 4000 bytes of
   characters and colours) and two tables used by the intro credits.
 - **Texts**: help, story, keys, about id, end, "level not available", how
@@ -105,6 +169,16 @@ numbers.
   **chunk numbers of this version**; subtract the picture range start.
 - **Demos**: a 16-bit map number (1, 9, 11, 15, 19 in 1.0), a 16-bit
   length, then the recorded input.
+
+### Decoding time (D2, GDScript, this machine)
+
+Decoding is lazy (`GalaxyGraphics` decodes a picture, sprite or tile when
+asked and keeps it). Loading (unpacking the EXE, the headers, the ranges)
+takes ~70 ms; one sprite under 1 ms (the start screen's icon). Everything:
+the 107 pictures ~0.27 s, masked pictures and 397 sprites ~0.19 s, the 1296
+background tiles ~0.19 s, the 2916 foreground tiles ~0.32 s, the rest
+(8×8 tiles, fonts, texts, demos, misc) ~0.05 s: **about 1 s for all of
+EGAGRAPH**. All 20 maps expand in ~45 ms. No thread is needed.
 
 ## GAMEMAPS.CK4 and MAPHEAD
 
@@ -144,6 +218,12 @@ The three planes:
 Maps in 1.0: 0 the world map, 1-17 the levels, 18 the Megarocket, 19 the
 high-score screen.
 
+D2: the far offset of a Carmack copy counts words from the start of the
+Carmack output, which includes the RLEW length word; with that, all 20
+maps of 1.0 expand to exactly width × height words. The names in GAMEMAPS
+are the editor's ("DescendentsCave"); the names the game shows are in the
+EXE (below).
+
 ## TILEINFO
 
 Arrays, each as long as its kind of tile, in this order (Omnispeak's
@@ -166,7 +246,10 @@ Arrays, each as long as its kind of tile, in this order (Omnispeak's
   switches, gem holders, water, items …, research §4); bit 0x80 draws the
   tile **in front of sprites**.
 - **Animation**: after the time in tics the tile becomes tile + offset,
-  around a cycle.
+  around a cycle. (D2: the order above holds; in 1.0 an animation offset
+  leads to another animated tile for 311 of the 333 foreground tiles with
+  an offset; the other 22, and the gem holders' offset 18, have no time.
+  Every animated background tile's offset stays inside the set.)
 
 ## AUDIO.CK4
 
@@ -186,4 +269,27 @@ Each chunk: a 32-bit expanded length, then Huffman data (`AUDIODCT`).
   the two operators), an octave (block), then one note byte per step at
   140 Hz on one OPL2 channel.
 - **Song**: a 16-bit length, then commands of 4 bytes (register, value,
-  16-bit delay) at **560 Hz** for the OPL2 chip.
+  16-bit delay) at **560 Hz** for the OPL2 chip. (D2: in 1.0 the length is
+  the chunk's size minus 2 for all six songs.)
+
+`GalaxyAudioFile` (D2) gives the expanded chunks as bytes; the bogus
+AUDIOHED block (104-155) is empty, chunk 103 ends where 156 starts.
+
+## Texts and tables in KEEN4E.EXE (D2)
+
+All found by **shape**, never by their words (`GalaxyExecutable`,
+`GalaxyExeTexts`); the known 1.0 places are tried first.
+
+| Piece | 1.0 position | How it is found |
+|---|---|---|
+| Version | the sign-on screen | A text-mode screen: each character followed by its colour byte, so "(v1.0)" has its letters two bytes apart. The search reads "(v" + digits and a dot + ")" two (or one) bytes apart. Without it: the size of the EXE (1.0: 102,355; 1.4: 263,488) |
+| Random numbers | 0x1DA32 | 256 bytes starting 0, 8, 109, 220, 222, 241, 149 (Omni `US_RndT`) |
+| Level names | 0x1DD40 | 19 zero-terminated records (maps 0-18), each on a 16-byte boundary (zeros in between), then 19 "Keen enters …" texts. The test: every entry text, newlines read as spaces, ends with its level's name (1.0: also map 3 "the The …"). Names may hold a newline (maps 13 and 18) |
+| The janitor | 0x1E280 | Right after the entry texts: 4 records with 4, 3, 2 and 2 lines (his three boxes and Keen's reply; the fifth box of research §9 is not a separate text here) |
+| Council, Lindsey, wetsuit | 0x2F5BC | 17 records, one zero apart, with 4, 4, 1, 3, 1, 1, 2, 2, 2, 1, 3, 1, 3, 2, 4, 5, 5 lines: Lindsey's two hints, Keen's two thanks, "Princess Lindsey says:", Keen without and with the wetsuit, Keen's eight answers to the council members, the member's message under water and on land. The first record follows code bytes, not a zero |
+
+A record is a run of printable characters and newlines ending in a zero.
+The shapes are Keen 4's numbers (`Keen4Episode`); the Galaxy code knows
+none of them. Not searched yet (for later milestones): the status window's
+words, the menus' texts, the "Try Again" box, the high-score texts,
+"I can't swim!" is in the council block.

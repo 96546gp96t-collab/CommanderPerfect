@@ -332,6 +332,7 @@ start zonder rekenen).
 | Mijlpaal | Datum | Status |
 |---|---|---|
 | D1 Onderzoek | 19-10-2026 | Klaar; de vragen zijn beantwoord (research.md §13) |
+| D2 Bestanden | 20-10-2026 | Klaar; afwijkingen in architecture.md, "Deviations in D2" |
 
 Volgende stap: zodra Keen 3 op `main` staat, `PROGRESS.md`,
 `docs/doorlooptijden.md` en `docs/new-episode-guide.md` bijwerken met D1

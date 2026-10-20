@@ -81,7 +81,7 @@ bestanden in [docs/keen4/file-formats.md](docs/keen4/file-formats.md).
 | # | Mijlpaal | Status |
 |---|---|---|
 | D1 | Onderzoek: code in kaart, Keen 4 v1.0 van de gebruiker uitgelezen, Omnispeak, architectuur, mijlpalen | ✅ Klaar (branch `milestone-d1-onderzoek`); vragen beantwoord op 19-10-2026 |
-| D2 | De bestanden van Keen 4 inlezen, data viewer, vierde icoon | 🔶 Bezig (branch `milestone-d2-bestanden`) |
+| D2 | De bestanden van Keen 4 inlezen, data viewer, vierde icoon | ✅ Klaar, wacht op controle door de architect (branch `milestone-d2-bestanden`) |
 | D3 | Een level tekenen | ⬜ |
 | D4 | Keen beweegt (klok, acties, hellingen, palen, randen) | ⬜ |
 | D5 | Vijanden | ⬜ |
@@ -93,6 +93,82 @@ bestanden in [docs/keen4/file-formats.md](docs/keen4/file-formats.md).
 | D11 | Mooier maken en Paddle War | ⬜ |
 | D12 | Co-op | ⬜ |
 | D13 | Naast het origineel | ⬜ |
+
+## Mijlpaal D2: wat er nu is
+
+Alle bestanden van Keen 4 worden gelezen, met de eigen Keen 4 v1.0 van de
+gebruiker nagekeken. Er beweegt nog niets. De bestanden staan in
+`docs/keen4/file-formats.md` (met "D2" waar de code iets leerde), de
+afwijkingen van het plan in `docs/keen4/architecture.md`, "Deviations in D2".
+
+- [x] **De Galaxy-lezers** (`src/galaxy/data/`, ook voor Keen 5 en 6; de
+  getallen van een deel komen uit een `GalaxyEpisode`): Huffman, Carmack,
+  RLEW met eigen tag, de chunks van EGAGRAPH, plaatjes, gemaskeerde
+  plaatjes, sprites met oorsprong en hitbox (`GalaxySpriteInfo`), 8×8- en
+  16×16-tiles (achter en voor, met masker), de drie lettertypen, de
+  teksten, de demo's, de maps met drie lagen (`GalaxyMapFile`,
+  `GalaxyMap`), `GalaxyTileInfo` en de geluids-chunks als bytes
+  (`GalaxyAudioFile`). Keen 4 zelf: `Keen4Files` en `Keen4Episode`.
+- [x] **Alles op inhoud gezocht** in `KEEN4E.EXE` (`GalaxyHeaderSearch`,
+  `GalaxyHeaders`): de zes headers, eerst op de plekken van 1.0 en 1.4,
+  daarna in het hele programma (dan ~0,2 s); losse header-bestanden naast
+  het spel gaan voor. In 1.0 gevonden waar de architect ze zag
+  (AUDIOHED 0x1FB80 met het blok onzin-offsets 104-155, EGAHEAD 0x1FE10,
+  MAPHEAD 0x235B0, TILEINFO 0x23742, AUDIODCT 0x33FF6, EGADICT 0x343F6).
+  De versie uit het opstartscherm ("(v1.0)": letter en kleur om en om),
+  anders uit de grootte.
+- [x] **Nooit vaste chunknummers**: het aantal plaatjes, sprites enz. komt
+  uit de tabellen; de grens tussen achter- en voorgrond-tiles uit de data
+  zelf (een achtergrond-tile past niet in 160 bytes). 1.0: 107 plaatjes,
+  3 gemaskeerd, 397 sprites, 104 + 20 kleine tiles, 1296 + 2916 tiles, 20
+  maps die allemaal uitpakken.
+- [x] **Teksten op vorm gevonden** (nooit op woorden): de 19 levelnamen,
+  de 19 "Keen enters …"-teksten, de conciërge, en de berichten van de
+  raad, Lindsey en het wetsuit (17 stuks); ook de tabel met willekeurige
+  getallen. Nog niet: statusvenster, menu's, "Try Again", highscores (die
+  zoeken de mijlpalen die ze nodig hebben op dezelfde manier).
+- [x] **Kleuren en masker nagekeken** met screenshots: de vlakken staan in
+  de volgorde blauw, groen, rood, intensiteit; bij sprites, gemaskeerde
+  plaatjes en voorgrond-tiles komt het masker eerst. De hitbox geldt
+  vanaf de plek van het object, het plaatje staat op plek + oorsprong.
+- [x] **Snelheid**: laden (EXE uitpakken, headers, bereiken) ~70 ms, één
+  sprite voor het icoon < 1 ms, heel EGAGRAPH ~1 s, alle maps ~45 ms.
+  Alles wordt pas uitgepakt als het nodig is; geen thread nodig.
+- [x] **Het startscherm heeft vier iconen**: "Keen 4" met Keen uit de eigen
+  sprites en de naam in het eigen lettertype van Keen 4 (via
+  `icon_picture` en `icon_title`); zonder bestanden grijs met uitleg. Met
+  bestanden opent het "Keen 4 - coming soon" (Enter of Escape terug).
+  Vier iconen passen (tot 800 van 1280 px).
+- [x] **`--game=4`** (ook met `--level=N`, dan staat de levelnaam erbij),
+  de data viewer (`-- --game=4`: maps met de drie lagen aan/uit en de
+  waarden onder de muis, beide tilesets, sprites met hitbox en oorsprong,
+  plaatjes, lettertypen en kleine tiles, wat er in het programma
+  gevonden is) en `tools/export_graphics.gd -- --game=4` (naar
+  `exported/keen4/`). Bouwscripts nemen `game_data/keen4` mee;
+  `game_data/README.md` heeft een stukje over Keen 4.
+- [x] **Tests**: nieuwe suites `test_galaxy_data` (decoders, de zoektochten
+  met de headers op andere plekken, het AUDIOHED-gat, de versie, teksten),
+  `test_galaxy_files` (wat de lezers van zelfgemaakte bestanden maken) en
+  `test_keen4_data` (echte data: versie, plekken, aantallen, alle maps,
+  map 0, tileinfo, demo's, geluid); zelfgemaakte data in
+  `tests/galaxy_fixtures.gd` en `tests/galaxy_file_fixtures.gd`. 72
+  suites, 816 tests (was 69 en 778), alle slagen, gdlint schoon.
+- [x] **Keen 1-3-controle:** `keen1_regression.sh` en `keen2_regression.sh`
+  tegen de referentie van `main` (lege gebruikersmap): alles gelijk
+  behalve `launcher.png`, en dat verschilt alleen binnen het vierde icoon.
+  `git diff milestone-d1-onderzoek` op `src/keen2`, `src/keen3`, hun tests
+  en fixtures, `src/actors`, `src/map` en `src/game/level_view.gd`: alleen
+  de regels met het aantal spellen (3 → 4). Gedeelde code alleen
+  aangevuld: `GameCatalog` (vierde spel, `icon_picture`, `icon_title`),
+  `GameIcon.title_picture`, `Launcher._make_icon`, `GameLaunch` (`--game=4`),
+  de data viewer, `export_graphics.gd`, de bouwscripts, de testlijst.
+- **Niet gedaan:** de apps zijn hier niet gebouwd (de Mac-build kan alleen
+  op de Mac; voor Windows ontbreken hier de export templates).
+- **Om te proberen:** het startscherm (vierde icoon, klikken, Escape
+  terug); de data viewer met `godot --path . res://src/viewer/data_viewer.tscn -- --game=4`;
+  `godot --path . -- --game=4 --level=13`.
+- **Volgende stap: D3**, een level tekenen (`Keen4View` met drie
+  tile-lagen, animatie uit `TILEINFO`, de camera met scroll-blokken).
 
 ## Mijlpaal D1: wat er nu is
 
