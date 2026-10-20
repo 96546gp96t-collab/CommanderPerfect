@@ -975,3 +975,20 @@ What D10 built differently from the plan above, and why (developer, D10):
    blinks on the game's clock (35 tics).
 9. **The original's cards not built**: Sound, Music, Joystick, Movement
    Setup (our keys are one list), the "CONTROL: KEYBOARD" line.
+
+## D11 part B: pictures
+
+Our own pictures behind the ten levels with sky (5, 7-14, 16), at the
+user's request (20-10-2026): `assets/backgrounds/keen4/levelNN.webp`,
+painted from code by `tools/make_keen4_backgrounds.py` (scenes per level
+in `docs/keen4/gameplay.md`, "Pictures behind the levels"). No engine code
+changed: `GalaxyBackdropPictures` already looked in
+`Keen4Episode.BACKDROP_FOLDER` and decides which levels may show one. The
+painting helpers that Keen 3's script had in `tools/keen3_canvas.py` moved
+unchanged to `tools/background_painter.py`, shared by both scripts (Keen
+3's pictures come out pixel for pixel the same, and byte for byte the same
+as the old script gives on the same machine). Keen 4's own shapes
+(pyramids, dunes, palms, a mirage, columns, a volcano) are in its script.
+`tests/test_keen4_backgrounds.gd` checks that exactly those levels have a
+picture, that each is 16:9 or wider, and, with the player's files, that
+the screen finds a picture for exactly those maps.
