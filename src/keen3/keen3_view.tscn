@@ -1,0 +1,201 @@
+[gd_scene load_steps=17 format=3]
+
+[ext_resource type="Script" path="res://src/keen3/keen3_view.gd" id="1_view"]
+[ext_resource type="Script" path="res://src/level/level_map.gd" id="2_map"]
+[ext_resource type="Script" path="res://src/level/free_look.gd" id="3_look"]
+[ext_resource type="Script" path="res://src/level/level_camera.gd" id="4_camera"]
+[ext_resource type="Script" path="res://src/keen/keen.gd" id="5_keen"]
+[ext_resource type="Script" path="res://src/actors/actor_layer.gd" id="6_actors"]
+[ext_resource type="Script" path="res://src/keen3/game/keen3_window.gd" id="7_window"]
+[ext_resource type="Script" path="res://src/game/sprite_view.gd" id="8_sprite"]
+[ext_resource type="Script" path="res://src/game/picture_layer.gd" id="9_pictures"]
+[ext_resource type="Script" path="res://src/keen3/game/keen3_hud.gd" id="10_hud"]
+[ext_resource type="Script" path="res://src/game/two_player_view.gd" id="12_two"]
+[ext_resource type="Script" path="res://src/game/online_play.gd" id="13_online"]
+[ext_resource type="Script" path="res://src/game/online_notice.gd" id="14_notice"]
+[ext_resource type="Script" path="res://src/game/partner_arrow.gd" id="15_arrow"]
+[ext_resource type="Script" path="res://src/game/remote_game.gd" id="16_remote"]
+[ext_resource type="Script" path="res://src/level/level_backdrop.gd" id="17_backdrop"]
+
+[node name="Keen3View" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_view")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0, 0, 0, 1)
+
+[node name="Screen" type="TextureRect" parent="."]
+unique_name_in_owner = true
+layout_mode = 0
+mouse_filter = 2
+expand_mode = 1
+
+[node name="World" type="SubViewport" parent="."]
+unique_name_in_owner = true
+disable_3d = true
+snap_2d_transforms_to_pixel = true
+snap_2d_vertices_to_pixel = true
+canvas_item_default_texture_filter = 0
+size = Vector2i(320, 200)
+render_target_update_mode = 4
+
+[node name="Backdrop" type="CanvasLayer" parent="World"]
+unique_name_in_owner = true
+script = ExtResource("17_backdrop")
+
+[node name="LevelMap" type="TileMapLayer" parent="World"]
+unique_name_in_owner = true
+script = ExtResource("2_map")
+
+[node name="FreeLook" type="Node2D" parent="World"]
+unique_name_in_owner = true
+script = ExtResource("3_look")
+
+[node name="CameraAnchor" type="Node2D" parent="World"]
+unique_name_in_owner = true
+
+[node name="Camera" type="Camera2D" parent="World/CameraAnchor"]
+unique_name_in_owner = true
+script = ExtResource("4_camera")
+
+[node name="World2" type="SubViewport" parent="World"]
+unique_name_in_owner = true
+disable_3d = true
+snap_2d_transforms_to_pixel = true
+snap_2d_vertices_to_pixel = true
+canvas_item_default_texture_filter = 0
+size = Vector2i(320, 200)
+render_target_update_mode = 0
+
+[node name="Backdrop2" type="CanvasLayer" parent="World/World2"]
+unique_name_in_owner = true
+script = ExtResource("17_backdrop")
+
+[node name="CameraAnchor2" type="Node2D" parent="World/World2"]
+unique_name_in_owner = true
+
+[node name="Camera2" type="Camera2D" parent="World/World2/CameraAnchor2"]
+unique_name_in_owner = true
+script = ExtResource("4_camera")
+
+[node name="ActorLayer" type="Node2D" parent="World"]
+unique_name_in_owner = true
+script = ExtResource("6_actors")
+
+[node name="Keen2" type="Node2D" parent="World"]
+unique_name_in_owner = true
+visible = false
+script = ExtResource("5_keen")
+
+[node name="Keen" type="Node2D" parent="World"]
+unique_name_in_owner = true
+script = ExtResource("5_keen")
+
+[node name="Mark" type="Node2D" parent="World"]
+unique_name_in_owner = true
+script = ExtResource("8_sprite")
+
+[node name="Pictures" type="Node2D" parent="World"]
+unique_name_in_owner = true
+script = ExtResource("9_pictures")
+
+[node name="Ui" type="CanvasLayer" parent="World"]
+
+[node name="SplitView" type="TextureRect" parent="World/Ui"]
+unique_name_in_owner = true
+visible = false
+offset_right = 320.0
+offset_bottom = 200.0
+mouse_filter = 2
+expand_mode = 1
+
+[node name="Hud" type="Node2D" parent="World/Ui"]
+unique_name_in_owner = true
+visible = false
+script = ExtResource("10_hud")
+
+[node name="Arrow" type="Node2D" parent="World/Ui"]
+unique_name_in_owner = true
+visible = false
+script = ExtResource("15_arrow")
+
+[node name="Notice" type="Node2D" parent="World/Ui"]
+unique_name_in_owner = true
+visible = false
+script = ExtResource("14_notice")
+
+[node name="Picture" type="Sprite2D" parent="World/Ui"]
+unique_name_in_owner = true
+visible = false
+centered = false
+
+[node name="WindowLight" type="Sprite2D" parent="World/Ui/Picture"]
+unique_name_in_owner = true
+visible = false
+centered = false
+
+[node name="Window" type="Node2D" parent="World/Ui"]
+unique_name_in_owner = true
+script = ExtResource("7_window")
+
+[node name="TwoPlayers" type="Node" parent="."]
+unique_name_in_owner = true
+script = ExtResource("12_two")
+
+[node name="Online" type="Node" parent="."]
+unique_name_in_owner = true
+script = ExtResource("13_online")
+
+[node name="Remote" type="Node" parent="."]
+unique_name_in_owner = true
+script = ExtResource("16_remote")
+
+[node name="Overlay" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 8
+
+[node name="Layout" type="VBoxContainer" parent="Overlay"]
+layout_mode = 2
+mouse_filter = 2
+
+[node name="StatusLabel" type="Label" parent="Overlay/Layout"]
+unique_name_in_owner = true
+layout_mode = 2
+autowrap_mode = 3
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 4
+text = "Loading game data..."
+
+[node name="Spacer" type="Control" parent="Overlay/Layout"]
+layout_mode = 2
+size_flags_vertical = 3
+mouse_filter = 2
+
+[node name="HelpLabel" type="Label" parent="Overlay/Layout"]
+unique_name_in_owner = true
+layout_mode = 2
+autowrap_mode = 3
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 4
+text = "Esc: back to the start screen    Arrows / WASD: walk    Ctrl / Z: jump    Alt / X: pogo    Space / C: fire    Shift+N / P: next / previous level    Shift+I: all items    Shift+G: god mode    F2: widescreen    F3: pixels    F4: full screen    F5: graphics    F6: smooth motion    F1: show / hide this line"

@@ -7,7 +7,8 @@ extends RefCounted
 ##
 ## On the wire it is a short array of packed numbers (see [method to_message]);
 ## [method from_message] checks every part, because it comes from the
-## network.
+## network. A game may add numbers of its own ([member extra], milestone
+## C10); without them the message is the one of Keen 1 and Keen 2.
 
 ## Numbers per Keen: x, y, sprite, visible width, dead.
 const KEEN_FIELDS := 5
@@ -23,6 +24,11 @@ const PROGRESS_SHIFT := 9
 const PROGRESS_MASK := 0xFF
 ## More than this is not a level of Keen 1 but somebody's attack.
 const MAX_FIGURES := 512
+## Parts of the message without [member extra], and where [member extra]
+## follows them when it is sent.
+const PARTS := 7
+## A game's own numbers ([member extra]) are at most this many.
+const MAX_EXTRA := 32
 const MAX_DOOR_TILES := 16
 const MAX_SPRITE := 4096
 
@@ -48,6 +54,11 @@ var inventory := Inventory.new()
 ## Up to 8 bits of the game's progress that the joiner shows: Keen 2's saved
 ## cities. Always 0 in Keen 1, whose messages stay as they were.
 var progress_bits := 0
+## Numbers of the game's own that the joiner shows (Keen 3: the done levels,
+## each Keen's ankh time, the map's view and Messie; see
+## [Keen3OnlineState]). Only sent when there are any, so that Keen 1's and
+## Keen 2's messages stay as they were.
+var extra := PackedInt32Array()
 var sounds := PackedByteArray()
 ## Player 1's Keen (the host's) first, then player 2's. On the world map the
 ## one Keen walking there.
@@ -71,7 +82,7 @@ func to_message() -> Array:
 			[door.id, int(door.position.x), int(door.position.y), door.height, door.tiles.size()]
 		)
 		door_numbers.append_array(door.tiles)
-	return [
+	var message := [
 		OnlineProtocol.Message.SNAPSHOT,
 		scene,
 		_inventory_numbers(),
@@ -80,12 +91,20 @@ func to_message() -> Array:
 		actor_numbers,
 		door_numbers,
 	]
+	if not extra.is_empty():
+		message.append(extra)
+	return message
 
 
 ## The snapshot in [param message], or null when it is not a sane one.
 static func from_message(message: Array) -> Snapshot:
-	if message.size() != 7 or not message[1] is int:
+	if message.size() not in [PARTS, PARTS + 1] or not message[1] is int:
 		return null
+	var extra_numbers := PackedInt32Array()
+	if message.size() > PARTS:
+		if not message[PARTS] is PackedInt32Array or message[PARTS].size() > MAX_EXTRA:
+			return null
+		extra_numbers = message[PARTS]
 	var parts := [message[2], message[3], message[4], message[5], message[6]]
 	var types: Array[int] = [
 		TYPE_PACKED_INT32_ARRAY,
@@ -100,6 +119,7 @@ static func from_message(message: Array) -> Snapshot:
 	var snapshot := Snapshot.new()
 	snapshot.scene = message[1]
 	snapshot.sounds = message[3]
+	snapshot.extra = extra_numbers
 	if (
 		not snapshot._read_inventory(message[2])
 		or not snapshot._read_keens(message[4])

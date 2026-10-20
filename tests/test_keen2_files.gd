@@ -156,7 +156,7 @@ func test_version_from_the_sizes() -> void:
 
 func test_catalog_lists_keen_1_then_keen_2() -> void:
 	var games := GameCatalog.games()
-	assert_equal(games.size(), 2, "two games")
+	assert_equal(games.size(), 3, "three games")
 	assert_equal(games[0].title, "Keen 1", "Keen 1 first")
 	assert_equal(games[0].scene, GameLaunch.KEEN_1_SCENE, "plays Keen 1")
 	assert_equal(games[0].data_folder, "game_data/keen1", "Keen 1's folder")

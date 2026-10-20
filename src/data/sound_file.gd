@@ -25,8 +25,12 @@ const COUNT_OFFSET := 6
 const END_MARK := 0xFFFF
 ## The clock of the PC's programmable interval timer, which drives the speaker.
 const TIMER_FREQUENCY := 1193182.0
-## The game plays one value of a sound per tick of its 140 Hz sound timer.
-const STEPS_PER_SECOND := 140.0
+## The game sets the timer's first channel to fire every 8192 of its clocks
+## (Chocolate Keen) and plays one value of a sound per firing.
+const SOUND_TIMER_DIVISOR := 8192.0
+## So one value lasts 1/145.65 s (the user's decision of 17-10-2026, for all
+## three games; it was 140, from older documentation).
+const STEPS_PER_SECOND := TIMER_FREQUENCY / SOUND_TIMER_DIVISOR
 
 ## Every sound in the file by name, as [Entry].
 var sounds: Dictionary[String, Entry] = {}

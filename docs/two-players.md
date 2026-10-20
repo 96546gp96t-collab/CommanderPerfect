@@ -51,6 +51,16 @@ walks.
 
 The controller still steers player 1 only.
 
+## Keen 2 and Keen 3
+
+Keen 2 (milestone B9) and Keen 3 (milestone C10) have two players the
+same way, with the same keys, the shared inventory and the same split
+screen; what is their own is in [keen2/gameplay.md](keen2/gameplay.md)
+and [keen3/gameplay.md](keen3/gameplay.md). In Keen 3 each Keen has his
+own ankh (a panel per Keen in the HUD, both times on the status screen),
+and on the world map the one Keen rides Messie and goes through the
+teleporters with the keys of either player.
+
 ## The split screen
 
 `SplitScreen` decides where the two cameras look; `TwoPlayerView` draws it.

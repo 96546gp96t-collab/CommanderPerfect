@@ -64,6 +64,8 @@ const KNOWN_OFFSETS: PackedInt32Array = [0x131F8, 0x130F8]
 const MAX_ANIMATION_FRAMES := 8
 const MIN_BEHAVIOR := -2
 const MAX_BEHAVIOR := 31
+## Planes as long as the tile count (Keen 1 and Keen 2); see [method find_in_image].
+const DEFAULT_STRIDE := -1
 
 var tile_count := 0
 var _planes: Array[PackedInt32Array] = []
@@ -75,16 +77,28 @@ var _animation_start := PackedInt32Array()
 ## [param image] (see [method DosExecutable.load_image]). Returns null when no
 ## table is found. [param known_offsets] are tried first (Keen 1's by
 ## default); then the whole image is searched.
+##
+## [param stride] is how many entries each plane holds; -1 (the default)
+## means [param tile_count], as in Keen 1 and Keen 2. Keen 3 has 624 tiles
+## but planes of 715 entries: only the first [param tile_count] entries of
+## each plane are checked and kept.
 static func find_in_image(
-	image: PackedByteArray, tile_count: int, known_offsets: PackedInt32Array = KNOWN_OFFSETS
+	image: PackedByteArray,
+	tile_count: int,
+	known_offsets: PackedInt32Array = KNOWN_OFFSETS,
+	stride := DEFAULT_STRIDE
 ) -> TileProperties:
-	var table_size := tile_count * PLANE_COUNT * BYTES_PER_ENTRY
+	var plane_size := _plane_size(tile_count, stride)
+	var table_size := plane_size * PLANE_COUNT * BYTES_PER_ENTRY
 	var candidates := Array(known_offsets)
 	for offset in range(0, image.size() - table_size + 1, BYTES_PER_ENTRY):
 		candidates.append(offset)
 	for offset: int in candidates:
-		if offset + table_size <= image.size() and _looks_like_table(image, offset, tile_count):
-			return from_table(image.slice(offset, offset + table_size), tile_count)
+		if (
+			offset + table_size <= image.size()
+			and _looks_like_table(image, offset, tile_count, plane_size)
+		):
+			return from_table(image.slice(offset, offset + table_size), tile_count, plane_size)
 	push_error("No tile property table for %d tiles found in the executable." % tile_count)
 	return null
 
@@ -98,15 +112,19 @@ static func load_from(files: GameFiles, tile_count: int) -> TileProperties:
 
 
 ## Builds the properties from the raw table: [constant PLANE_COUNT] arrays of
-## [param tile_count] little-endian words.
-static func from_table(table: PackedByteArray, tile_count: int) -> TileProperties:
+## [param tile_count] little-endian words, each array [param stride] words
+## long (-1, the default, means [param tile_count]).
+static func from_table(
+	table: PackedByteArray, tile_count: int, stride := DEFAULT_STRIDE
+) -> TileProperties:
+	var plane_size := _plane_size(tile_count, stride)
 	var properties := TileProperties.new()
 	properties.tile_count = tile_count
 	for plane in PLANE_COUNT:
 		var values := PackedInt32Array()
 		values.resize(tile_count)
 		for tile in tile_count:
-			values[tile] = table.decode_s16((plane * tile_count + tile) * BYTES_PER_ENTRY)
+			values[tile] = table.decode_s16((plane * plane_size + tile) * BYTES_PER_ENTRY)
 		properties._planes.append(values)
 	properties._find_animation_starts()
 	return properties
@@ -212,17 +230,25 @@ func _find_animation_starts() -> void:
 		_animation_start[tile] = tile - (tile - run_start) % frames
 
 
-static func _looks_like_table(image: PackedByteArray, offset: int, tile_count: int) -> bool:
+## The number of entries in each plane: [param stride], or
+## [param tile_count] for [constant DEFAULT_STRIDE].
+static func _plane_size(tile_count: int, stride: int) -> int:
+	return tile_count if stride == DEFAULT_STRIDE else stride
+
+
+static func _looks_like_table(
+	image: PackedByteArray, offset: int, tile_count: int, plane_size: int
+) -> bool:
 	for tile in tile_count:
 		var position := offset + tile * BYTES_PER_ENTRY
 		var frames := image.decode_s16(position)
 		if frames < 1 or frames > MAX_ANIMATION_FRAMES:
 			return false
-		var tile_behavior := image.decode_s16(position + tile_count * BYTES_PER_ENTRY)
+		var tile_behavior := image.decode_s16(position + plane_size * BYTES_PER_ENTRY)
 		if tile_behavior < MIN_BEHAVIOR or tile_behavior > MAX_BEHAVIOR:
 			return false
 		for plane in range(Field.TOP, PLANE_COUNT):
-			var side := image.decode_s16(position + plane * tile_count * BYTES_PER_ENTRY)
+			var side := image.decode_s16(position + plane * plane_size * BYTES_PER_ENTRY)
 			if side < 0 or side > Floor.ICE:
 				return false
 	return true

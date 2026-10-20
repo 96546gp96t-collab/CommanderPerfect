@@ -57,8 +57,9 @@ what they are for in Keen 1.
 
 ## Still to compare with the original
 
-- Whether the sound timer really runs at 140 Hz (the length and pitch of
-  the sounds depend on it).
+- The sound timer runs at 145.65 Hz (1193182 / 8192, Chocolate Keen) since
+  milestone C8 (decision of the user, 17-10-2026; it was 140 Hz); still to
+  hear next to the original.
 - The guesses in the table above.
 - How loud the speaker is relative to the rest (there is only one volume).
 - Whether cannons, tanks and splashes out of sight are really silent.

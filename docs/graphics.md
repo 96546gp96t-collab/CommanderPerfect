@@ -53,6 +53,18 @@ repeats its edge, so that linear filtering never picks up the neighbouring
 tile in the atlas. Godot's own texture padding is off, because it would be
 made from the larger image.
 
+Masked tiles (behavior -2, Keen 2 and 3; see `docs/file-formats.md`) are
+drawn by `LevelMap` on three layers: the whole tile behind the sprites, and
+on a layer in front of them (`masked()`, the z index of the foreground) the
+same tile through `masked_tiles.gdshader`. The shader reads the mask from
+the next cell of the same atlas (after the last column: the first cell of
+the next row) and keeps a pixel where the mask is darker than half. That
+works for the original, xBRZ and HD atlases alike, because the mask tile is
+scaled with the others. In the atlas behind a picture (below) a mask loses
+its black or white where that is the level's background color; the shader
+then counts those holes as black when the background is dark
+(`MaskedTiles`). A level without masked tiles leaves the third layer empty.
+
 `GraphicsLoader` makes xBRZ or reads HD graphics on worker threads (xBRZ:
 one image per job, all cores, under a second); the game keeps running with
 the current graphics until they are ready. What it made is kept, so
@@ -164,6 +176,19 @@ stays as it was). A level without a picture looks as in the original.
   right edge at the right end (`LevelBackdrop`). A wider picture glides
   more and looks deeper; 3840x1080 or so suits a level like level 1 well.
   In a split screen each half has its own.
+- **Keen 2 and Keen 3** have their own folders, `assets/backgrounds/keen2/`
+  and `assets/backgrounds/keen3/` (Keen 2's still empty; Keen 3's painted by
+  `tools/make_keen3_backgrounds.py`), and the player's
+  `game_data/keen2/backgrounds/` and `game_data/keen3/backgrounds/`, with
+  the same file names; Keen 1's pictures are never shown behind their
+  levels. Each game decides which levels may show one, because a picture
+  shows through the background color in every tile: Keen 2 only where the
+  plain background is the level's most used tile (B8, level 12;
+  `docs/keen2/gameplay.md`), Keen 3 where the level has sky, and then only
+  through the sky, never the dark gray of a base (levels 1-11, 13, 14 and
+  15; `docs/keen3/gameplay.md`, "Extras (C9)"). The painter is
+  `tools/make_keen3_backgrounds.py` with its canvas in
+  `tools/keen3_canvas.py`.
 
 ## Still open
 

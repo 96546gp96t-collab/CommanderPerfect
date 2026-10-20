@@ -44,3 +44,14 @@ in a folder called `keen2` next to `keen1`: at least `KEEN2.EXE`,
 `LEVEL16.CK2`, `LEVEL80.CK2`, `LEVEL81.CK2`, `LEVEL90.CK2` and `FINALE.CK2`.
 There is no `SOUNDS.CK2` or text file: those are inside `KEEN2.EXE`. You can
 also start with `-- --data-dir-keen2=/path/to/keen2`.
+
+## Keen 3
+
+Keen 3 (episode 3) is not shareware either, so you need your own copy. Put
+its files in a folder called `keen3` next to `keen1`: at least `KEEN3.EXE`,
+`EGAHEAD.CK3`, `EGALATCH.CK3` and `EGASPRIT.CK3`, plus `LEVEL01.CK3` …
+`LEVEL16.CK3`, `LEVEL80.CK3`, `LEVEL81.CK3`, `LEVEL90.CK3` and `FINALE.CK3`.
+As with Keen 2, the sounds and the texts are inside `KEEN3.EXE`. Version
+1.00 is tested; 1.31 (Steam/GOG) should work as well, because everything is
+found by its content. You can also start with
+`-- --data-dir-keen3=/path/to/keen3`.

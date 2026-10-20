@@ -53,10 +53,10 @@ static func _random_speed(session: LevelSession, lowest: float, highest: float) 
 
 
 ## Fires an enemy shot from [param start] the way this enemy faces, with
-## [param sound].
+## [param sound]; close to a wall it splashes at once.
 func _fire_shot(session: LevelSession, start: Vector2, sound: Sound.Id) -> void:
-	session.add_actor(Keen2EnemyShot.fired_by(get_script(), start, facing))
 	session.play_sound_at(sound, start)
+	session.add_actor(Keen2EnemyShot.fired_from(self, session, start))
 
 
 ## Where a shot starts that leaves this enemy's front edge, its top
