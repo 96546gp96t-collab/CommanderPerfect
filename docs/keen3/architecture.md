@@ -704,7 +704,8 @@ on `src/keen2`, `tests/test_keen2_*.gd`, `tests/keen2_fixtures.gd`,
 - **Our own pictures in `assets/backgrounds/keen3/`** (added after C9 at the
   user's request, 19-10-2026): `tools/make_keen3_backgrounds.py` paints one
   per level with sky (1-11, 13, 14, 15; 9, 10 and a new 14 after C11; its
-  canvas is `tools/keen3_canvas.py`) from code, in chunky pixels
+  canvas was `tools/keen3_canvas.py`, since D11 the shared
+  `tools/background_painter.py`) from code, in chunky pixels
   (216 rows blown up 5 times; 3840x1080 for the wide levels, 1920x1080 for
   3, 9, 10, 11, 13 and 15), each with a scene that fits the level. Nothing in them
   comes from the game files. `test_keen3_extras` checks that exactly those

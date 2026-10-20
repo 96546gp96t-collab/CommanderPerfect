@@ -712,8 +712,9 @@ Decided by the user (19-10-2026): the camera stops at a scroll block as in
 ## Pictures behind the levels
 
 An extra, widescreen only, on by default (the shared option). Keen 4's own
-pictures go in `assets/backgrounds/keen4/` (none yet), the player's own in
-`game_data/keen4/backgrounds/levelNN.png` (they win). Keen 1-3's pictures
+pictures are in `assets/backgrounds/keen4/` (ten, painted from code since
+D11, below), the player's own in `game_data/keen4/backgrounds/levelNN.png`
+(they win). Keen 1-3's pictures
 are never used.
 
 A Galaxy level's background is pictures made of tiles (trees, hills,
@@ -737,6 +738,44 @@ of level 5 but water in levels 8 and 10: there the top row has the cyan
 sky, so their water keeps its colour. In level 9 the glass pillars are
 sky-coloured inside and let the picture through as well (looked at with a
 test picture, not committed).
+
+**Our pictures (D11 part B, the user's request of 20-10-2026).**
+`tools/make_keen4_backgrounds.py` paints one per level with sky, as Keen 3's
+are made: from code only (nothing from the game files or their palette),
+in chunky pixels (216 rows blown up 5 times, lossless WebP, fixed seeds
+4000 + level), on the canvas shared with Keen 3 (`tools/background_painter.py`).
+Levels of 100 cells and wider get a wide picture (3840x1080), which glides
+further; levels 8, 9 and 10 (58-88 cells) a 16:9 one (1920x1080). The
+land stays low in every picture (its horizon is about 75-80% down the
+view, where the level has its own ground), so the sky behind the level's
+clouds, palm crowns and pyramid steps stays calm.
+
+| Level | Scene |
+|-------|-------|
+| 5 Chasm of Chills | a cold clear morning: a pale sun, snowy blue peaks, frosted firs on the hills (wide) |
+| 7 Hillville | a sunny afternoon: rolling green hills with round huts and palms, fat clouds (wide) |
+| 8 Sand Yego | a violet dusk: a big sun setting on far flat-topped buttes, sand dunes (16:9) |
+| 9 Miragia | a pastel noon: lavender sky, white sun, buttes with domes and towers mirrored in a mirage (16:9) |
+| 10 Lifewater Oasis | a fresh morning: a still lake in the dunes, palms on its far shore, the sun's path on the water (16:9) |
+| 11 Pyramid of the Moons | an evening with three moons and the first stars, far pyramids in moonlit dunes (wide) |
+| 12 Pyramid of Shadows | a red sunset behind a row of black pyramids whose shadows lie across the sand (wide) |
+| 13 Pyramid of the Ancients | a pale gold morning: great pyramids in the haze, broken columns and obelisks on a rise (wide) |
+| 14 Pyramid of the Forbidden | a storm in a green sky: a red sun in dark clouds, lightning, a black pyramid (wide) |
+| 16 Isle of Fire | dusk over the sea: an erupting volcano with lava and smoke, its glow on the water, a palm islet (wide) |
+
+Looked at in the game in widescreen (scripted shots from the sky of every
+level): the level's own white clouds sit on these skies without looking
+pasted (the night and storm skies are kept a clear blue or grey-green for
+that), the pictures show through level 9's glass domes, and the land of the
+picture lines up behind the grass line of level 5 and the palms of 7, 10
+and 16. `test_keen4_backgrounds` checks that exactly levels 5, 7-14 and 16
+have a picture.
+
+**To paint them again** (after changing a scene): `python3
+tools/make_keen4_backgrounds.py` (Pillow and NumPy; or with a folder to
+try them elsewhere), then `godot --headless --path . --import` for the
+`.import` files. To try a picture without building, put it in
+`game_data/keen4/backgrounds/` as above.
 
 ## Graphics
 

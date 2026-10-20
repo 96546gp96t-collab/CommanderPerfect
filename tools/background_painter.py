@@ -1,4 +1,5 @@
-"""The canvas that tools/make_keen3_backgrounds.py paints Keen 3's pictures on.
+"""The canvas that the pictures behind the levels are painted on, shared by
+tools/make_keen3_backgrounds.py and tools/make_keen4_backgrounds.py.
 
 Our own drawing helpers, nothing from the game files: a small picture in the
 chunky pixels of the game (dithered gradients, discs, clouds, hills, ridges,
