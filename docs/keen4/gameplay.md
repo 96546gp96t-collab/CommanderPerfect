@@ -389,7 +389,7 @@ original's order). Speeds are units per tic.
 | Shooting | Standing 9 + 6 tics (also up, then looking up); in the air ahead, up and down (9 + 1 + 6 tics, falling meanwhile); on a pole ahead, up and down. The shot starts at fixed offsets from Keen (Omni CK_KeenSpawnShot) |
 | Poles (misc 1) | Up (the pole at his head + 96) or down (the pole under his feet) grabs it: he goes to its column and is not clipped. Climbing 8 a tic, sliding 24 (both seen: the view follows him 1 and 3 px a frame); at the top he stops with his head just over it; at a floor he stands looking down; at the pole's end without a floor he falls. Jump: −20 for 10 tics, sideways −8 / 0 / 8 by left / none / right; no grabbing for 19 tics. Left/right at the bottom (a floor under him) steps off |
 | Ledges | Falling with left or right held, when the top of his box passes 64 units under a tile's top where that tile is a wall (side and top) and the tile above it is free: he hangs (12 tics, then waits). Up or towards the wall: four pulling steps of 10 tics (128 units each) and he stands on top, drawn in front of the ledge's tile unless that one is in front anyway; down or away: he falls |
-| Doors (misc 2) | Up at a door: he walks to its spot (96 into the door tile, a tile less for a two-wide door) 16 a tic, then 5 × 9 tics walking in (−64 each); then he stands at the info plane's target under the door (x high byte, y low byte), one tile above it; the view is put on him again; 110 tics nothing hurts him. Seen in level 1: the door at x 77-78 leads to the room with four sodas, the one at 66-67 to the room with the pole, as ours |
+| Doors (misc 2) | Up at a door: he walks to its spot (96 into the door tile, a tile less for a two-wide door) 16 a tic, then 5 × 9 tics walking in (−64 each); then he stands at the info plane's target under the door (x high byte, y low byte), one tile above it; the view is put on him at once, in his own think, so the objects after him in that frame already wake up or fall asleep by the new view (seen in the original, D13); 110 tics nothing hurts him. Seen in level 1: the door at x 77-78 leads to the room with four sodas, the one at 66-67 to the room with the pole, as ours |
 | Switches (misc 5, 6, 15) | Up at a switch: he walks to its spot (−64 from the tile), presses it (8 + 8 tics): the switch tile moves on by its animation offset; a bridge switch moves the bridge's two rows (the second from one tile further left) on by their offsets; another switch turns the platform turn point at its target on or off (info XOR 0x1F; the platforms follow it since D6) |
 | Dying | A deadly tile (misc 3) under his box, a deadly floor (top 8-15), or falling below the level (also in god mode): one of two death sprites at random, −40 up and 16 sideways under gravity +3, nothing clips him, the view stands still; once he has left the view the level is lost. Nothing kills him for 30 tics after a death started and 110 after a door |
 
@@ -415,7 +415,7 @@ own contact.
 
 | Creature (info) | What it does | Kills Keen | The stunner |
 |---|---|---|---|
-| Poison slug (22, 43, 44) | Crawls 64 units every 8 tics, turns at walls, ledges and deadly floors; 16 in 256 at every second step it stops 60 tics facing Keen and leaves slime (kills 300 tics, fades 60) | touching it, the slime | stunned for good: hops −24, slides 8, stars half a tile above |
+| Poison slug (22, 43, 44) | Crawls 64 units every 8 tics, turns at walls, ledges and deadly floors; 16 in 256 at every second step it stops 60 tics facing Keen and leaves slime (kills 300 tics, fades 60); leaving the slime costs it the step back that ends the stop (see "Asleep and awake" below; seen in the original, D13) | touching it, the slime | stunned for good: hops −24, slides 8, stars half a tile above |
 | Mad Mushroom (21) | Hops in place under gravity mid, facing Keen: −40, −40, −68 (seen: 31 px hops and a big leap) | touching it | nothing (the shot stops) |
 | Egg (13) | Lies still; Keen or a shot breaks it: the shell stays, three bits fly off (−28/−40, 28/−40, 0/−56), the bird hatches facing Keen (seen: an egg on Normal) | no | breaks it |
 | Bird (77, 78; hatched) | Stands 120 tics, walks 128 units every 7 tics to Keen (seen), turns at walls; when Keen stands on the ground 3 tiles higher it flies (speeds up 1 on odd tics, at most 16, plain box 1024 × 512) and lands near his height; off a ledge it flies too | touching it walking or flying | 240 tics, blinks 80, walks again |
@@ -438,6 +438,26 @@ CK_KeenRidePlatform); he leaves it by jumping, walking off its sides or
 bumping his head. While he rides a living Bounder, he steers it: standing
 more than 64 units left of its box it goes left, right of it right,
 otherwise straight up.
+
+### Asleep and awake (D13)
+
+What the five demos showed (research.md, "Watched in D13: demos"); with
+these rules whole frames of all five equal the original's:
+
+- **At the level's start everything sleeps** but Keen, the platforms and
+  the other ever-awake objects (Omni CK4_ScanInfoLayer). A creature wakes
+  when its box comes within one tile of the view, so one that lies two or
+  three tiles beyond the first view stays still (and draws no random
+  numbers) until Keen comes near. Awake, it falls asleep again only beyond
+  four tiles, with a chance of 2 × tics in 256 a frame (a random number is
+  drawn for that every frame it is that far).
+- **One shared step.** The original keeps the step of the object whose
+  action runs in one place; starting an action on another object (an
+  object it makes: a slug's slime, Keen's shot, a bubble; or one it stuns)
+  clears it. So an object that does that in its think loses the step it
+  had for that frame: a slug leaving its slime stays where it slimed
+  instead of stepping back 64.
+- **A door moves the view at once** (above, Keen's moves).
 
 ## Platforms and switches (D6)
 
@@ -554,7 +574,9 @@ Normal. It is kept in a saved game and shown in the status window.
 | Gems at the end | Lost when the level ends, also by dying |
 
 Items lie behind Keen (priority 2) and sleep when they are far from the
-view (more than 4 tiles); they wake within one tile of it (Omni).
+view (more than 4 tiles); they wake within one tile of it (Omni). Like the
+creatures they sleep from the level's start until the view comes that
+near (see "Asleep and awake").
 
 ## The neural stunner (D4)
 
@@ -676,7 +698,7 @@ shown). Everything in units (Omni `id_rf.c`, `ck_play.c`):
   Keen's box left of the left limit or right of the right limit plus the
   view ends the level, his feet below the bottom limit plus the view kill
   him; after a death the view stands still. Through a door the view is put
-  on him again as at the start.
+  on him again as at the start, at once in his think (D13).
 - **Drawing the view** (D8.1): the EGA card pans the picture sideways in
   steps of 2 pixels, so the view's left is drawn at the scroll's pixel
   rounded down to even (Omni `RF_Refresh`: the units & 0xef); its top is
