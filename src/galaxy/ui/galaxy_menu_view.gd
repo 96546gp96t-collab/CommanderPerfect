@@ -12,7 +12,10 @@ extends RefCounted
 ##   - the save slots as boxes 11 pixels apart with the save's name (or
 ##     "Empty" in the middle); the keys with their key in a box;
 ##   - a dialog: the watch's empty screen, a framed box in its middle with
-##     the question, a line, and the answer lines.
+##     the question, a line, and the answer lines;
+##   - the Sound and Music cards with a ring before the unchecked choices
+##     (Omni us_menu_itemChecked*: the icons after the normal ones);
+##   - Paddle War through [GalaxyPaddleWarView].
 ## The colours were checked against the original (v1.0) pixel for pixel.
 
 ## EGA colours of the panel (seen in v1.0).
@@ -22,6 +25,8 @@ const BRIGHT := 10
 ## The 8×8 icons in front of a choice (Omni us_menu_item*Tile).
 const ICON := 92
 const ICON_SELECTED := 93
+const ICON_UNCHECKED := 94
+const ICON_UNCHECKED_SELECTED := 95
 const ICON_DISABLED := 96
 const ICON_DISABLED_SELECTED := 97
 ## The card's title and its line (Omni).
@@ -75,6 +80,9 @@ var _graphics: GalaxyGraphics
 var _cards: GalaxyMenuCards
 var _font: GalaxyFont
 var _image: Image
+var _paddle_war: GalaxyPaddleWarView
+## The game the Paddle War picture shows.
+var _paddle_game: GalaxyPaddleWar
 
 
 static func create(graphics: GalaxyGraphics, cards: GalaxyMenuCards) -> GalaxyMenuView:
@@ -82,6 +90,7 @@ static func create(graphics: GalaxyGraphics, cards: GalaxyMenuCards) -> GalaxyMe
 	view._graphics = graphics
 	view._cards = cards
 	view._font = graphics.font(cards.font)
+	view._paddle_war = GalaxyPaddleWarView.create(graphics, cards)
 	return view
 
 
@@ -94,18 +103,35 @@ func draw(menus: GalaxyMenuController) -> Image:
 	var menu := menus.top()
 	if menu == null:
 		return _image
+	if menu.kind == GalaxyMenuController.PADDLE_WAR:
+		return _draw_paddle_war(menus.paddle_war())
+	var below := menus.below()
+	if below != null and below.kind == GalaxyMenuController.PADDLE_WAR:
+		# Paddle War's end: its field stays behind the dialog.
+		_image = _paddle_war.finish(menus.paddle_war()).duplicate() as Image
+		_dialog(menu.header)
+		return _image
 	_picture(_graphics.picture(_cards.watch), Vector2i.ZERO)
 	match menu.kind:
 		MenuController.MESSAGE, GalaxyMenuController.CONFIRM:
 			# The card stays behind the watch's dotted screen.
-			if menus.below() != null:
-				_card(menus.below(), menus, menus.depth() - 1)
+			if below != null:
+				_card(below, menus, menus.depth() - 1)
 			_dialog(menu.header)
 		MenuController.PRESS_KEY:
 			_card(menus.below(), menus, menus.depth() - 1)
 		_:
 			_card(menu, menus, menus.depth())
 	return _image
+
+
+## Paddle War: a new game starts its picture anew, then it changes as the
+## original's screen does.
+func _draw_paddle_war(game: GalaxyPaddleWar) -> Image:
+	if game != _paddle_game:
+		_paddle_game = game
+		return _paddle_war.start(game).duplicate() as Image
+	return _paddle_war.update(game).duplicate() as Image
 
 
 func _card(menu: Menu, menus: GalaxyMenuController, depth: int) -> void:
@@ -150,7 +176,8 @@ func _rows(menu: Menu, menus: GalaxyMenuController, at: Vector2i) -> void:
 			label = label.substr(GalaxyMenuController.GAP.length())
 		var selected := index == menu.cursor
 		_bar(Rect2i(ROW_BAR_LEFT, y, ROW_BAR_WIDTH, ROW), BACKGROUND)
-		_icon(item, selected and (menus.cursor_shown or waiting), Vector2i(at.x, y))
+		var checked := menus.is_checked(menu, index) or item.id != GalaxyMenuPages.RADIO
+		_icon(item, selected and (menus.cursor_shown or waiting), checked, Vector2i(at.x, y))
 		var color := BRIGHT if selected and item.enabled else NORMAL
 		var parts := label.split(GalaxyMenuController.VALUE_SEPARATOR)
 		_text(parts[0], Vector2i(at.x, y) + TEXT_SHIFT, color)
@@ -160,10 +187,14 @@ func _rows(menu: Menu, menus: GalaxyMenuController, at: Vector2i) -> void:
 		y += ROW
 
 
-func _icon(item: Menu.Item, selected: bool, at: Vector2i) -> void:
+## [param checked]: false for a choice of a Sound or Music card that is
+## not the checked one.
+func _icon(item: Menu.Item, selected: bool, checked: bool, at: Vector2i) -> void:
 	var tile := ICON
 	if not item.enabled:
 		tile = ICON_DISABLED_SELECTED if selected else ICON_DISABLED
+	elif not checked:
+		tile = ICON_UNCHECKED_SELECTED if selected else ICON_UNCHECKED
 	elif selected:
 		tile = ICON_SELECTED
 	_picture(_graphics.tile8(tile), at)

@@ -103,10 +103,14 @@ const MENU_CARDS_FROM_END: Dictionary[StringName, int] = {
 	MenuController.SLOTS_LOAD: 31,
 	MenuController.SLOTS_SAVE: 30,
 	GalaxyMenuController.CONFIGURE: 29,
+	GalaxyMenuController.SOUND_CARD: 28,
+	GalaxyMenuController.MUSIC_CARD: 27,
 	MenuController.KEY_SET: 24,
 	MenuController.OPTIONS: 22,
 }
 const WATCH_FROM_END := 18
+## Paddle War's title picture (Omni PIC_PADDLEWAR; D11).
+const PADDLE_WAR_FROM_END := 21
 
 
 ## The numbers above as a [GalaxyEpisode].
@@ -154,7 +158,9 @@ static func menu_cards(picture_count: int) -> GalaxyMenuCards:
 	var pictures: Dictionary[StringName, int] = {}
 	for kind in MENU_CARDS_FROM_END:
 		pictures[kind] = picture_count - MENU_CARDS_FROM_END[kind]
-	return GalaxyMenuCards.create(picture_count - WATCH_FROM_END, pictures)
+	var cards := GalaxyMenuCards.create(picture_count - WATCH_FROM_END, pictures)
+	cards.paddle_war_picture = picture_count - PADDLE_WAR_FROM_END
+	return cards
 
 
 ## All of Keen 4 in [param files]; null when something is missing.

@@ -4,14 +4,14 @@ extends "res://tests/test_case.gd"
 ## and Omnispeak's card code (facts only): the main card in and out of a
 ## game, New Game per difficulty with the cursor on Normal, the questions
 ## before ending, quitting or starting over, Load and Save with six slots and
-## a typed name, the score box option, Choose Game, the cursor that stops at
-## the ends and blinks every 35 tics. Saved games and settings go to a folder
+## a typed name, the score box option, Choose Game (D11: C on the quit
+## question), the cursor that stops at the ends and blinks every 35 tics. Saved games and settings go to a folder
 ## of their own in the user folder, which is removed afterwards.
 
 const TEST_DIRECTORY := "user://test_galaxy_menus"
 const SLOTS := 6
-## The main card's choices, in the original's order; Choose Game is ours
-## (where the original has Paddle War).
+## The main card's choices, in the original's order (D11: Paddle War in
+## its row; Choose Game is on the quit question).
 const MAIN_OUT_OF_GAME: PackedStringArray = [
 	"NEW GAME",
 	"LOAD GAME",
@@ -19,13 +19,12 @@ const MAIN_OUT_OF_GAME: PackedStringArray = [
 	"CONFIGURE",
 	"RETURN TO DEMO",
 	"END GAME",
-	"CHOOSE GAME",
+	"PADDLE WAR",
 	"QUIT",
 ]
 const SAVE_ROW := 2
 const RETURN_ROW := 4
 const END_ROW := 5
-const CHOOSE_ROW := 6
 const QUIT_ROW := 7
 ## Seen in the original: the cursor rests 35 tics shown, 35 hidden (Omni).
 const BLINK_TICS := 35
@@ -194,8 +193,10 @@ func test_quit_asks_also_on_escape() -> void:
 	assert_equal(_menus.top().kind, GalaxyMenuController.CONFIRM, "Escape on the main card asks")
 	assert_equal(
 		_menus.top().header,
-		PackedStringArray(["REALLY QUIT?", "PRESS Y TO QUIT", "ESC TO BACK OUT"]),
-		"the original's words"
+		PackedStringArray(
+			["REALLY QUIT?", "PRESS Y TO QUIT", "PRESS C TO CHOOSE GAME", "ESC TO BACK OUT"]
+		),
+		"the original's words and ours (C)"
 	)
 	_press(KEY_ESCAPE)
 	assert_equal(_menus.top().kind, MenuController.MAIN, "Escape: no")
@@ -213,8 +214,9 @@ func test_choose_game_goes_back_to_the_start_screen() -> void:
 	for in_game in [false, true]:
 		_create_menus()
 		_menus.open_main(in_game)
-		_select(CHOOSE_ROW)
+		_select(QUIT_ROW)
 		_press(KEY_ENTER)
+		_press(KEY_C)
 		assert_equal(
 			_chosen, [[MenuController.CHOICE_CHOOSE_GAME, 0]], "Choose Game (in game %s)" % in_game
 		)
@@ -334,7 +336,12 @@ func test_configure_and_the_score_box() -> void:
 	_press(KEY_ENTER)
 	var labels := _labels()
 	assert_true(labels.size() >= 2, "Configure has choices")
-	assert_equal(labels[0], "OPTIONS", "Options first")
+	assert_equal(
+		labels.slice(0, 3),
+		PackedStringArray(["SOUND", "MUSIC", "OPTIONS"]),
+		"Sound, Music, Options"
+	)
+	_select(2)
 	_press(KEY_ENTER)
 	assert_equal(_menus.top().kind, MenuController.OPTIONS, "the Options card")
 	assert_equal(_labels()[0], "SCORE BOX (ON)", "the score box, on")
