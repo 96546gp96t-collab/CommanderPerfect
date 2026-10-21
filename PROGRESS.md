@@ -161,10 +161,22 @@ verschillen, byte voor byte).
    plaatje: alleen level 9 (de voeten van de zuilen en koepels in de
    loopband en op de platforms, hoekjes bij muren, de gaten van de
    palen) en 3 pixels in level 5.
+9. **Lucht boven de looprand van Miragia** (derde ronde, 21-10). Naast de
+   gele slak (level 9, cellen 60-63 in rij 61) schilderde de vloer-regel
+   de lucht boven een lage richel lichtblauw: de bovenkant van die richel
+   vult alleen de onderste helft van zijn cellen, tussen de band van een
+   hogere richel en een hoge muur. Nu moet een gat ook bovenaan dicht zijn
+   (geen doorzichtige pixel in de bovenste rij van de cellen: de bovenlijn
+   van de band loopt erover); lucht die van boven binnenkomt toont het
+   plaatje. In het origineel (js-dos) is dat stuk dezelfde lucht als
+   tussen de richels. Alleen die vier cellen en de 3 pixels van level 5
+   (een inkeping aan de lucht, aan de rand van de kaart) zijn veranderd;
+   alle gaten van ronde 8 blijven dicht.
 
 - [x] Nieuwe suites `test_keen4_d13_2_fixes` (boom), `test_galaxy_split_look`, `test_galaxy_sky_pockets`; ze falen met de fixes uitgezet. 124 suites: 123 groen, `test_keen4_v14` overgeslagen (geen 1.4-bestanden op deze Mac), 0 fouten, geen SCRIPT ERROR, gdlint schoon.
 - [x] Regressies Keen 1, 2 en 4 tegen 314286d: alles gelijk. Apps gebouwd (Mac en Windows).
 - [x] Tweede ronde (7 en 8): nieuwe suite `test_galaxy_split_small_areas`, `test_galaxy_sky_pockets` herschreven, de glastest in `test_keen4_d13_2_fixes` aangepast en de split-wandeling daar met een vaste seed (het level begint op een willekeurige plek; soms hield een wezen speler 2 tegen, ook al op e3c8482). 125 suites: 124 groen, `test_keen4_v14` overgeslagen, 0 fouten, geen SCRIPT ERROR, gdlint schoon. Regressies Keen 1, 2 en 4 tegen e3c8482: alles gelijk. Apps opnieuw gebouwd.
+- [x] Derde ronde (9): `test_galaxy_sky_pockets` met de lage richel tegen een muur (faalt op de oude regel), de level 9-test kijkt ook naar die plek. 125 suites: 124 groen, `test_keen4_v14` overgeslagen, 0 fouten, geen SCRIPT ERROR, gdlint schoon. Regressies Keen 1, 2 en 4 tegen 50138bc: alles gelijk. Apps opnieuw gebouwd.
 - Open: alleen of met twee spelers blijft de blik staan na het loslaten tot Keen van de grond gaat (onze engine; niet naast het origineel gelegd).
 - Open: gaat een Keen door een deur terwijl het scherm gesplitst is, dan glijdt zijn helft over het level naar de nieuwe plek (zo was het al); zeg het als dat moet springen.
 - Open: schermafbeeldingen met `scripted_play.gd` op de Mac lopen qua frames niet vast (laden duurt wisselend); pauzes zijn daarom vooral in de tests vergeleken.

@@ -783,15 +783,25 @@ cell stands on a foreground tile whose top is walked on. A run of floor
 cells that let the sky through is a hole when one end at least is the
 floor's band (a floor cell drawn in front that lets nothing through and is
 not walked on itself) and the other end the band or a wall (drawn in front,
-nothing through, walked on). The holes' see-through pixels are painted in
+nothing through, walked on), and the run is closed at the top: none of its
+cells lets the sky through in its top pixel row (the band's top line runs
+over the hole). The holes' see-through pixels are painted in
 the sky's colour behind the tiles, in front of the picture; worked out once
 per level from its first tiles, kept per level. A run that ends anywhere
 else (the edge of the ground, open sky beside it, walls on both ends: the
-sky above a shelf between two walls) is no hole. Checked on every Keen 4
-level with a picture: only level 9 has holes (the feet of the glass
-columns and domes in the walkway and on the platforms' top faces, corners
-where a band meets a wall, the pole holes), and 3 pixels in level 5 (a
-notch in a stone floor). The first version of this fix (earlier on
+sky above a shelf between two walls) is no hole, and neither is a run open
+at the top: that is air above a lower floor. In level 9 beside the poison
+slug (cells 60-63, row 61) a low ledge's top face fills only the bottom
+half of its cells, between a higher ledge's band and a tall wall; the
+upper half is plain sky (background 1085) joined to the air above, and in
+the original (js-dos, v1.0) it is the same light blue as the open sky
+between the ledges, with the face's black top line below it. Checked on
+every Keen 4 level with a picture: only level 9 has holes (the feet of the
+glass columns and domes in the walkway and on the platforms' top faces,
+corners where a band meets a wall, the pole holes); the top-edge check
+took out only those four cells of level 9 and the 3 pixels in level 5 (a
+notch in the top row of a stone floor at the map's right edge, open to the
+sky above). The first version of this fix (earlier on
 21-10) painted all sky shut in by the drawing, which took the picture out
 of the glass too; the user wanted the picture through the glass and only
 the floor solid.

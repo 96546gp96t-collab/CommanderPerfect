@@ -50,6 +50,9 @@ const GLASS_LEVEL := 9
 const FLOOR_HOLE_CELL := Vector2i(12, 69)
 const GLASS_CELL := Vector2i(12, 60)
 const OPEN_CELL := Vector2i(30, 3)
+## The air above a low ledge's face, beside the poison slug: the high
+## floor's band on its left, a wall on its right, open at the top.
+const LEDGE_AIR_CELL := Vector2i(61, 61)
 const TILE_PIXELS := 16
 
 var _view: Keen4View
@@ -326,6 +329,9 @@ func test_level_9s_floor_keeps_the_sky_colour_behind_the_picture() -> void:
 		not _covers(patch.rows(), GLASS_CELL), "the glass above the floor shows the picture"
 	)
 	assert_true(not _covers(patch.rows(), OPEN_CELL), "the open sky shows the picture")
+	assert_true(
+		not _covers(patch.rows(), LEDGE_AIR_CELL), "the air above the low ledge shows the picture"
+	)
 
 
 func test_without_a_picture_nothing_is_painted() -> void:

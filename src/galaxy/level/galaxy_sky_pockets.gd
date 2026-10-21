@@ -13,12 +13,15 @@ extends RefCounted
 ## on). The band is drawn in front, lets nothing through and is not walked
 ## on itself. A run of floor cells that let the sky through, with the band
 ## at one end at least and the band or a wall (drawn in front, nothing
-## through, walked on) at the other, is a hole in the floor: [method find]
-## gives its see-through pixels as rows, to be painted in the sky's colour
-## behind the tiles. A run that ends anywhere else (the edge of the
-## ground, open sky beside it) is no hole, and neither is the sky above a
-## shelf between two walls: the picture shows there and through the glass
-## above the floor. Worked out once per
+## through, walked on) at the other, and closed at the top (the band's top
+## line runs over it: no cell lets the sky through in its top pixel row),
+## is a hole in the floor: [method find] gives its see-through pixels as
+## rows, to be painted in the sky's colour behind the tiles. A run that
+## ends anywhere else (the edge of the ground, open sky beside it) is no
+## hole, and neither is the sky above a shelf between two walls, nor a run
+## open at the top: that is the air above a lower floor (in level 9 the
+## top face of a low ledge between a high one and a wall). The picture
+## shows there and through the glass above the floor. Worked out once per
 ## map, from its first tiles (tiles a switch changes later keep what was
 ## found).
 
@@ -59,6 +62,12 @@ class Cells:
 	## A floor cell with sky behind it.
 	func is_hole(x: int, y: int) -> bool:
 		return is_floor(x, y) and not mask(x, y).is_empty()
+
+	## Whether the cell lets the sky through in its top pixel row: air
+	## comes in from above, so it is no hole under the floor's top line.
+	func is_open_at_top(x: int, y: int) -> bool:
+		var through := mask(x, y)
+		return not through.is_empty() and through.slice(0, TILE).has(1)
 
 	## A floor cell drawn in front that lets nothing through and is not
 	## walked on itself: the floor's band.
@@ -108,7 +117,7 @@ static func _find_in_row(cells: Cells, y: int, rows: Array[Rect2i]) -> void:
 		var start := x
 		while cells.is_hole(x, y):
 			x += 1
-		if _is_hole_between(cells, start - 1, x, y):
+		if _is_hole_between(cells, start - 1, x, y) and _is_closed_at_top(cells, start, x, y):
 			for cell in range(start, x):
 				_add_rows(rows, cells.mask(cell, y), Vector2i(cell, y) * TILE)
 
@@ -125,6 +134,15 @@ static func _is_hole_between(cells: Cells, left: int, right: int, y: int) -> boo
 		elif not cells.is_wall(end, y):
 			return false
 	return bands > 0
+
+
+## Whether no cell of the run from [param start] to [param end] (not
+## included) in row [param y] lets the sky in from above.
+static func _is_closed_at_top(cells: Cells, start: int, end: int, y: int) -> bool:
+	for x in range(start, end):
+		if cells.is_open_at_top(x, y):
+			return false
+	return true
 
 
 ## The pixels where [param back] (cleared sky see-through; null: none)
