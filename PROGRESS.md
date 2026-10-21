@@ -192,6 +192,7 @@ verschillen, byte voor byte).
 - [x] Tweede ronde (7 en 8): nieuwe suite `test_galaxy_split_small_areas`, `test_galaxy_sky_pockets` herschreven, de glastest in `test_keen4_d13_2_fixes` aangepast en de split-wandeling daar met een vaste seed (het level begint op een willekeurige plek; soms hield een wezen speler 2 tegen, ook al op e3c8482). 125 suites: 124 groen, `test_keen4_v14` overgeslagen, 0 fouten, geen SCRIPT ERROR, gdlint schoon. Regressies Keen 1, 2 en 4 tegen e3c8482: alles gelijk. Apps opnieuw gebouwd.
 - [x] Derde ronde (9): `test_galaxy_sky_pockets` met de lage richel tegen een muur (faalt op de oude regel), de level 9-test kijkt ook naar die plek. 125 suites: 124 groen, `test_keen4_v14` overgeslagen, 0 fouten, geen SCRIPT ERROR, gdlint schoon. Regressies Keen 1, 2 en 4 tegen 50138bc: alles gelijk. Apps opnieuw gebouwd.
 - [x] Derde ronde (10): nieuwe suites `test_galaxy_wide_waking` (een ding naast het 4:3-beeld slaapt in 4:3 en is wakker en getekend in breedbeeld, marges, split-helft, een breed gespeeld level met F2 halverwege komt terug uit zijn frames; faalt zonder de brede telling) en `test_keen4_wide_waking_screen` (scherm: breedte in een level en in de opslag, 4:3 en demo het origineel). 127 suites: 126 groen, `test_keen4_v14` overgeslagen, 0 fouten, geen SCRIPT ERROR, gdlint schoon. Regressies Keen 1, 2 en 4 tegen 50138bc: alles gelijk (op de regressiebeelden van Keen 4 staat niets aan de rand van het brede beeld). Apps opnieuw gebouwd.
+- [x] **Plaatjes: piramides en Miragia** (21-10, verzoek van de gebruiker). Level 11 en 12: de piramides zweefden (lucht tussen hun voet en de duinen, in 12 schaduwen recht eronder als spiegelbeelden). Nu loopt het zand als vlakte door tot hun voet, staat elke piramide er 2-3 rijen in en valt de schaduw over het zand van het licht af: in 12 lang en opzij van de lage zon (nu links), in 11 kort van de maan. Level 9: de paarse heuvels met koepels en masten zijn weg; nu meer zand: duinen met ribbels (zoals het zand van het level zelf), een luchtspiegeling met rotsnaalden en palmen aan de horizon, en een karavaan kamelen op een duinkam. Nagekeken: 5, 7, 8, 10, 13, 14 en 16 staan al op de grond en zijn pixel voor pixel gelijk gebleven. Bekeken als plaatje en in het spel (breedbeeld, levels 9, 11 en 12). 127 suites: 126 groen, `test_keen4_v14` overgeslagen, 0 fouten, geen SCRIPT ERROR (geen GDScript veranderd). Apps opnieuw gebouwd.
 - Open: alleen of met twee spelers blijft de blik staan na het loslaten tot Keen van de grond gaat (onze engine; niet naast het origineel gelegd).
 - Open: gaat een Keen door een deur terwijl het scherm gesplitst is, dan glijdt zijn helft over het level naar de nieuwe plek (zo was het al); zeg het als dat moet springen.
 - Open: schermafbeeldingen met `scripted_play.gd` op de Mac lopen qua frames niet vast (laden duurt wisselend); pauzes zijn daarom vooral in de tests vergeleken.
@@ -291,9 +292,9 @@ edelsteen. Vloeiende beweging werkt overal. Beide staan standaard uit.
 **De plaatjes.** Tien eigen achtergronden voor de levels met lucht (5, 7-14,
 16), getekend vanuit code (`tools/make_keen4_backgrounds.py`, met de
 gedeelde `tools/background_painter.py`): besneeuwde bergen, een heuveldorp,
-buttes bij zonsondergang, een luchtspiegeling, een oase, drie manen boven
-piramides, zwarte piramides bij rode zon, ruïnes, een storm, een vulkaan.
-Samen ~56 KB, alleen in breedbeeld.
+buttes bij zonsondergang, duinen met een luchtspiegeling en een karavaan,
+een oase, drie manen boven piramides, piramides met lange schaduwen bij rode zon, ruïnes, een storm, een vulkaan.
+Samen ~57 KB, alleen in breedbeeld.
 
 - [x] Paddle War, Choose Game onder Quit, SOUND- en MUSIC-kaarten, F1 in het menu, muziek in het menu.
 - [x] xBRZ- en vloeiende-beweging-fixes; tests die een draaiend scherm nodig hebben lopen nu mee (`TREE_SUITES` in de testrunner).

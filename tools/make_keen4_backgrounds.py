@@ -25,6 +25,7 @@ import os
 import sys
 
 import numpy as np
+from PIL import Image, ImageDraw
 
 from background_painter import BAYER, NARROW, WIDE, Canvas, mix, rgb
 
@@ -43,6 +44,63 @@ def _pyramid(c, cx, ground, half, tall, lit, shade, courses=0, course=None, sun_
     if courses and course is not None:
         rows = inside & (up % courses == courses - 1) & (up > 0)
         c.px[rows] = mix(c.px[rows], rgb(course), 0.6)
+
+
+def _ground_shadow(c, cx, ground, half, length, drop, colour, away=1, dither=0.8):
+    """The shadow a pyramid casts on flat sand: a thin wedge from under its
+    base out to the side away from the light (`away` is +1 for right, -1
+    for left), `length` long and coming `drop` rows towards the viewer at
+    its tip. Painted before the pyramid, so the pyramid stands on it."""
+    mask = Image.new("L", (c.w, c.h), 0)
+    tip = (cx + away * (half + length), ground + drop)
+    near = (cx - away * half * 0.2, ground + drop + 1)
+    ImageDraw.Draw(mask).polygon([near, (cx + away * half, ground - 1), tip], fill=1)
+    ys, xs = np.mgrid[0 : c.h, 0 : c.w]
+    inside = (np.array(mask) > 0) & (ys >= ground - 1)
+    c.px[inside & (BAYER[ys % 4, xs % 4] < dither)] = rgb(colour)
+
+
+def _ripples(c, line, colour, spacing=4, depth=40, wave=9.0):
+    """Wind ripples on sand below a skyline: thin wavy lines that follow
+    the dune's top, broken up by the dither (the sand of Miragia has
+    them too)."""
+    ys, xs = np.mgrid[0 : c.h, 0 : c.w]
+    below = ys - np.round(line).astype(int)[xs]
+    wobble = np.round(np.sin(xs / wave + below * 0.35) * 1.5).astype(int)
+    on = (below > 2) & (below < depth) & ((below + wobble) % spacing == 0)
+    on &= BAYER[ys % 4, xs % 4] < 0.7
+    c.px[on] = rgb(colour)
+
+
+# A camel walking right, as a far silhouette (our own little drawing).
+CAMEL = (
+    "....#.....",
+    "...###..##",
+    "..#####.#.",
+    ".#######..",
+    ".######...",
+    ".#.#..#.#.",
+    ".#.#..#.#.",
+)
+
+
+def _camel(c, x, ground, colour):
+    """A camel with its rider standing on `ground` with its left side at x."""
+    for row, text in enumerate(CAMEL):
+        for col, mark in enumerate(text):
+            if mark == "#":
+                c._dot(x + col, ground - len(CAMEL) + 1 + row, rgb(colour))
+
+
+def _spire(c, x, ground, tall, width, colour, light):
+    """A rock spire of the far desert: a tapering column of wind-worn rock,
+    its sunny side lit, rough at the edges."""
+    for k in range(tall):
+        t = k / tall
+        rough = int(c.rng.integers(0, 2))
+        half = max(1, int(round(width * (1 - 0.7 * t ** 1.5)))) - (rough if t > 0.2 else 0)
+        c._rect(x - half, ground - k, 2 * half + 1, 1, colour)
+        c._rect(x - half, ground - k, max(1, half // 2), 1, light)
 
 
 def _dunes(c, base, waves, colour, rim, shade, phase=0.0, sun_left=True):
@@ -223,25 +281,34 @@ def level08(c):
 
 
 def level09(c):
-    """Miragia: a shimmering pastel noon in the desert, a white-hot sun, and
-    on the horizon a mirage: far buttes and domes floating over a false lake
-    that mirrors them in wavering bands."""
+    """Miragia: a shimmering pastel noon over a sea of sand, a white-hot
+    sun, far rock spires and a little oasis on the horizon mirrored in the
+    false lake of a mirage, a caravan on the crest of a dune and rippled
+    dunes in front."""
     c.sky([(0, 0x6A5AB8), (0.45, 0xA88CD0), (0.72, 0xE8B8D8), (1, 0xFFE4D8)])
     c.disc(c.w * 0.3, c.h * 0.2, 11, 0xFFFFF4, glow=0xFFE8F0, glow_size=22)
-    horizon = 0.64
-    buttes = c.plateaus(horizon, 4, 0.18)
-    c.fill_below(buttes, 0x9A70A8, rim=0xC898C8)
-    # The far city of the mirage: domes and thin towers on the buttes.
-    for x in (int(c.w * 0.14), int(c.w * 0.4), int(c.w * 0.66), int(c.w * 0.88)):
-        y = c.footing(buttes, x - 8, 16)
-        c._blob(x, y, 8, 0xB088C0, flat_below=y)
-        c._rect(x, y - 13, 1, 5, 0xB088C0)
-        c._rect(x + 10, y - 16, 2, 16, 0xB088C0)
-        c._rect(x + 9, y - 18, 4, 2, 0xC8A0D0)
+    horizon = 0.62
+    far = _dunes(c, horizon + 0.01, [(47, 0.012), (17, 0.004)], 0xE8B8B0, 0xFFE0D4, 0xD8A0A8)
+    for x, tall, width in ((0.12, 24, 5), (0.17, 13, 3), (0.78, 28, 6), (0.85, 15, 3)):
+        x = int(c.w * x)
+        _spire(c, x, c.footing(far, x - width, 2 * width + 1), tall, width, 0xB088B0, 0xD0A8C8)
+    for x in (0.47, 0.5, 0.53, 0.55):
+        x = int(c.w * x)
+        _palm(c, x, c.footing(far, x - 1, 3), int(c.rng.integers(9, 13)),
+              c.rng.choice([-1, 1]) * 0.5, 0xA080A8, fronds=6)
     c.haze(0xFFE4D8, 0.46, horizon, 0.5)
-    _mirage(c, horizon, 0.1, 0xF4D4DC, strength=0.3)
-    sand = c.hills(0.76, 1.0, [(71, 0.01), (23, 0.004)])
-    c.fill_below(sand, 0xE8C8A0, rim=0xFFE8C8, dark=0xD8B090)
+    # The false lake: the sky and the far land mirrored, just below the
+    # horizon, where the hot air bends the light.
+    _mirage(c, horizon + 0.012, 0.07, 0xF4D4DC, strength=0.3)
+    mid = _dunes(c, 0.74, [(67, 0.035), (23, 0.008)], 0xE0A888, 0xF8D0B0, 0xC08470, phase=0.8)
+    _ripples(c, mid, 0xCC9478, spacing=4, depth=30)
+    # A caravan walking along the crest of the middle dunes.
+    crest = int(np.argmin(mid[: c.w // 2]))
+    for k in range(4):
+        x = crest - 30 + k * 13
+        _camel(c, x, c.footing(mid, x + 1, 8), 0x7A4C6A)
+    near = _dunes(c, 0.86, [(53, 0.04), (19, 0.01)], 0xC88A68, 0xE8B090, 0xA0664E, phase=2.2)
+    _ripples(c, near, 0xB07658, spacing=5, depth=60, wave=12.0)
 
 
 def level10(c):
@@ -265,50 +332,51 @@ def level10(c):
 
 def level11(c):
     """The Pyramid of the Moons: three moons in a deep blue evening sky with
-    the first stars, two far pyramids and moonlit dunes."""
+    the first stars, far pyramids standing on a moonlit plain and dunes in
+    front."""
     c.sky([(0, 0x16245C), (0.5, 0x2E4E98), (0.8, 0x6A8CC4), (1, 0xA8BCD8)])
     c.stars(60, 0.0, 0.36)
-    c.disc(c.w * 0.24, c.h * 0.24, 16, 0xF0ECD8, glow=0x4C64A8, glow_size=14, shade=0xC4C0B0)
+    moon_x = c.w * 0.24
+    c.disc(moon_x, c.h * 0.24, 16, 0xF0ECD8, glow=0x4C64A8, glow_size=14, shade=0xC4C0B0)
     c.craters(c.w * 0.24 + 4, c.h * 0.24 - 3, 16, 0xDCD6C0, 5)
     c.disc(c.w * 0.58, c.h * 0.14, 8, 0xE8D0F0, shade=0xB8A0C8)
     c.disc(c.w * 0.83, c.h * 0.3, 5, 0xD0F0E8, shade=0xA0C8C0)
     horizon = 0.68
+    # The sand runs on behind the dunes up to the pyramids' feet, so they
+    # stand on it, each with its short shadow from the high moon.
+    c.plain(horizon, 0x56669A, rim=0x8A9AC4)
+    ground = int(horizon * c.h) + 3
     for cx, half, tall in ((0.4, 50, 46), (0.66, 30, 28), (0.12, 20, 19), (0.88, 16, 15)):
-        _pyramid(c, c.w * cx, horizon * c.h + 2, half, tall, 0x7A86B0, 0x3E4A7A,
-                 courses=4, course=0x5A6696)
+        cx = c.w * cx
+        away = 1 if cx > moon_x else -1
+        _ground_shadow(c, cx, ground, half, half * 0.6, 3, 0x34406E, away=away)
+        _pyramid(c, cx, ground, half, tall, 0x7A86B0, 0x3E4A7A,
+                 courses=4, course=0x5A6696, sun_left=cx > moon_x)
     c.haze(0x9AB0D0, 0.5, horizon, 0.5)
     _dunes(c, horizon + 0.04, [(59, 0.04), (19, 0.01)], 0x4A5A88, 0x8A9AC4, 0x323E6A)
     _dunes(c, 0.82, [(41, 0.05), (13, 0.01)], 0x34406E, 0x6A7AAA, 0x222A50, phase=1.1)
 
 
 def level12(c):
-    """The Pyramid of Shadows: the sun setting red behind a row of far
-    pyramids, whose long shadows lie across orange dunes under a purple
-    sky."""
+    """The Pyramid of Shadows: the sun setting red at the far end of a
+    plain of orange sand under a purple sky, a row of pyramids standing on
+    it, each throwing a long shadow across the sand away from the sun."""
     c.sky([(0, 0x2A1448), (0.45, 0x6A2460), (0.72, 0xC0404A), (0.9, 0xF08040), (1, 0xF8B060)])
     c.stars(20, 0.0, 0.22)
-    sun_x = c.w * 0.5
+    sun_x = c.w * 0.2
     horizon = 0.68
     c.disc(sun_x, c.h * horizon - 6, 20, 0xFFD080, glow=0xF07040, glow_size=30)
-    tops = []
-    for k in range(5):
-        cx = c.w * (0.1 + 0.2 * k) + c.rng.integers(-12, 12)
-        half = int(c.rng.integers(14, 30))
-        _pyramid(c, cx, horizon * c.h, half, half, 0x3A1430, 0x2A0C24)
-        tops.append((cx, half))
-    # Long shadows from the low sun, falling towards the viewer.
-    ground = c.hills(horizon + 0.02, 1.0, [(37, 0.008)])
-    c.fill_below(ground, 0xD07040, rim=0xF0A060)
-    ys, xs = np.mgrid[0 : c.h, 0 : c.w]
-    for cx, half in tops:
-        # A pyramid's shadow is a triangle on the sand, its point towards
-        # the viewer (down in the picture) and away from the sun.
-        down = ys - horizon * c.h
-        length = half * 1.6
-        lean = (cx - sun_x) / c.w * down * 2.2
-        width = half * np.clip(1 - down / length, 0, 1)
-        shadow = (ys > ground[xs]) & (down < length) & (np.abs(xs - cx - lean) < width)
-        c.px[shadow & (BAYER[ys % 4, xs % 4] < 0.8)] = rgb(0x6A2834)
+    c.plain(horizon, 0xD07040, rim=0xF0A060)
+    ground = int(horizon * c.h) + 2
+    for at in (0.05, 0.36, 0.54, 0.72, 0.9):
+        cx = c.w * at + c.rng.integers(-10, 10)
+        half = int(c.rng.integers(16, 30))
+        # The sun is low and to one side: the shadow runs along the sand,
+        # several times the pyramid's width, slanting a little towards the
+        # viewer.
+        away = 1 if cx > sun_x else -1
+        _ground_shadow(c, cx, ground, half, half * 3.2, 5, 0x9A4438, away=away, dither=1.0)
+        _pyramid(c, cx, ground, half, half, 0x5A1C34, 0x2A0C24, sun_left=cx > sun_x)
     c.haze(0xF08040, 0.6, 0.72, 0.4)
     _dunes(c, 0.84, [(47, 0.04), (17, 0.01)], 0x8A3C34, 0xC0604A, 0x5A2028, phase=0.6)
 

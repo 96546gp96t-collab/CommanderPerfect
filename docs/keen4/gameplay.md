@@ -845,10 +845,10 @@ clouds, palm crowns and pyramid steps stays calm.
 | 5 Chasm of Chills | a cold clear morning: a pale sun, snowy blue peaks, frosted firs on the hills (wide) |
 | 7 Hillville | a sunny afternoon: rolling green hills with round huts and palms, fat clouds (wide) |
 | 8 Sand Yego | a violet dusk: a big sun setting on far flat-topped buttes, sand dunes (16:9) |
-| 9 Miragia | a pastel noon: lavender sky, white sun, buttes with domes and towers mirrored in a mirage (16:9) |
+| 9 Miragia | a pastel noon over a sea of sand: lavender sky, white sun, far rock spires and a little oasis of palms mirrored in the false lake of a mirage, a camel caravan on a dune crest, rippled dunes in front (16:9; the flat-topped hills went in D13.2) |
 | 10 Lifewater Oasis | a fresh morning: a still lake in the dunes, palms on its far shore, the sun's path on the water (16:9) |
-| 11 Pyramid of the Moons | an evening with three moons and the first stars, far pyramids in moonlit dunes (wide) |
-| 12 Pyramid of Shadows | a red sunset behind a row of black pyramids whose shadows lie across the sand (wide) |
+| 11 Pyramid of the Moons | an evening with three moons and the first stars, far pyramids standing on a moonlit plain (the sand runs on up to their feet, short shadows away from the big moon), dunes in front (wide) |
+| 12 Pyramid of Shadows | a red sun setting low at the far end of an orange plain, a row of dark pyramids standing on it, each throwing a long shadow sideways across the sand away from the sun (wide) |
 | 13 Pyramid of the Ancients | a pale gold morning: great pyramids in the haze, broken columns and obelisks on a rise (wide) |
 | 14 Pyramid of the Forbidden | a storm in a green sky: a red sun in dark clouds, lightning, a black pyramid (wide) |
 | 16 Isle of Fire | dusk over the sea: an erupting volcano with lava and smoke, its glow on the water, a palm islet (wide) |
@@ -860,6 +860,22 @@ that), the pictures show through level 9's glass domes, and the land of the
 picture lines up behind the grass line of level 5 and the palms of 7, 10
 and 16. `test_keen4_backgrounds` checks that exactly levels 5, 7-14 and 16
 have a picture.
+
+**Standing on the ground (D13.2, the user's request of 21-10-2026).** In
+11 and 12 the far pyramids stood on the horizon line with the dunes in
+front lower than their feet, so sky showed under them and they seemed to
+hover; 12's shadows hung straight down under them like reflections. Now
+the sand runs on as a flat plain behind the dunes, every pyramid's base
+sits 2-3 rows into it, and each casts its shadow on that plain as a
+wedge (`_ground_shadow`) away from the light: long and sideways from
+12's low sun (moved to the left), short from 11's moon. The other
+pictures with things standing on land (5, 7, 8, 10, 13, 14, 16) were
+looked at again: they already stand on their footing or on dunes that
+reach their base, and are unchanged (pixel for pixel). Miragia (9) lost
+its flat-topped hills with domes and masts for more sand: rippled dunes
+(`_ripples`, after the level's own rippled sand), a mirage lake on the
+horizon mirroring far rock spires (`_spire`) and palms, and a little
+caravan (`_camel`, our own 10x7 drawing).
 
 **To paint them again** (after changing a scene): `python3
 tools/make_keen4_backgrounds.py` (Pillow and NumPy; or with a folder to
