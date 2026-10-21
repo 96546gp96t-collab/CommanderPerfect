@@ -12,7 +12,8 @@ extends GameScreen
 ##     widescreen, with what lies beyond the area between the scroll
 ##     blocks covered ([GalaxyViewCover]);
 ##   - the picture behind the level, in widescreen, when the option is on
-##     and the level has sky ([GalaxyBackdropPictures]).
+##     and the level has sky ([GalaxyBackdropPictures]); sky shut in by
+##     the level's drawing (glass) keeps its colour ([GalaxySkyPockets]).
 ## The node layout is [code]level_view.tscn[/code]'s, as Keen 2 and 3 copy
 ## it ([GameScreen] finds its nodes by name); Keen 1-3's nodes (LevelMap,
 ## Keen, ActorLayer, ...) stay empty and hidden.
@@ -47,6 +48,12 @@ var _cleared_color := Color.TRANSPARENT
 var _sprites_shown := PackedInt32Array()
 ## The picture behind the level shown now, or null.
 var _backdrop_picture: Texture2D
+## The sky shut in by the level's drawing (glass), painted in its colour
+## while a picture is behind the level (D13.2).
+var _sky_patch := GalaxySkyPatch.new()
+## The shut-in sky found per map and sky colour (a level played again is
+## the same at its start; finding it takes a moment).
+var _sky_pockets: Dictionary[String, Array] = {}
 
 @onready var _galaxy_map: GalaxyLevelMap = %GalaxyMap
 @onready var _objects: GalaxyObjectLayer = %Objects
@@ -79,6 +86,9 @@ func _set_up_screen() -> void:
 	_screen.material = ShaderMaterial.new()
 	_screen.material.shader = EVEN_PIXELS_SHADER
 	_galaxy_map.tiles_missing.connect(_on_tiles_missing)
+	# Behind the tiles, in front of the picture.
+	_galaxy_map.add_sibling(_sky_patch)
+	_galaxy_map.get_parent().move_child(_sky_patch, _galaxy_map.get_index())
 	_apply_display_settings()
 
 
@@ -157,6 +167,24 @@ func _apply_backdrop() -> void:
 	if color != _sky_color:
 		_sky_color = color
 		_rebuild_atlases()
+	_update_sky_patch()
+
+
+## The sky shut in by the level's drawing keeps its colour (the inside of
+## level 9's glass): only the open sky shows the picture (D13.2).
+func _update_sky_patch() -> void:
+	if _sky_color.a == 0.0 or _map == null:
+		_sky_patch.show_rows([], Color.TRANSPARENT)
+		return
+	var key := "%d %s" % [_map.number, _sky_color.to_html()]
+	if not _sky_pockets.has(key):
+		var back_image := func(tile: int) -> Image:
+			var image := _data.graphics.back_tile(tile)
+			return _cleared(tile, image) if image != null else null
+		_sky_pockets[key] = GalaxySkyPockets.find(_map, back_image, _data.graphics.fore_tile)
+	var rows: Array[Rect2i] = []
+	rows.assign(_sky_pockets[key])
+	_sky_patch.show_rows(rows, _sky_color)
 
 
 func _apply_display_settings() -> void:

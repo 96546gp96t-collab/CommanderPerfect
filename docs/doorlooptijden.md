@@ -100,4 +100,5 @@ Keen 4 is een andere engine (Galaxy); de schatting per mijlpaal staat in
 | D13 B2 Metingen | 20-10 | ~50 min | 48 min | Dopefish, onder water, mijn, slak, wolk, dartguns; platforms stuiteren, het wetsuit wacht op zijn geluid |
 | D13 C Versie 1.4 | 20-10 | ~1 u 43 | 100 min (tegelijk met A en B) | 1.4 naast 1.0, rode help- en eindpagina's, sprong na stoppen, F1 onder PAUSED |
 | Samenvoegen D13 | 20-10 | ~20 min | | Door de architect: conflicten in drie documenten en `run_tests.gd`; 121 suites groen, regressies 0 verschillen |
-| **Totaal** | 19-10 t/m 20-10 | **~19 u 15** opgeteld | | D1-D13; vanaf D9 werkten agents deels tegelijk, dus de klok liep korter. Iets meer dan de schatting (13-15 u) door co-op, online, 1.4 en de metingen naast het origineel |
+| Fix: split-screen kijken, trillen, cheats (D13.2) | 21-10 | ~42 min | 42 min | Zes bugs van de gebruiker: kijken per helft, stilstand in pauzes, Shift+G/Shift+I met meldingen, online-pagina over de pols-computer, glas van Miragia (ingesloten lucht houdt zijn kleur); regressies Keen 1, 2 en 4 gelijk |
+| **Totaal** | 19-10 t/m 21-10 | **~19 u 57** opgeteld | | D1-D13 en D13.2; vanaf D9 werkten agents deels tegelijk, dus de klok liep korter. Iets meer dan de schatting (13-15 u) door co-op, online, 1.4 en de metingen naast het origineel |

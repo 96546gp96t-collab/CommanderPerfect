@@ -217,6 +217,14 @@ func limits() -> Rect2i:
 	return Rect2i(_min, _max - _min)
 
 
+## How far looking up or down has moved the view from where it rests on
+## Keen, in pixels (down is positive): [member feet_on_screen] is only
+## changed by looking (and back to its rest in the air). The split screen
+## moves a player's half by it (D13.2).
+func look_pixels() -> int:
+	return FEET_REST - feet_on_screen
+
+
 ## The top left of the view in pixels as the original draws it: x
 ## rounded down to [constant PAN_STEP] pixels.
 func view_pixels() -> Vector2i:

@@ -17,7 +17,8 @@ extends RefCounted
 ##     (Omni us_menu_itemChecked*: the icons after the normal ones);
 ##   - Paddle War through [GalaxyPaddleWarView];
 ##   - ours (D12): a card without a title picture shows its first line as
-##     its title; the online pages through [GalaxyOnlinePageView].
+##     its title; the online pages through [GalaxyOnlinePageView], over
+##     the wrist watch (D13.2).
 ## The colours were checked against the original (v1.0) pixel for pixel.
 
 ## EGA colours of the panel (seen in v1.0).
@@ -113,7 +114,7 @@ func draw(menus: GalaxyMenuController) -> Image:
 		return _image
 	var coop := menus as GalaxyCoopMenuController
 	if coop != null and coop.shows_online_page():
-		return _online_pages.draw(coop)
+		return _online_pages.draw(coop, _graphics.picture(_cards.watch))
 	if menu.kind == GalaxyMenuController.PADDLE_WAR:
 		return _draw_paddle_war(menus.paddle_war())
 	var below := menus.below()

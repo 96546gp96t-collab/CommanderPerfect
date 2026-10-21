@@ -25,12 +25,16 @@ extends Keen4OnlineScreen
 ##
 ## Keys: the shared ones (arrows, jump, pogo, fire); Enter the status
 ## window; F1 the help; Escape the control panel; Shift+N / Shift+P
-## the next or previous map; Shift+G god mode; Shift+S the sound and
+## the next or previous map; Shift+G god mode and Shift+I all gems and
+## 99 charges (Keen 1-3's testing cheats, D13.2); Shift+S the sound and
 ## Shift+M the music; Shift+F1 and F2-F6 as in
 ## Keen 1-3 (help line, widescreen, pixel shape, full screen, graphics:
 ## original or xBRZ, smooth motion).
 
 const NOT_A_MAP_MESSAGE := "Keen 4 has no map %d"
+## The testing cheats' messages, worded as in Keen 1-3.
+const GOD_MODE_MESSAGE := "Cheat: god mode %s"
+const EVERYTHING_MESSAGE := "Cheat: all four gems and 99 stunner charges"
 ## "One moment" when Keen leaves the world map (seen in the original, D7).
 const ONE_MOMENT_TICS := 28
 ## "Game Over!" stays 4.76 seconds, or until a key: in the original (v1.0)
@@ -340,32 +344,22 @@ func _leave() -> void:
 	get_tree().change_scene_to_file.call_deferred(GameLaunch.LAUNCHER_SCENE)
 
 
-## Shift+N and Shift+P: the next or previous map; Shift+G: god mode, as
-## the original's debug key F10+G (nothing kills Keen, D5); Shift+S the
-## sound (AdLib, PC speaker, off) and Shift+M the music (until the menus
-## of D10 have them).
+## Shift+N and Shift+P: the next or previous map; Shift+G and Shift+I:
+## the testing cheats of Keen 1-3 ([method _handle_cheat_keys]); Shift+S
+## the sound (AdLib, PC speaker, off) and Shift+M the music (until the
+## menus of D10 have them).
 func _handle_map_keys(event: InputEvent) -> bool:
 	var key := event as InputEventKey
 	if key == null or not key.pressed or key.echo or not key.shift_pressed:
 		return false
+	if _handle_cheat_keys(event):
+		return true
 	var step := 0
 	match key.keycode:
 		KEY_N:
 			step = 1
 		KEY_P:
 			step = -1
-		KEY_G:
-			_god_mode = not _god_mode
-			if _played != null:
-				_played.player.god_mode = _god_mode
-				_record_event(
-					(
-						Keen4SavedGame.Event.GOD_MODE_ON
-						if _god_mode
-						else Keen4SavedGame.Event.GOD_MODE_OFF
-					)
-				)
-			return true
 		KEY_S:
 			_show_message(_audio.next_mode(_user_settings))
 			_user_settings.save()
@@ -380,6 +374,36 @@ func _handle_map_keys(event: InputEvent) -> bool:
 		var count := Keen4Episode.LAST_MAP + 1
 		_show_level(posmod(_map_number + step, count))
 	return true
+
+
+## Keen 1-3's testing cheats on their shared keys (D13.2), with their
+## messages: Shift+G god mode, as the original's debug key F10+G (nothing
+## kills Keen but falling out of the level, D5), anywhere in a game;
+## Shift+I all four gems and 99 charges, in a level and on the world map.
+## Both go into a saved level's frames. Returns whether it was one.
+func _handle_cheat_keys(event: InputEvent) -> bool:
+	if event.is_action_pressed("cheat_god"):
+		_toggle_god_mode()
+	elif event.is_action_pressed("cheat_items") and (_played != null or _on_map != null):
+		Keen4Cheats.give_everything(_inventory)
+		_record_event(Keen4SavedGame.Event.EVERYTHING)
+		_update_score_box()
+		_show_message(EVERYTHING_MESSAGE)
+	else:
+		return false
+	return true
+
+
+func _toggle_god_mode() -> void:
+	_god_mode = not _god_mode
+	if _played != null:
+		_played.player.god_mode = _god_mode
+		if _played.partner != null:
+			_played.partner.god_mode = _god_mode
+		_record_event(
+			Keen4SavedGame.Event.GOD_MODE_ON if _god_mode else Keen4SavedGame.Event.GOD_MODE_OFF
+		)
+	_show_message(GOD_MODE_MESSAGE % ("on" if _god_mode else "off"))
 
 
 ## The map asked for with --level=N, or -1 (a new game).

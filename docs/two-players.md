@@ -77,7 +77,9 @@ the shared inventory, one Keen on the world map and the same split screen
 (`GalaxySplitView` uses `SplitScreen`), each view kept inside its Keen's
 area between the scroll blocks. Its control panel has them under
 Configure > Two Players (Add Player 2, each player's keys); F7 as in Keen
-1-3.
+1-3. Keen 4's Keens look up and down; since D13.2 each half of a split
+screen moves for its own Keen's look, as the view does alone (one shared
+view does not). Keen 1-3 have no looking, and `SplitScreen` is unchanged.
 
 ## The split screen
 

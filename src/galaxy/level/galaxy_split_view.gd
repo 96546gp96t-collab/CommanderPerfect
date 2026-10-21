@@ -13,10 +13,19 @@ extends RefCounted
 ## is where his view may look, so a view never shows what lies beyond a
 ## block (in widescreen that is covered, as alone). Two Keens in different
 ## areas (one in a room behind a block) always split.
+## Looking up and down (D13.2): while the screen is split each half moves
+## as far as his own camera has moved for looking ([method
+## GalaxyCamera.look_pixels]), as alone, but only so far that his Keen
+## stays inside his half; one shared view does not move for it (it shows
+## both Keens, and moving it for one could push the other out).
 ## The views glide with the shared smoothing; only numbers here, the
 ## screen ([Keen4CoopScreen]) puts the cameras where they say.
 
 const PLAYERS := SplitScreen.PLAYERS
+## While he looks, a Keen's middle stays this many pixels inside his half
+## (from its edges and from the line): about half his height, as a look
+## down alone leaves his head at the top of the view.
+const LOOK_MARGIN := 16.0
 
 var split := SplitScreen.new()
 ## What each player sees now, in level pixels.
@@ -37,7 +46,8 @@ func reset() -> void:
 ## [param even_x] the views keep the original's 2-pixel steps sideways.
 ## After [method reset] the focus points start at [param starts] (each
 ## player's own view, so the picture does not jump), kept within the dead
-## zone around his Keen.
+## zone around his Keen. [param looks] (pixels, down positive, one per
+## player) moves each half for its Keen looking up or down while split.
 func update(
 	positions: Array[Vector2],
 	alive: Array[bool],
@@ -45,7 +55,8 @@ func update(
 	size: Vector2i,
 	delta: float,
 	even_x := false,
-	starts: Array[Vector2] = []
+	starts: Array[Vector2] = [],
+	looks: Array[float] = []
 ) -> void:
 	var view_size := Vector2(size)
 	split.view_size = view_size
@@ -68,6 +79,10 @@ func update(
 		var reach := split.reach(split.normal)
 		var offset := split.normal * minf(first.distance_to(second) / 2.0, reach)
 		targets = [first + offset, second - offset]
+	if not split.shared and looks.size() == PLAYERS:
+		for player in PLAYERS:
+			var keen := positions[player] - targets[player]
+			targets[player].y += look_within_half(player, looks[player], keen, view_size)
 	for player in PLAYERS:
 		targets[player] = inside(targets[player], areas[player], view_size)
 	if not _started:
@@ -87,6 +102,28 @@ func update(
 ## Whether the screen shows two halves now.
 func is_split() -> bool:
 	return split.is_split()
+
+
+## How far [param player]'s half moves down for his look of [param look]
+## pixels, with his Keen [param keen] pixels from the middle of his view
+## of [param size]: as far as the look, but his Keen stays
+## [constant LOOK_MARGIN] inside the view and on his side of the line
+## (player 2's half lies along the split's normal). Never against a
+## move that would already have been allowed (0 always is).
+func look_within_half(player: int, look: float, keen: Vector2, size: Vector2) -> float:
+	var reach_y := size.y / 2.0 - LOOK_MARGIN
+	# The view moving down by d moves the Keen up by d on the screen.
+	var lowest := keen.y - reach_y
+	var highest := keen.y + reach_y
+	var side := 1.0 if player == 1 else -1.0
+	var tilt := side * split.normal.y
+	if not is_zero_approx(tilt):
+		var room := (side * keen.dot(split.normal) - LOOK_MARGIN) / tilt
+		if tilt > 0.0:
+			highest = minf(highest, room)
+		else:
+			lowest = maxf(lowest, room)
+	return clampf(look, minf(lowest, 0.0), maxf(highest, 0.0))
 
 
 ## Where the middle of a view of [param size] may be inside [param area]:

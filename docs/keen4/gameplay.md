@@ -32,7 +32,8 @@ tile. Times are **tics** of 1/70 s.
 | Lindsey, the janitor (D6) | Their boxes; the level goes on |
 | Shift+N / Shift+P | The next or previous map (0-19, round) |
 | Arrows / WASD, jump, pogo, fire | Keen (the shared keys: Ctrl or Z jump, Alt or X pogo, Space or C fire); on the world map the arrows walk in eight directions |
-| Shift+G | God mode on/off (the original's debug key F10+G): nothing kills Keen, except falling out of the level |
+| Shift+G | God mode on/off (the original's debug key F10+G): nothing kills Keen, except falling out of the level. In a game, in a level and on the map (then from the next level on), for both Keens; the message "Cheat: god mode on" / "off" as in Keen 1-3 (D13.2) |
+| Shift+I | Keen 1-3's testing cheat (D13.2): all four gems and at least 99 stunner charges, in a level and on the world map, at once and without a box or a life more (B+A+T has those); the message "Cheat: all four gems and 99 stunner charges". In a level it is kept among a saved level's frames |
 | Escape | The control panel (the game waits behind it); Return to Game goes on, Choose Game goes back to the start screen |
 | Shift+S, Shift+M | The sound (AdLib, PC speaker, off) and the music (on/off), until the menu has them (D11) |
 | Shift+F1, F2-F6 | As in Keen 1-3: help line, widescreen, pixel shape, full screen, graphics (original / xBRZ), smooth motion |
@@ -633,6 +634,16 @@ and the swimming Keen too.
   1 shift), as in the original. The y is the whole pixel. With smooth
   motion (F6, off by default) the shared `Interpolation` draws them
   between the last two logic frames at their exact places, as before D8.1.
+- **Pauses** (D13.2): while the game stands still (a box, the status
+  window, the control panel, the choice after a death, the boxes after a
+  level, "One moment") the clock goes on, but the place between the last
+  two logic frames that sprites and the view are drawn at stays where it
+  was last drawn (`Keen4PlayScreen._blend_to_draw`), so nothing moves.
+  Before, it went round with the clock and Keen (and platforms) trembled
+  between two places with smooth motion on. The split screen does not
+  glide either; the player who joined online draws his sprites still while
+  no new picture comes from the host. Keen 1-3 never had this: they do not
+  draw their sprites while a window or menu stops the game.
 - **Draw order** (Omni `RFL_DrawSpriteList`): the tiles, then the sprites of
   priority 0, 1 and 2, then the in-front tiles, then priority 3. Within a
   priority the sprite placed last is drawn first (under the others).
@@ -757,9 +768,24 @@ In v1.0 that gives **levels 5, 7, 8, 9, 10, 11, 12, 13, 14 and 16**. Not
 between the palms, inside tree tiles), 17 (under water), nor the world map
 (its light blue 478 is the lake), 18 and 19. The light blue 478 is the sky
 of level 5 but water in levels 8 and 10: there the top row has the cyan
-sky, so their water keeps its colour. In level 9 the glass pillars are
-sky-coloured inside and let the picture through as well (looked at with a
-test picture, not committed).
+sky, so their water keeps its colour.
+
+**Sky shut in by the level keeps its colour** (D13.2, `GalaxySkyPockets`,
+`GalaxySkyPatch`). Level 9's glass is foreground tiles with see-through
+insides over the plain sky, so in the original the glass (its pillars,
+columns, domes and the floor where a column meets it) has the sky's colour;
+until D13.2 the picture showed through it and Keen seemed to walk over a
+hole in the floor. Now only sky that the open sky reaches shows the
+picture: within each cell the pixels the picture would show through form
+pockets, pockets of neighbouring cells join where they share an edge pixel,
+and the pockets joined to the edge of what the view can show (inside the
+map's solid 2-tile border) are open sky. The others are painted in the
+sky's colour behind the tiles, in front of the picture. Worked out once
+per level from its first tiles (about 0.2-0.4 s, kept per level). In
+level 9 that is the inside of the glass buildings (also the rooms around
+Keen's start); elsewhere small holes between leaves and inside items
+(levels 5, 7, 8, 10-14, 16: a few hundred pixels to about 110 tiles'
+worth), as "colour inside a shape stays" already did within one tile.
 
 **Our pictures (D11 part B, the user's request of 20-10-2026).**
 `tools/make_keen4_backgrounds.py` paints one per level with sky, as Keen 3's
@@ -881,13 +907,27 @@ looks, so the picture does not jump when player 2 joins; while the
 screen is shared the view follows the Keens' middles instead of the
 original's resting place of the feet (a few pixels' difference).
 
+**Looking up and down in the split screen** (D13.2). Alone the view moves
+1 pixel a tic when Keen looks up (up to 27 pixels) or down (up to 107);
+each Keen's own camera still does that with two players
+(`GalaxyCamera.look_pixels`). While the screen is split, each half moves
+by its own Keen's look, gliding like the split itself, but only so far
+that his Keen stays 16 pixels inside his half (from the view's edges and
+from the line), and never beyond the area between the scroll blocks (as
+alone). While the two share one view it does not move for a look: it
+shows both Keens, and moving it for one could push the other out (the
+view follows their middles, which a looking sprite moves a few pixels).
+As alone, the look stays after the key is let go until Keen leaves the
+ground (our engine; not compared with the original).
+
 ## Online (D12)
 
 As Keen 1-3 ([../online.md](../online.md)): Configure > Online Game
 opens the shared online pages (Host via Steam, Host via IP, Join via
 Steam, Join via IP, Your Name), drawn as a framed box in the panel's
 font and colours (`GalaxyOnlinePageView`; the watch's screen is too
-small for the addresses). Keen 4's id `commanderperfect-keen4` is in
+small for the addresses); since D13.2 over the wrist watch, as the
+panel's other boxes, instead of on a black screen). Keen 4's id `commanderperfect-keen4` is in
 `OnlineProtocol.GAME_IDS`; a player of Keen 1-3 who joins a Keen 4 host
 switches to Keen 4 (and back), by IP or from the Steam list. The
 fingerprint is `GalaxyFingerprint`: the one GAMEMAPS file with its map

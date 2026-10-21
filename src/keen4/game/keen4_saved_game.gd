@@ -14,8 +14,9 @@ extends RefCounted
 ##     so every creature, tile and item is where it was.
 ## Stored as a dictionary in a [GalaxySaveSlots] slot.
 
-## Events among the frames (a frame of 0 tics).
-enum Event { ITEMS_CHEAT = 1, GOD_MODE_ON, GOD_MODE_OFF }
+## Events among the frames (a frame of 0 tics); EVERYTHING is Shift+I
+## (D13.2).
+enum Event { ITEMS_CHEAT = 1, GOD_MODE_ON, GOD_MODE_OFF, EVERYTHING }
 
 ## Bits of a frame's first byte.
 const LEFT := 1
@@ -137,6 +138,8 @@ static func _apply(session: Keen4LevelSession, event: int) -> void:
 	match event:
 		Event.ITEMS_CHEAT:
 			Keen4Cheats.give_items(session.inventory)
+		Event.EVERYTHING:
+			Keen4Cheats.give_everything(session.inventory)
 		Event.GOD_MODE_ON, Event.GOD_MODE_OFF:
 			session.player.god_mode = event == Event.GOD_MODE_ON
 

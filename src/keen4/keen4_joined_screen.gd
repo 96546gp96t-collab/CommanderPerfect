@@ -161,10 +161,13 @@ func _remote_process(delta: float) -> void:
 		_online.client_tick(_remote_input(), Rect2())
 		if _remote_kind == GalaxyOnlineMessages.Scene.MAP:
 			_galaxy_map.animate(tics)
+		# Without a new picture from the host (his game waits behind a box)
+		# the sprites stand still where they were drawn (D13.2).
+		_game_stepped = _remote_snapshot != null
 		if _remote_snapshot != null:
 			_apply_remote(_remote_snapshot)
 			_remote_snapshot = null
-	_objects.place(_clock.blend(), _settings.smooth_motion)
+	_objects.place(_blend_to_draw(), _settings.smooth_motion)
 	_place_overlays()
 	_update_backdrops()
 	_update_status()

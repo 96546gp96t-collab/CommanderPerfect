@@ -10,6 +10,7 @@ extends Keen4MenuScreen
 ##     next level on;
 ##   - each plays with his own keys ([method KeenInput.for_player], now with
 ##     up and down); the screen splits as in Keen 1-3 ([GalaxySplitView]);
+##     split, each half moves for its Keen looking up or down (D13.2);
 ##   - on the world map the one Keen walks with the keys of both and of
 ##     playing alone (Keen 3's choice); the choice after a death too;
 ##   - player 2 is not saved; a save in a level he played in holds the
@@ -248,11 +249,16 @@ func _place_split() -> void:
 	var cameras: Array[GalaxyCamera] = [_played.camera, _played.camera_2]
 	var areas: Array[Rect2i] = []
 	var starts: Array[Vector2] = []
+	var looks: Array[float] = []
 	for camera in cameras:
 		areas.append(camera.area_pixels())
 		var left := camera.wide_view_left(size.x, exact)
 		starts.append(Vector2(left, camera.view_pixels().y) + Vector2(size) / 2.0)
-	_split.update(positions, alive, areas, size, _split_delta, not exact, starts)
+		looks.append(float(camera.look_pixels()))
+	# While the game stands still (a box, the status window) the views do
+	# not glide either (D13.2).
+	var delta := _split_delta if _game_stepped else 0.0
+	_split.update(positions, alive, areas, size, delta, not exact, starts, looks)
 	_split_delta = 0.0
 	var anchors: Array[Node2D] = [_camera_anchor, _camera_anchor_2]
 	var covers: Array[GalaxyViewCover] = [_cover, _cover_2]

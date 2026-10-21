@@ -7,6 +7,8 @@ extends RefCounted
 ##   - B, A and T held: a box "Cheat Option! ..." until a key, then all four
 ##     gems, 99 charges and a life more.
 ## A cheat counts once while its keys stay held.
+## Ours, as in Keen 1-3 (D13.2): Shift+I gives everything without a box
+## ([method give_everything]); Shift+G is god mode ([Keen4View]).
 
 enum Cheat { NONE, END, ITEMS }
 
@@ -37,6 +39,13 @@ func check(is_held: Callable) -> Cheat:
 static func give_items(inventory: GalaxyInventory) -> void:
 	inventory.shots = ITEM_SHOTS
 	inventory.lives += 1
+	inventory.gems = PackedInt32Array([1, 1, 1, 1])
+
+
+## Shift+I (ours, Keen 1-3's testing cheat): all four gems and at least
+## 99 charges, no life more.
+static func give_everything(inventory: GalaxyInventory) -> void:
+	inventory.shots = maxi(inventory.shots, ITEM_SHOTS)
 	inventory.gems = PackedInt32Array([1, 1, 1, 1])
 
 

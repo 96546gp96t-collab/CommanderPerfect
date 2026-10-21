@@ -123,12 +123,15 @@ const SUITES: Array[Script] = [
 	preload("res://tests/test_keen4_online_snapshot.gd"),
 	preload("res://tests/test_keen4_d13_seen.gd"),
 	preload("res://tests/test_keen4_v14.gd"),
+	preload("res://tests/test_galaxy_split_look.gd"),
+	preload("res://tests/test_galaxy_sky_pockets.gd"),
 ]
 const TREE_SUITES: Array[Script] = [
 	preload("res://tests/test_keen4_d11_screen.gd"),
 	preload("res://tests/test_keen4_d11_xbrz.gd"),
 	preload("res://tests/test_keen4_coop_screen.gd"),
 	preload("res://tests/test_keen4_online_play.gd"),
+	preload("res://tests/test_keen4_d13_2_fixes.gd"),
 ]
 
 var _failure_count := 0

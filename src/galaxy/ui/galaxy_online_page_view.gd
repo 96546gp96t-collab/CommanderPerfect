@@ -5,7 +5,9 @@ extends RefCounted
 ## [GalaxyCoopMenuController]). They hold more text than the watch's small
 ## screen, so they are a framed box in the middle of the picture, in the
 ## panel's font and colours: the page's lines (the first bright), then its
-## choices, the one under the cursor bright with the cursor's icon.
+## choices, the one under the cursor bright with the cursor's icon. The
+## wrist watch stays around the box, as behind the panel's dialogs (D13.2:
+## the rest of the picture was black).
 
 ## How far the text stays from the frame, and the gap before the choices.
 const MARGIN := Vector2i(8, 6)
@@ -27,12 +29,14 @@ static func create(graphics: GalaxyGraphics, font: GalaxyFont) -> GalaxyOnlinePa
 	return view
 
 
-## The page on top of [param menus], on a 320 × 200 picture.
-func draw(menus: GalaxyCoopMenuController) -> Image:
+## The page on top of [param menus], on a 320 × 200 picture over
+## [param watch] (the panel's wrist watch; black without it).
+func draw(menus: GalaxyCoopMenuController, watch: Image = null) -> Image:
 	_image = Image.create_empty(
 		GalaxyWindow.SCREEN_SIZE.x, GalaxyWindow.SCREEN_SIZE.y, false, Image.FORMAT_RGBA8
 	)
 	_image.fill(Color.BLACK)
+	_picture(watch, Vector2i.ZERO)
 	var menu := menus.top()
 	if menu == null:
 		return _image

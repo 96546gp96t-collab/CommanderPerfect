@@ -94,6 +94,59 @@ bestanden in [docs/keen4/file-formats.md](docs/keen4/file-formats.md).
 | D11 | Mooier maken en Paddle War | ✅ Klaar en gecontroleerd door de architect (branch `milestone-d11-extras`; menu-developer + tester en een tekenaar tegelijk) |
 | D12 | Co-op | ✅ Klaar en gecontroleerd door de architect (branch `milestone-d12-coop`; developer + tester) |
 | D13 | Naast het origineel | ✅ Klaar en gecontroleerd door de architect (branch `milestone-d13-origineel`; drie developers en een tester) |
+| D13.2 | Fixes na de test van de gebruiker: split-screen kijken, trillen in pauzes, cheats, online-pagina, glas in Miragia | 🔶 Gebouwd, in test bij de gebruiker (branch `milestone-d13.2-fixes`) |
+
+## D13.2: fixes (21-10)
+
+Zes bugs uit de test van de gebruiker, op `milestone-d13.2-fixes` (vanaf
+`milestone-d13.1-versies`). Alleen Galaxy- en Keen 4-code; Keen 1-3 en
+de gedeelde code zijn niet veranderd (regressies Keen 1, 2 en 4: 0
+verschillen, byte voor byte).
+
+1. **Kijken in split-screen.** Elke Keen had al zijn eigen camera die
+   omhoog/omlaag kijkt, maar de split-screen keek naar het midden van
+   de Keens en negeerde dat. Nu schuift elke helft mee met de blik van
+   zijn eigen Keen (`GalaxyCamera.look_pixels`, `GalaxySplitView`),
+   glijdend, maar zo dat zijn Keen 16 px binnen zijn helft blijft en
+   nooit voorbij de scroll-blokken. Eén gedeeld beeld schuift niet mee
+   (anders kan de ander uit beeld raken).
+2. **Trillen in pauzes.** Oorzaak: met vloeiende beweging tekende het
+   spel tussen de laatste twee logische frames op het punt van de klok;
+   de klok liep in een pauze (vensters, statusvenster, menu, "You didn't
+   make it past", na het uitlopen, "One moment") door, dus Keen en
+   platforms wiebelden tussen twee plekken. Nu blijft dat punt staan
+   zolang het spel niet stapt (`Keen4PlayScreen._blend_to_draw`); ook de
+   split-screen glijdt dan niet en wie online meedoet tekent stil zonder
+   nieuw beeld van de host. Keen 1-3 hadden dit niet: zij tekenen hun
+   sprites niet terwijl een venster of menu het spel stilzet (in de code
+   nagekeken); daar is niets aan veranderd.
+3. **Cheats.** Keen 4 had Shift+G zonder melding en geen Shift+I. Nu als
+   Keen 1-3, in een level en op de kaart, met dezelfde meldingen op
+   dezelfde plek: "Cheat: god mode on/off" (ook voor speler 2) en
+   Shift+I "Cheat: all four gems and 99 stunner charges" (alle vier de
+   edelstenen, minstens 99 ladingen, geen extra leven en geen venster;
+   B+A+T en E+N+D blijven). Shift+I in een level gaat mee in een
+   opgeslagen level.
+4. **Online Game zwart.** De online-pagina's werden op een zwart scherm
+   getekend; nu over de pols-computer heen, zoals de andere vensters van
+   het menu (`GalaxyOnlinePageView`).
+5. **God mode zonder melding**: zie 3.
+6. **Door de glazen vloer van Miragia kijken.** Het glas is
+   voorgrond-tiles met doorzichtige binnenkant over de effen lucht; met
+   een plaatje achter het level was die lucht weg, dus zag je het
+   plaatje door het glas (en de vloer onder de glazen zuilen). Nu houdt
+   alleen lucht die de open lucht bereikt het plaatje; lucht die door de
+   tekening van het level is ingesloten blijft lichtblauw
+   (`GalaxySkyPockets`, `GalaxySkyPatch`). In level 9 is dat de
+   binnenkant van de glazen gebouwen (ook de kamers bij de start); in
+   andere levels kleine gaatjes tussen bladeren en in items. Kost
+   0,2-0,4 s bij het begin van een level met plaatje (per level bewaard).
+
+- [x] Nieuwe suites `test_keen4_d13_2_fixes` (boom), `test_galaxy_split_look`, `test_galaxy_sky_pockets`; ze falen met de fixes uitgezet. 124 suites: 123 groen, `test_keen4_v14` overgeslagen (geen 1.4-bestanden op deze Mac), 0 fouten, geen SCRIPT ERROR, gdlint schoon.
+- [x] Regressies Keen 1, 2 en 4 tegen 314286d: alles gelijk. Apps gebouwd (Mac en Windows).
+- Open: alleen of met twee spelers blijft de blik staan na het loslaten tot Keen van de grond gaat (onze engine; niet naast het origineel gelegd).
+- Open: in level 9 zijn nu grote delen lichtblauw (alles binnen het glas), het plaatje alleen buiten; zeg het als het minder moet.
+- Open: schermafbeeldingen met `scripted_play.gd` op de Mac lopen qua frames niet vast (laden duurt wisselend); pauzes zijn daarom vooral in de tests vergeleken.
 
 ## Mijlpaal D13: wat er nu is
 
@@ -2704,11 +2757,13 @@ Keen 3:
 
 Keen 4:
 
-1. **Voor de gebruiker:** Keen 4 helemaal spelen in `build/` (bouw vanaf
-   `milestone-d13.1-versies`: `milestone-d13-origineel`, dat alle D-branches
-   bevat, met de bijgewerkte README's): ook F7 voor twee
-   spelers, online, en met de bestanden van 1.4 als je die hebt.
-2. `milestone-d13.1-versies` kan in één keer naar `main`.
+1. **Voor de gebruiker:** de fixes van D13.2 proberen in `build/` (bouw
+   vanaf `milestone-d13.2-fixes`): kijken met twee spelers in split
+   screen, stilstand in pauzes (vloeiende beweging aan), Shift+G en
+   Shift+I in een level en op de kaart, Configure > Online Game, en
+   level 9 (Miragia) met plaatjes aan. Daarna verder Keen 4 helemaal
+   spelen: ook online en met de bestanden van 1.4 als je die hebt.
+2. `milestone-d13.2-fixes` (bevat D13.1) kan in één keer naar `main`.
 3. Eventueel later: de open punten van D13 (de plaatjes van het optrekken
    aan een richel, de Dopefish-beet, de Foot, Smirky's teleport).
 4. Daarna Keen 5 en 6 (zelfde Galaxy-engine; zie de lessen in

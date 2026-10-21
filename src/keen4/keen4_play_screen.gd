@@ -35,6 +35,14 @@ var _played: Keen4LevelSession
 var _on_map: Keen4MapSession
 ## The view's top left, in pixels, frame by frame (smooth motion).
 var _view_motion := Interpolation.new()
+## How far between the last two logic frames the sprites and the view are
+## drawn (smooth motion): the clock's blend while the game steps; while the
+## clock's frames pass without it (a box, the status window, the control
+## panel) it stays where it was, so nothing moves (D13.2: Keen trembled in
+## his pose because the blend kept going round between two places).
+var _drawn_blend := 1.0
+## Whether the clock's last frame ran the game (a level or the world map).
+var _game_stepped := true
 ## The rescued council members, the wetsuit, the levels done, the map.
 var _game_progress := Keen4Progress.new()
 var _difficulty := GalaxyDifficulty.DEFAULT
@@ -76,6 +84,7 @@ func _process(delta: float) -> void:
 	var frames := _clock.advance(delta) if _data != null else 0
 	for frame in frames:
 		var tics := _clock.run_frame()
+		_game_stepped = false
 		if _status_drop != null:
 			_advance_status(tics)
 		elif not _queue.is_empty():
@@ -86,7 +95,7 @@ func _process(delta: float) -> void:
 			break
 	if _mode == Mode.LOOK:
 		_follow_free_look()
-	_objects.place(_clock.blend(), _settings.smooth_motion)
+	_objects.place(_blend_to_draw(), _settings.smooth_motion)
 	_place_overlays()
 	_place_smooth_view()
 	_update_backdrops()
@@ -141,6 +150,14 @@ func shows_status() -> bool:
 	return _status_drop != null
 
 
+## Where between the last two logic frames to draw now: the clock's blend
+## while the game steps, otherwise the last one drawn.
+func _blend_to_draw() -> float:
+	if _game_stepped:
+		_drawn_blend = _clock.blend()
+	return _drawn_blend
+
+
 ## One logic frame of what is played; returns whether it ended (or a box
 ## stopped it).
 func _run_frame(tics: int) -> bool:
@@ -150,6 +167,7 @@ func _run_frame(tics: int) -> bool:
 		_on_map.run_frame(_frame_input(tics), tics, _clock.tic)
 	else:
 		return false
+	_game_stepped = true
 	_galaxy_map.animate(tics)
 	_objects.show_objects(_played_world().objects)
 	_frame_view()
@@ -343,7 +361,7 @@ func _update_score_box() -> void:
 func _place_smooth_view() -> void:
 	if (_played == null and _on_map == null) or not _settings.smooth_motion:
 		return
-	_camera_anchor.position = _view_motion.at(_clock.blend(), true)
+	_camera_anchor.position = _view_motion.at(_drawn_blend, true)
 	_camera.reset_smoothing()
 
 
