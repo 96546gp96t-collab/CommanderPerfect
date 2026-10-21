@@ -94,6 +94,19 @@ func _split_active() -> bool:
 	return super() and not _online_partner
 
 
+## The joiner's view may be wider than the host's (his own widescreen
+## setting): his objects wake up around the widest view the game draws.
+func _partner_view_width(width: int) -> int:
+	if not _online_partner:
+		return super(width)
+	var widest := (
+		DisplaySettings.ORIGINAL_SIZE.y
+		* DisplaySettings.ORIGINAL_PIXEL_ASPECT
+		* DisplaySettings.WIDESCREEN_RATIO
+	)
+	return maxi(width, roundi(widest / 2.0) * 2)
+
+
 func _partner_input() -> KeenInput:
 	if _online_partner:
 		return _online.partner_input() if partner_keen() != null else null

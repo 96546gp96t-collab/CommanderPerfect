@@ -259,6 +259,13 @@ func _frame_input(tics: int) -> KeenInput:
 	return input
 
 
+## A demo plays as recorded, in the original's view: in widescreen too
+## objects wake up around the original's 320 pixels, or a creature woken
+## earlier would change the demo.
+func _wide_view_width() -> int:
+	return 0 if _demo != null else super()
+
+
 ## Whether a demo is played; after its frame it may end (its input used
 ## up, or Keen out of the level): then the title loop goes on.
 func _after_demo_frame() -> bool:

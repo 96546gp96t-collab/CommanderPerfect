@@ -172,11 +172,26 @@ verschillen, byte voor byte).
    tussen de richels. Alleen die vier cellen en de 3 pixels van level 5
    (een inkeping aan de lucht, aan de rand van de kaart) zijn veranderd;
    alle gaten van ronde 8 blijven dicht.
+10. **Vijanden en items die opduiken in breedbeeld** (derde ronde, 21-10).
+   Het spel besliste wie wakker is met het beeld van het origineel (320
+   pixels); in breedbeeld stond er links en rechts al iets in beeld dat
+   nog sliep en pas verscheen als het beeld van het origineel dichtbij
+   kwam. Nu telt het brede beeld mee (`GalaxyCamera.view_tiles`): wakker
+   worden binnen 1 tile, slapen voorbij 4, schoten weg op 10 tiles,
+   "in beeld" (Bounder-geluid, schot dat slapers raakt, Keen die sterft):
+   de marges van het origineel rond wat je ziet. In split screen telt
+   wat elke helft laat zien; online telt de host voor de meespeler het
+   breedste beeld (426 pixels). In 4:3 en in de demo's blijft alles als
+   het origineel (een demo zou anders lopen). Een opgeslagen level speelt
+   zijn frames weer met dezelfde breedte (die staat tussen de frames, ook
+   na F2). Tegels animeren al op de hele kaart; items zijn sprites, dus
+   er dook verder niets op.
 
 - [x] Nieuwe suites `test_keen4_d13_2_fixes` (boom), `test_galaxy_split_look`, `test_galaxy_sky_pockets`; ze falen met de fixes uitgezet. 124 suites: 123 groen, `test_keen4_v14` overgeslagen (geen 1.4-bestanden op deze Mac), 0 fouten, geen SCRIPT ERROR, gdlint schoon.
 - [x] Regressies Keen 1, 2 en 4 tegen 314286d: alles gelijk. Apps gebouwd (Mac en Windows).
 - [x] Tweede ronde (7 en 8): nieuwe suite `test_galaxy_split_small_areas`, `test_galaxy_sky_pockets` herschreven, de glastest in `test_keen4_d13_2_fixes` aangepast en de split-wandeling daar met een vaste seed (het level begint op een willekeurige plek; soms hield een wezen speler 2 tegen, ook al op e3c8482). 125 suites: 124 groen, `test_keen4_v14` overgeslagen, 0 fouten, geen SCRIPT ERROR, gdlint schoon. Regressies Keen 1, 2 en 4 tegen e3c8482: alles gelijk. Apps opnieuw gebouwd.
 - [x] Derde ronde (9): `test_galaxy_sky_pockets` met de lage richel tegen een muur (faalt op de oude regel), de level 9-test kijkt ook naar die plek. 125 suites: 124 groen, `test_keen4_v14` overgeslagen, 0 fouten, geen SCRIPT ERROR, gdlint schoon. Regressies Keen 1, 2 en 4 tegen 50138bc: alles gelijk. Apps opnieuw gebouwd.
+- [x] Derde ronde (10): nieuwe suites `test_galaxy_wide_waking` (een ding naast het 4:3-beeld slaapt in 4:3 en is wakker en getekend in breedbeeld, marges, split-helft, een breed gespeeld level met F2 halverwege komt terug uit zijn frames; faalt zonder de brede telling) en `test_keen4_wide_waking_screen` (scherm: breedte in een level en in de opslag, 4:3 en demo het origineel). 127 suites: 126 groen, `test_keen4_v14` overgeslagen, 0 fouten, geen SCRIPT ERROR, gdlint schoon. Regressies Keen 1, 2 en 4 tegen 50138bc: alles gelijk (op de regressiebeelden van Keen 4 staat niets aan de rand van het brede beeld). Apps opnieuw gebouwd.
 - Open: alleen of met twee spelers blijft de blik staan na het loslaten tot Keen van de grond gaat (onze engine; niet naast het origineel gelegd).
 - Open: gaat een Keen door een deur terwijl het scherm gesplitst is, dan glijdt zijn helft over het level naar de nieuwe plek (zo was het al); zeg het als dat moet springen.
 - Open: schermafbeeldingen met `scripted_play.gd` op de Mac lopen qua frames niet vast (laden duurt wisselend); pauzes zijn daarom vooral in de tests vergeleken.
@@ -2794,7 +2809,9 @@ Keen 4:
    vanaf `milestone-d13.2-fixes`): kijken met twee spelers in split
    screen, stilstand in pauzes (vloeiende beweging aan), Shift+G en
    Shift+I in een level en op de kaart, Configure > Online Game, en
-   level 9 (Miragia) met plaatjes aan. Daarna verder Keen 4 helemaal
+   level 9 (Miragia) met plaatjes aan (ook de lucht boven de lage richel
+   bij de slak), en in breedbeeld of er nog iets aan de rand opduikt.
+   Daarna verder Keen 4 helemaal
    spelen: ook online en met de bestanden van 1.4 als je die hebt.
 2. `milestone-d13.2-fixes` (bevat D13.1) kan in één keer naar `main`.
 3. Eventueel later: de open punten van D13 (de plaatjes van het optrekken

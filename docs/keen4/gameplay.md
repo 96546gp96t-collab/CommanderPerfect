@@ -459,6 +459,29 @@ these rules whole frames of all five equal the original's:
   had for that frame: a slug leaving its slime stays where it slimed
   instead of stepping back 64.
 - **A door moves the view at once** (above, Keen's moves).
+- **Waking in widescreen** (ours, D13.2; as Keen 3's C4). The original
+  counts its 320 × 208 view (20 × 13 tiles from the scroll); a wider view
+  showed creatures and items beside it that were still asleep, so they
+  popped up near the left and right edges once the original's view came
+  within a tile. Now the view counts with what it shows
+  (`GalaxyCamera.view_tiles`): in widescreen the wide view (centred on the
+  original's, kept between the scroll blocks as it is drawn, the
+  original's 200 rows) is added to the original's 20 × 13 tiles, and the
+  original's margins stay around that: wake within 1 tile, sleep beyond
+  4, a shot is removed 10 tiles beside it, "on the screen" (the Bounder's
+  sound, a shot stunning sleepers off the screen, a dying Keen) the same.
+  In split screen each player's half adds what it shows (`shown`, both
+  views count); online the host counts the joiner's view as the widest
+  the game draws (16:9 with the pixel shape corrected, 426 pixels), his
+  own setting being unknown to the host. In 4:3 nothing changes, and a
+  **demo** always counts the original's view (it was recorded so: a
+  creature woken earlier would draw other random numbers and the demo
+  would go another way). The wide view follows from the scroll alone, so
+  a saved level played again from its frames does the same: its width is
+  kept among the frames (an event with the width, also when F2 changes it
+  in the level; a level saved before has none and plays the original's
+  view). Tiles animate on the whole map, and Keen 4's items are sprites,
+  so nothing else popped up.
 
 ## Platforms and switches (D6)
 

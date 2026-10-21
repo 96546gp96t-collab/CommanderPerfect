@@ -142,7 +142,17 @@ func add_player() -> GalaxyKeenBody:
 	partner.start(partner.action)
 	camera_2.scroll = camera.scroll
 	camera_2.feet_on_screen = camera.feet_on_screen
+	camera_2.wide_width = camera.wide_width
 	return partner
+
+
+## Both views are drawn [param width] pixels wide (0: the original's
+## width): objects wake up around what they show ([member
+## GalaxyCamera.wide_width]).
+func set_wide_width(width: int) -> void:
+	camera.wide_width = width
+	if camera_2 != null:
+		camera_2.wide_width = width
 
 
 ## Player 2 leaves the level.

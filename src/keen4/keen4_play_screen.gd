@@ -229,6 +229,7 @@ func _start_playing(map: GalaxyMap, camera: GalaxyCamera, world: GalaxyWorld) ->
 	_mode = Mode.LEVEL
 	_clock.start_level()
 	_galaxy_camera = camera
+	_apply_wide_view()
 	_show_map(map, _level_sprites())
 	world.tile_writer = func(cell: Vector2i, tile: int) -> void:
 		_galaxy_map.set_tile(GalaxyMap.Layer.FOREGROUND, cell, tile)
@@ -243,6 +244,45 @@ func _start_playing(map: GalaxyMap, camera: GalaxyCamera, world: GalaxyWorld) ->
 	_score_box.visible = true
 	_free_look.set_process(false)
 	_update_score_box()
+
+
+## Objects wake up and fall asleep around what the view shows: in
+## widescreen around the wider view, the original's margins around it, so
+## nothing on the screen sleeps (ours, D13.2; as Keen 3's C4). In 4:3
+## everything is as the original's.
+func _apply_wide_view() -> void:
+	var width := _wide_view_width()
+	if _played != null:
+		var changed := _played.camera.wide_width != width
+		_played.set_wide_width(width)
+		if _played.camera_2 != null:
+			_played.camera_2.wide_width = _partner_view_width(width)
+		if changed:
+			_wide_view_changed(width)
+	elif _on_map != null:
+		_on_map.camera.wide_width = width
+
+
+## How wide the view is drawn when wider than the original's; 0 otherwise.
+func _wide_view_width() -> int:
+	var width := _settings.game_size().x
+	return width if width > GalaxyCamera.VIEW_PIXELS.x else 0
+
+
+## The width player 2's view counts with, when the view is [param width]
+## wide.
+func _partner_view_width(width: int) -> int:
+	return width
+
+
+## The view's width changed in a level ([Keen4MenuScreen] keeps it).
+func _wide_view_changed(_width: int) -> void:
+	pass
+
+
+func _apply_display_settings() -> void:
+	super()
+	_apply_wide_view()
 
 
 ## A map where Keen does not play: he stands, the keys look around (D3).

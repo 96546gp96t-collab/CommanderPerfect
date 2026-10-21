@@ -87,9 +87,18 @@ static func _in_view(object: GalaxyObject, view: Rect2i) -> bool:
 	)
 
 
+## Every player's view as tiles ([method GalaxyCamera.view_tiles]).
+func view_rects() -> Array[Rect2i]:
+	var views: Array[Rect2i] = [_view_tiles(camera)]
+	if partner_camera != null:
+		views.append(_view_tiles(partner_camera))
+	return views
+
+
 ## The view of [param view] as tiles: its first tile and (as end) the tile
-## after its last whole one, as the original counts.
+## after its last whole one, as the original counts; widened to what a
+## wider view shows ([method GalaxyCamera.view_tiles]).
 static func _view_tiles(view: GalaxyCamera) -> Rect2i:
-	var scroll := view.scroll if view != null else Vector2i.ZERO
-	var first := Vector2i(GalaxyUnits.to_tile(scroll.x), GalaxyUnits.to_tile(scroll.y))
-	return Rect2i(first, VIEW_TILES)
+	if view == null:
+		return Rect2i(Vector2i.ZERO, VIEW_TILES)
+	return view.view_tiles()

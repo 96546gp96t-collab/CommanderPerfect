@@ -271,6 +271,13 @@ func _level_began(number: int, random_start: int) -> void:
 		Keen4SavedGame.record_event(_recording.frames, Keen4SavedGame.Event.GOD_MODE_ON)
 
 
+## The view's width is kept among the frames: objects wake up around what
+## it shows, so the frames played again need it.
+func _wide_view_changed(width: int) -> void:
+	if _recording != null and _played != null:
+		Keen4SavedGame.record_view_width(_recording.frames, width)
+
+
 ## Something between the frames that changes the level (a cheat, god mode).
 func _record_event(event: Keen4SavedGame.Event) -> void:
 	if _recording != null and _played != null:
@@ -323,6 +330,9 @@ func _resume(game: Keen4SavedGame) -> void:
 	if not game.in_level() or _played == null:
 		return
 	_loaded = game
+	# The frames say how wide the view was (a game saved before D13.2 has
+	# none: the original's).
+	_played.set_wide_width(0)
 	_replay = Keen4SavedGame.replay_on(_played, game.frames, _galaxy_map.animate)
 
 
@@ -363,6 +373,7 @@ func _finish_replay() -> void:
 		_show_level(game.map_number, game.random_start)
 		return
 	_recording.frames = game.frames.duplicate()
+	_apply_wide_view()
 	_clock.resume_at(tic)
 	_objects.show_objects(_played.world.objects)
 	_frame_view()

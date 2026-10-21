@@ -99,6 +99,7 @@ func _can_join_now() -> bool:
 
 func _add_partner() -> void:
 	var keen := _played.add_player()
+	_apply_wide_view()
 	_objects.tint(keen, _partner_material)
 	_partner_was_in_level = true
 	_split.reset()
@@ -267,6 +268,8 @@ func _place_split() -> void:
 		var view := _split.views[player]
 		anchors[player].position = Vector2(view.position) + Vector2(size) / 2.0
 		_cover_view(covers[player], areas[player], view)
+		# What each half shows wakes objects up too (D13.2).
+		cameras[player].shown = view
 	_camera.reset_smoothing()
 	_camera_2.reset_smoothing()
 	var is_split := _split.is_split()
@@ -305,3 +308,7 @@ func _end_split() -> void:
 	_world_2.render_target_update_mode = SubViewport.UPDATE_DISABLED
 	_cover_2.cover(Rect2i(), Rect2i())
 	_split.reset()
+	if _played != null:
+		_played.camera.shown = Rect2i()
+		if _played.camera_2 != null:
+			_played.camera_2.shown = Rect2i()

@@ -15,8 +15,11 @@ extends RefCounted
 ## Stored as a dictionary in a [GalaxySaveSlots] slot.
 
 ## Events among the frames (a frame of 0 tics); EVERYTHING is Shift+I
-## (D13.2).
-enum Event { ITEMS_CHEAT = 1, GOD_MODE_ON, GOD_MODE_OFF, EVERYTHING }
+## (D13.2). VIEW_WIDTH is followed by one more pair of bytes, the width
+## the view is drawn from then on (low byte first; 0: the original's):
+## objects wake up around what it shows, so the frames played again need
+## it (D13.2; a game saved before has none and played the original's).
+enum Event { ITEMS_CHEAT = 1, GOD_MODE_ON, GOD_MODE_OFF, EVERYTHING, VIEW_WIDTH }
 
 ## Bits of a frame's first byte.
 const LEFT := 1
@@ -27,6 +30,8 @@ const JUMP := 16
 const POGO := 32
 const FIRE := 64
 const FRAME_BYTES := 2
+const BYTE_BITS := 8
+const BYTE_MASK := 0xFF
 const DIFFICULTY_KEY := "difficulty"
 const INVENTORY_KEY := "inventory"
 const PROGRESS_KEY := "progress"
@@ -71,6 +76,13 @@ static func record_event(recorded: PackedByteArray, event: Event) -> void:
 	recorded.append(0)
 
 
+## Adds that the view is drawn [param width] pixels wide from here on.
+static func record_view_width(recorded: PackedByteArray, width: int) -> void:
+	record_event(recorded, Event.VIEW_WIDTH)
+	recorded.append(width & BYTE_MASK)
+	recorded.append(width >> BYTE_BITS)
+
+
 ## Frames being played again on a level just started, a few at a time (a
 ## long level takes seconds; the view shows black meanwhile).
 class Replay:
@@ -91,6 +103,10 @@ class Replay:
 			var bits := recorded[_at]
 			var tics := recorded[_at + 1]
 			_at += FRAME_BYTES
+			if tics == 0 and bits == Event.VIEW_WIDTH and _at + 1 < recorded.size():
+				session.set_wide_width(recorded[_at] | (recorded[_at + 1] << BYTE_BITS))
+				_at += FRAME_BYTES
+				continue
 			if tics == 0:
 				Keen4SavedGame._apply(session, bits)
 				continue

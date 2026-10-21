@@ -103,7 +103,21 @@ var feet_on_screen := FEET_REST
 ## included.
 var column_blocks := PackedInt32Array()
 var row_blocks := PackedInt32Array()
+## How wide the view is drawn when it is wider than the original's
+## (widescreen; 0: the original's 320 pixels). Objects wake up, fall
+## asleep and count as on the screen around what it shows
+## ([method view_tiles]; ours, D13.2). It follows from the scroll alone,
+## so a level played again from its frames does the same.
+var wide_width := 0
+## What a player's half of the split screen shows (level pixels), which
+## follows him rather than the scroll; empty when the screen is not
+## shared out.
+var shown := Rect2i()
 var _map_size := Vector2i.ZERO
+## [method view_tiles] for the scroll, width and halves it was worked out
+## for (asked for every object every frame).
+var _tiles_for: Array = []
+var _tiles := Rect2i()
 var _min := Vector2i.ZERO
 var _max := Vector2i.ZERO
 
@@ -225,6 +239,29 @@ func look_pixels() -> int:
 	return FEET_REST - feet_on_screen
 
 
+## The tiles the view shows, as the original counts them: its first tile
+## and, as end, the tile its right / bottom edge is in (20 × 13 from the
+## scroll). A wider view ([member wide_width], [member shown]) adds what
+## it shows, counted the same way, so the original's margins around it
+## stay; with neither it is the original's view.
+func view_tiles() -> Rect2i:
+	var first := Vector2i(scroll.x >> 8, scroll.y >> 8)
+	var tiles := Rect2i(first, VIEW_TILES)
+	if wide_width <= VIEW_PIXELS.x and not shown.has_area():
+		return tiles
+	var key := [scroll, wide_width, shown]
+	if key == _tiles_for:
+		return _tiles
+	if wide_width > VIEW_PIXELS.x:
+		var wide := Rect2i(wide_view_left(wide_width), view_pixels().y, wide_width, VIEW_PIXELS.y)
+		tiles = tiles.merge(_tiles_of(wide))
+	if shown.has_area():
+		tiles = tiles.merge(_tiles_of(shown))
+	_tiles_for = key
+	_tiles = tiles
+	return tiles
+
+
 ## The top left of the view in pixels as the original draws it: x
 ## rounded down to [constant PAN_STEP] pixels.
 func view_pixels() -> Vector2i:
@@ -265,6 +302,14 @@ func wide_view_left(width: int, exact := false) -> int:
 	if area.size.x < width:
 		return area.position.x - (width - area.size.x) / 2
 	return clampi(left, area.position.x, area.end.x - width)
+
+
+## The tiles [param pixels] (level pixels) lies on, with the tile its
+## right / bottom edge is in as end (as [method view_tiles] counts).
+static func _tiles_of(pixels: Rect2i) -> Rect2i:
+	var first := Vector2i(pixels.position.x >> 4, pixels.position.y >> 4)
+	var end := Vector2i(pixels.end.x >> 4, pixels.end.y >> 4)
+	return Rect2i(first, end - first)
 
 
 func _follow_x(x: int) -> int:

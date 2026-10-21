@@ -232,9 +232,7 @@ func set_info(cell: Vector2i, value: int) -> void:
 ## Wakes [param object] up near the view (either view), puts it to sleep
 ## far from it (from both); returns whether it runs this frame.
 func _wake_or_sleep(object: GalaxyObject) -> bool:
-	var views: Array[Rect2i] = [_view_tiles(camera)]
-	if partner_camera != null:
-		views.append(_view_tiles(partner_camera))
+	var views := view_rects()
 	if object.activity == GalaxyObject.Activity.INACTIVE:
 		if not _near_any(object.box, views):
 			return false

@@ -65,23 +65,13 @@ func hit() -> void:
 	set_action(_actions[&"hit_1"])
 
 
-## Think: far from the view it is removed; off the screen it stuns what
-## sleeps in its way (Omni CK_ShotThink).
+## Think: far from the view (every view: a wider one, both players') it
+## is removed; off the screen it stuns what sleeps in its way (Omni
+## CK_ShotThink).
 func _think_fly() -> void:
 	if world.on_screen(self):
 		return
-	var view := Rect2i(
-		GalaxyUnits.to_tile(world.camera.scroll.x),
-		GalaxyUnits.to_tile(world.camera.scroll.y),
-		GalaxyWorld.VIEW_TILES.x,
-		GalaxyWorld.VIEW_TILES.y
-	)
-	if (
-		box.tile_right + KEEP_SIDEWAYS < view.position.x
-		or box.tile_left - KEEP_SIDEWAYS > view.end.x
-		or box.tile_bottom + KEEP_UPRIGHT < view.position.y
-		or box.tile_top - KEEP_UPRIGHT > view.end.y
-	):
+	if world.view_rects().all(_is_far_from):
 		world.remove(self)
 		return
 	for other in world.objects:
@@ -93,6 +83,15 @@ func _think_fly() -> void:
 			other.activity = Activity.ACTIVE
 		if spent:
 			return
+
+
+func _is_far_from(view: Rect2i) -> bool:
+	return (
+		box.tile_right + KEEP_SIDEWAYS < view.position.x
+		or box.tile_left - KEEP_SIDEWAYS > view.end.x
+		or box.tile_bottom + KEEP_UPRIGHT < view.position.y
+		or box.tile_top - KEEP_UPRIGHT > view.end.y
+	)
 
 
 ## React: through a pole hole, or stop at what it hit (Omni
