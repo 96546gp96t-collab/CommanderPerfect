@@ -1,54 +1,83 @@
 extends "res://tests/test_case.gd"
-## Tests for the sky shut in by a level's drawing ([GalaxySkyPockets], D13.2;
-## the glass of Keen 4's level 9): sky that the open sky reaches stays
-## see-through for the picture behind the level; sky shut in by foreground
-## tiles (a ring of glass, a hole inside one tile) keeps its colour. Made-up
-## maps and tiles, no files.
+## Tests for the holes in a floor ([GalaxySkyPockets], D13.2; the glass of
+## Keen 4's level 9): where see-through glass stands in a floor's band of
+## foreground tiles (on a top that is walked on), its sky keeps the sky's
+## colour; the picture behind the level shows through all other glass (its
+## inside, a ring, a dome on a platform) and above a shelf between walls.
+## Made-up maps and tiles, no files.
 
-const SIZE := Vector2i(12, 12)
+const SIZE := Vector2i(16, 12)
 const SKY := 1
+## Foreground tiles: solid and walked on; the floor's band (solid, not
+## walked on); glass (all see-through).
 const SOLID := 2
-const HOLED := 3
-const EDGE_GAP := 4
+const BAND := 3
+const GLASS := 4
 const TILE := 16
-const HOLE := Rect2i(6, 6, 4, 4)
+## The ground Keen walks on, and the band of the floor on it.
+const GROUND_ROW := 9
+const BAND_ROW := 8
 
 
-func test_open_sky_stays_see_through() -> void:
-	var map := _map()
-	assert_equal(_pixels(GalaxySkyPockets.find(map, _back, _fore)), 0, "nothing shut in")
+func test_open_sky_keeps_the_picture() -> void:
+	assert_equal(_pixels(_find(_map())), 0, "nothing painted")
 
 
-func test_sky_inside_a_ring_of_tiles_is_shut_in() -> void:
-	var map := _map()
-	_ring(map, Rect2i(4, 4, 4, 4))
-	var rows := GalaxySkyPockets.find(map, _back, _fore)
-	assert_equal(_pixels(rows), 4 * TILE * TILE, "the four cells inside the ring")
+func test_glass_standing_in_the_floor_band_is_painted() -> void:
+	var map := _floor_map()
+	_put(map, Vector2i(6, BAND_ROW), GLASS)
+	_put(map, Vector2i(7, BAND_ROW), GLASS)
+	var rows := _find(map)
+	assert_equal(_pixels(rows), 2 * TILE * TILE, "the two glass cells in the band")
 	for row in rows:
 		assert_true(
-			Rect2i(5 * TILE, 5 * TILE, 2 * TILE, 2 * TILE).encloses(row), "inside: %s" % row
+			Rect2i(6 * TILE, BAND_ROW * TILE, 2 * TILE, TILE).encloses(row), "in the band: %s" % row
 		)
 
 
-func test_a_gap_in_the_ring_lets_the_open_sky_in() -> void:
+func test_glass_above_the_floor_keeps_the_picture() -> void:
+	var map := _floor_map()
+	for y in range(4, BAND_ROW):
+		_put(map, Vector2i(6, y), GLASS)
+	_put(map, Vector2i(6, BAND_ROW), GLASS)
+	assert_equal(_pixels(_find(map)), TILE * TILE, "only the cell in the band")
+
+
+func test_a_ring_of_glass_keeps_the_picture_inside() -> void:
 	var map := _map()
-	_ring(map, Rect2i(4, 4, 4, 4))
-	_put(map, GalaxyMap.Layer.FOREGROUND, Vector2i(5, 4), 0)
-	assert_equal(_pixels(GalaxySkyPockets.find(map, _back, _fore)), 0, "open through the gap")
+	for y in range(3, 7):
+		for x in range(4, 8):
+			var edge := x == 4 or x == 7 or y == 3 or y == 6
+			if edge:
+				_put(map, Vector2i(x, y), BAND)
+	assert_equal(_pixels(_find(map)), 0, "the inside of the ring is no floor")
 
 
-func test_a_hole_inside_one_tile_is_shut_in() -> void:
+func test_glass_at_the_end_of_the_ground_is_no_hole() -> void:
+	var map := _floor_map()
+	# The ground stops at column 10: the band's last cell is glass.
+	for x in range(10, SIZE.x - 2):
+		_put(map, Vector2i(x, GROUND_ROW), 0)
+		_put(map, Vector2i(x, BAND_ROW), 0)
+	_put(map, Vector2i(9, BAND_ROW), GLASS)
+	assert_equal(_pixels(_find(map)), 0, "open sky beside it")
+
+
+func test_sky_above_a_shelf_between_walls_keeps_the_picture() -> void:
 	var map := _map()
-	_put(map, GalaxyMap.Layer.FOREGROUND, Vector2i(5, 5), HOLED)
-	var rows := GalaxySkyPockets.find(map, _back, _fore)
-	assert_equal(_pixels(rows), HOLE.get_area(), "the hole's pixels")
-	assert_equal(rows[0].position, Vector2i(5, 5) * TILE + HOLE.position, "where the hole is")
+	for x in range(4, 10):
+		_put(map, Vector2i(x, 6), SOLID)
+	for y in range(2, 9):
+		_put(map, Vector2i(3, y), SOLID)
+		_put(map, Vector2i(10, y), SOLID)
+	assert_equal(_pixels(_find(map)), 0, "walls on both ends: no band")
 
 
-func test_see_through_pixels_on_a_tile_edge_join_the_open_sky() -> void:
-	var map := _map()
-	_put(map, GalaxyMap.Layer.FOREGROUND, Vector2i(5, 5), EDGE_GAP)
-	assert_equal(_pixels(GalaxySkyPockets.find(map, _back, _fore)), 0, "open at the edge")
+func test_glass_between_the_band_and_a_wall_is_painted() -> void:
+	var map := _floor_map()
+	_put(map, Vector2i(9, BAND_ROW), GLASS)
+	_put(map, Vector2i(10, BAND_ROW), SOLID)
+	assert_equal(_pixels(_find(map)), TILE * TILE, "the band on one end, a wall on the other")
 
 
 ## A map of sky with a solid foreground border of two tiles, as Galaxy
@@ -62,29 +91,29 @@ func _map() -> GalaxyMap:
 		plane.resize(SIZE.x * SIZE.y)
 		map.planes.append(plane)
 	map.planes[GalaxyMap.Layer.BACKGROUND].fill(SKY)
+	var inner := Rect2i(2, 2, SIZE.x - 4, SIZE.y - 4)
 	for y in SIZE.y:
 		for x in SIZE.x:
-			var inner := Rect2i(2, 2, SIZE.x - 4, SIZE.y - 4)
 			if not inner.has_point(Vector2i(x, y)):
-				_put(map, GalaxyMap.Layer.FOREGROUND, Vector2i(x, y), SOLID)
+				_put(map, Vector2i(x, y), SOLID)
 	return map
 
 
-func _ring(map: GalaxyMap, rect: Rect2i) -> void:
-	for y in range(rect.position.y, rect.end.y):
-		for x in range(rect.position.x, rect.end.x):
-			var edge := (
-				x == rect.position.x
-				or y == rect.position.y
-				or x == rect.end.x - 1
-				or y == rect.end.y - 1
-			)
-			if edge:
-				_put(map, GalaxyMap.Layer.FOREGROUND, Vector2i(x, y), SOLID)
+## [method _map] with ground across it and a floor's band on the ground.
+func _floor_map() -> GalaxyMap:
+	var map := _map()
+	for x in range(2, SIZE.x - 2):
+		_put(map, Vector2i(x, GROUND_ROW), SOLID)
+		_put(map, Vector2i(x, BAND_ROW), BAND)
+	return map
 
 
-static func _put(map: GalaxyMap, layer: GalaxyMap.Layer, cell: Vector2i, tile: int) -> void:
-	map.planes[layer][cell.y * map.width + cell.x] = tile
+func _find(map: GalaxyMap) -> Array[Rect2i]:
+	return GalaxySkyPockets.find(map, _back, _fore, _walkable)
+
+
+static func _put(map: GalaxyMap, cell: Vector2i, tile: int) -> void:
+	map.planes[GalaxyMap.Layer.FOREGROUND][cell.y * map.width + cell.x] = tile
 
 
 ## The sky tile with its sky cleared: wholly see-through.
@@ -94,16 +123,14 @@ static func _back(tile: int) -> Image:
 	return image
 
 
-## Foreground tiles: solid; solid with a hole in the middle; solid with a
-## see-through gap along its top edge.
 static func _fore(tile: int) -> Image:
 	var image := Image.create_empty(TILE, TILE, false, Image.FORMAT_RGBA8)
-	image.fill(Color.WHITE)
-	if tile == HOLED:
-		image.fill_rect(HOLE, Color.TRANSPARENT)
-	elif tile == EDGE_GAP:
-		image.fill_rect(Rect2i(4, 0, 4, 6), Color.TRANSPARENT)
+	image.fill(Color.TRANSPARENT if tile == GLASS else Color.WHITE)
 	return image
+
+
+static func _walkable(tile: int) -> bool:
+	return tile == SOLID
 
 
 static func _pixels(rows: Array[Rect2i]) -> int:

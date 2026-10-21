@@ -133,19 +133,40 @@ verschillen, byte voor byte).
 5. **God mode zonder melding**: zie 3.
 6. **Door de glazen vloer van Miragia kijken.** Het glas is
    voorgrond-tiles met doorzichtige binnenkant over de effen lucht; met
-   een plaatje achter het level was die lucht weg, dus zag je het
-   plaatje door het glas (en de vloer onder de glazen zuilen). Nu houdt
-   alleen lucht die de open lucht bereikt het plaatje; lucht die door de
-   tekening van het level is ingesloten blijft lichtblauw
-   (`GalaxySkyPockets`, `GalaxySkyPatch`). In level 9 is dat de
-   binnenkant van de glazen gebouwen (ook de kamers bij de start); in
-   andere levels kleine gaatjes tussen bladeren en in items. Kost
-   0,2-0,4 s bij het begin van een level met plaatje (per level bewaard).
+   een plaatje achter het level zag je het plaatje door het glas, en ook
+   door de vloer waar een glazen zuil in de loopband staat. Eerste versie
+   (alle ingesloten lucht lichtblauw) nam het plaatje ook uit het glas;
+   op verzoek van de gebruiker vervangen door een vloer-regel (zie 8).
+7. **Split-screen in kleine ruimtes** (tweede ronde, 21-10). Ging één
+   speler een huisje in (een ruimte tussen scroll-blokken die nauwelijks
+   groter is dan het beeld, zoals het huisje in Border Village: 8 px
+   hoger dan het beeld), dan stond dat huisje midden in het hele scherm,
+   bij een schuine lijn deels in de helft van de ander, en zijn eigen
+   helft was zwart. Nu: is het scherm gesplitst en is de ruimte van een
+   van beiden kleiner dan 1,2 beeld breed of hoog, dan draait de lijn
+   (glijdend) naar een rechte lijn door het midden. Wie op dat moment
+   het meest links staat krijgt de linkerhelft; de kanten blijven tot de
+   lijn weer terug is gedraaid (geen wissel terwijl hij recht staat). Elke
+   Keen staat dan midden in zijn eigen helft en zijn helft blijft in zijn
+   ruimte: een ruimte kleiner dan de helft staat in het midden van zijn
+   helft. Zijn beiden weer buiten, dan draait de lijn terug naar de
+   schuine. Eén gedeeld beeld blijft zoals het was (`GalaxySplitView`).
+8. **Vloer dicht, glas doorzichtig** (tweede ronde, 21-10). Nu toont al
+   het glas het plaatje (gebouwen, zuilen, koepels, ramen) en worden
+   alleen gaten in een vloer lichtblauw geschilderd: een rij
+   vloercellen (op een tile waar Keen op loopt) met lucht erachter, met
+   aan minstens één kant de loopband (voorgrond, dicht, zelf niet om op
+   te lopen) en aan de andere kant de band of een muur
+   (`GalaxySkyPockets`). Nagekeken op alle Keen 4-levels met een
+   plaatje: alleen level 9 (de voeten van de zuilen en koepels in de
+   loopband en op de platforms, hoekjes bij muren, de gaten van de
+   palen) en 3 pixels in level 5.
 
 - [x] Nieuwe suites `test_keen4_d13_2_fixes` (boom), `test_galaxy_split_look`, `test_galaxy_sky_pockets`; ze falen met de fixes uitgezet. 124 suites: 123 groen, `test_keen4_v14` overgeslagen (geen 1.4-bestanden op deze Mac), 0 fouten, geen SCRIPT ERROR, gdlint schoon.
 - [x] Regressies Keen 1, 2 en 4 tegen 314286d: alles gelijk. Apps gebouwd (Mac en Windows).
+- [x] Tweede ronde (7 en 8): nieuwe suite `test_galaxy_split_small_areas`, `test_galaxy_sky_pockets` herschreven, de glastest in `test_keen4_d13_2_fixes` aangepast en de split-wandeling daar met een vaste seed (het level begint op een willekeurige plek; soms hield een wezen speler 2 tegen, ook al op e3c8482). 125 suites: 124 groen, `test_keen4_v14` overgeslagen, 0 fouten, geen SCRIPT ERROR, gdlint schoon. Regressies Keen 1, 2 en 4 tegen e3c8482: alles gelijk. Apps opnieuw gebouwd.
 - Open: alleen of met twee spelers blijft de blik staan na het loslaten tot Keen van de grond gaat (onze engine; niet naast het origineel gelegd).
-- Open: in level 9 zijn nu grote delen lichtblauw (alles binnen het glas), het plaatje alleen buiten; zeg het als het minder moet.
+- Open: gaat een Keen door een deur terwijl het scherm gesplitst is, dan glijdt zijn helft over het level naar de nieuwe plek (zo was het al); zeg het als dat moet springen.
 - Open: schermafbeeldingen met `scripted_play.gd` op de Mac lopen qua frames niet vast (laden duurt wisselend); pauzes zijn daarom vooral in de tests vergeleken.
 
 ## Mijlpaal D13: wat er nu is

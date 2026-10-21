@@ -27,6 +27,9 @@ const UNEVEN_SECONDS: Array[float] = [0.0069, 0.0113, 0.0041, 0.0157, 0.0083, 0.
 const STILL_FRAMES := 60
 const LIMIT := 2000
 const SPLIT_FRAMES := 200
+## The global random seed for the walk apart, so that it is the same walk
+## every time.
+const SPLIT_SEED := 1
 ## Holding down long enough for the whole look down (30 tics, then 1 pixel
 ## a tic up to 107 pixels).
 const LOOK_FRAMES := 120
@@ -40,9 +43,11 @@ const ITEM_SHOTS := 99
 const WATCH_SPOTS: Array[Vector2i] = [
 	Vector2i(2, 2), Vector2i(317, 2), Vector2i(2, 197), Vector2i(317, 197), Vector2i(40, 100)
 ]
-## Level 9 (Miragia): a cell inside the glass column next to Keen's start,
-## and one of open sky at the top.
+## Level 9 (Miragia): the glass column next to Keen's start, where it
+## stands in the walkway's band (a hole in the floor) and above it (glass
+## the picture shows through), and a cell of open sky at the top.
 const GLASS_LEVEL := 9
+const FLOOR_HOLE_CELL := Vector2i(12, 69)
 const GLASS_CELL := Vector2i(12, 60)
 const OPEN_CELL := Vector2i(30, 3)
 const TILE_PIXELS := 16
@@ -307,16 +312,19 @@ func test_the_online_page_keeps_the_wrist_watch_around_it() -> void:
 	assert_true(lit > 0, "and it is not black there")
 
 
-# --- Bug 6: level 9's glass keeps the sky's colour ---------------------
+# --- Bug 6: level 9's floor has no holes; its glass shows the picture ---
 
 
-func test_level_9s_glass_keeps_the_sky_colour_behind_the_picture() -> void:
+func test_level_9s_floor_keeps_the_sky_colour_behind_the_picture() -> void:
 	_create_view()
 	_start_game_on(GLASS_LEVEL)
 	assert_true(_view._backdrop_picture != null, "a picture behind level 9")
 	var patch: GalaxySkyPatch = _view._sky_patch
-	assert_true(patch.visible, "the shut-in sky is painted")
-	assert_true(_covers(patch.rows(), GLASS_CELL), "inside the glass column by the start")
+	assert_true(patch.visible, "the holes in the floor are painted")
+	assert_true(_covers(patch.rows(), FLOOR_HOLE_CELL), "the glass column's foot in the walkway")
+	assert_true(
+		not _covers(patch.rows(), GLASS_CELL), "the glass above the floor shows the picture"
+	)
 	assert_true(not _covers(patch.rows(), OPEN_CELL), "the open sky shows the picture")
 
 
@@ -348,6 +356,9 @@ func _assert_everything(lives: int) -> void:
 
 ## Two players apart (player 2 walked left), the screen split.
 func _split_apart() -> void:
+	# The level starts at a random place in the original's random table;
+	# from some places a creature stops player 2 on his way left.
+	seed(SPLIT_SEED)
 	_create_view()
 	_start_game_on(FIRST_LEVEL)
 	_view.toggle_partner()

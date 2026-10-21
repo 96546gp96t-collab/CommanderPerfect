@@ -10,7 +10,8 @@ extends Keen4MenuScreen
 ##     next level on;
 ##   - each plays with his own keys ([method KeenInput.for_player], now with
 ##     up and down); the screen splits as in Keen 1-3 ([GalaxySplitView]);
-##     split, each half moves for its Keen looking up or down (D13.2);
+##     split, each half moves for its Keen looking up or down, and in a
+##     small area the line stands through the middle (D13.2);
 ##   - on the world map the one Keen walks with the keys of both and of
 ##     playing alone (Keen 3's choice); the choice after a death too;
 ##   - player 2 is not saved; a save in a level he played in holds the
@@ -277,7 +278,7 @@ func _place_split() -> void:
 	var material := _split_view.material as ShaderMaterial
 	if material != null:
 		material.set_shader_parameter("view_size", Vector2(size))
-		material.set_shader_parameter("normal", _split.split.normal)
+		material.set_shader_parameter("normal", _split.line_normal)
 		material.set_shader_parameter("line_strength", _split.split.line_strength())
 	_update_backdrops()
 

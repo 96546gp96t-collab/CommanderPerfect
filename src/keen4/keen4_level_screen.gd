@@ -170,8 +170,8 @@ func _apply_backdrop() -> void:
 	_update_sky_patch()
 
 
-## The sky shut in by the level's drawing keeps its colour (the inside of
-## level 9's glass): only the open sky shows the picture (D13.2).
+## The holes in a floor keep the sky's colour (where level 9's glass
+## columns stand in the walkway): the picture shows everywhere else (D13.2).
 func _update_sky_patch() -> void:
 	if _sky_color.a == 0.0 or _map == null:
 		_sky_patch.show_rows([], Color.TRANSPARENT)
@@ -181,7 +181,11 @@ func _update_sky_patch() -> void:
 		var back_image := func(tile: int) -> Image:
 			var image := _data.graphics.back_tile(tile)
 			return _cleared(tile, image) if image != null else null
-		_sky_pockets[key] = GalaxySkyPockets.find(_map, back_image, _data.graphics.fore_tile)
+		var walkable := func(tile: int) -> bool:
+			return _data.tile_info.fore(GalaxyTileInfo.Fore.TOP, tile) != 0
+		_sky_pockets[key] = GalaxySkyPockets.find(
+			_map, back_image, _data.graphics.fore_tile, walkable
+		)
 	var rows: Array[Rect2i] = []
 	rows.assign(_sky_pockets[key])
 	_sky_patch.show_rows(rows, _sky_color)

@@ -770,22 +770,31 @@ between the palms, inside tree tiles), 17 (under water), nor the world map
 of level 5 but water in levels 8 and 10: there the top row has the cyan
 sky, so their water keeps its colour.
 
-**Sky shut in by the level keeps its colour** (D13.2, `GalaxySkyPockets`,
-`GalaxySkyPatch`). Level 9's glass is foreground tiles with see-through
-insides over the plain sky, so in the original the glass (its pillars,
-columns, domes and the floor where a column meets it) has the sky's colour;
-until D13.2 the picture showed through it and Keen seemed to walk over a
-hole in the floor. Now only sky that the open sky reaches shows the
-picture: within each cell the pixels the picture would show through form
-pockets, pockets of neighbouring cells join where they share an edge pixel,
-and the pockets joined to the edge of what the view can show (inside the
-map's solid 2-tile border) are open sky. The others are painted in the
-sky's colour behind the tiles, in front of the picture. Worked out once
-per level from its first tiles (about 0.2-0.4 s, kept per level). In
-level 9 that is the inside of the glass buildings (also the rooms around
-Keen's start); elsewhere small holes between leaves and inside items
-(levels 5, 7, 8, 10-14, 16: a few hundred pixels to about 110 tiles'
-worth), as "colour inside a shape stays" already did within one tile.
+**The floor has no holes; the glass shows the picture** (D13.2,
+`GalaxySkyPockets`, `GalaxySkyPatch`). Level 9's glass is foreground tiles
+with see-through insides over the plain sky, so in the original the glass
+has the sky's colour; with a picture behind the level the picture shows
+through it, which is right for the glass (pillars, columns, domes, the
+buildings' insides and windows). But level 9's walkway is drawn as a band
+of foreground tiles over the sky, standing on the bricks Keen walks on, and
+where a glass column stands in that band the picture showed through the
+floor: Keen seemed to walk over holes. The rule, per row of cells: a floor
+cell stands on a foreground tile whose top is walked on. A run of floor
+cells that let the sky through is a hole when one end at least is the
+floor's band (a floor cell drawn in front that lets nothing through and is
+not walked on itself) and the other end the band or a wall (drawn in front,
+nothing through, walked on). The holes' see-through pixels are painted in
+the sky's colour behind the tiles, in front of the picture; worked out once
+per level from its first tiles, kept per level. A run that ends anywhere
+else (the edge of the ground, open sky beside it, walls on both ends: the
+sky above a shelf between two walls) is no hole. Checked on every Keen 4
+level with a picture: only level 9 has holes (the feet of the glass
+columns and domes in the walkway and on the platforms' top faces, corners
+where a band meets a wall, the pole holes), and 3 pixels in level 5 (a
+notch in a stone floor). The first version of this fix (earlier on
+21-10) painted all sky shut in by the drawing, which took the picture out
+of the glass too; the user wanted the picture through the glass and only
+the floor solid.
 
 **Our pictures (D11 part B, the user's request of 20-10-2026).**
 `tools/make_keen4_backgrounds.py` paints one per level with sky, as Keen 3's
@@ -906,6 +915,31 @@ by canvas cull masks). The view starts where each player's own camera
 looks, so the picture does not jump when player 2 joins; while the
 screen is shared the view follows the Keens' middles instead of the
 original's resting place of the feet (a few pixels' difference).
+
+**Small areas: a standing line** (D13.2). An area between scroll blocks
+can be little more than the view (Border Village's house behind its door:
+1728 by 208 pixels, 8 more than the view's height). A split view sits up to
+a quarter view off its Keen, toward the partner; in such an area it cannot,
+so with a slanting line the area stayed in the middle of the screen, partly
+in the other player's half, and its player's own half showed black. Now,
+while the screen is split and either Keen's area is less than 1.2 views
+wide or high (`GalaxySplitView.is_small`; the rooms behind doors are 13
+tiles high or less, the low parts of levels where both play are 16 tiles
+or more), the line turns into a standing one through the middle of the
+screen. The player who is further left (his focus point) when it starts to
+turn gets the left half; the sides stay until the line has turned back, so
+they never swap while it stands (a swap would make both halves jump). Each
+view then keeps its Keen in the middle of his own half, and his half (half
+the width, the whole height) inside his area: an area smaller than the half
+is centred in it, a larger one scrolls inside it. Once neither area is
+small (or the two share one view again), the line turns back to the one at
+right angles between the Keens. The turn glides both ways with the views'
+smoothing (`GalaxySplitView.straight`, 0 to 1; the line's direction is
+turned along the arc). Along an axis where an area is smaller than the
+view, a slanting split also puts it in the middle of its own half rather
+than of the screen (only seen while the line turns). One shared view (both
+close together, in one area) is unchanged: a small area is then centred on
+the screen, as alone.
 
 **Looking up and down in the split screen** (D13.2). Alone the view moves
 1 pixel a tic when Keen looks up (up to 27 pixels) or down (up to 107);

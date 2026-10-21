@@ -79,7 +79,13 @@ area between the scroll blocks. Its control panel has them under
 Configure > Two Players (Add Player 2, each player's keys); F7 as in Keen
 1-3. Keen 4's Keens look up and down; since D13.2 each half of a split
 screen moves for its own Keen's look, as the view does alone (one shared
-view does not). Keen 1-3 have no looking, and `SplitScreen` is unchanged.
+view does not). Also since D13.2: while one of them is in a small area (less
+than 1.2 views wide or high, such as a room behind a door), the line turns
+into a standing one through the middle of the screen, the player further
+left on the left, and his area is in the middle of his own half instead of
+the screen's; when both are out again it turns back to the slanting line.
+Keen 1-3 have no looking and no scroll blocks, and `SplitScreen` is
+unchanged.
 
 ## The split screen
 
