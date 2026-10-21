@@ -134,6 +134,7 @@ help onder het "PAUSED"-venster na het laden van een spel.
 - Let op: een opgeslagen spel midden in een level van vóór D13 begint dat level opnieuw (de terugvaloptie van D10); opslag op de kaart blijft werken.
 - Open (gezien, niet aangepast): de plaatjes tijdens het optrekken aan een richel (geen regel past), de beet van de Dopefish (2 px / 2 tics), het schot van de sprite een frame later, de Wormmouth-beet, de Foot, een schakelaar met een platform en het teleporteren van Smirky niet gevangen; de demo's van 1.4 (75/99/79/42 %) en demo 2 en 3 van 1.0 in de oude meting verschillen alleen in wezens met toevalskeuzes.
 - Open: twee tests zijn onder zware CPU-belasting soms traag (`test_keen4_coop_screen`, `test_keen4_online_play` met de echte poort 24800).
+- Na D13 (`milestone-d13.1-versies`): de README en `game_data/README.md` noemen nu alle vier de episodes, hun mappen en bestanden, en een tabel met de geteste versies (Keen 1: 1.1; Keen 2: 1.31; Keen 3: 1.00; Keen 4: 1.0 en 1.4) en de versies die zouden moeten werken.
 
 ## Mijlpaal D12: wat er nu is
 
@@ -2704,9 +2705,10 @@ Keen 3:
 Keen 4:
 
 1. **Voor de gebruiker:** Keen 4 helemaal spelen in `build/` (bouw vanaf
-   `milestone-d13-origineel`, dat alle D-branches bevat): ook F7 voor twee
+   `milestone-d13.1-versies`: `milestone-d13-origineel`, dat alle D-branches
+   bevat, met de bijgewerkte README's): ook F7 voor twee
    spelers, online, en met de bestanden van 1.4 als je die hebt.
-2. `milestone-d13-origineel` kan in één keer naar `main`.
+2. `milestone-d13.1-versies` kan in één keer naar `main`.
 3. Eventueel later: de open punten van D13 (de plaatjes van het optrekken
    aan een richel, de Dopefish-beet, de Foot, Smirky's teleport).
 4. Daarna Keen 5 en 6 (zelfde Galaxy-engine; zie de lessen in
