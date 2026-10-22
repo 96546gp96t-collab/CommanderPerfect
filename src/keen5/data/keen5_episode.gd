@@ -85,6 +85,28 @@ const LAST_LEVEL := 13
 const EMPTY_MAP := 14
 const HIGH_SCORE_MAP := 15
 const LAST_MAP := 15
+## Info values (Omni `ck5_misc.c:CK5_ScanInfoLayer`, research.md §6): Keen
+## facing right or left, Keen on the world map; 25 a row the view never
+## scrolls over (Keen 5 has no column blocks: its 26 is the arrival on
+## Korath III); items 0-11 lie at 57-68, the keycard (item 12) at 70, a
+## stunner at 69 only while Keen has fewer than 5 charges.
+const KEEN_RIGHT_INFO := 1
+const KEEN_LEFT_INFO := 2
+const MAP_KEEN_INFO := 3
+const ROW_BLOCK_INFO := 25
+const NO_BLOCK_INFO := -1
+const FIRST_ITEM_INFO := 57
+const LAST_ITEM_INFO := 68
+const LOW_STUNNER_INFO := 69
+const KEYCARD_INFO := 70
+## Keen on the world map (Omni SPR_MAPKEEN_STAND_W, chunk 244 − 102).
+const MAP_KEEN_SPRITE := 142
+## Keen 5's own pictures behind the levels: none yet (milestone E10), and
+## no sky tiles named, so no level shows one.
+const BACKDROP_FOLDER := "res://assets/backgrounds/keen5"
+const SKY_TILES: PackedInt32Array = []
+const USER_FOLDER := "user://keen5"
+const NAME := "Keen 5"
 
 
 ## The numbers above as a [GalaxyEpisode].
@@ -123,6 +145,41 @@ static func create() -> GalaxyEpisode:
 		FUSE_TEXTS: PackedInt32Array([FUSE_V1_4]),
 	}
 	return episode
+
+
+## The numbers of Keen 5 that the shared Galaxy game needs.
+static func game_rules() -> GalaxyGameRules:
+	var rules := GalaxyGameRules.new()
+	rules.name = NAME
+	rules.locate_files = Keen5Files.locate
+	rules.load_data = load_data
+	rules.data_folder = Keen5Files.SUBFOLDER
+	rules.data_dir_option = Keen5Files.DATA_DIR_OPTION
+	rules.user_folder = USER_FOLDER
+	rules.world_map = WORLD_MAP
+	rules.first_level = FIRST_LEVEL
+	rules.last_level = LAST_LEVEL
+	rules.last_map = LAST_MAP
+	rules.missing_maps = PackedInt32Array([EMPTY_MAP])
+	rules.keen_right_info = KEEN_RIGHT_INFO
+	rules.keen_left_info = KEEN_LEFT_INFO
+	rules.map_keen_info = MAP_KEEN_INFO
+	rules.row_block_info = ROW_BLOCK_INFO
+	rules.column_block_info = NO_BLOCK_INFO
+	rules.first_item_info = FIRST_ITEM_INFO
+	rules.last_item_info = LAST_ITEM_INFO
+	rules.more_item_infos = {KEYCARD_INFO: Keen5Inventory.KEYCARD_ITEM}
+	rules.low_stunner_info = LOW_STUNNER_INFO
+	rules.keen_stand_right_sprite = KEEN_STAND_RIGHT_SPRITE
+	rules.keen_stand_left_sprite = KEEN_STAND_LEFT_SPRITE
+	rules.map_keen_sprite = MAP_KEEN_SPRITE
+	rules.sprites = Keen5Sprites.all()
+	rules.start_lives = Keen5Inventory.START_LIVES
+	rules.start_shots = Keen5Inventory.START_SHOTS
+	rules.first_extra_life = Keen5Inventory.FIRST_EXTRA_LIFE
+	rules.backdrop_folder = BACKDROP_FOLDER
+	rules.sky_tiles = SKY_TILES
+	return rules
 
 
 ## Where the original's high-score table may be, in the known versions.
