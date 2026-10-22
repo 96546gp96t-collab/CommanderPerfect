@@ -145,6 +145,10 @@ const SUITES: Array[Script] = [
 	preload("res://tests/test_keen5_platforms.gd"),
 	preload("res://tests/test_keen5_fuses.gd"),
 	preload("res://tests/test_keen5_mechanics_play.gd"),
+	preload("res://tests/test_galaxy_game_map.gd"),
+	preload("res://tests/test_keen5_map.gd"),
+	preload("res://tests/test_keen5_map_play.gd"),
+	preload("res://tests/test_keen5_status.gd"),
 ]
 const TREE_SUITES: Array[Script] = [
 	preload("res://tests/test_keen4_d11_screen.gd"),
@@ -154,6 +158,7 @@ const TREE_SUITES: Array[Script] = [
 	preload("res://tests/test_keen4_d13_2_fixes.gd"),
 	preload("res://tests/test_keen4_wide_waking_screen.gd"),
 	preload("res://tests/test_galaxy_game_screen.gd"),
+	preload("res://tests/test_galaxy_game_flow.gd"),
 	preload("res://tests/test_keen5_view.gd"),
 ]
 
