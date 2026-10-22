@@ -247,3 +247,37 @@ fine); no copied code from Omnispeak, Commander Genius or the Keen Dreams
 source. Extras are off by default, with the user's exceptions (widescreen
 with the score box, pictures behind levels in widescreen). Talk to the
 user in Dutch; code, comments and commit messages in English.
+
+## Deviations in E2
+
+What E2 built differently from the plan above, and why (developer, E2):
+
+1. **The fuse messages are a run of texts by length, not a message run by
+   lines.** Their shape (2 lines, then 4) also matches an earlier place in
+   the program, so a search without the known place found the wrong one.
+   Their lengths (36, 69) are unique: `Keen5Episode.FUSE_TEXTS` in
+   `text_lengths`. The arrival on Korath III ("Keen steps out ...") is no
+   run of its own: it is the third record of the `game` run, found by the
+   lengths of the whole run (`Keen5Episode.KORATH_TEXT`). Keen 5 has no
+   "Game Over!" text (it shows a picture), so its `game` run starts one
+   record later than Keen 4's and has "Exit to Armageddon" in it.
+2. **The version table has one size per version.** `executable_sizes` is a
+   dictionary from version to size, so it holds the user's packed 1.4
+   (106,417 bytes) and CG's unpacked 1.0 (262,176), but not CG's unpacked
+   1.4 (266,096) as well: such a program is read all the same (everything
+   is found by content), only its version reads "unknown". Nothing depends
+   on Keen 5's version yet; if a later milestone needs it, an additive
+   field with the unpacked image's size (254,832 for both 1.4 programs)
+   would name both.
+3. **`GalaxyChunkRanges` refuses a given border beyond the tile chunks**
+   (null with the usual error), the same way it refuses a file with too
+   few chunks. Keen 4 never gives a border, so nothing changes for it.
+4. **The data viewer's program tab also lists the text runs**
+   (`GalaxyEpisode.text_lengths`: status labels, game texts, cheat, and for
+   Keen 5 the fuse messages). Additive: Keen 4's page shows a few more
+   lines; nothing else on it changed.
+5. **`Keen5View` is a plain screen of its own** (a 320×200 picture drawn
+   with Keen 5's menu font and Keen standing, sprite 6), not a stripped
+   `Keen4View`: the plan's D2 "coming soon" screen is not in the history
+   any more, and the real view comes with the shared game in E3. Escape or
+   Enter goes back to the start screen.

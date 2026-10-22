@@ -68,6 +68,13 @@ pictures, 3 masked pictures, 346 sprites, 104 + 20 8×8 tiles, 1512 + 2952
 Audio: 64 PC sounds, 64 AdLib sounds, 64 empty digitised slots, 14 songs;
 206 chunks.
 
+E2 measured in the files (v1.4): the story is one record of 37 lines;
+the level names are 16 (maps 0-15, slot 14 included); the high-score
+table lies at 0x33D56; the status window's labels are twelve (with
+KEYCARD and VITALIN, without RESCUED and the wetsuit); the program has no
+"Game Over!" text. The offsets and shapes are in
+[file-formats.md](file-formats.md), "Texts in KEEN5E.EXE".
+
 ### Where Omnispeak branches per episode
 
 The episode definition (`ck_ep.h`) has only the extension, the episode

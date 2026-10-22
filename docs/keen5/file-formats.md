@@ -85,10 +85,10 @@ Two things the Keen 4 reader assumes do not hold for Keen 5:
    (the left and right tables hold only 0 and 1, the first entry of every
    foreground table is 0); with 1440/3025 they do not (files). Fix in E2,
    additive: `GalaxyEpisode.back_tile_count` (0 = work it out as now);
-   Keen 5 sets 1512. Keen 4's result does not change.
+   Keen 5 sets 1512. Keen 4's result does not change. (Done in E2.)
 2. **The texts come before the misc chunks** (Keen 4: misc, texts,
    demos). Fix in E2, additive: `GalaxyEpisode.texts_before_misc`
-   (false = as now). Keen 5: 7 texts, 5 misc chunks.
+   (false = as now). Keen 5: 7 texts, 5 misc chunks. (Done in E2.)
 
 ## GAMEMAPS.CK5
 
@@ -127,8 +127,40 @@ from the episode (E9).
 
 ## Texts in KEEN5E.EXE
 
-Found while checking the files (offsets raw): the story "Episode Five / The
-Armageddon Machine ..." (0x1FE..), the "Keen ..." level entry texts from
-about 0x201F0. `GalaxyExecutable.level_names()` needs
-`level_name_count` and the shapes of the message runs from
-`Keen5Episode` (E2); the research lists the runs.
+Found by their shape in E2 (`Keen5Episode`; raw image offsets of v1.4, only
+tried first: every run is also found without them, tested in
+`tests/test_keen5_data.gd`). Nothing of the texts is in the repository;
+the code knows only their numbers of lines or characters.
+
+| Run | Offset (v1.4) | Shape | What |
+|---|---|---|---|
+| Story | 0x1FDE0 | one record of 37 lines | the title loop's story (`message_shapes`) |
+| Level names | 0x20040 | 16 names, then 16 entry texts | maps 0-15, also the empty slot 14 (the Megarocket); every entry text ends with its name, the last "...theHigh Scores" (sic) |
+| `game` | 0x3053E | lengths 31, 4, 30, 33, 22, 39, 23, 9, 18, 34, 48, 10 | a memory error, "DEMO", **the arrival on Korath III** (record 2, two lines), the demo recorder's three texts, the death box (three lines, "Exit to Armageddon"), two memory errors, "One moment". No "Game Over!" text: Keen 5 shows a picture |
+| `cheat` | 0x30881 | lengths 70, 6, 3 | the B+A+T box, "PAUSED", the drive prompt (as Keen 4) |
+| `status` | 0x308D3 | lengths 8, 5, 5, 7, 5, 4, 6, 4, 4, 4, 5, 7 | the status window: location, score, extra, **keycard**, level, the three difficulties, keys, ammo, lives, drops (no "rescued", no wetsuit) |
+| `fuse` | 0x31BFB | lengths 36, 69 | the Korath III fuse's message (2 lines), then the one of the four elevator fuses (4 lines). By lengths: the line counts 2, 4 match an earlier place too |
+| High scores | 0x33D56 | 8 records of 64 bytes | as Keen 4 (`GalaxyHighScores.find_defaults`, found by shape too); all 10,000, extra number 0 |
+
+Not looked for yet (the milestones that need them find them the same way):
+the menus' texts, Paddle War's ("KEEN:", "COMP:"), the debug texts.
+
+## Checked in E2
+
+- **The tile border** (`GalaxyEpisode.back_tile_count` = 1512, given by
+  `Keen5Episode`): the exported tile sets show the last drawn background
+  row (80), four empty rows (1440-1511), and a foreground set that starts
+  with the empty tile 0 and the info icons, as Keen 4's. With 1512/2952
+  every side wall in `TILEINFO` is 0 or 1; 123 animated background tiles,
+  415 animated foreground tiles, 962 drawn in front of the sprites.
+- **Texts before the misc chunks** (`GalaxyEpisode.texts_before_misc`):
+  the seven texts (chunks 4914-4920) start with the `^P` page mark-up; the
+  five misc chunks expand to 4,008, 15,044, 5,864, 4,008 and 32,000 bytes
+  (the last a whole 320×200 screen in four planes); the five demos play
+  maps 1, 3, 10, 11 and 15.
+- **The version** by the program's size: 106,417 bytes is 1.4
+  (`Keen5Episode.EXECUTABLE_SIZES`; also CG's unpacked 1.0, 262,176).
+- **Keen's sprites** are Keen 4's numbers: 6 standing right, 7 walking
+  right (the icon), 14 standing left, 15 walking left (seen by eye).
+- Loading (unpacking, headers, ranges) takes ~75 ms; the six headers
+  without the known places ~85 ms.

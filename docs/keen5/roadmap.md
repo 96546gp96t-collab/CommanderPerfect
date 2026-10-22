@@ -298,3 +298,4 @@ Keen 4-tests slagen (hun namen van privéleden blijven bestaan).
 | Mijlpaal | Datum | Status |
 |---|---|---|
 | E1 Onderzoek | 22-10-2026 | Klaar; vragen beantwoord op 22-10-2026 (research.md §13) |
+| E2 Bestanden | 22-10-2026 | Klaar (branch `milestone-e2-bestanden`); vijf iconen, viewer en export voor Keen 5 |

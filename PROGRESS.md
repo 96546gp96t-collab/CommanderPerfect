@@ -111,7 +111,7 @@ bestanden in [docs/keen5/file-formats.md](docs/keen5/file-formats.md).
 | # | Mijlpaal | Status |
 |---|---|---|
 | E1 | Onderzoek: code in kaart, Keen 5 v1.4 van de gebruiker uitgelezen, Omnispeak, architectuur, mijlpalen | ✅ Klaar (branch `milestone-e1-onderzoek`); vragen beantwoord op 22-10-2026 |
-| E2 | De bestanden van Keen 5 inlezen, data viewer, vijfde icoon | ⬜ |
+| E2 | De bestanden van Keen 5 inlezen, data viewer, vijfde icoon | ✅ Klaar (branch `milestone-e2-bestanden`) |
 | E3 | Het gedeelde Galaxy-spel en een level spelen (sleutelkaart, beveiligingsdeuren, uitgang) | ⬜ |
 | E4 | Wezens | ⬜ |
 | E5 | Platforms op pijlen, zekeringen en de QED | ⬜ |
@@ -124,64 +124,11 @@ bestanden in [docs/keen5/file-formats.md](docs/keen5/file-formats.md).
 | E12 | Naast het origineel; alle opties uit = het origineel | ⬜ |
 | E13 | (Optioneel) Keen 4 op het gedeelde Galaxy-spel | ⬜ |
 
-**Volgende stap:** E2 (`milestone-e2-bestanden`, vanaf `main`): de twee
-nieuwe velden in `GalaxyEpisode` (tile-grens 1512, teksten vóór de
-misc-blokken), `Keen5Files`, `Keen5Episode`, het vijfde icoon, `--game=5`,
-de data viewer en de export. De gebruiker uploadt Keen 5 en ook Keen 2-4
-naar de sessie (voor de controle dat Keen 1-4 gelijk blijven).
-
-## Achtergronden Keen 1 en 2: mijlpalen AB
-
-Branch `milestone-a-b-backgrounds` (vanaf `main`, 22-10). Onderzoek en plan:
-[docs/backgrounds/research.md](docs/backgrounds/research.md) en
-[docs/backgrounds/roadmap.md](docs/backgrounds/roadmap.md).
-
-| # | Mijlpaal | Status |
-|---|---|---|
-| AB1 | Onderzoek: elk level bekeken en gemeten, keuzes van de gebruiker | ✅ Klaar |
-| AB2 | De vaste wand (`LevelWall`, patroonregel voor het rooster, schaduwen, lichtbundels) | ✅ Klaar en gecontroleerd door de architect (developer) |
-| AB3 | De plaatjes: Keen 2-wanden, Keen 1-luchten en -wanden | ✅ Klaar en gecontroleerd door de architect (tekenaar, tegelijk met AB2) |
-| AB4 | Samenvoegen en nakijken | ✅ Klaar |
-| AB-fix | Fixes na de test van de gebruiker: items, ramen, HUD, sneeuwplatforms, trappen van driehoeken | 🔶 Gebouwd, in test bij de gebruiker |
-
-**Wat er nu is.** In breedbeeld (optie Backgrounds, standaard aan; 4:3
-blijft het origineel):
-
-- **Keen 2** speelt in het moederschip: het grijze ruitjespatroon is de
-  achterwand van elke kamer. Die wand is nu een eigen textuur die 1:1 met
-  de tiles meeschuift (vast aan het level, keuze van de gebruiker). Het
-  spel vindt het rooster pixel voor pixel (ook rond items, die heel
-  blijven); de schaduw van de muren is het rooster één kleurstap donkerder
-  en valt nu als donkere band over de nieuwe wand, zonder ruitjes (wens van
-  de gebruiker). Het rooster in het donker (levels 5 en 14) wordt een
-  gedimde wand, het teal van level 12 ook wand. Per soort kamer een wand:
-  gangen (1-3), Tantalus-centra (elke stad een eigen tint), Home A en B,
-  wapenkamers en de donkere schacht. Keen 2's donker (lichten uit) dimt de
-  wand mee.
-- **Keen 1**: buiten een glijdende Mars-lucht in de sfeer van het plaatje
-  van level 1 (dat bleef zoals het was), per stad eigen: ijs (8, 9, 10),
-  groen kristal (7), rode rots (13), een kasteel op een rots (16). Binnen
-  (de heiligdommen, het kasteel, de tunnel van 13) een vaste stenen wand
-  achter het zwart. Het grijs onder een blauwe lamp is een lichtbundel en
-  blijft grijs, net als smalle grijze stroken tussen donkere muren (de
-  schuine stroken in het kasteel van 16).
-- Gemaakt door eigen tekenprogramma's (`tools/make_keen1_backgrounds.py`,
-  `tools/make_keen2_walls.py`); niets komt uit de spelbestanden. Een eigen
-  plaatje of wand in `game_data/keenN/backgrounds/` wint
-  (`levelNN`, `wallNN`).
-
-- [x] Tests: 129 suites groen, 0 SCRIPT ERROR, gdlint schoon.
-- [x] Regressies tegen `main`: Keen 1 gelijk; Keen 2 verschilt alleen in
-  breedbeeld (de nieuwe wand). In 4:3 alleen verschillen door timing aan
-  het begin van een level (ook tussen twee runs van `main`; op frame 300
-  identiek).
-- [x] Alle 32 levels in breedbeeld gefotografeerd en nagekeken.
-- Open: een Keen 2-level indelen kost de eerste keer ~0,6 s (drie soorten
-  levels); kleine gaatjes houden het oude rooster (tussen de Yorp-beelden
-  in 5 en 14, het glas van de Tantalus-machines); met xBRZ blijft een
-  dunne rand roosterkleur rond items, zoals rond de lucht nu; Keen 2's
-  donker, split-screen en vloeiende beweging niet per schermafbeelding
-  nagekeken (de wand hoort bij het level zelf, dus volgt ze).
+**Volgende stap:** E3 (`milestone-e3-level`, vanaf `main` na E2): het
+gedeelde Galaxy-spel in `src/galaxy/game/` (uit de Keen 4-klassen) en een
+Keen 5-level spelen, met de sleutelkaart, de beveiligingsdeuren en de
+uitgang; `Keen5View` wordt dan het echte spelscherm. De gebruiker uploadt
+Keen 2-5 weer naar de sessie.
 
 ### Fixes (22-10)
 
@@ -272,6 +219,72 @@ ligt wordt een gat (`docs/graphics.md`, onderzoek §8).
   in `Keen2GuardRobot`; nu kijkt hij de kant op waar hij heen zweeft en
   schiet. Alleen namen/plaatjes gecontroleerd (js-dos overgeslagen op
   verzoek). Test `test_guard_robot_faces_the_way_it_floats_and_fires`.
+
+## Mijlpaal E2: wat er nu is
+
+De bestanden van Keen 5 worden gelezen, op `milestone-e2-bestanden`
+(22-10, 19:28-19:47 UTC). Er beweegt nog niets. Wat er geleerd is staat in
+`docs/keen5/file-formats.md` ("Texts in KEEN5E.EXE", "Checked in E2"), de
+afwijkingen in `docs/keen5/architecture.md`, "Deviations in E2".
+
+- [x] **Twee velden in `GalaxyEpisode`** (additief, standaard zoals
+  vroeger): `back_tile_count` (0 = uitrekenen; Keen 5: 1512) en
+  `texts_before_misc` (false; Keen 5: true). `GalaxyChunkRanges` gebruikt
+  ze; een opgegeven grens voorbij de tiles geeft null. Keen 4 leest
+  byte-voor-byte hetzelfde (alle Keen 4-tests en -regressies gelijk).
+- [x] **`Keen5Files`** (`game_data/keen5`, `--data-dir-keen5=`, naast de
+  app; `KEEN5E.EXE` of `KEEN5.EXE`) en **`Keen5Episode`**: de headers van
+  1.4 (alle zes ook zonder bekende plaatsen gevonden, ~85 ms), 3 fonts, 7
+  teksten vóór 5 misc-blokken, 5 demo's, de grens 1512, de versie uit de
+  grootte (106.417 bytes = 1.4). Gelezen: 93 plaatjes, 3 gemaskeerd, 346
+  sprites, 104 + 20 kleine tiles, 1512 + 2952 tiles, 16 mapplaatsen (14
+  leeg), 206 geluidsblokken, laden ~75 ms.
+- [x] **Teksten op vorm gevonden** (ook zonder bekende plaatsen): de 16
+  levelnamen met hun "Keen ..."-teksten (maps 0-15, ook de lege 14), het
+  verhaal (37 regels), het statusvenster (12 labels, met KEYCARD), de
+  `game`-reeks (met "Keen steps out onto Korath III" en "Exit to
+  Armageddon"; Keen 5 heeft geen "Game Over!"-tekst), de cheat-reeks, de
+  twee zekeringberichten (op lengte; op regels vond hij een verkeerde
+  plek) en de highscoretabel (0x33D56).
+- [x] **Vijf iconen op het startscherm**: "Keen 5" met Keen lopend (sprite
+  7, op het oog nagekeken: 6/7/14 zijn dezelfde als bij Keen 4) en de naam
+  in Keen 5's eigen lettertype; zonder bestanden grijs met uitleg
+  (screenshot gezien). Met bestanden opent het "Keen 5 - coming soon"
+  (`Keen5View`, Escape of Enter terug); `--game=5 --level=N` zet de
+  levelnaam eronder ("Keen 5 has no map N" als die er niet is).
+- [x] **`--game=5`** (de laagste `--game=` wint), de data viewer
+  (`-- --game=5`; de Galaxy-pagina kreeg een naamparameter, standaard
+  "Keen 4", en het tabblad Program toont nu ook de tekstreeksen) en
+  `tools/export_graphics.gd -- --game=5` (naar `exported/keen5/`, ~4 s;
+  `_export_galaxy` kreeg parameters met Keen 4 als standaard).
+  Bouwscripts nemen `game_data/keen5` mee; beide READMEs noemen Keen 5.
+- [x] Online-id `Keen5Files.GAME_ID` = "commanderperfect-keen5", **niet** in
+  `OnlineProtocol.GAME_IDS` (E11; een test bewaakt dat).
+- [x] **Tests**: nieuwe suites `test_keen5_files` (zelfgemaakte data uit
+  `tests/keen5_fixtures.gd`: grens opgegeven en teksten vóór misc, zonder
+  de velden de oude werking, Keen 4's volgorde onveranderd, bestanden,
+  `--game=5`, vijfde icoon, online-id, het coming-soon-scherm) en
+  `test_keen5_data` (echte data: versie, plekken, aantallen, alle maps,
+  wereldkaart en map 1, namen, tekstreeksen ook zonder bekende plekken,
+  highscores, plaatjes, tileinfo, demo's, misc, geluid, icoon). Aantal
+  spellen 4 → 5 in `test_launcher`, `test_keen2_files`,
+  `test_keen3_files`. **134 suites groen, 1 overgeslagen (Keen 4 v1.4),
+  0 FAIL, 0 SCRIPT ERROR**; zonder `game_data/keen5` slaat
+  `test_keen5_data` netjes over. `gdformat` en `gdlint` schoon.
+- [x] **Controle Keen 1-4**: regressies tegen de nulmeting: Keen 1 alles
+  gelijk behalve `launcher.png`, en dat verschilt alleen binnen het
+  vijfde icoon (op het oog gezien); Keen 2 en Keen 4 (11 beelden) alles
+  gelijk. `git diff origin/main` op `src/keen2-4`, hun tests, `src/actors`,
+  `src/map`, `src/game`: alleen de twee regels met het aantal spellen.
+  `src/galaxy/` alleen de twee velden.
+- **Niet gedaan:** geen vergelijking in js-dos (er is nog niets te spelen);
+  de apps zijn hier niet gebouwd (de gebruiker bouwt op de Mac).
+- **Open:** een uitgepakte 1.4 (266.096 bytes) werkt, maar heet "unknown"
+  (één grootte per versie in de tabel; zie Deviations in E2). Menu- en
+  Paddle War-teksten zoekt E9.
+- **Om te proberen:** het startscherm (vijfde icoon); `godot --path . --
+  --game=5 --level=13`; de data viewer met
+  `godot --path . res://src/viewer/data_viewer.tscn -- --game=5`.
 
 ## Mijlpaal E1: wat er nu is
 
