@@ -156,8 +156,15 @@ From the survey; each one keeps Keen 4's behaviour by its default.
 | Texts before misc chunks | Misc, texts, demos | `GalaxyEpisode.texts_before_misc` (false) | E2 |
 | User folders | Defaults `user://keen4/saves`, `user://keen4/cache` | Keen 5 always passes `user://keen5/...`; a test checks it. The defaults stay | E2, E9 |
 | A subclass of Keen | `GalaxyKeen.spawn` does `GalaxyKeen.new()` | An optional argument (the Keen to place, default a new `GalaxyKeen`), as `GalaxyMapKeen.place` | E3 |
-| Keen 5's tile kinds | `GalaxyKeenBody._touch_tiles` knows misc 7-10, 15-17, 21-28; 16 is Keen 4's moon (always taken) | A virtual `_touch_other_tile(kind)` called for kinds it does not know; the moon branch only when `shows_moon` (Keen 4 sets it). Check first whether Keen 5 uses misc 16 (research.md §4) | E3 |
-| More items | 12 items, `ITEM_SOUNDS` clamped | The keycard is not an item in Omnispeak's numbering (research.md §5); if it is, an override in `Keen5Keen` | E3 |
+| Keen 5's tile kinds | `GalaxyKeenBody._touch_tiles` knows misc 7-10, 15-17, 21-28 (16: Keen 4's moon) | A virtual `_touch_other_tile(kind)` for the kinds it does not know (Keen 5: 31 computer, 32 security door; the fuse is a top value, 57). Misc 16 exists on two Keen 5 tiles but does nothing: Keen 5 leaves `shows_moon` false | E3 |
+| Keen's extra actions | `GalaxyKeenActions` has Keen 4's rows | Keen 5 adds `ride_platform`, `enter_security_door`, `entered_door` in `Keen5Keen` (its own table merged on top); Keen 4's rows unchanged | E3, E5 |
+| A 13th item (the keycard) | 12 items; `ITEM_SOUNDS` clamped to 12 | `GalaxyInventory`/`GalaxyKeenBody` take the item tables from the episode (defaults Keen 4's 12) | E3 |
+| Objects sleep 6 tiles out | `GalaxyWorld.SLEEP_MARGIN = 4` | A field `sleep_margin` (default 4) | E4 |
+| Shots that live only on screen | — | A flag on the shot (default off) | E4 |
+| Creatures that flash white | — | A "white" draw mode in `GalaxyObjectLayer` (default off) | E4 |
+| Extra drawn sprites (Sphereful diamonds, the mine's eye) | One sprite per object | Optional extra sprites per object (default none) | E4 |
+| Scroll blocks | Keen 4 passes 25 (rows) and 26 (columns) to `GalaxyCamera.blocks_in` | Nothing to change: Keen 5 passes only 25 (info 26 is Korath III's arrival) | E3 |
+| No thrown flag, another flag offset | `GalaxyMapFlag` with offsets from the episode | Keen 5 places waving flags only, at (−0x50, −0x1E0) | E6 |
 | The viewer page title | `"Keen 4 %s: ..."` | A title parameter, default "Keen 4" | E2 |
 | `export_graphics._export_galaxy` | Keen 4 only | Parameters (files, episode, folder) with Keen 4's as defaults | E2 |
 | Keen 6 later | The platform priority fix, the clip's middle column | Not for Keen 5; flags when Keen 6 comes | — |
@@ -166,26 +173,27 @@ From the survey; each one keeps Keen 4's behaviour by its default.
 
 ```
 Launcher ──click "Keen 5"──▶ keen5_view.tscn (Keen5View)
-   ▲                            │ title loop: intro, story, demos, high scores
+   ▲                            │ title loop: intro, story, demos 0-3, high scores
    │ "Choose Game"              │ control panel: New Game (Easy/Normal/Hard), Load, ...
    └─────────────────────────── ▼
-                         world map, map 0 (Keen5MapSession)
-                           │ walk, elevators between the decks
-                           │ enter level n (0xC000 + n), "Keen ... " box
+                         world map, map 0, the Omegamatic (Keen5MapSession)
+                           │ walk, teleporters, elevators; the upper shaft opens
+                           │ after the four fuse levels (4, 6, 8, 10)
+                           │ enter level n (0xC000 + n), "Keen ..." box
                            ▼
-                         levels 1-12 (Keen5LevelSession)
-                           │ through the exit door ─▶ level done, mark on the map
-                           │ a fuse destroyed (4 levels) ─▶ level done, the fuse's mark
-                           │ the Quantum Explosion Dynamo (12) ─▶ the escape
-                           │ death ─▶ "Try Again / Exit to Armageddon", game over
+                         levels 1-13 (Keen5LevelSession)
+                           │ the exit door (0xB1B1) ─▶ level done, flag on the map
+                           │ the fuse broken (4, 6, 8, 10, 13) ─▶ fuse message, done
+                           │ the door to Korath III (0x0000) ─▶ the map, on Korath III
+                           │ death ─▶ "Try Again / Exit to Armageddon"
+                           │ game over ─▶ the galaxy explodes ─▶ high scores
                            ▼
-              all fuses, then the QED ─▶ end pages ─▶ high scores (map 15)
-              Korath III Base (13): the secret level (research.md §9)
+              map 12, the QED destroyed by a mine ─▶ end pages (the secret end
+              when the Korath III fuse was broken) ─▶ high scores (map 15)
 ```
 
-The details (which levels hold fuses, how the map opens, the secret level)
-are in research.md §8-§9; the developer checks them in js-dos while
-building.
+The details are in research.md §4 and §8-§9; the developer checks them in
+js-dos while building.
 
 ## Time, drawing, widescreen, the score box, sound
 
@@ -199,7 +207,7 @@ too is question 2 in research.md §13 (advice: yes).
 
 Keen 5 has 14 songs (Keen 4: 6) and 64 sounds per device (Keen 4: 52):
 the song per map and the sound names come from `Keen5Sounds` (research.md
-§10).
+§9-§10). Help has its own song in Keen 5.
 
 ## Testing
 
