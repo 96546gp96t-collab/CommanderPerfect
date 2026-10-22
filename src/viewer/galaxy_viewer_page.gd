@@ -1,10 +1,11 @@
 class_name GalaxyViewerPage
 extends TabContainer
 ## The data viewer's page for a Galaxy episode (Keen 4, chosen with
-## [code]-- --game=4[/code]): the maps with their three planes, both 16×16
-## tile sets, the sprites with their hit boxes and origins, the pictures,
-## the fonts and 8×8 tiles, and what was found in the program. Everything
-## is decoded when its tab is first shown, so the viewer opens at once.
+## [code]-- --game=4[/code], or Keen 5, [code]-- --game=5[/code]): the
+## maps with their three planes, both 16×16 tile sets, the sprites with
+## their hit boxes and origins, the pictures, the fonts and 8×8 tiles, and
+## what was found in the program. Everything is decoded when its tab is
+## first shown, so the viewer opens at once.
 
 const TILE := GalaxyGraphics.TILE16_SIZE
 const ATLAS_COLUMNS := 18
@@ -26,8 +27,8 @@ var _zoomable: Array[TextureRect] = []
 
 
 ## Fills the page with [param data] and follows [param zoom]. Returns a
-## line for the viewer's status bar.
-func show_data(data: GalaxyData, zoom: SpinBox) -> String:
+## line for the viewer's status bar, which starts with [param game_name].
+func show_data(data: GalaxyData, zoom: SpinBox, game_name := "Keen 4") -> String:
 	_data = data
 	_zoom = int(zoom.value)
 	zoom.value_changed.connect(_on_zoom_changed)
@@ -40,8 +41,9 @@ func show_data(data: GalaxyData, zoom: SpinBox) -> String:
 	_build_tab(0)
 	var ranges := data.graphics.ranges
 	return (
-		"Keen 4 %s: %d pictures, %d sprites, %d + %d tiles, %d maps"
+		"%s %s: %d pictures, %d sprites, %d + %d tiles, %d maps"
 		% [
+			game_name,
 			data.executable.version,
 			ranges.picture_count,
 			ranges.sprite_count,
@@ -229,6 +231,9 @@ func _program_text() -> Control:
 	for shape in _data.episode.message_shapes:
 		for message in executable.messages(shape):
 			lines.append("%s: %s" % [shape, GalaxyExeTexts.one_line(message)])
+	for run in _data.episode.text_lengths:
+		for text in executable.texts(run):
+			lines.append("%s: %s" % [run, GalaxyExeTexts.one_line(text)])
 	var label := Label.new()
 	label.text = "\n".join(lines)
 	return label
