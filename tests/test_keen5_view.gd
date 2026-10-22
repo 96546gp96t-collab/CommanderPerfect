@@ -1,8 +1,9 @@
 extends "res://tests/test_case.gd"
 ## Checks Keen 5's game screen ([Keen5View], milestone E3) with the player's
 ## files: it starts in level 1 with Keen 5's Keen and score box; a level
-## done (the exit, the door to Korath III) goes to the next one, a death
-## starts it again with a life less; Shift+N / Shift+P step over the
+## done (the exit, the door to Korath III) goes to the next one, after a
+## broken fuse first the fuse message (E5), a death starts it again with a
+## life less; Shift+N / Shift+P step over the
 ## missing map 14, the world map is looked at; Shift+G and Shift+I as in
 ## Keen 1-4. The screen must be in a running scene tree (its _ready loads
 ## the files), so the suite runs in the first frame; settings go to a
@@ -13,6 +14,11 @@ const VIEW_SCENE := "res://src/keen5/keen5_view.tscn"
 const TEST_DIRECTORY := "user://test_keen5_view"
 const FRAME_SECONDS := 1.0 / 35.0
 const DEATH_FRAMES := 300
+## The upper fuse of level 4 (files): its upper tile, where Keen's feet
+## are when he breaks it.
+const FUSE_4 := Vector2i(58, 7)
+## Enough frames for the fuse message's 30 tics.
+const KEY_WAIT_FRAMES := 20
 
 var _view: Keen5View
 var _tree: SceneTree
@@ -59,6 +65,50 @@ func test_a_level_done_goes_to_the_next() -> void:
 	_view.session().world.complete(Keen5Keen.KORATH_ENDING)
 	_frames(2)
 	assert_equal(_view.map_number(), 1, "13 is followed by 1; Korath III's door ends too")
+
+
+func test_a_broken_fuse_shows_its_message_then_the_next_level() -> void:
+	_create_view()
+	_view._show_level(4)
+	_view.session().world.complete(Keen5LevelEnd.FUSE_ENDING)
+	_frames(2)
+	assert_true(_view.shows_message(), "the fuse message")
+	assert_equal(
+		_view.levels_done.get(4), Keen5LevelSession.DONE_BY_FUSE, "level 4 done by its fuse"
+	)
+	assert_equal(_view.queue().steps.size(), 4, "two screens, each 30 tics and then a key")
+	_press_key()
+	assert_equal(_view.queue().steps.size(), 4, "a key within the 30 tics does nothing")
+	_frames(KEY_WAIT_FRAMES)
+	assert_equal(_view.queue().steps.size(), 3, "after 30 tics it waits for a key")
+	_press_key()
+	_frames(KEY_WAIT_FRAMES)
+	_press_key()
+	assert_true(not _view.shows_message(), "the boxes are gone")
+	assert_equal(_view.map_number(), 5, "the next level")
+	_view.session().world.complete(&"")
+	_frames(2)
+	assert_equal(_view.levels_done.get(5), Keen5LevelSession.DONE, "an exit counts 1")
+	assert_true(not _view.shows_message(), "no message")
+
+
+func test_a_broken_fuse_shows_its_rubble_also_in_xbrz() -> void:
+	_create_view()
+	_view._settings.graphics = DisplaySettings.Graphics.XBRZ
+	_view._show_level(4)
+	_view._scaled.finish()
+	_view._apply_graphics()
+	assert_true(_view._showing_scaled, "level 4 in xBRZ")
+	var session := _view.session() as Keen5LevelSession
+	var world := session.world
+	var rubble := world.fore_tile(0, 0)
+	var carried := _view.inventory() as Keen5Inventory
+	Keen5Fuses.break_fuse(world, FUSE_4, carried, _view.rules.sprites)
+	assert_equal(_view._galaxy_map.fore_tile_at(FUSE_4), rubble, "the rubble is drawn")
+	assert_true(_view._showing_scaled, "still xBRZ")
+	assert_true(not _view._stand_ins, "the rubble's tile was scaled with the map")
+	assert_true(_view._scaled.fore_tile(rubble) != null, "its xBRZ picture")
+	assert_equal(session.fuses_remaining(), 1, "one fuse of two left")
 
 
 func test_a_death_starts_the_level_again_with_a_life_less() -> void:
@@ -130,6 +180,17 @@ func _free_view() -> void:
 func _frames(count: int) -> void:
 	for frame in count:
 		_view._process(FRAME_SECONDS)
+
+
+func _press_key() -> void:
+	var event := InputEventKey.new()
+	event.physical_keycode = KEY_SPACE
+	event.keycode = KEY_SPACE
+	event.pressed = true
+	_view._unhandled_input(event)
+	var release := event.duplicate() as InputEventKey
+	release.pressed = false
+	_view._unhandled_input(release)
 
 
 func _shift_key(key: Key) -> void:

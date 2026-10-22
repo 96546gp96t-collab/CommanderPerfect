@@ -1,7 +1,8 @@
 extends "res://tests/test_case.gd"
 ## Checks Keen 5's creatures with the player's real files (milestone E4):
-## every info value in levels 1-13 places something or is knowingly left
-## for a later milestone, every creature value places the right class on
+## every info value in levels 1-13 places something (a creature, a
+## platform or the fuse counter, E5) or is knowingly left for a later
+## milestone, every creature value places the right class on
 ## each difficulty (a census of all 13 levels), every sprite the creatures
 ## use is in the files, every Volteface finds its arrows, and every level
 ## runs a while with its creatures (Keen in god mode, running and jumping).
@@ -72,6 +73,8 @@ func test_every_info_value_is_known() -> void:
 				continue
 			if not Keen5Creatures.entry_of(value).is_empty():
 				placed += 1
+			elif Keen5Platforms.is_platform(value) or value == Keen5Fuses.COUNTER_INFO:
+				continue
 			elif not value in Keen5Creatures.LATER and not value in Keen5Creatures.READ_ONLY:
 				unknown.append("%d in level %d" % [value, number])
 	assert_equal(unknown, [] as Array[String], "every value is placed or planned")

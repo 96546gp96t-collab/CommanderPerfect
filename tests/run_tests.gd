@@ -142,6 +142,9 @@ const SUITES: Array[Script] = [
 	preload("res://tests/test_keen5_creatures.gd"),
 	preload("res://tests/test_keen5_creatures_more.gd"),
 	preload("res://tests/test_keen5_creatures_play.gd"),
+	preload("res://tests/test_keen5_platforms.gd"),
+	preload("res://tests/test_keen5_fuses.gd"),
+	preload("res://tests/test_keen5_mechanics_play.gd"),
 ]
 const TREE_SUITES: Array[Script] = [
 	preload("res://tests/test_keen4_d11_screen.gd"),
