@@ -122,6 +122,30 @@ func item_background(tile: Image) -> PackedByteArray:
 	return _edge_flood(_matches(_rgb(tile), _lit))
 
 
+## The kind of wall of every pixel of [param tile] by its colour alone: lit
+## where it equals the lattice at its place, a shadow where it equals the
+## lattice one EGA step darker, dark where it equals the lattice in the
+## dark; NONE elsewhere. Without the checks of [method kinds], for a part
+## of a tile that is known to lie on the wall (the glass of a window).
+func pixel_kinds(tile: Image) -> PackedByteArray:
+	var rgb := _rgb(tile)
+	var result := PackedByteArray()
+	result.resize(SIZE * SIZE)
+	var lit := _matches(rgb, _lit)
+	var shadow := _matches(rgb, _shadow)
+	var darks: Array[PackedByteArray] = []
+	for dark in _darks:
+		darks.append(_matches(rgb, dark))
+	for i in result.size():
+		if lit[i]:
+			result[i] = BackdropHoles.Kind.LIT
+		elif shadow[i]:
+			result[i] = BackdropHoles.Kind.SHADOW
+		elif darks.any(func(dark: PackedByteArray) -> bool: return dark[i] == 1):
+			result[i] = BackdropHoles.Kind.DARK
+	return result
+
+
 ## The lattice along the edge of [param tile]: the pixels of
 ## [method item_background] that lie within [constant EDGE_STRIP] pixels of
 ## the edge, joined to it through such pixels. Where something stands on the

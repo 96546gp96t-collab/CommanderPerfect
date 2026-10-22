@@ -1,7 +1,7 @@
 extends "res://tests/test_case.gd"
 ## Tests for the fixes of 22-10 with the player's own Keen 1 and Keen 2
 ## files (each part returns early without them): Keen 2's items keep no
-## lattice at their edge, its windows are drawn whole with their glass, its
+## lattice at their edge, its windows show the wall through their glass, its
 ## HUD icons have no lattice; Keen 1's snow platforms keep their shading,
 ## the outlines of its blocks stay black, and the steps of grey triangles
 ## where a shrine's wall meets the sky show the picture (levels 9 and 10).
@@ -10,10 +10,11 @@ const SIZE := EgaGraphics.TILE_SIZE
 const KIND := BackdropHoles.Kind
 ## Keen 2, version 1.31.
 const LATTICE := 143
-const WINDOW_CORNER := 403
-## A pixel of the window's glass, drawn in front of Keen through its mask.
-const GLASS_PIXEL := Vector2i(15, 8)
-const WINDOW_LEVEL := 6
+## The windows on the lattice (masked tiles with a mask) and the levels
+## that have them.
+const WINDOWS: Array[int] = [403, 405, 407, 409, 411, 416, 418, 420, 422]
+const WINDOW_LEVELS: Array[int] = [6, 7, 9]
+const ITEM_LEVEL := 6
 ## Keen 1: the middle of a snow platform and its shading; the white block
 ## of the ice shrines and a pixel of its outline at the tile's edge; the
 ## black of a dark room.
@@ -34,7 +35,7 @@ func test_keen_2_items_keep_no_lattice_at_their_edge() -> void:
 	if data.is_empty():
 		return
 	var tiles: Array[Image] = data.graphics.tiles
-	var holes := _keen_2_holes(data, WINDOW_LEVEL)
+	var holes := _keen_2_holes(data, ITEM_LEVEL)
 	var items := Keen2Walls.items(data.properties, tiles.size())
 	assert_true(items.size() >= 10, "the raygun, the keycards and the points items")
 	for tile: int in items:
@@ -46,21 +47,53 @@ func test_keen_2_items_keep_no_lattice_at_their_edge() -> void:
 			assert_equal(kinds[i], KIND.LIT, "item %d at %s is the wall" % [tile, at])
 
 
-func test_keen_2_windows_are_drawn_whole() -> void:
+func test_keen_2_windows_show_the_wall_through_their_glass() -> void:
 	var data := _keen_2()
 	if data.is_empty():
 		return
-	var holes := _keen_2_holes(data, WINDOW_LEVEL)
-	assert_true(holes.whole_tiles.has(WINDOW_CORNER), "a window")
 	var tiles: Array[Image] = data.graphics.tiles
-	var kinds := holes.kinds_of(WINDOW_CORNER, tiles[WINDOW_CORNER])
-	assert_equal(kinds.count(KIND.NONE), SIZE * SIZE, "with the lattice behind the glass")
-	var mask := tiles[WINDOW_CORNER + 1]
-	assert_equal(mask.get_pixelv(GLASS_PIXEL), Color.BLACK, "the glass is drawn in front")
 	var textures := GraphicsTextures.create(data.graphics)
-	var atlas := textures.holes_tile_atlas(LevelTileSet.ATLAS_COLUMNS, 1, holes).get_image()
-	var corner := LevelTileSet.atlas_coords_of(WINDOW_CORNER) * (SIZE + 2) + Vector2i.ONE
-	assert_equal(atlas.get_pixelv(corner + GLASS_PIXEL).a, 1.0, "the glass is in the atlas")
+	var original := textures.tile_atlas(LevelTileSet.ATLAS_COLUMNS, 1).get_image()
+	for number in WINDOW_LEVELS:
+		var holes := _keen_2_holes(data, number)
+		var atlas := textures.holes_tile_atlas(LevelTileSet.ATLAS_COLUMNS, 1, holes).get_image()
+		var walls := textures.wall_mask_atlas(LevelTileSet.ATLAS_COLUMNS, 1, holes).get_image()
+		var glass: Array[int] = []
+		for tile: int in holes.windows:
+			if holes.kinds_of(tile, tiles[tile]).count(KIND.NONE) < SIZE * SIZE:
+				glass.append(tile)
+		glass.sort()
+		assert_equal(glass, WINDOWS, "level %d: the windows on the lattice" % number)
+		for tile in WINDOWS:
+			var in_front := holes.windows[tile]
+			var corner := LevelTileSet.atlas_coords_of(tile) * (SIZE + 2) + Vector2i.ONE
+			var lattice := 0
+			for i in SIZE * SIZE:
+				var at := Vector2i(i % SIZE, i / SIZE)
+				var kept := atlas.get_pixelv(corner + at).a == 1.0
+				var on_lattice := tiles[tile].get_pixelv(at) == tiles[LATTICE].get_pixelv(at)
+				if not in_front[i] and on_lattice:
+					lattice += 1
+					assert_true(
+						not kept, "level %d: %d at %s shows no lattice" % [number, tile, at]
+					)
+					assert_true(walls.get_pixelv(corner + at).a > 0.0, "the wall behind the glass")
+				if in_front[i]:
+					assert_true(kept, "level %d: %d at %s keeps its glass" % [number, tile, at])
+			assert_true(lattice > 0, "window %d has glass on the lattice" % tile)
+			var mask := corner + Vector2i.RIGHT * (SIZE + 2)
+			for i in SIZE * SIZE:
+				var at := Vector2i(i % SIZE, i / SIZE)
+				assert_equal(atlas.get_pixelv(mask + at), tiles[tile + 1].get_pixelv(at), "mask")
+	for tile in WINDOWS:
+		var corner := LevelTileSet.atlas_coords_of(tile) * (SIZE + 2) + Vector2i.ONE
+		for i in SIZE * SIZE:
+			var at := Vector2i(i % SIZE, i / SIZE)
+			assert_equal(
+				original.get_pixelv(corner + at),
+				tiles[tile].get_pixelv(at),
+				"4:3 and without pictures window %d is the original, lattice and all" % tile
+			)
 
 
 func test_keen_2_hud_icons_have_no_lattice() -> void:

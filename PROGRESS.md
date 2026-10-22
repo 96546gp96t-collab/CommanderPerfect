@@ -168,8 +168,11 @@ ligt wordt een gat (`docs/graphics.md`, onderzoek §8).
    dan tekende de maskerlaag niets meer vóór Keen. Nu blijven ramen
    (gemaskeerde tiles met masker: 403-422, 371-373) heel, zoals het
    origineel: het rooster achter het glas en de strepen vóór Keen. Levels
-   6, 7 en 9. Mocht het raam liever de nieuwe wand achter het glas tonen
-   (met de strepen erover): zeg het.
+   6, 7 en 9. **Keuze van de gebruiker (22-10): achter het glas de nieuwe
+   wand.** Nu toont elk raam van Keen 2 (levels 6, 7 en 9) achter het glas
+   de wand, naadloos met de cellen eromheen (onder de bovenrand de schaduw
+   van het kozijn); alleen de glasstrepen en het kozijn (het masker) staan
+   vóór Keen. 4:3 en zonder plaatjes blijft het rooster (origineel).
 3. **Keen 2: HUD-icoontjes.** De HUD haalde alleen het effen grijs weg; de
    witte en donkere lijnen van het rooster bleven (al sinds B3). Nu valt
    het hele roosterpatroon rond straalgeweer en kaarten weg
@@ -204,6 +207,11 @@ ligt wordt een gat (`docs/graphics.md`, onderzoek §8).
   Keen 2 alleen level 1 (items zonder roosterrand) en de HUD (ook op de
   kaart). Apps gebouwd (Mac en Windows).
 - Kosten: een Keen 1-level indelen kost nu ~0,15 s bij het starten.
+- [x] Ramen met de wand achter het glas (`BackdropHoles.windows`,
+  `window_kinds`): tests aangepast (de raamtests van 964f9a8 verwachtten
+  het rooster), regressies Keen 1, 2 en 4 tegen 964f9a8 gelijk (4:3 en
+  breedbeeld; daar zitten geen ramen in), eigen foto's van de ramen: 4:3
+  gelijk, breedbeeld alleen anders binnen de ramen. Apps gebouwd.
 - Open: tussen de helling en het brede vlak in het kasteel van 16 blijft
   één grijze cel staan (de testcel van AB2); de grens daar was al grillig.
 

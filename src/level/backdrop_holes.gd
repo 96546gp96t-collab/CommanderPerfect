@@ -27,8 +27,10 @@ extends RefCounted
 ##     through more of them (their thin sides and pockets are no lattice to
 ##     the pattern rule); on the other tiles with some lattice wall the same
 ##     along their edge ([method LatticeWalls.edge_strip])
-##   - [member whole_tiles]: tiles drawn whole (Keen 2's windows: the glass
-##     in front of Keen and the wall behind it, as in the original)
+##   - [member windows]: Keen 2's windows (masked tiles with a mask): the
+##     glass that their mask draws in front of Keen stays, and the lattice
+##     seen through the glass is the wall (the user's choice of 22-10,
+##     [method window_kinds]); their mask tiles are never cut
 
 ## What takes a pixel's place: nothing (the tile stays), the sky, or the
 ## wall, lit, in the dark or in a wall's shadow.
@@ -52,9 +54,11 @@ var lattice: LatticeWalls
 var name := ""
 ## Whether the wall's colour counts only where it is two by two pixels thick.
 var thick_wall := false
-## The tiles whose lattice is found by the item rule, and those kept whole.
+## The tiles whose lattice is found by the item rule.
 var item_tiles: Dictionary[int, bool] = {}
-var whole_tiles: Dictionary[int, bool] = {}
+## Per window tile, 1 for each pixel its mask (the next tile) draws in front
+## of Keen.
+var windows: Dictionary[int, PackedByteArray] = {}
 ## Per tile, 1 for each pixel of the sky's or the wall's colour that stays
 ## (shut in).
 var shut_in: Dictionary[int, PackedByteArray] = {}
@@ -85,7 +89,7 @@ func base_key() -> String:
 	var parts := PackedStringArray([_color_key(sky_color), _color_key(wall_color), name])
 	if thick_wall:
 		parts.append("thick")
-	for tiles: Dictionary[int, bool] in [item_tiles, whole_tiles]:
+	for tiles: Dictionary in [item_tiles, windows]:
 		parts.append(str(tiles.keys().hash()) if not tiles.is_empty() else "-")
 	return "/".join(parts)
 
@@ -118,12 +122,14 @@ func kinds(tile: Image) -> PackedByteArray:
 
 ## The [enum Kind] of every pixel of tile number [param index], whose image
 ## is [param tile], by the rules of [method kinds] and the tile's own rules
-## (kept whole, an item), without [member shut_in]: see
+## (a window or its mask, an item), without [member shut_in]: see
 ## [method without_shut_in].
 func base_kinds_of(index: int, tile: Image) -> PackedByteArray:
+	if windows.has(index):
+		return window_kinds(tile, windows[index])
 	var result := PackedByteArray()
 	result.resize(tile.get_width() * tile.get_height())
-	if whole_tiles.has(index):
+	if windows.has(index - 1):
 		return result
 	result = kinds(tile)
 	if lattice == null:
@@ -136,6 +142,55 @@ func base_kinds_of(index: int, tile: Image) -> PackedByteArray:
 	for i in around.size():
 		if around[i] and result[i] == Kind.NONE:
 			result[i] = Kind.LIT
+	return result
+
+
+## The [enum Kind] of every pixel of a window [param tile] whose mask draws
+## the pixels of [param in_front] in front of Keen: every other pixel that
+## equals the lattice at its place (lit, shadowed or dark) is the wall, so
+## the wall is seen through the glass and only the glass (its streaks and
+## frame) is drawn, behind and in front of Keen. The frame's shadow on the
+## lattice is the wall's shadow; its pixels that equal the lit lattice by
+## chance join it ([method _in_shadow]). A masked tile whose see-through
+## part is mostly not the lattice is no window on the wall and is drawn
+## whole.
+func window_kinds(tile: Image, in_front: PackedByteArray) -> PackedByteArray:
+	var result := PackedByteArray()
+	result.resize(tile.get_width() * tile.get_height())
+	if lattice == null:
+		return result
+	var walls := lattice.pixel_kinds(tile)
+	var see_through := in_front.count(0)
+	var wall := 0
+	for i in result.size():
+		if not in_front[i] and walls[i] != Kind.NONE:
+			result[i] = walls[i]
+			wall += 1
+	if wall * 2 <= see_through:
+		result.fill(Kind.NONE)
+		return result
+	return _in_shadow(result, tile.get_width())
+
+
+## [param kinds] (a tile [param width] pixels wide) with every lit pixel
+## that has more shadow than lit pixels beside it made a shadow: in a
+## shadow on the lattice some pixels keep the lit lattice's colour (a dark
+## line next to a darkened field), which would show as specks of light.
+static func _in_shadow(kinds: PackedByteArray, width: int) -> PackedByteArray:
+	var result := kinds.duplicate()
+	var height := kinds.size() / width
+	for i in kinds.size():
+		if kinds[i] != Kind.LIT:
+			continue
+		var balance := 0
+		for step: Vector2i in LatticeWalls.NEIGHBOURS:
+			var at := Vector2i(i % width, i / width) + step
+			if at.x < 0 or at.y < 0 or at.x >= width or at.y >= height:
+				continue
+			var kind := kinds[at.y * width + at.x]
+			balance += 1 if kind == Kind.SHADOW else (-1 if kind == Kind.LIT else 0)
+		if balance > 0:
+			result[i] = Kind.SHADOW
 	return result
 
 

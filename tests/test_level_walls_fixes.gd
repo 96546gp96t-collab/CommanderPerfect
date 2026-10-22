@@ -1,10 +1,11 @@
 extends "res://tests/test_case.gd"
 ## Tests for the fixes of 22-10 to the pictures and walls behind Keen 1's
 ## and Keen 2's levels, on tiles and levels made by code: an item's thin
-## sides of lattice are the wall, a window is drawn whole, the lattice
-## along a tile's edge goes, grey and black that the level's drawing shuts
-## in stay while the open sky does not, a thin black outline is no wall,
-## and the HUD's item pictures lose the lattice around them. The same on
+## sides of lattice are the wall, a window keeps its glass with the wall
+## behind it, the lattice along a tile's edge goes, grey and black that the
+## level's drawing shuts in stay while the open sky does not, a thin black
+## outline is no wall, and the HUD's item pictures lose the lattice around
+## them. The same on
 ## the real files: test_level_walls_fixes_data.gd.
 
 const Fixtures := preload("res://tests/fixtures.gd")
@@ -25,6 +26,16 @@ const SIGN := Rect2i(4, 1, 8, 6)
 const SHADING_ROWS := Rect2i(0, 13, SIZE, 2)
 const OUTLINE_ROW := 15
 const ITEM_TILE := 5
+## A window made by code: a frame along the top and one glass streak, both
+## drawn in front of Keen through the mask.
+const WINDOW_FRAME_ROWS := 3
+const STREAK_DIAGONAL := 20
+## The row of the frame's shadow on the lattice, and a pixel in it that
+## keeps the lit lattice's colour.
+const SHADOW_ROW := WINDOW_FRAME_ROWS
+const SHADOW_SPECK := 12
+## The window's tile; its mask is the next one.
+const WINDOW_TILE := 2
 const LATTICE_TILE := 6
 
 
@@ -43,12 +54,36 @@ func test_an_items_thin_sides_are_the_wall() -> void:
 	assert_equal(kinds[0], KIND.LIT, "the lattice above it")
 
 
-func test_a_window_is_drawn_whole() -> void:
+func test_a_window_shows_the_wall_through_its_glass() -> void:
+	var tile := _lattice()
+	var in_front := PackedByteArray()
+	in_front.resize(SIZE * SIZE)
+	for i in SIZE * SIZE:
+		var at := Vector2i(i % SIZE, i / SIZE)
+		if at.y < WINDOW_FRAME_ROWS or at.x + at.y == STREAK_DIAGONAL:
+			in_front[i] = 1
+			tile.set_pixelv(at, Color.BLUE if at.y < WINDOW_FRAME_ROWS else LIGHT_LINE)
+	# The frame's shadow on the lattice, with one pixel left lit by chance.
+	for x in SIZE:
+		tile.set_pixel(x, SHADOW_ROW, _one_step_darker(tile.get_pixel(x, SHADOW_ROW)))
+	tile.set_pixel(SHADOW_SPECK, SHADOW_ROW, _lattice().get_pixel(SHADOW_SPECK, SHADOW_ROW))
 	var holes := _lattice_holes()
-	holes.whole_tiles = {ITEM_TILE: true}
-	var kinds := holes.kinds_of(ITEM_TILE, _lattice())
-	assert_equal(kinds.count(KIND.NONE), SIZE * SIZE, "no hole in the window's tile")
+	holes.windows = {WINDOW_TILE: in_front}
+	var kinds := holes.kinds_of(WINDOW_TILE, tile)
+	for i in SIZE * SIZE:
+		var at := Vector2i(i % SIZE, i / SIZE)
+		var want := KIND.NONE if in_front[i] else KIND.LIT
+		if at.y == SHADOW_ROW:
+			want = KIND.SHADOW
+		assert_equal(kinds[i], want, "the glass stays, the wall behind it at %s" % at)
+	var mask := holes.kinds_of(WINDOW_TILE + 1, _lattice())
+	assert_equal(mask.count(KIND.NONE), SIZE * SIZE, "the mask tile is never cut")
 	assert_equal(holes.kinds_of(LATTICE_TILE, _lattice()).count(KIND.LIT), SIZE * SIZE, "beside")
+	var pipe := Image.create_empty(SIZE, SIZE, false, Image.FORMAT_RGBA8)
+	pipe.fill(Color.RED)
+	pipe.set_pixel(0, SIZE - 1, _lattice().get_pixel(0, SIZE - 1))
+	var whole := holes.window_kinds(pipe, in_front)
+	assert_equal(whole.count(KIND.NONE), SIZE * SIZE, "a masked tile not on the lattice is whole")
 
 
 func test_the_lattice_along_a_tiles_edge_goes() -> void:
@@ -126,6 +161,12 @@ func test_hud_icons_lose_the_lattice_around_them() -> void:
 	var hud := Hud.new()
 	assert_equal(hud.background_tile, -1, "Keen 1's HUD keeps its gray rule")
 	hud.free()
+
+
+## [param color] one EGA step darker, as a shadow on the lattice.
+static func _one_step_darker(color: Color) -> Color:
+	var step := LatticeWalls.EGA_STEP
+	return Color8(maxi(color.r8 - step, 0), maxi(color.g8 - step, 0), maxi(color.b8 - step, 0))
 
 
 ## The holes of the lattice made by [method _lattice], with its own name.

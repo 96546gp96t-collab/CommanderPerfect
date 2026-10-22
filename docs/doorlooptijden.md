@@ -117,4 +117,5 @@ Keen 4 is een andere engine (Galaxy); de schatting per mijlpaal staat in
 | AB3 De plaatjes | 22-10 | ~50 min | 50 min (tegelijk met AB2) | 16 Keen 2-wanden, 11 Keen 1-luchten, 10 Keen 1-wanden |
 | AB4 Samenvoegen en nakijken | 22-10 | ~40 min | | Door de architect: een conflict in `docs/graphics.md`, twee tests aangepast, 32 levels gefotografeerd, regressies |
 | Fixes (22-10) | 22-10 | ~45 min | 45 min (13:39-14:24) | Items en HUD zonder rooster, ramen heel, ingesloten grijs/zwart blijft (`ColorGroups`), trappen van driehoeken lucht; zes meldingen |
-| **Totaal** | 22-10 | **~4 u 20** opgeteld | | De klok liep korter (~3 u 15) doordat AB2 en AB3 tegelijk liepen |
+| Fix: ramen met de wand achter het glas | 22-10 | ~15 min | 15 min (14:33-14:48) | Keuze van de gebruiker: in alle ramen van Keen 2 (levels 6, 7, 9) de wand achter het glas, alleen strepen en kozijn vóór Keen; schaduw onder het kozijn; foto's voor/na, regressies gelijk |
+| **Totaal** | 22-10 | **~4 u 35** opgeteld | | De klok liep korter (~3 u 30) doordat AB2 en AB3 tegelijk liepen |

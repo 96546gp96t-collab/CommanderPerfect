@@ -276,10 +276,24 @@ level without a wall texture keeps its own background.
     stops there. Other tiles with lattice wall lose the lattice along their
     edge the same way, up to 2 pixels in (`LatticeWalls.edge_strip`).
   - Keen 2, windows (masked tiles whose next tile is their mask; in the
-    levels 403-422 and 371-373): drawn whole (`BackdropHoles.whole_tiles`), as in
-    the original: the white glass streaks in front of Keen and the lattice
-    behind the glass. Before, the speck rule took the one-pixel streaks for
-    lattice and the glass vanished.
+    levels 403-422, in levels 6, 7 and 9): the wall shows through the glass
+    (the user's choice of 22-10, `BackdropHoles.windows`,
+    `window_kinds`). The pixels the mask draws in front of Keen (the white
+    glass streaks and the frame) stay, behind and in front of Keen; every
+    other pixel that equals the lattice at its place is the wall, lit or,
+    in the frame's shadow under its top edge, shadowed
+    (`LatticeWalls.pixel_kinds`; a pixel that is lit by chance in that
+    shadow joins it). So the wall layer fills the glass with the same
+    texture as the cells around it, Keen is seen through the glass in front
+    of the wall, and the streaks pass over him. The mask tiles themselves
+    are never cut (the masked layer reads them), and a masked tile whose
+    see-through part is mostly not the lattice is drawn whole. With xBRZ
+    the holes are cut from the larger tile as everywhere; the masked layer
+    then draws where the scaled mask is black and the tile is not cut. In
+    4:3, and with the pictures off, the window is the original: the lattice
+    behind the glass. Before (964f9a8) the speck rule took the one-pixel
+    streaks for lattice and the glass vanished; then the window was drawn
+    whole, with the old lattice behind the glass.
   - The HUD (`Hud.background_tile`, Keen 2: 143) leaves out the lattice
     around the raygun and the keycards the same way
     (`GraphicsTextures.clear_tile_on`); Keen 1 keeps its grey rule, Keen 3
