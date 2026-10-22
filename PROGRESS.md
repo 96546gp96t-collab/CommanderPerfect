@@ -124,11 +124,64 @@ bestanden in [docs/keen5/file-formats.md](docs/keen5/file-formats.md).
 | E12 | Naast het origineel; alle opties uit = het origineel | ⬜ |
 | E13 | (Optioneel) Keen 4 op het gedeelde Galaxy-spel | ⬜ |
 
-**Volgende stap:** E3 (`milestone-e3-level`, vanaf `main` na E2): het
+**Volgende stap:** E3 (`milestone-e3-level`, vanaf `milestone-e2-bestanden`): het
 gedeelde Galaxy-spel in `src/galaxy/game/` (uit de Keen 4-klassen) en een
 Keen 5-level spelen, met de sleutelkaart, de beveiligingsdeuren en de
 uitgang; `Keen5View` wordt dan het echte spelscherm. De gebruiker uploadt
 Keen 2-5 weer naar de sessie.
+
+## Achtergronden Keen 1 en 2: mijlpalen AB
+
+Branch `milestone-a-b-backgrounds` (vanaf `main`, 22-10). Onderzoek en plan:
+[docs/backgrounds/research.md](docs/backgrounds/research.md) en
+[docs/backgrounds/roadmap.md](docs/backgrounds/roadmap.md).
+
+| # | Mijlpaal | Status |
+|---|---|---|
+| AB1 | Onderzoek: elk level bekeken en gemeten, keuzes van de gebruiker | ✅ Klaar |
+| AB2 | De vaste wand (`LevelWall`, patroonregel voor het rooster, schaduwen, lichtbundels) | ✅ Klaar en gecontroleerd door de architect (developer) |
+| AB3 | De plaatjes: Keen 2-wanden, Keen 1-luchten en -wanden | ✅ Klaar en gecontroleerd door de architect (tekenaar, tegelijk met AB2) |
+| AB4 | Samenvoegen en nakijken | ✅ Klaar |
+| AB-fix | Fixes na de test van de gebruiker: items, ramen, HUD, sneeuwplatforms, trappen van driehoeken | 🔶 Gebouwd, in test bij de gebruiker |
+
+**Wat er nu is.** In breedbeeld (optie Backgrounds, standaard aan; 4:3
+blijft het origineel):
+
+- **Keen 2** speelt in het moederschip: het grijze ruitjespatroon is de
+  achterwand van elke kamer. Die wand is nu een eigen textuur die 1:1 met
+  de tiles meeschuift (vast aan het level, keuze van de gebruiker). Het
+  spel vindt het rooster pixel voor pixel (ook rond items, die heel
+  blijven); de schaduw van de muren is het rooster één kleurstap donkerder
+  en valt nu als donkere band over de nieuwe wand, zonder ruitjes (wens van
+  de gebruiker). Het rooster in het donker (levels 5 en 14) wordt een
+  gedimde wand, het teal van level 12 ook wand. Per soort kamer een wand:
+  gangen (1-3), Tantalus-centra (elke stad een eigen tint), Home A en B,
+  wapenkamers en de donkere schacht. Keen 2's donker (lichten uit) dimt de
+  wand mee.
+- **Keen 1**: buiten een glijdende Mars-lucht in de sfeer van het plaatje
+  van level 1 (dat bleef zoals het was), per stad eigen: ijs (8, 9, 10),
+  groen kristal (7), rode rots (13), een kasteel op een rots (16). Binnen
+  (de heiligdommen, het kasteel, de tunnel van 13) een vaste stenen wand
+  achter het zwart. Het grijs onder een blauwe lamp is een lichtbundel en
+  blijft grijs, net als smalle grijze stroken tussen donkere muren (de
+  schuine stroken in het kasteel van 16).
+- Gemaakt door eigen tekenprogramma's (`tools/make_keen1_backgrounds.py`,
+  `tools/make_keen2_walls.py`); niets komt uit de spelbestanden. Een eigen
+  plaatje of wand in `game_data/keenN/backgrounds/` wint
+  (`levelNN`, `wallNN`).
+
+- [x] Tests: 129 suites groen, 0 SCRIPT ERROR, gdlint schoon.
+- [x] Regressies tegen `main`: Keen 1 gelijk; Keen 2 verschilt alleen in
+  breedbeeld (de nieuwe wand). In 4:3 alleen verschillen door timing aan
+  het begin van een level (ook tussen twee runs van `main`; op frame 300
+  identiek).
+- [x] Alle 32 levels in breedbeeld gefotografeerd en nagekeken.
+- Open: een Keen 2-level indelen kost de eerste keer ~0,6 s (drie soorten
+  levels); kleine gaatjes houden het oude rooster (tussen de Yorp-beelden
+  in 5 en 14, het glas van de Tantalus-machines); met xBRZ blijft een
+  dunne rand roosterkleur rond items, zoals rond de lucht nu; Keen 2's
+  donker, split-screen en vloeiende beweging niet per schermafbeelding
+  nagekeken (de wand hoort bij het level zelf, dus volgt ze).
 
 ### Fixes (22-10)
 

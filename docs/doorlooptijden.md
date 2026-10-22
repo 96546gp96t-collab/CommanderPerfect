@@ -130,3 +130,4 @@ Keen 5 is dezelfde engine als Keen 4; de schatting per mijlpaal staat in
 | Mijlpaal | Datum | Werktijd | Agent | Opmerking |
 |---|---|---|---|---|
 | E1 Onderzoek | 22-10 | ~45 min | developer-agent 8 min, onderzoeksagent 13 min (tegelijk) | In een cloud-sessie; Keen 5 v1.4 geüpload door de gebruiker en door de architect door de bestaande Galaxy-lezers gehaald; vragen als keuzemenu |
+| E2 Bestanden | 22-10 | ~25 min | 21 min (19:28-19:49) | Twee velden in `GalaxyEpisode`, `Keen5Files`/`Keen5Episode` (tekstreeksen op vorm), vijfde icoon, viewer, export; controle door de architect: AB-blok in `PROGRESS.md` hersteld |
