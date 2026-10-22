@@ -74,6 +74,34 @@ var first_extra_life := 20000
 var stunner_charges := 5
 var easy_stunner_charges := 8
 
+## The world map (Omni CK_MapFlagSpawn, CK_FlippingFlagSpawn): where a
+## done level's flag stands from its holder's tile corner (Keen 4 0x60,
+## Keen 5 -0x50 across), whether the flag of the level just finished is
+## thrown there from Keen (Keen 4; Keen 5 has no thrown flag) and where
+## that throw ends.
+var map_flag_offset := Vector2i(0x60, -0x1E0)
+var throws_map_flag := true
+var map_flag_throw_offset := Vector2i(0x60, -0x260)
+
+## The boxes and the status window (milestone E6): the font of the
+## original's windows, the names of the episode's runs of texts in its
+## program ([member GalaxyEpisode.text_lengths]) and which text of the
+## game run is which (Keen 4's numbers by default; -1 for a text the
+## episode does not have: Keen 5 shows a picture for "Game Over!").
+var menu_font := 0
+var status_texts := "status"
+var game_texts := "game"
+var game_over_text := 0
+var demo_text := 3
+var try_again_intro_text := 7
+var try_again_text := 8
+var exit_text := 9
+var one_moment_text := 12
+## Keen counting down while a map "loads" is this many pictures from the
+## end of the picture range (Omni PIC_COUNTDOWN5; Keen 4 6, Keen 5 7: its
+## GAMEOVER picture comes after the count-down).
+var countdown_from_end := 6
+
 ## The pictures behind the levels: the episode's own folder (such as
 ## res://assets/backgrounds/keen5) and its plain sky tiles; none means no
 ## level ever shows a picture.

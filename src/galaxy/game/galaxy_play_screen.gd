@@ -9,13 +9,14 @@ extends GalaxyLevelScreen
 ## ([GalaxyScreenQueue]): message boxes that wait for a key; the game
 ## stands still while it runs. Every box is drawn with the original pixels
 ## in the middle of the picture (also in widescreen), over everything.
-## A map without a Keen to play is only shown, the keys looking around.
+## The world map is played the same way ([GalaxyMapSession], milestone
+## E6). A map without a Keen to play is only shown, the keys looking
+## around.
 ##
-## What Keen 4's screen has besides (its status window, the world map,
-## sounds and music) comes to the Galaxy game in later milestones; until
-## then the hooks [method _new_session], [method _new_inventory],
-## [method _play_sound] and [method _play_map_song] are where an episode
-## plugs in (docs/keen5/architecture.md, "The Galaxy game").
+## The hooks [method _new_session], [method _new_inventory],
+## [method _play_sound], [method _play_map_song] and [method _hold_frame]
+## are where an episode plugs in; [GalaxyFlowScreen] adds the flow of a
+## game between the maps (docs/keen5/architecture.md, "The Galaxy game").
 
 var _clock := GalaxyClock.new()
 var _start: GalaxyStart
@@ -28,6 +29,8 @@ var _looked_at := Vector2.INF
 var _inventory: GalaxyInventory
 ## The level being played; null where none is.
 var _played: GalaxyLevelSession
+## The world map being played; null where it is not.
+var _on_map: GalaxyMapSession
 ## The view's top left, in pixels, frame by frame (smooth motion).
 var _view_motion := Interpolation.new()
 ## How far between the last two logic frames the sprites and the view are
@@ -65,6 +68,8 @@ func _process(delta: float) -> void:
 	for frame in frames:
 		var tics := _clock.run_frame()
 		_game_stepped = false
+		if _hold_frame(tics):
+			continue
 		if not _queue.is_empty():
 			_waiting(tics)
 			if _queue.advance(tics):
@@ -98,6 +103,11 @@ func galaxy_camera() -> GalaxyCamera:
 ## The level being played, or null.
 func session() -> GalaxyLevelSession:
 	return _played
+
+
+## The world map being played, or null.
+func map_session() -> GalaxyMapSession:
+	return _on_map
 
 
 func inventory() -> GalaxyInventory:
@@ -140,6 +150,13 @@ func _play_sound(_name: StringName, _interrupt := false) -> void:
 	pass
 
 
+## A frame of [param _tics] tics that something over the game takes (the
+## status window); returns whether it did, so the game and the boxes wait
+## (none by default).
+func _hold_frame(_tics: int) -> bool:
+	return false
+
+
 ## Starts the song of map [param _map] (none by default).
 func _play_map_song(_map: int) -> void:
 	pass
@@ -156,12 +173,15 @@ func _blend_to_draw() -> float:
 ## One logic frame of what is played; returns whether it ended (or a box
 ## stopped it).
 func _run_frame(tics: int) -> bool:
-	if _played == null:
+	if _played != null:
+		_played.run_frame(_frame_input(tics), tics, _clock.tic, _partner_input())
+	elif _on_map != null:
+		_on_map.run_frame(_frame_input(tics), tics, _clock.tic)
+	else:
 		return false
-	_played.run_frame(_frame_input(tics), tics, _clock.tic, _partner_input())
 	_game_stepped = true
 	_galaxy_map.animate(tics)
-	_objects.show_objects(_played.world.objects)
+	_objects.show_objects(_played_world().objects)
 	_frame_view()
 	_view_motion.move_to(Vector2(_camera_anchor.position))
 	_update_score_box()
@@ -189,11 +209,26 @@ func _waiting(_tics: int) -> void:
 	pass
 
 
+## The world being played.
+func _played_world() -> GalaxyWorld:
+	if _played != null:
+		return _played.world
+	return _on_map.world if _on_map != null else null
+
+
 ## Plays [param session] in [param map].
 func _play(session: GalaxyLevelSession, map: GalaxyMap) -> void:
 	_played = session
+	_on_map = null
 	_played.player.god_mode = _god_mode
 	_start_playing(map, _played.camera, _played.world)
+
+
+## Plays the world map [param session].
+func _play_map(session: GalaxyMapSession) -> void:
+	_on_map = session
+	_played = null
+	_start_playing(session.map, session.camera, session.world)
 
 
 func _start_playing(map: GalaxyMap, camera: GalaxyCamera, world: GalaxyWorld) -> void:
@@ -222,6 +257,8 @@ func _start_playing(map: GalaxyMap, camera: GalaxyCamera, world: GalaxyWorld) ->
 ## nothing on the screen sleeps (ours, Keen 4's D13.2). In 4:3 everything
 ## is as the original's.
 func _apply_wide_view() -> void:
+	if _on_map != null:
+		_on_map.camera.wide_width = _wide_view_width()
 	if _played == null:
 		return
 	var width := _wide_view_width()
@@ -258,6 +295,7 @@ func _apply_display_settings() -> void:
 ## A map where Keen does not play: he stands, the keys look around.
 func _look_at(map: GalaxyMap) -> void:
 	_played = null
+	_on_map = null
 	_mode = Mode.LOOK
 	_clock.reset()
 	_galaxy_camera = GalaxyCamera.for_map(
@@ -327,7 +365,7 @@ func _update_score_box() -> void:
 
 ## With smooth motion the view moves between the logic frames too.
 func _place_smooth_view() -> void:
-	if _played == null or not _settings.smooth_motion:
+	if (_played == null and _on_map == null) or not _settings.smooth_motion:
 		return
 	_camera_anchor.position = _view_motion.at(_drawn_blend, true)
 	_camera.reset_smoothing()
