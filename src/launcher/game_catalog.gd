@@ -1,7 +1,7 @@
 class_name GameCatalog
 extends RefCounted
 ## The games the start screen offers, one icon each: Keen 1, then Keen 2,
-## then Keen 3, then Keen 4. Later games are added here.
+## then Keen 3, then Keen 4, then Keen 5. Later games are added here.
 
 
 ## One game: its name on the icon, the scene that plays it, and the
@@ -54,7 +54,21 @@ static func games() -> Array[Game]:
 	keen_4.game_id = Keen4Files.GAME_ID
 	keen_4.icon_picture = Keen4Icon.picture.bind(keen_4.files)
 	keen_4.icon_title = Keen4Icon.title.bind(keen_4.files, keen_4.title)
-	return [keen_1, keen_2, keen_3, keen_4]
+	return [keen_1, keen_2, keen_3, keen_4, _keen_5()]
+
+
+## Keen 5: its own picture and font on the icon, as Keen 4. Its online id
+## is not yet in [constant OnlineProtocol.GAME_IDS] (milestone E11).
+static func _keen_5() -> Game:
+	var keen_5 := Game.new()
+	keen_5.title = "Keen 5"
+	keen_5.scene = GameLaunch.KEEN_5_SCENE
+	keen_5.files = Keen5Files.locate()
+	keen_5.data_folder = Keen5Files.SUBFOLDER
+	keen_5.game_id = Keen5Files.GAME_ID
+	keen_5.icon_picture = Keen5Icon.picture.bind(keen_5.files)
+	keen_5.icon_title = Keen5Icon.title.bind(keen_5.files, keen_5.title)
+	return keen_5
 
 
 ## The game with online id [param game_id], or null.
