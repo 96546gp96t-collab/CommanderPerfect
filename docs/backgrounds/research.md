@@ -298,3 +298,25 @@ EGA step darker (the frame's shadow in the top rows), except one white
 streak pixel of 416; the mask covers the streaks and the frame with at most
 one lattice pixel. The other masked tiles with a mask (39-82: pipes, not on
 the lattice) have almost no lattice and stay whole.
+
+**Second round of 22-10 (the user's next test in widescreen).** Rules in
+`docs/graphics.md` ("The second round of 22-10").
+
+| Report | Cause | Fix |
+|---|---|---|
+| Keen 2: lattice at the ends of the small platforms | the shadow's right end (rows 5-6, x 11-15 of 177-181) holds no darkened white line, so the thin-shadow rule left it | a shadow group beside the shadow already taken joins it, then the black pixels it surrounds |
+| Keen 2: lattice at the ends of the red beam | the left end (225) keeps two columns of plain field between the edge and the outline, the right end (227) two columns of shadow: no lines, and the tile has no other wall for the edge rule | framed strips: lattice with only black or wall around it, at the edge |
+| Keen 2: the zapper's frames differ | frames 169-170 lost their thin black arms (the speck rule made black pixels lit wall); in 171-172 the spark shuts in the lattice between the arms, so it stayed | specks only in a kind whose colours they have; every frame gets the holes of the other frames where it shows the same pixel |
+| Keen 2: the exit door's right side | its frame (white, cyan, grey, grey, dark grey, as on the left) equals the lattice at some rows: the edge rule and the thin-shadow rule took those pixels | straight lines of the drawing are never wall |
+| (found) Keen 2 level 12: the exit door see-through | the door's teal is level 12's teal | teal shut in by the level stays (`ColorGroups`) |
+| Keen 1: the studded blocks' dark triangles | the black bottom triangle of 290 meets the room's black below it, so its group is open | black a block's drawing holds stays |
+| Keen 1: the exit sign shows the wall | its second frame (168) is not in the level, so nothing was shut in for it; in level 16 the face meets the room's black | shut in per animation step; a black face held all round stays |
+| Keen 1: the light in the castle of level 16 | the band through the gap in the castle wall was sky up to two cells inside, with a grey cell in the gap | grey beyond a gap in a wall of blocks from the wall on |
+
+Checked on every tile of all 16 Keen 2 levels and every Keen 1 level with
+pictures (per tile before/after in the scratchpad); also changed by these
+rules: rounded corners of boxes keep their single lattice pixel (as
+before), level 12's machine band and the white pillars keep their edge
+pixels, the pipes of level 3 keep their shading. Left: two black pixels
+where the cone of light meets the dark in tile 158 (levels 5, 14).
+

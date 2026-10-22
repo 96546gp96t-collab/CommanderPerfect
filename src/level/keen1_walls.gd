@@ -35,6 +35,15 @@ extends LevelWalls
 ##     the wall ([ColorGroups]): the shading under the white snow platforms
 ##     runs from tile to tile to the platform's rounded ends and stays grey,
 ##     the black specks along a sand platform's bottom stay black
+##
+## And of the user's second test (22-10): black that a block's or a sign's
+## own drawing holds is not the wall (the bottom triangle of the dark
+## studded blocks, the exit sign: [member BackdropHoles.block_tiles]),
+## every frame of an animation gets its own shut-in pixels and the holes of
+## the others ([method ColorGroups.shut_in_every_step]: the blinking exit
+## sign), and the light that falls through a gap in a wall of blocks into a
+## dark room is grey from the wall on ([method _close_inside_gaps]: the
+## castle of level 16).
 
 ## The sky outside (Mars' sky is plain light grey in the original).
 const SKY_TILE := 143
@@ -50,6 +59,9 @@ const ROOM_REACH := 1
 ## How far (in cells) dark on the opposite side makes a grey cell next to
 ## the dark lie between two dark walls.
 const SHUT_REACH := 4
+## The widest gap in a wall of blocks (in cells) through which the sky does
+## not pass into a dark room ([method _wall_gaps]).
+const GAP_SIZE := 3
 ## Every cell around a cell, also diagonally.
 const AROUND: Array[Vector2i] = [
 	Vector2i(-1, -1),
@@ -62,16 +74,43 @@ const AROUND: Array[Vector2i] = [
 	Vector2i(1, 1),
 ]
 
+var _properties: TileProperties
+var _blocks: Dictionary[int, bool] = {}
+
 
 ## Keen 1's walls: textures in [param folder] or the player's own folder in
-## [param files], for the tiles [param tiles].
+## [param files], for the tiles [param tiles], whose [param properties] tell
+## the animations (none without them).
 static func create(
-	files: GameFiles, tiles: Array[Image], folder := BackdropPictures.FOLDER
+	files: GameFiles,
+	tiles: Array[Image],
+	folder := BackdropPictures.FOLDER,
+	properties: TileProperties = null
 ) -> Keen1Walls:
 	var walls := Keen1Walls.new()
 	walls._textures = BackdropPictures.walls(files, folder)
 	walls._tiles = tiles
+	walls._properties = properties
+	walls._animations = animations(properties, tiles.size())
+	walls._blocks = blocks(properties, tiles.size())
 	return walls
+
+
+## The tiles among the first [param count] of [param properties] that are
+## solid on every side; none without properties.
+static func blocks(properties: TileProperties, count: int) -> Dictionary[int, bool]:
+	var found: Dictionary[int, bool] = {}
+	if properties == null:
+		return found
+	for tile in mini(count, properties.tile_count):
+		if (
+			properties.blocks_top(tile)
+			and properties.blocks_bottom(tile)
+			and properties.blocks_left(tile)
+			and properties.blocks_right(tile)
+		):
+			found[tile] = true
+	return found
 
 
 ## The sky is always the grey of [constant SKY_TILE], also in a dark room
@@ -83,9 +122,13 @@ func holes(level: LevelData, sky_color: Color, wall: bool) -> BackdropHoles:
 		return null
 	var holes := BackdropHoles.create(sky, wall_color)
 	holes.thick_wall = true
+	holes.animations = _animations
+	holes.block_tiles = _blocks
 	for color: Color in [sky, wall_color]:
 		if color.a > 0.0:
-			_add_pixels(holes.shut_in, ColorGroups.create(level, _tiles, color).shut_pixels())
+			_add_pixels(
+				holes.shut_in, ColorGroups.shut_in_every_step(level, _tiles, color, _properties)
+			)
 	return holes
 
 
@@ -144,7 +187,225 @@ func _roomy_cells(
 				reached.append(cell)
 		for cell in reached:
 			roomy[cell] = true
+	_close_inside_gaps(level, skies, roomy, near)
 	return roomy
+
+
+## Takes from [param roomy] the grey beyond a gap in a wall of blocks
+## ([method _wall_gaps]) that lies mostly next to the dark ([param near])
+## and turns grey somewhere: the grey cells joined to each other without
+## passing a gap, beside a gap, at least half of them near the dark, and
+## some of them not the sky already. The light that falls through a gap in
+## the castle wall of level 16 is a cone of light from the wall on, not
+## from a cell or two further in; the gap itself shows the sky.
+func _close_inside_gaps(
+	level: LevelData,
+	skies: Dictionary[int, PackedByteArray],
+	roomy: Dictionary[Vector2i, bool],
+	near: Array[Vector2i]
+) -> void:
+	var gaps := _wall_gaps(level, skies)
+	if gaps.is_empty():
+		return
+	var dark: Dictionary[Vector2i, bool] = {}
+	for cell in near:
+		dark[cell] = true
+	var area := level.playable_rect()
+	var seen: Dictionary[Vector2i, bool] = {}
+	var closed: Dictionary[Vector2i, bool] = {}
+	for start: Vector2i in gaps:
+		for step in LatticeWalls.NEIGHBOURS:
+			var first := start + step
+			if seen.has(first) or gaps.has(first) or not area.has_point(first):
+				continue
+			if not _joined(skies, level.tile_at(start), level.tile_at(first), step):
+				continue
+			var part := _part_without(level, skies, gaps, first, seen)
+			var near_count := 0
+			for cell in part:
+				near_count += 1 if dark.has(cell) else 0
+			if near_count * 2 >= part.size() and _turns_grey(level, skies, roomy, gaps, part):
+				for cell in part:
+					roomy.erase(cell)
+					closed[cell] = true
+	_open_gaps(level, skies, roomy, gaps, closed)
+
+
+## Whether a cell of [param part], or a gap cell ([param gaps]) beside it,
+## is not the sky ([param roomy]).
+static func _turns_grey(
+	level: LevelData,
+	skies: Dictionary[int, PackedByteArray],
+	roomy: Dictionary[Vector2i, bool],
+	gaps: Dictionary[Vector2i, bool],
+	part: Array[Vector2i]
+) -> bool:
+	for cell in part:
+		if not roomy.has(cell):
+			return true
+		for step in LatticeWalls.NEIGHBOURS:
+			var next := cell + step
+			if (
+				gaps.has(next)
+				and not roomy.has(next)
+				and _joined(skies, level.tile_at(cell), level.tile_at(next), step)
+			):
+				return true
+	return false
+
+
+## Gives the cells of [param gaps] the sky where they are joined to the sky
+## outside (a cell of [param roomy] that is no gap), directly or through
+## other gap cells, and takes it from those beside [param closed] that are
+## not: the gap in the wall shows the sky as one piece up to the wall's
+## inner side, with the grey just outside it.
+static func _open_gaps(
+	level: LevelData,
+	skies: Dictionary[int, PackedByteArray],
+	roomy: Dictionary[Vector2i, bool],
+	gaps: Dictionary[Vector2i, bool],
+	closed: Dictionary[Vector2i, bool]
+) -> void:
+	if closed.is_empty():
+		return
+	var outside: Dictionary[Vector2i, bool] = {}
+	var pending: Array[Vector2i] = []
+	for cell: Vector2i in gaps:
+		for step in LatticeWalls.NEIGHBOURS:
+			var next := cell + step
+			if (
+				roomy.has(next)
+				and not gaps.has(next)
+				and _joined(skies, level.tile_at(cell), level.tile_at(next), step)
+			):
+				outside[cell] = true
+				pending.append(cell)
+				break
+	while not pending.is_empty():
+		var cell: Vector2i = pending.pop_back()
+		for step in LatticeWalls.NEIGHBOURS:
+			var next := cell + step
+			if (
+				gaps.has(next)
+				and not outside.has(next)
+				and _joined(skies, level.tile_at(cell), level.tile_at(next), step)
+			):
+				outside[next] = true
+				pending.append(next)
+	for cell: Vector2i in gaps:
+		if not _beside_any(cell, closed):
+			continue
+		if not outside.has(cell):
+			roomy.erase(cell)
+			continue
+		roomy[cell] = true
+		# The grey beside the gap on the outside (a step of the slope that
+		# leads to it) is the sky as well.
+		for step in LatticeWalls.NEIGHBOURS:
+			var next := cell + step
+			if (
+				not closed.has(next)
+				and not gaps.has(next)
+				and skies.has(level.tile_at(next))
+				and _joined(skies, level.tile_at(cell), level.tile_at(next), step)
+			):
+				roomy[next] = true
+
+
+static func _beside_any(cell: Vector2i, cells: Dictionary[Vector2i, bool]) -> bool:
+	for step in LatticeWalls.NEIGHBOURS:
+		if cells.has(cell + step):
+			return true
+	return false
+
+
+## The grey cells joined to [param start] without passing a cell of
+## [param gaps], each added to [param seen].
+static func _part_without(
+	level: LevelData,
+	skies: Dictionary[int, PackedByteArray],
+	gaps: Dictionary[Vector2i, bool],
+	start: Vector2i,
+	seen: Dictionary[Vector2i, bool]
+) -> Array[Vector2i]:
+	var area := level.playable_rect()
+	var part: Array[Vector2i] = []
+	var pending: Array[Vector2i] = [start]
+	seen[start] = true
+	while not pending.is_empty():
+		var cell: Vector2i = pending.pop_back()
+		part.append(cell)
+		for step in LatticeWalls.NEIGHBOURS:
+			var next := cell + step
+			if seen.has(next) or gaps.has(next) or not area.has_point(next):
+				continue
+			if _joined(skies, level.tile_at(cell), level.tile_at(next), step):
+				seen[next] = true
+				pending.append(next)
+	return part
+
+
+## The grey cells in a gap of a wall of blocks: along their column or their
+## row, the grey (at most [constant GAP_SIZE] cells) ends at a block on
+## both sides, a cell that is neither grey nor the dark of a room. The light
+## that falls through a gap in the castle wall of level 16 into the dark
+## inside is a cone of light from there on, not the sky
+## ([method _close_inside_gaps]).
+func _wall_gaps(
+	level: LevelData, skies: Dictionary[int, PackedByteArray]
+) -> Dictionary[Vector2i, bool]:
+	var gaps: Dictionary[Vector2i, bool] = {}
+	var area := level.playable_rect()
+	for y in range(area.position.y, area.end.y):
+		for x in range(area.position.x, area.end.x):
+			var cell := Vector2i(x, y)
+			if not skies.has(level.tile_at(cell)):
+				continue
+			for axis: Vector2i in [Vector2i.DOWN, Vector2i.RIGHT]:
+				var ahead := _gap_end(level, skies, cell, axis)
+				var behind := _gap_end(level, skies, cell, -axis)
+				if ahead == 0 or behind == 0 or ahead + behind - 1 > GAP_SIZE:
+					continue
+				var across := Vector2i(axis.y, axis.x)
+				if (
+					_is_wall_end(level, skies, cell + axis * ahead, across)
+					and _is_wall_end(level, skies, cell - axis * behind, across)
+				):
+					gaps[cell] = true
+	return gaps
+
+
+## Whether the block at [param cell] is the end of a thin wall: a cell
+## beside it [param across] the wall (on one side or the other) is no block
+## ([member _blocks]; without the tile properties: neither grey nor dark).
+## A low passage under a ledge has blocks beside its floor and ceiling.
+func _is_wall_end(
+	level: LevelData, skies: Dictionary[int, PackedByteArray], cell: Vector2i, across: Vector2i
+) -> bool:
+	for side: Vector2i in [across, -across]:
+		var tile := level.tile_at(cell + side)
+		if _blocks.is_empty():
+			if _is_dark(level, cell + side) or skies.has(tile):
+				return true
+		elif not _blocks.has(tile):
+			return true
+	return false
+
+
+## How many cells from [param cell] in steps of [param step] the first block
+## lies with only grey before it (at most [constant GAP_SIZE]); 0 when the
+## grey ends at the dark, the level's edge, or goes on further.
+static func _gap_end(
+	level: LevelData, skies: Dictionary[int, PackedByteArray], cell: Vector2i, step: Vector2i
+) -> int:
+	var area := level.playable_rect()
+	for reach in range(1, GAP_SIZE + 1):
+		var next := cell + step * reach
+		if not area.has_point(next) or _is_dark(level, next):
+			return 0
+		if not skies.has(level.tile_at(next)):
+			return reach
+	return 0
 
 
 ## Adds to [param roomy] the cells of [param near] that have the dark on one

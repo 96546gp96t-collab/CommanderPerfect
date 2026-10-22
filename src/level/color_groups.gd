@@ -42,13 +42,91 @@ var _open := PackedByteArray()
 ## [param tiles].
 static func create(level: LevelData, tiles: Array[Image], color: Color) -> ColorGroups:
 	var groups := ColorGroups.new()
-	groups._level = level
-	groups._area = level.playable_rect()
-	groups._label_tiles(tiles, color)
-	groups._make_nodes()
-	groups._join_neighbours()
-	groups._mark_open()
+	groups._group(level, tiles, color)
 	return groups
+
+
+func _group(level: LevelData, tiles: Array[Image], color: Color) -> void:
+	_level = level
+	_area = level.playable_rect()
+	_label_tiles(tiles, color)
+	_make_nodes()
+	_join_neighbours()
+	_mark_open()
+
+
+## [method shut_pixels] of [param level] (tiles [param tiles], colour
+## [param color]) in every step of its animations ([param properties]; one
+## step without them): every frame of an animated tile that shows the colour
+## gets its own groups, shut in where they are in every step that shows it.
+## The black face of Keen 1's exit sign blinks between two tiles; the level
+## names one, so without the steps the other frame let the wall show.
+static func shut_in_every_step(
+	level: LevelData, tiles: Array[Image], color: Color, properties: TileProperties = null
+) -> Dictionary[int, PackedByteArray]:
+	var result: Dictionary[int, PackedByteArray] = {}
+	var labels: Dictionary[int, PackedByteArray] = {}
+	var counts: Dictionary[int, int] = {}
+	for step in _steps(level, tiles, color, properties):
+		# A tile's groups are the same in every step: label each tile once.
+		var groups := ColorGroups.new()
+		groups._labels = labels
+		groups._counts = counts
+		groups._group(_stepped(level, properties, step), tiles, color)
+		var shut := groups.shut_pixels()
+		for tile: int in groups._shown_tiles():
+			var pixels := PackedByteArray()
+			pixels.resize(SIZE * SIZE)
+			if shut.has(tile):
+				pixels = shut[tile]
+			if result.has(tile):
+				for i in pixels.size():
+					pixels[i] = pixels[i] & result[tile][i]
+			result[tile] = pixels
+	for tile: int in result.keys():
+		if not result[tile].has(1):
+			result.erase(tile)
+	return result
+
+
+## How many steps the animations of [param level] have that matter for
+## [param color]: the most frames of an animated tile it uses that shows the
+## colour at its edge in one of them; 1 without [param properties].
+static func _steps(
+	level: LevelData, tiles: Array[Image], color: Color, properties: TileProperties
+) -> int:
+	var steps := 1
+	if properties == null:
+		return steps
+	var seen := {}
+	var area := level.playable_rect()
+	for y in range(area.position.y, area.end.y):
+		for x in range(area.position.x, area.end.x):
+			var tile := level.tile_at(Vector2i(x, y))
+			var frames := properties.animation_frames(tile)
+			if frames <= steps or seen.has(tile):
+				continue
+			seen[tile] = true
+			for step in frames:
+				var frame := properties.animated_tile(tile, step)
+				if frame < tiles.size() and BackdropHoles.edge_flood(tiles[frame], color).has(1):
+					steps = frames
+					break
+	return steps
+
+
+## [param level] with every animated tile [param step] steps further.
+static func _stepped(level: LevelData, properties: TileProperties, step: int) -> LevelData:
+	if step == 0:
+		return level
+	var result := LevelData.new()
+	result.width = level.width
+	result.height = level.height
+	result.tiles = level.tiles.duplicate()
+	result.infos = level.infos
+	for i in result.tiles.size():
+		result.tiles[i] = properties.animated_tile(result.tiles[i], step)
+	return result
 
 
 ## Per tile, 1 for every pixel of a group that is shut in wherever the
@@ -94,6 +172,19 @@ func is_open(cell: Vector2i, pixel: Vector2i) -> bool:
 		return false
 	var group := _labels[_tile_at(at.x, at.y)][pixel.y * SIZE + pixel.x]
 	return group > 0 and _open[_find(first + group - 1)] == 1
+
+
+## The tiles of the level that have groups.
+func _shown_tiles() -> Array[int]:
+	var shown: Array[int] = []
+	var seen := {}
+	for y in _area.size.y:
+		for x in _area.size.x:
+			var tile := _tile_at(x, y)
+			if _labels.has(tile) and not seen.has(tile):
+				seen[tile] = true
+				shown.append(tile)
+	return shown
 
 
 func _tile_at(x: int, y: int) -> int:

@@ -294,6 +294,47 @@ level without a wall texture keeps its own background.
     behind the glass. Before (964f9a8) the speck rule took the one-pixel
     streaks for lattice and the glass vanished; then the window was drawn
     whole, with the old lattice behind the glass.
+  - The second round of 22-10 (the user's next test), for every tile:
+    - Keen 2, a strip of lattice (lit or shadowed, at least 4 pixels, at
+      most 2 pixels from the edge, touching it) with only black or wall
+      around it inside the tile is the wall (`LatticeWalls.framed_strips`):
+      the two columns at the ends of the thick red beam (225, 227).
+    - Keen 2, a thin shadow that holds no darkened white line joins the
+      shadow beside it, and then the black pixels it surrounds (counting
+      grey wall only): the right end of the shadow under the small
+      platforms (177-181).
+    - Keen 2, a straight line (row or column, at least 6 pixels) of one
+      colour that goes on past a place where it is not the lattice, up to
+      another such place or the tile's edge, is the drawing and never wall
+      (`LatticeWalls.drawing_runs`, inside the pattern rule and after the
+      item, edge and strip rules): the exit door's frame (160, 162-164)
+      stays straight, the bands of level 12's machine and the white
+      pillars stay whole. A field run that meets a thing of its colour on
+      one side only stays lattice.
+    - Keen 2, a lone pixel becomes wall only in a kind whose colours it has
+      and that at least two of its neighbours have: the black arms of the
+      zapper (169-172) are no lit lattice.
+    - Every frame of an animation gets the holes of the other frames where
+      it shows the same pixel (`BackdropHoles.share_between_frames`, in
+      `GraphicsTextures.hole_kinds`): the lattice between the zapper's arms
+      is the wall also in the frames where the spark shuts it in.
+    - Keen 1, the black a block's drawing holds (a solid tile: more than
+      half of the group has another colour on both sides in its row or
+      column) or a black face held almost all round (90 %, at least 64
+      pixels) stays black (`BackdropHoles.block_tiles`, `_without_held`):
+      the bottom triangle of the dark studded blocks (290), the exit sign
+      (167, 168). Fire and the dark around things are not held.
+    - Shut-in pixels per animation step (`ColorGroups.shut_in_every_step`):
+      each frame of an animated tile gets its own groups (the exit sign's
+      second frame, the "ID" panel's frames, the vines of levels 7 and 14);
+      Keen 1 level start now ~0.3-0.4 s with the pictures on.
+    - Keen 2 level 12: teal that the level shuts in stays (the exit door).
+    - Keen 1, the light that falls through a gap in a wall of blocks into a
+      dark room (`Keen1Walls._close_inside_gaps`): a gap is grey of at most
+      3 cells between two blocks that end a thin wall; the grey beyond it
+      that lies mostly next to the dark and turns grey somewhere is grey
+      from the wall on, the gap itself and the step just outside it show
+      the sky (level 16, the castle's outer wall at x 86).
   - The HUD (`Hud.background_tile`, Keen 2: 143) leaves out the lattice
     around the raygun and the keycards the same way
     (`GraphicsTextures.clear_tile_on`); Keen 1 keeps its grey rule, Keen 3

@@ -23,10 +23,12 @@ const PLATFORM_ROWS := Rect2i(0, 0, SIZE, 5)
 const LEVEL_2_CONE := Vector2i(3, 3)
 const LEVEL_16_CONE := Vector2i(97, 18)
 const LEVEL_16_SKY := Vector2i(10, 10)
-## Grey inside the castle of level 16 without a lamp: on the long slope, and
-## the grey platform in the top room; the corner at the bottom left of
-## level 9's shrine.
-const LEVEL_16_SLOPE := Vector2i(86, 48)
+## Grey inside the castle of level 16 without a lamp: on the long slope
+## (inside the castle wall, the user's choice of 22-10: the light that falls
+## through the gap in the wall is grey from the wall on), and the grey
+## platform in the top room; the corner at the bottom left of level 9's
+## shrine.
+const LEVEL_16_SLOPE := Vector2i(88, 50)
 const LEVEL_16_PLATFORM := Vector2i(94, 10)
 const LEVEL_9_CORNER := Vector2i(2, 35)
 ## Outside: level 9's sky right of the shrine, level 16's below the castle's

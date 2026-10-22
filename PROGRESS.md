@@ -212,8 +212,26 @@ ligt wordt een gat (`docs/graphics.md`, onderzoek §8).
   het rooster), regressies Keen 1, 2 en 4 tegen 964f9a8 gelijk (4:3 en
   breedbeeld; daar zitten geen ramen in), eigen foto's van de ramen: 4:3
   gelijk, breedbeeld alleen anders binnen de ramen. Apps gebouwd.
-- Open: tussen de helling en het brede vlak in het kasteel van 16 blijft
-  één grijze cel staan (de testcel van AB2); de grens daar was al grillig.
+- [x] **Tweede ronde (22-10, de volgende test van de gebruiker).** Keen 2:
+  geen rooster meer aan de uiteinden van de kleine platforms (schaduw
+  zonder eigen lijn hoort bij de schaduw ernaast) en van de rode balk
+  (smalle strook tussen rand en zwarte omlijning is wand); de zapper heeft
+  in elk beeld zijn armen en dezelfde wand (frames delen hun gaten); de
+  uitgang heeft een rechte rand (rechte lijnen van de tekening zijn nooit
+  wand); gevonden: de deur in level 12 was doorzichtig (teal, nu
+  ingesloten). Keen 1: de zwarte driehoek van de donkere noppenblokken en
+  het uitgangsbord (beide beelden) blijven zwart; het licht door de muur
+  van het kasteel (level 16) is grijs vanaf de muur, de opening zelf
+  toont de lucht. Ook: het "ID"-paneel (level 1) en de ranken (7, 14) per
+  animatiebeeld gelijk. Suites `test_level_walls_fixes2` en `_data`
+  (falen op de oude regels); 133 suites groen (keen4_v14 overgeslagen),
+  gdlint schoon. Regressies tegen 4ccfcfc: Keen 1 en 4 gelijk, Keen 2
+  alleen level 1 breedbeeld (balk, platform, zapper); 12 eigen plekken in
+  4:3 gelijk, breedbeeld alleen anders waar bedoeld. Kost: een Keen
+  1-level indelen ~0,3-0,4 s (was ~0,15 s). Open: twee zwarte pixels in
+  tegel 158 (levels 5, 14).
+- De testcel van AB2 in het kasteel van 16 is opgelost (zie hierboven):
+  de opening in de muur toont de lucht, daarachter grijs.
 
 ## D13.2: fixes (21-10)
 

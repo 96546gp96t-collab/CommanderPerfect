@@ -25,9 +25,16 @@ extends RefCounted
 ##     line pixels next to them ([method _looks_like_lattice]); a plain grey
 ##     box has the field's grey but none of the lines
 ## Thinner shadows (under a platform) join a shadow or wall next to them
-## when they hold a darkened white line ([method _grow_shadows]); lone
-## pixels between wall pixels (the corners where two tiles' lines do not
-## quite meet) become wall too ([method _fill_specks]).
+## when they hold a darkened white line, and then the rest of such a shadow
+## beside them ([method _grow_shadows]); lone pixels between wall pixels
+## (the corners where two tiles' lines do not quite meet) become wall too
+## when they have a colour of the lattice they lie in ([method _fill_specks]).
+##
+## The fixes of 22-10 (the user's second test) add two rules that work on
+## any tile ([method framed_strips], [method drawing_runs]): a thin strip of
+## lattice between a tile's edge and a black outline is wall (the ends of a
+## beam), and a long straight line of one colour that is not the lattice
+## somewhere along it is the drawing, never wall (a door's frame).
 
 ## Where a pixel lies in the lattice: the field between the lines, or on a
 ## line drawn darker or lighter than the field.
@@ -46,8 +53,21 @@ const SPECK_SIZE := 4
 ## A stray group needs at least this many wall pixels around it (a corner
 ## pixel has two neighbours in the tile).
 const SPECK_NEIGHBOURS := 2
-## How far from a tile's edge [method edge_strip] looks, in pixels.
+## How far from a tile's edge [method edge_strip] and [method framed_strips]
+## look, in pixels.
 const EDGE_STRIP := 2
+## The fewest pixels of a strip that [method framed_strips] takes: a lone
+## pixel of the lattice's colour beside a black outline is as often a
+## thing's own (a dark pixel of a city on a Tantalus screen).
+const STRIP_SIZE := 4
+## The shortest straight line of one colour that [method drawing_runs]
+## judges; the lattice's own lines are diagonal, so along a row or a column
+## its colour changes every few pixels.
+const RUN_LENGTH := 6
+## What ends a part of a run in [method _mark_drawing].
+const NO_BOUND := 0
+const EDGE_BOUND := 1
+const FOREIGN_BOUND := 2
 ## A black pixel of a shadow is wall with at least this many wall neighbours
 ## (a lattice's dark line is black in the shadow; a black outline is not).
 const BLACK_NEIGHBOURS := 3
@@ -59,6 +79,9 @@ var _lit := PackedByteArray()
 var _shadow := PackedByteArray()
 var _darks: Array[PackedByteArray] = []
 var _places := PackedByteArray()
+## The colours (as [method _colour] numbers) a pixel of each kind of wall
+## ([enum BackdropHoles.Kind]) can have.
+var _colours: Dictionary[int, Dictionary] = {}
 
 
 ## The walls of the lattice [param lit] (a tile), and when [param dark] is
@@ -71,6 +94,12 @@ static func create(lit: Image, dark: Image = null) -> LatticeWalls:
 	if dark != null:
 		var dark_rgb := _rgb(dark)
 		walls._darks = [dark_rgb, _shifted(dark_rgb, DARK_SHIFT)]
+	var lit_colours := _colours_of(walls._lit)
+	walls._colours[BackdropHoles.Kind.LIT] = lit_colours
+	walls._colours[BackdropHoles.Kind.SHADOW] = lit_colours.merged(_colours_of(walls._shadow))
+	walls._colours[BackdropHoles.Kind.DARK] = lit_colours.duplicate()
+	for pattern in walls._darks:
+		walls._colours[BackdropHoles.Kind.DARK].merge(_colours_of(pattern))
 	return walls
 
 
@@ -85,8 +114,10 @@ func kinds(tile: Image) -> PackedByteArray:
 	var rgb := _rgb(tile)
 	var result := PackedByteArray()
 	result.resize(SIZE * SIZE)
-	var lit := _matches(rgb, _lit)
-	var shadow := _matches(rgb, _shadow)
+	# The drawing's straight lines are never wall, whatever rule would take them.
+	var drawing := _drawing_runs_of(rgb)
+	var lit := _without(_matches(rgb, _lit), drawing)
+	var shadow := _without(_matches(rgb, _shadow), drawing)
 	if not (lit.has(1) or shadow.has(1) or _any_dark(rgb)):
 		return result
 	var lit_wall := _accepted(lit, PackedByteArray())
@@ -96,7 +127,7 @@ func kinds(tile: Image) -> PackedByteArray:
 	# The dark lattice's two places of lines meet at a cone's edge.
 	var darks: Array[PackedByteArray] = [lit_wall]
 	for dark in _darks:
-		darks.append(_matches(rgb, dark))
+		darks.append(_without(_matches(rgb, dark), drawing))
 	var dark_beside := _union(darks)
 	for i in range(1, darks.size()):
 		shades.append(_accepted(darks[i], dark_beside))
@@ -108,7 +139,7 @@ func kinds(tile: Image) -> PackedByteArray:
 			result[i] = BackdropHoles.Kind.DARK
 		elif shades[1][i]:
 			result[i] = BackdropHoles.Kind.SHADOW
-	_fill_specks(rgb, result)
+	_fill_specks(rgb, result, drawing)
 	return result
 
 
@@ -159,6 +190,159 @@ func edge_strip(tile: Image) -> PackedByteArray:
 		if mini(mini(x, y), mini(SIZE - 1 - x, SIZE - 1 - y)) >= EDGE_STRIP:
 			matched[i] = 0
 	return _edge_flood(matched)
+
+
+## The thin strips of lattice between [param tile]'s edge and a black
+## outline, as the kind of wall of every pixel ([enum BackdropHoles.Kind];
+## NONE elsewhere): each group of pixels that equal one kind of the lattice
+## at their place, has at least [constant STRIP_SIZE] pixels, lies within
+## [constant EDGE_STRIP] pixels of the edge and touches it, and has only
+## black pixels or pixels of [param walls] (the wall found so far) around
+## it inside the tile. The two columns of lattice
+## at the end of Keen 2's thick red beam, and its shadow beyond the other
+## end, are such strips: too thin and without lines for the pattern rule.
+func framed_strips(tile: Image, walls: PackedByteArray) -> PackedByteArray:
+	var rgb := _rgb(tile)
+	var result := PackedByteArray()
+	result.resize(SIZE * SIZE)
+	var patterns: Dictionary[int, Array] = {
+		BackdropHoles.Kind.LIT: [_lit],
+		BackdropHoles.Kind.SHADOW: [_shadow],
+		BackdropHoles.Kind.DARK: _darks,
+	}
+	for kind: int in patterns:
+		for pattern: PackedByteArray in patterns[kind]:
+			var matched := _matches(rgb, pattern)
+			for i in matched.size():
+				matched[i] = matched[i] if walls[i] == 0 and result[i] == 0 else 0
+			for group in _groups(matched):
+				if _is_framed_strip(rgb, group, walls):
+					for i in group:
+						result[i] = kind
+	return result
+
+
+## 1 for every pixel of [param tile] in a straight line (a row or a column)
+## of at least [constant RUN_LENGTH] pixels of one colour that goes on past
+## a place where it is not the lattice (lit, in a shadow or in the dark):
+## the frame of a door, the band of a machine. The lattice's lines are
+## diagonal, so a straight line of one colour that is all lattice lies on
+## its field; a line that passes a place of the lattice's lines in the same
+## colour belongs to the drawing, also where its colour equals the lattice
+## by chance ([method _mark_drawing]).
+func drawing_runs(tile: Image) -> PackedByteArray:
+	return _drawing_runs_of(_rgb(tile))
+
+
+func _drawing_runs_of(rgb: PackedByteArray) -> PackedByteArray:
+	var foreign := _foreign(rgb)
+	var result := PackedByteArray()
+	result.resize(SIZE * SIZE)
+	for line in SIZE:
+		for along: Vector2i in [Vector2i.RIGHT, Vector2i.DOWN]:
+			var start := Vector2i(0, line) if along == Vector2i.RIGHT else Vector2i(line, 0)
+			_mark_runs(rgb, foreign, start, along, result)
+	return result
+
+
+## Marks in [param result] the runs of one colour along the line from
+## [param start] in steps of [param along] that are long enough and hold a
+## pixel of [param foreign] ([method _mark_drawing]).
+static func _mark_runs(
+	rgb: PackedByteArray,
+	foreign: PackedByteArray,
+	start: Vector2i,
+	along: Vector2i,
+	result: PackedByteArray
+) -> void:
+	var run := PackedInt32Array()
+	var from := 0
+	for step in SIZE + 1:
+		var at := start + along * step
+		var i := at.y * SIZE + at.x
+		if step < SIZE and not run.is_empty() and _colour(rgb, i) == _colour(rgb, run[0]):
+			run.append(i)
+			continue
+		if run.size() >= RUN_LENGTH:
+			_mark_drawing(run, foreign, from == 0, step == SIZE, result)
+		if step < SIZE:
+			run = PackedInt32Array([i])
+			from = step
+
+
+## Marks in [param result] the pixels of [param run] (one colour along a
+## line) that lie between two of its pixels of [param foreign], or between
+## one and the tile's edge where the run reaches it ([param at_start],
+## [param at_end]): there the line goes on past a place where the lattice
+## has another colour, so it is the drawing. A part of the run with a
+## foreign pixel on one side only, ending in another colour on the other,
+## is the lattice beside a thing of its colour.
+static func _mark_drawing(
+	run: PackedInt32Array,
+	foreign: PackedByteArray,
+	at_start: bool,
+	at_end: bool,
+	result: PackedByteArray
+) -> void:
+	var count := run.size()
+	# What lies before each pixel along the run: nothing, the tile's edge or
+	# a foreign pixel (the nearest one counts).
+	var before := PackedByteArray()
+	before.resize(count)
+	var bound := EDGE_BOUND if at_start else NO_BOUND
+	for k in count:
+		if foreign[run[k]]:
+			bound = FOREIGN_BOUND
+		before[k] = bound
+	bound = EDGE_BOUND if at_end else NO_BOUND
+	for k in range(count - 1, -1, -1):
+		if foreign[run[k]]:
+			bound = FOREIGN_BOUND
+			result[run[k]] = 1
+		elif (
+			bound != NO_BOUND
+			and before[k] != NO_BOUND
+			and (bound == FOREIGN_BOUND or before[k] == FOREIGN_BOUND)
+		):
+			result[run[k]] = 1
+
+
+## 1 for every pixel of [param rgb] that equals no kind of the lattice at
+## its place.
+func _foreign(rgb: PackedByteArray) -> PackedByteArray:
+	var result := PackedByteArray()
+	result.resize(SIZE * SIZE)
+	result.fill(1)
+	var patterns: Array[PackedByteArray] = [_lit, _shadow]
+	patterns.append_array(_darks)
+	for pattern in patterns:
+		var matched := _matches(rgb, pattern)
+		for i in result.size():
+			if matched[i]:
+				result[i] = 0
+	return result
+
+
+## Whether [param group] (pixels of [param rgb]) lies along the tile's edge
+## within [constant EDGE_STRIP] pixels, touches it, and has only black
+## pixels and pixels of [param walls] around it.
+static func _is_framed_strip(
+	rgb: PackedByteArray, group: PackedInt32Array, walls: PackedByteArray
+) -> bool:
+	if group.size() < STRIP_SIZE or not _touches_edge(group):
+		return false
+	var members := {}
+	for i in group:
+		members[i] = true
+		var x := i % SIZE
+		var y := i / SIZE
+		if mini(mini(x, y), mini(SIZE - 1 - x, SIZE - 1 - y)) >= EDGE_STRIP:
+			return false
+	for i in group:
+		for j in _neighbours(i):
+			if not members.has(j) and walls[j] == 0 and not _is_black(rgb, j):
+				return false
+	return true
 
 
 ## The pixels of [param matched] joined to the tile's edge through more of
@@ -238,28 +422,57 @@ func _grow_shadows(
 	candidates.resize(SIZE * SIZE)
 	for i in candidates.size():
 		candidates[i] = 1 if shadow[i] and not wall[i] and not _is_black(rgb, i) else 0
+	var rest: Array[PackedInt32Array] = []
 	for group in _groups(candidates):
 		if _beside(group, wall) and _holds_places(group, [Place.FIELD, Place.LIGHT_LINE]):
 			for i in group:
 				shades[1][i] = 1
-	wall = _union(shades)
+		else:
+			rest.append(group)
+	_join_black(rgb, shadow, shades, false)
+	# The end of a shadow whose lines lie in the part already taken (the
+	# right end of the shadow under Keen 2's small platforms), and the black
+	# pixels it then surrounds; only grey pixels count as their wall then, so
+	# a black outline along the shadow is not taken pixel by pixel.
+	var grown := true
+	while grown:
+		grown = false
+		for group in rest:
+			if not shades[1][group[0]] and _beside(group, shades[1]):
+				for i in group:
+					shades[1][i] = 1
+				grown = true
+	_join_black(rgb, shadow, shades, true)
+
+
+## Adds to the shadow in [param shades] the black pixels of [param shadow]
+## mostly surrounded by wall (with [param grey_only] only grey wall pixels
+## count).
+func _join_black(
+	rgb: PackedByteArray, shadow: PackedByteArray, shades: Array[PackedByteArray], grey_only: bool
+) -> void:
+	var wall := _union(shades)
 	for i in wall.size():
 		if shadow[i] and not wall[i] and _is_black(rgb, i):
 			var neighbours := _neighbours(i)
 			var walls := 0
 			for j in neighbours:
-				walls += wall[j]
+				if not grey_only or not _is_black(rgb, j):
+					walls += wall[j]
 			if walls >= BLACK_NEIGHBOURS or walls == neighbours.size():
 				shades[1][i] = 1
 
 
 ## Makes small groups of grey pixels wall when every pixel beside them is
-## wall, as the kind most of those neighbours have.
-func _fill_specks(rgb: PackedByteArray, kinds: PackedByteArray) -> void:
+## wall, as the kind most of those neighbours have among the kinds whose
+## colours they have and that at least [constant SPECK_NEIGHBOURS] of them
+## have.
+func _fill_specks(rgb: PackedByteArray, kinds: PackedByteArray, drawing: PackedByteArray) -> void:
 	var stray := PackedByteArray()
 	stray.resize(SIZE * SIZE)
 	for i in stray.size():
-		stray[i] = 1 if kinds[i] == BackdropHoles.Kind.NONE and _is_grey(rgb, i) else 0
+		var free := kinds[i] == BackdropHoles.Kind.NONE and not drawing[i]
+		stray[i] = 1 if free and _is_grey(rgb, i) else 0
 	for group in _groups(stray):
 		if group.size() > SPECK_SIZE:
 			continue
@@ -275,12 +488,21 @@ func _fill_specks(rgb: PackedByteArray, kinds: PackedByteArray) -> void:
 				around += 1
 		if not walled or around < SPECK_NEIGHBOURS:
 			continue
-		var kind: int = counts.keys()[0]
+		# The most common kind around them whose colours they have: a black
+		# pixel among the lit lattice is drawing (the thin arms of Keen 2's
+		# zapper), the lit lattice has no black.
+		var kind: int = BackdropHoles.Kind.NONE
 		for candidate: int in counts:
-			if counts[candidate] > counts[kind]:
+			if (
+				counts[candidate] < SPECK_NEIGHBOURS
+				or not _all_of_colours(rgb, group, _colours[candidate])
+			):
+				continue
+			if kind == BackdropHoles.Kind.NONE or counts[candidate] > counts[kind]:
 				kind = candidate
-		for i in group:
-			kinds[i] = kind
+		if kind != BackdropHoles.Kind.NONE:
+			for i in group:
+				kinds[i] = kind
 
 
 func _holds_places(group: PackedInt32Array, wanted: Array) -> bool:
@@ -306,6 +528,12 @@ static func opened(mask: PackedByteArray) -> PackedByteArray:
 				for j in [i, i + 1, i + SIZE, i + SIZE + 1]:
 					kept[j] = 1
 	return kept
+
+
+## The groups of pixels of [param mask] (a tile) that touch each other
+## (side by side or one above the other), as lists of pixel indices.
+static func groups_of(mask: PackedByteArray) -> Array[PackedInt32Array]:
+	return _groups(mask)
 
 
 ## The groups of pixels of [param mask] that touch each other (side by side
@@ -367,6 +595,14 @@ static func _union(masks: Array[PackedByteArray]) -> PackedByteArray:
 	return result
 
 
+## [param mask] without the pixels of [param other].
+static func _without(mask: PackedByteArray, other: PackedByteArray) -> PackedByteArray:
+	for i in mask.size():
+		if other[i]:
+			mask[i] = 0
+	return mask
+
+
 ## 1 where [param rgb] equals [param pattern], pixel for pixel.
 static func _matches(rgb: PackedByteArray, pattern: PackedByteArray) -> PackedByteArray:
 	var result := PackedByteArray()
@@ -380,6 +616,28 @@ static func _matches(rgb: PackedByteArray, pattern: PackedByteArray) -> PackedBy
 		):
 			result[i] = 1
 	return result
+
+
+static func _all_of_colours(
+	rgb: PackedByteArray, group: PackedInt32Array, colours: Dictionary
+) -> bool:
+	for i in group:
+		if not colours.has(_colour(rgb, i)):
+			return false
+	return true
+
+
+## The colour of pixel [param i] of [param rgb] as one number.
+static func _colour(rgb: PackedByteArray, i: int) -> int:
+	return rgb[i * 3] << 16 | rgb[i * 3 + 1] << 8 | rgb[i * 3 + 2]
+
+
+## The colours of [param rgb] (a tile), as keys.
+static func _colours_of(rgb: PackedByteArray) -> Dictionary:
+	var colours := {}
+	for i in SIZE * SIZE:
+		colours[_colour(rgb, i)] = true
+	return colours
 
 
 static func _is_grey(rgb: PackedByteArray, i: int) -> bool:

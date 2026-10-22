@@ -19,6 +19,10 @@ extends LevelWalls
 ## 1.31, in levels 6, 7 and 9) show the wall through their glass: only
 ## the glass their mask draws in front of Keen (the streaks and the frame)
 ## stays ([method BackdropHoles.window_kinds], the user's choice of 22-10).
+## The frames of an animation get the same wall where they show the same
+## pixels ([method BackdropHoles.share_between_frames], the zapper's arms).
+## In level 12 the teal that the level's drawing shuts in stays, as Keen 1's
+## grey and black do ([ColorGroups]): the teal inside the exit door.
 
 const FOLDER_KEEN_2 := "res://assets/backgrounds/keen2"
 const LATTICE_TILE := 143
@@ -34,6 +38,7 @@ var _lattice: LatticeWalls
 var _dark_lattice: LatticeWalls
 var _items: Dictionary[int, bool] = {}
 var _windows: Dictionary[int, PackedByteArray] = {}
+var _properties: TileProperties
 
 
 ## Keen 2's walls: textures in [param folder] or the player's own folder in
@@ -54,6 +59,8 @@ static func create(
 	if properties != null:
 		walls._items = items(properties, tiles.size())
 		walls._windows = windows(properties, tiles)
+	walls._animations = animations(properties, tiles.size())
+	walls._properties = properties
 	return walls
 
 
@@ -103,4 +110,7 @@ func holes(level: LevelData, _sky_color: Color, wall: bool) -> BackdropHoles:
 		holes = BackdropHoles.create(Color.TRANSPARENT, teal, _lattice, LATTICE_NAME)
 	holes.item_tiles = _items
 	holes.windows = _windows
+	holes.animations = _animations
+	if teal.a > 0.0:
+		holes.shut_in = ColorGroups.shut_in_every_step(level, _tiles, teal, _properties)
 	return holes

@@ -11,6 +11,8 @@ extends RefCounted
 
 var _textures: BackdropPictures
 var _tiles: Array[Image] = []
+## Per animated tile, every tile of its animation ([method animations]).
+var _animations: Dictionary[int, PackedInt32Array] = {}
 
 
 ## The texture of the wall behind level [param number], or null.
@@ -29,6 +31,22 @@ func holes(_level: LevelData, sky_color: Color, _wall: bool) -> BackdropHoles:
 ## [param holes]: drawn with that colour kept.
 func sky_kept_cells(_level: LevelData, _holes: BackdropHoles) -> Dictionary[Vector2i, bool]:
 	return {}
+
+
+## Per animated tile among the first [param count] of [param properties],
+## every tile of its animation (itself too); none without properties.
+static func animations(properties: TileProperties, count: int) -> Dictionary[int, PackedInt32Array]:
+	var found: Dictionary[int, PackedInt32Array] = {}
+	if properties == null:
+		return found
+	for tile in mini(count, properties.tile_count):
+		if not properties.is_animated(tile):
+			continue
+		var frames := PackedInt32Array()
+		for step in properties.animation_frames(tile):
+			frames.append(properties.animated_tile(tile, step))
+		found[tile] = frames
+	return found
 
 
 ## Whether [param level] uses tile [param tile] in its playable area.

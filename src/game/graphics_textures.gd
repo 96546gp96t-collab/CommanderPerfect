@@ -251,7 +251,8 @@ func wall_mask_atlas(columns: int, padding: int, holes: BackdropHoles) -> ImageT
 	return _wall_masks[key]
 
 
-## The kinds of hole ([method BackdropHoles.kinds_of]) of every tile,
+## The kinds of hole ([method BackdropHoles.kinds_of]) of every tile, the
+## frames of an animation alike ([method BackdropHoles.share_between_frames]),
 ## worked out once per set of rules (they do not depend on the scaled
 ## graphics); what a level shuts in ([member BackdropHoles.shut_in]) only
 ## changes the tiles it names.
@@ -264,6 +265,7 @@ func hole_kinds(holes: BackdropHoles) -> Array:
 		var base: Array[PackedByteArray] = []
 		for index in graphics.tiles.size():
 			base.append(holes.base_kinds_of(index, graphics.tiles[index]))
+		holes.share_between_frames(base, graphics.tiles)
 		_hole_kinds[base_key] = base
 	var kinds: Array[PackedByteArray] = []
 	for index in graphics.tiles.size():

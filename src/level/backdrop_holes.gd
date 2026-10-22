@@ -43,6 +43,11 @@ enum Kind { NONE, SKY, LIT, DARK, SHADOW }
 const LIT_BRIGHTNESS := 1.0
 const DARK_BRIGHTNESS := 0.35
 const SHADOW_BRIGHTNESS := 0.45
+## The smallest face of the wall's colour, in pixels, that the drawing of a
+## tile other than a block holds ([method _without_held]), and the share of
+## its pixels that must be held.
+const HELD_FACE_SIZE := 64
+const HELD_FACE_SHARE := 0.9
 
 ## The colour the sky takes the place of; transparent for none.
 var sky_color := Color.TRANSPARENT
@@ -62,6 +67,12 @@ var windows: Dictionary[int, PackedByteArray] = {}
 ## Per tile, 1 for each pixel of the sky's or the wall's colour that stays
 ## (shut in).
 var shut_in: Dictionary[int, PackedByteArray] = {}
+## The blocks (Keen 1's tiles that are solid on every side), whose black
+## the block's drawing holds is not the wall ([method _without_held]).
+var block_tiles: Dictionary[int, bool] = {}
+## Per animated tile, every tile of its animation (itself too); see
+## [method share_between_frames].
+var animations: Dictionary[int, PackedInt32Array] = {}
 
 
 ## Holes for the sky in [param sky], the wall in [param wall] and the
@@ -89,7 +100,7 @@ func base_key() -> String:
 	var parts := PackedStringArray([_color_key(sky_color), _color_key(wall_color), name])
 	if thick_wall:
 		parts.append("thick")
-	for tiles: Dictionary in [item_tiles, windows]:
+	for tiles: Dictionary in [item_tiles, windows, animations, block_tiles]:
 		parts.append(str(tiles.keys().hash()) if not tiles.is_empty() else "-")
 	return "/".join(parts)
 
@@ -104,19 +115,25 @@ func has_wall() -> bool:
 
 ## The [enum Kind] of every pixel of [param tile], row by row.
 func kinds(tile: Image) -> PackedByteArray:
-	var size := tile.get_width() * tile.get_height()
+	var result := _colour_kinds(tile)
+	if lattice != null:
+		var walls := lattice.kinds(tile)
+		for i in result.size():
+			if result[i] == Kind.NONE:
+				result[i] = walls[i]
+	return result
+
+
+## The holes of [param tile] by the colour rules alone: the sky's and the
+## plain wall's colour.
+func _colour_kinds(tile: Image) -> PackedByteArray:
 	var result := PackedByteArray()
-	result.resize(size)
+	result.resize(tile.get_width() * tile.get_height())
 	if has_sky():
 		_mark(result, edge_flood(tile, sky_color), Kind.SKY)
 	if wall_color.a > 0.0:
 		var flood := edge_flood(tile, wall_color)
 		_mark(result, LatticeWalls.opened(flood) if thick_wall else flood, Kind.LIT)
-	if lattice != null:
-		var walls := lattice.kinds(tile)
-		for i in size:
-			if result[i] == Kind.NONE:
-				result[i] = walls[i]
 	return result
 
 
@@ -132,6 +149,8 @@ func base_kinds_of(index: int, tile: Image) -> PackedByteArray:
 	if windows.has(index - 1):
 		return result
 	result = kinds(tile)
+	if thick_wall and wall_color.a > 0.0:
+		result = _without_held(tile, result, block_tiles.has(index))
 	if lattice == null:
 		return result
 	var around := PackedByteArray()
@@ -142,7 +161,101 @@ func base_kinds_of(index: int, tile: Image) -> PackedByteArray:
 	for i in around.size():
 		if around[i] and result[i] == Kind.NONE:
 			result[i] = Kind.LIT
+	var walls := PackedByteArray()
+	walls.resize(result.size())
+	for i in result.size():
+		walls[i] = 1 if result[i] != Kind.NONE else 0
+	var strips := lattice.framed_strips(tile, walls)
+	for i in strips.size():
+		if strips[i] != Kind.NONE and result[i] == Kind.NONE:
+			result[i] = strips[i]
+	var colours := _colour_kinds(tile)
+	var drawing := lattice.drawing_runs(tile)
+	for i in drawing.size():
+		if drawing[i] and colours[i] == Kind.NONE:
+			result[i] = Kind.NONE
 	return result
+
+
+## [param kinds] without the groups of wall that the tile's drawing holds:
+## in a block ([param block], [member block_tiles]) more than half of their
+## pixels have another colour than the wall's on both sides, in their row
+## or in their column; elsewhere nearly all of them
+## ([constant HELD_FACE_SHARE]), in a face at least
+## [constant HELD_FACE_SIZE] pixels large. The bottom triangle of Keen 1's
+## dark studded blocks (tile 290) is black between its dark grey side
+## triangles, and the face of the exit sign black inside its frame: their
+## own drawing, though they meet the black of the room around them. The
+## dark of a room between a fire's flames is not held so far.
+func _without_held(tile: Image, kinds: PackedByteArray, block: bool) -> PackedByteArray:
+	var width := tile.get_width()
+	var height := tile.get_height()
+	var other := PackedByteArray()
+	other.resize(kinds.size())
+	var walls := PackedByteArray()
+	walls.resize(kinds.size())
+	for i in other.size():
+		var own := tile.get_pixel(i % width, i / width).is_equal_approx(wall_color)
+		other[i] = 0 if own else 1
+		walls[i] = 1 if own and kinds[i] == Kind.LIT else 0
+	var result := kinds.duplicate()
+	for group in LatticeWalls.groups_of(walls):
+		var held := 0
+		for i in group:
+			if _between(other, i, width, height):
+				held += 1
+		var face := group.size() >= HELD_FACE_SIZE and held >= HELD_FACE_SHARE * group.size()
+		if (block and held * 2 > group.size()) or face:
+			for i in group:
+				result[i] = Kind.NONE
+	return result
+
+
+## Whether pixel [param i] has a pixel of [param other] on both sides in its
+## row or in its column (of a [param width] by [param height] tile).
+static func _between(other: PackedByteArray, i: int, width: int, height: int) -> bool:
+	var at := Vector2i(i % width, i / width)
+	for axis: Vector2i in [Vector2i.RIGHT, Vector2i.DOWN]:
+		var sides := 0
+		for direction: int in [1, -1]:
+			var next := at + axis * direction
+			while next.x >= 0 and next.y >= 0 and next.x < width and next.y < height:
+				if other[next.y * width + next.x]:
+					sides += 1
+					break
+				next += axis * direction
+		if sides == 2:
+			return true
+	return false
+
+
+## Gives every frame of an animation ([member animations]) the holes the
+## other frames have where it shows the same pixel, in [param kinds] (of
+## every tile of [param tiles]): a frame whose moving part shuts in some of
+## the lattice (the spark of Keen 2's zapper closing the space between its
+## arms) gets the wall there as the frames in which it is open, so the
+## animation does not flicker between the wall and the old lattice.
+func share_between_frames(kinds: Array, tiles: Array[Image]) -> void:
+	var before := kinds.duplicate()
+	for tile: int in animations:
+		if tile >= kinds.size() or windows.has(tile) or windows.has(tile - 1):
+			continue
+		var own: PackedByteArray = kinds[tile]
+		var drawing := lattice.drawing_runs(tiles[tile]) if lattice != null else PackedByteArray()
+		var width := tiles[tile].get_width()
+		for other in animations[tile]:
+			if other == tile or other >= kinds.size():
+				continue
+			var theirs: PackedByteArray = before[other]
+			for i in own.size():
+				if own[i] != Kind.NONE or theirs[i] == Kind.NONE:
+					continue
+				if not drawing.is_empty() and drawing[i]:
+					continue
+				var at := Vector2i(i % width, i / width)
+				if tiles[tile].get_pixelv(at) == tiles[other].get_pixelv(at):
+					own[i] = theirs[i]
+		kinds[tile] = own
 
 
 ## The [enum Kind] of every pixel of a window [param tile] whose mask draws
