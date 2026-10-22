@@ -380,3 +380,70 @@ What E3 built differently from the plan above, and why (developer, E3):
 7. **Not in E3**: the teleport lightning at doors whose head-row info is
    0 (E6, with the door to Korath III), and the fuse levels cannot be
    finished yet (no exit door; E5 breaks the fuses).
+
+## Keen 5's creatures (from E4)
+
+Each creature is its own class in `src/keen5/actors/` with its own action
+table (rows as Keen 4's, numbers from Omnispeak's `ACTION.CK5`), placed by
+`Keen5Creatures` from the info plane through the hook
+`Keen5LevelSession._place_info` (row by row, as the original scans, for
+the difficulty played). The rules are in [gameplay.md](gameplay.md), "The
+creatures".
+
+| Class | What | Lines |
+|---|---|---|
+| `Keen5Creatures` | Info value → kind and lowest difficulty (triples, the turrets' 4 × 3, the Korath), the values for later milestones (`LATER`) and those that place nothing (`READ_ONLY`); writes a GoPlat's start arrow (below); the creatures' sound names with Omni's numbers (for E8) | 214 |
+| `Keen5Creature` | The base (on `GalaxyCreature`): placing with a rise, the "deadly" contact, pushing Keen sideways, knocking him off a pole, the white flash, turning round | 109 |
+| `Keen5Sparky`, `Keen5Ampton`, `Keen5Shelley`, `Keen5Korath`, `Keen5Shikadi`, `Keen5Shockshund`, `Keen5RoboRed`, `Keen5Spirogrip`, `Keen5Spindred`, `Keen5Master`, `Keen5Sphereful`, `Keen5Mine`, `Keen5Volteface`, `Keen5Turret` | One creature each | 61-250 |
+| `Keen5Slicestar` | On `GalaxyPlatform` (the straight ones move by its axis rule); Keen never rides it | 108 |
+| `Keen5Shot`, `Keen5MasterBall`, `Keen5PoleSpark` | The shots (on `GalaxyEnemyShot`): Robo Red's, the bark, the lasers; the Master's ball and sparks; the Shikadi's pole spark | 70, 89, 49 |
+| `Keen5Piece` | The pieces of a Shelley or a mine (on `GalaxyShrapnel`); a mine's piece tells an object it touches (`hit_by_piece`, for E5's QED) | 45 |
+| `Keen5CreatureSprites` | Sprite names → indices (Omni `GFXCHUNK.CK5`, chunk − 102), merged into `Keen5Sprites.all()` | 170 |
+
+`Keen5Keen` gained `push_sideways` (Omni CK_PhysPushX: the Ampton, the
+Korath and the Shelley push only sideways) and `knock_off_pole` (Keen 5
+knocks Keen off a pole without pushing him, unlike Keen 4's `knock_off`).
+
+## Deviations in E4
+
+What E4 built differently from the plan above, and why (developer, E4):
+
+1. **Two of the planned seams already existed, so they were not added.**
+   Shots that live only on the screen are the existing
+   `Activity.ON_SCREEN_ONLY` (Omni OBJ_EXISTS_ONLY_ONSCREEN: removed
+   beyond the sleep margin, which is now Keen 5's 6 tiles); extra drawn
+   sprites are the existing `GalaxyObject.overlays` (the stars, Keen 4's
+   jets): the mine's eye and the Sphereful's four diamonds are overlays
+   with their own priorities. Box clipping (Omni CK_PhysFullClipToWalls)
+   is the existing `GalaxyClip.update_simple_box` (Keen 4's birds and
+   fish); the Slicestar and Sphereful use it with a 512 × 512 box.
+2. **The seams that were added** (all neutral for Keen 4 by their
+   defaults; Keen 4's demo suite, real-data suites and 11 regression
+   pictures are unchanged): `GalaxyWorld.sleep_margin` (default
+   `SLEEP_MARGIN` = 4; `_far_from_all` and `_is_far` got a margin
+   parameter defaulting to it); `GalaxyObject.flash_white` (default off)
+   with a white shader in `GalaxyObjectLayer` that only touches an
+   object's material while the flag differs from what is drawn; two new
+   classes, `GalaxyShrapnel` (Omni CK_ShrapnelTileCol, shared with Keen 6
+   later) and `GalaxyPathArrows` (the GoPlat/Volteface rule, for E5's
+   GoPlats and Keen 6).
+3. **The GoPlats' start arrows are written now.** The original writes a
+   GoPlat's arrow into its own tile while it scans; level 13 has a
+   Volteface whose path runs through a GoPlat's tile (info 37 at 33,18),
+   so without the arrow the Volteface stopped there. `Keen5Creatures`
+   writes the arrow for info 36-39 and 80-83 and places nothing; E5 adds
+   the platform itself (and must not write the arrow twice).
+4. **A Volteface or GoPlat that reaches a tile without an arrow stops**
+   (with an error) instead of quitting the game as the original does.
+   None does in levels 1-13 on any difficulty (`test_keen5_creatures_play`).
+5. **The pole spark runs 48 units a frame**, not "48 units a tic" as
+   research.md §7 says: Omni CK5_PoleZap sets the move without the
+   frame's tics.
+6. **The first frame of the Ampton's climb moves it one unit row back**
+   (−32): the original runs an action with timer 0 on a leftover tic as
+   "timer − 1" = −1 tics (Omni CK_RunAction); our world does the same, so
+   it is kept.
+7. **A Godot pitfall**: a `const` typed `Array[PackedInt32Array]` written
+   as nested literals reads 0 when indexed with variables; the bounce
+   table of `GalaxyShrapnel` is one flat `PackedInt32Array` (row × 8 +
+   column).

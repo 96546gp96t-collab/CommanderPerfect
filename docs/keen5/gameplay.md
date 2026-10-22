@@ -48,8 +48,8 @@ Keen 4's, unchanged: the actions in `ACTION.CK5` are the same as in
   Omnispeak's `GFXCHUNK.CK5` (index = chunk − 102), checked in js-dos
   (level 1's first frame is the original's to the pixel, Keen included)
   and by eye in our screenshots of levels 1-3, 5, 9, 11-13 and 15.
-- Riding a platform (KEENONPLAT), the Ampton and Korath knocking him off a
-  pole, and landing on a fuse come in E4 and E5.
+- Riding a platform (KEENONPLAT) and landing on a fuse come in E5. The
+  Ampton and the Korath knocking him off a pole came in E4 (below).
 
 ## Items and tiles (E3)
 
@@ -116,6 +116,70 @@ a map that is only looked at.
 The machinery is Keen 4's (widescreen only, on by default), but Keen 5
 names **no sky tiles yet**, so no level shows a picture and every level
 looks as in the original (E10 makes Keen 5's own pictures).
+
+## The creatures (E4)
+
+Placed from the info plane by `Keen5Creatures` for the difficulty (Normal
+until the menus exist): most kinds have a value for Easy and up, one from
+Normal and one for Hard only (research.md §6). Objects fall asleep **6
+tiles** beyond the view (Keen 4: 4); shots and lasers are gone there.
+"Deadly" means: Keen dies, a stunner shot is absorbed. Speeds are units a
+tic (16 units a pixel); every number is Omnispeak's (Omni) unless marked
+(seen).
+
+| Creature (info) | Moves | Keen | The stunner |
+|---|---|---|---|
+| Sparky (4/5/6) | 128 a step of 8 tics (16 a tic); at each walk cycle 64 in 256 to search: 8 pictures of 6 tics, looking left at the 4th and right at the 8th; Keen that way with his bottom within a tile of its own: sound `sparky_prepare_charge`, 3 × 4 pictures of 4 tics on the spot, then charges at 32 a tic (footsteps). Walls and ledges: steps back, turns (3 × 8 tics), waits 0-7 frames | Dies on touch | Stunned for good (stars +0x40 x) |
+| Little Ampton (42/43/44) | Walks as the Sparky (`ampton_walk_1/_2`). Between two tiles: a computer (misc 31) at its top row → works it 5 × 12 tics; a pole (misc 1), 196 in 256 → grabs it (2 × 8 tics), climbs or slides at 32 a tic (unclipped), getting off through a pole hole (always with fewer than 4 pole tiles above, else a coin toss) or onto a floor (a coin toss at a hole); turns at the pole's ends | Pushed sideways; killed only while it is on the pole; on a pole or ledge Keen is knocked off | Stunned for good (`ampton_stun`) |
+| Slicestar straight (10-12 up, 22-24 right) | As a red platform: 12 a tic, turns at B-blocks (31) | Deadly; never ridden | 20 hit points, then bursts (20 tics) |
+| Slicestar diagonal (19-21) | 24 / 24 a tic, a 2 × 2 tile box kept out of walls, bounces (`slice_bump`); starts left-up, right-down or left-down, **never right-up** (the original's table) | Deadly | 50 hit points |
+| Shelley (74/75/76) | Walks 16 a tic, turns at walls; at a ledge waits up to 100 tics and dives (16, −24, gravity high) when Keen is below and 1-3 tiles ahead, else turns | Pushed sideways; his middle inside its box sets it off | A stunner **or an enemy shot** sets it off |
+| … exploding | Sound `shelley_explode`; its last picture 8 tics, two pieces (±32, −24, bouncing, deadly), a blast of 4 × 20 tics (deadly) | | |
+| Volteface (71/72/73) | Always awake, unclipped; follows the path arrows (91-98) at 32 a tic; its first way from the arrow beside it, written into its own tile | Deadly | Stunned 300 tics, harmless, then on |
+| Shikadi mine (7/8/9) | Unclipped, 10 a tic tile by tile towards Keen (nearer axis first, never back unless nothing else is free; a way is free with no solid tile in the 3 × 2 tiles ahead); its eye moves to the middle and the new side first (4 a tic). Keen near (two zones): `mine_explode`, 4 × 10 tics pulsing, six bouncing pieces, 2 × 20 tics blast | The mine is harmless; blast and pieces deadly | Absorbed |
+| Robo Red (13/14/15) | 64 a step of 6 tics; with x bit 0x40 clear, Keen beside it and 16 in 256: faces him and fires 10 shots (40 tics, then 4 + 6 tics a shot; 60 sideways, 8 up/down by turns, recoil 64; `enemy_shoot`) | Deadly, and its shots | Absorbed, and it fires at once |
+| Spirogrip (16/17/18) | Clings 150 tics, lets go (64 tics at 16), spins 8 × 8 tics; at a straight picture 21 in 256 flies that way at 48 (`spiro_fly`) to the next wall (`spiro_slam`) | Deadly | Absorbed |
+| Spindred (77/78/79) | Its own gravity 3 on odd tics, at most 70; slams back at 40 (`spindred_slam`), every third time across at 68, falling the other way (`spindred_fly_up/_down`) | Deadly | Absorbed |
+| Shikadi Master (88/89/90) | Stands 4 × 8 tics; then (192 in 256) throws a ball (48, −16, gravity mid, bouncing off walls; on a floor two sparks at ±48) or, by turns, teleports: 2 × 20 tics, two sparks, a spot up to 16 tiles round Keen (the first inside the map's edges: the original's wall check does nothing), falls, stands 60 tics | Deadly; ball and sparks too | Absorbed; it throws at once, facing right unless Keen's x is its own (kept bug) |
+| Shikadi (99/100/101) | Stands 4 × 8, walks 16 a tic; with Keen holding on or at its height it goes after him and zaps the pole ahead under him; otherwise rests (16 in 256) or zaps a pole ahead on the screen. Zap: 2 × 20 tics, a spark along the pole towards Keen at 48 a **frame** (`pole_zap`) | Deadly; the spark too | 4 hit points: 3 white flashes, the 4th stuns |
+| Shockshund (102/103/104) | Runs 16 a tic; every 32 tics faces Keen: 16 in 256 sits 256 tics; Keen at another height → jumps (±40, −40) — but 128 in 256 barks instead (wins, kept); bark shot 60 sideways (`shockshund_bark`), stopped by a stunner shot. At a ledge it jumps when facing Keen | Deadly; its shot too | 2 hit points: a flash, then stunned |
+| Sphereful (105/106/107) | 2 × 2 tile box; every 16th tic speed +1 down (≤ 8) and ±1 towards Keen (≤ 8); walls and ceilings bounce it (`sphereful_ceiling`), floors up at 4-12 (`spindred_fly_up`); four diamonds circle it, drawn only, two in front and two behind by turns | Deadly | Absorbed |
+| Korath (124; map 13) | Walks 16 a tic; 10 in 256 a step: waits 30 tics facing a random way | Harmless: pushed sideways, knocked off poles | Stunned for good |
+| Laser turret (45-48 / 49-52 / 53-56: up, right, down, left) | Unseen; fires every 120 tics while awake (`enemy_shoot`); the laser 64 a tic, 4 × 8 tics, stops at walls (`enemy_shot_hit`, 2 × 10 tics) | The laser is deadly | Passes the laser |
+
+What later milestones place: platforms, GoPlats (their start arrows are
+written now, so Voltefaces sharing their paths find them), the fuse
+counter and the QED (E5); Keen on the world map and Korath III's arrival
+(E6). The sound names are listed with their numbers in
+`Keen5Creatures.SOUNDS` for E8.
+
+### The stun and the flash (E4)
+
+As Keen 4 (docs/keen4/gameplay.md, "The stun"): the shot stops, the
+creature hops (−24, at most −48), falls with the stars over it and stays
+stunned. Stars: the Sparky's +0x40 across, the Ampton's and Korath's
+−0x80 up, others at its position. Keen 5's two creatures with hit points
+(Shikadi 4, Shockshund 2) flash **white** for two drawings at each shot
+but the last (`GalaxyObject.flash_white`): every pixel of the sprite that
+is not see-through is drawn in white; they are drawn when they move or
+change their picture, so a standing one stays white until then.
+
+## Watched in E4 (js-dos, the user's v1.4)
+
+A scratch copy of `GAMEMAPS.CK5` (scratchpad only) with one creature put
+near Keen's start in levels 3, 4, 5, 7, 12 and 13 (Normal values; the new
+info planes appended, the map headers pointing at them), played in js-dos
+on Normal in god mode (F10+G) with Keen standing still, and the same files
+in ours with `--data-dir-keen5=`. Details in research.md, "Watched in E4".
+
+| Creature | The original | Ours |
+|---|---|---|
+| Sparky (level 3) | Searched, ran on the spot ~100 tics, charged at Keen 8 px every 4 tics (32 a tic), walked back 8 px every 8 tics (16 a tic) | The same rules and speeds |
+| Little Ampton (level 5) | 8 px every 8 tics, a face picture for 8 tics at the turn, back and forth in 258 tics (sampled every ~6 tics) | 256 tics, the right turn 96 px right of Keen (original ~93) |
+| Robo Red (level 12) | 4 px every 6 tics, back and forth in its 4-tile room, volleys at Keen | The same |
+| Shikadi (level 13) | Stood 4 pictures, walked 8 px every 8 tics, then back and forth round Keen, about 2 tiles each way, in 128 tics | The same: ±32 px round Keen, 128 tics |
+| Shelley (level 4) | Walked, turned, and exploded when Keen's middle came inside it (god mode), a blast and pieces | The same rules |
+| Sphereful (level 7) | Bounced round Keen's head with its diamonds, some hidden behind it | The same (diamonds in front and behind by turns) |
 
 ## Watched in E3 (js-dos, the user's v1.4)
 

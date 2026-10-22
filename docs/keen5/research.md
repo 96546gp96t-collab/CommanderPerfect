@@ -324,7 +324,7 @@ Keen dies. Most of Keen 5's cast **cannot be stunned**.
 | **Spirogrip** (13) | Clings to a wall 150 tics, lets go (64 tics at 16 units/tic), spins (8 × 8 tics); on a straight frame, chance 21/256, flies that way at 48 units/tic (sound 61) to the next wall (sound 27) | Touch | Absorbed; invincible |
 | **Spindred** (18) | Bounces up and down: vy changes by 3 on odd tics (at most 70); bounces with ∓40 (sound 28), every third bounce turns round with ∓68 (sounds 16/37) | Touch | Absorbed; invincible |
 | **Shikadi Master** (19) | Stands (4 × 8 tics); then shoots (a ball, vx ±48, vy −16, gravity, bouncing off walls; on the floor two sparks vx ±48) or teleports (2 × 20 tics with sparks and sound 39, a spot near Keen: x = RndT/8 + Keen's middle column − 16, y likewise, up to 9 tries inside the map; falls; 60 tics) | Touch, ball, sparks | Absorbed and it shoots at once (bug: faces right unless Keen's x is its own); invincible |
-| **Shikadi** (20) | Walks; near Keen's height or with Keen on a pole it follows him and zaps the pole in front (2 × 20 tics; a spark runs along the pole at 48 units/tic towards Keen, sound 40) | Touch, spark | **4 hit points**: three shots flash it white (2 frames), the fourth stuns it for good |
+| **Shikadi** (20) | Walks; near Keen's height or with Keen on a pole it follows him and zaps the pole in front (2 × 20 tics; a spark runs along the pole at 48 units a frame, not a tic (E4), towards Keen, sound 40) | Touch, spark | **4 hit points**: three shots flash it white (2 frames), the fourth stuns it for good |
 | **Shockshund** (21) | Runs (+128 a step); every 32 tics faces Keen; chance 0x10/256 sits 256 tics; jumps (vx ±40, vy −40) when Keen is at another height; chance 0x80/256 barks a shot instead (vx ±60) | Touch, shot | **2 hit points**: flash, then stunned for good |
 | **Sphereful** (22) | Box-clipped (2 × 2 tiles); every 16 tics drifts ±1 towards Keen (at most 8); bounces off walls and ceiling (sound 59) and floors (sound 16); four diamonds circle it (drawn only, a 16-step table in Omni `CK5_SpherefulDraw`) | Touch | Absorbed; invincible |
 | **Korath** (23) | Walks; chance 10/256 a step to wait 30 tics facing a random way | Harmless: pushes Keen, knocks him off poles | Stunned for good |
@@ -561,3 +561,40 @@ What the E3 milestone measured (details in [gameplay.md](gameplay.md),
 - Still open for the original: the security door seen opening (not
   reached quickly by script; the rules are Omnispeak's), the teleport
   lightning (§12 question 1).
+
+## Watched in E4
+
+The original v1.4 in headless js-dos (Normal, god mode F10+G, warp
+F10+W), with a scratch copy of `GAMEMAPS.CK5` in the scratchpad: one
+creature (its Normal value) put near Keen's start, other creatures there
+removed (level 3: Sparky at 192,10; level 4: Shelley at 62,34; level 5:
+Ampton at 8,12; level 7: Sphereful at 6,5; level 12: Robo Red at 37,75;
+level 13: Shikadi at 12,26). The new info planes were appended to the
+file as plain Carmack words over RLEW, each map header pointing at its
+new plane (our reader and the original both take it). Frames recorded
+with Keen standing still; headless js-dos delivers a frame every 4-8 tics,
+so times are ±4 tics. Measured by tracking a creature's colours:
+
+- **Sparky**: 8 px every 4 tics while charging (32 units a tic), 8 px
+  every 8 tics walking (16 a tic); between seeing Keen and charging it
+  stood ~100 tics (search 48 + three rounds of 16 + the turn).
+- **Little Ampton**: 8 px every 8 tics, its face picture ~8 tics at each
+  turn, a round trip of its 8-tile floor in 258 tics (ours 256); its turn
+  96 px from Keen in ours, ~93 px in the original (sprite edges).
+- **Robo Red**: 4 px every 6 tics (64 units a 6-tic step), turning in its
+  room, volleys towards Keen; the shots' hit pictures where Keen stands.
+- **Shikadi**: four standing pictures, then 8 px every 8 tics, and back and
+  forth round Keen about two tiles each way, 128 tics a round (ours the
+  same).
+- **Shelley**: walks and turns; exploded when Keen's middle came inside
+  it, with its blast and pieces.
+- **Sphereful**: bounced round Keen's head with its four diamonds, two of
+  them hidden behind it at a time.
+- Sprite names were checked by eye on a sheet of all creature sprites:
+  every left/right pair (Robo Red, the Shikadi's grab, the Master's cast,
+  the Shockshund, Sparky, Ampton, Shelley, Spirogrip) shows the side its
+  name says (unlike Keen 2's guard robot).
+
+Not watched (time): Volteface, Slicestars, the mine, Spirogrip, Spindred,
+the Master's teleport, the Shockshund, the turrets' lasers; their rules
+are Omnispeak's and tested in mini levels (`test_keen5_creatures*`).

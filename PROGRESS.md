@@ -113,7 +113,7 @@ bestanden in [docs/keen5/file-formats.md](docs/keen5/file-formats.md).
 | E1 | Onderzoek: code in kaart, Keen 5 v1.4 van de gebruiker uitgelezen, Omnispeak, architectuur, mijlpalen | ✅ Klaar (branch `milestone-e1-onderzoek`); vragen beantwoord op 22-10-2026 |
 | E2 | De bestanden van Keen 5 inlezen, data viewer, vijfde icoon | ✅ Klaar (branch `milestone-e2-bestanden`) |
 | E3 | Het gedeelde Galaxy-spel en een level spelen (sleutelkaart, beveiligingsdeuren, uitgang) | ✅ Klaar (branch `milestone-e3-level`) |
-| E4 | Wezens | ⬜ |
+| E4 | Wezens (alle 15 soorten van levels 1-13, elk een eigen klasse) | ✅ Klaar (branch `milestone-e4-wezens`) |
 | E5 | Platforms op pijlen, zekeringen en de QED | ⬜ |
 | E6 | De wereldkaart (teleporters, liften, Korath III, statusvenster) | ⬜ |
 | E7 | Einde, game over (de melkweg ontploft), titel en demo's | ⬜ |
@@ -124,11 +124,13 @@ bestanden in [docs/keen5/file-formats.md](docs/keen5/file-formats.md).
 | E12 | Naast het origineel; alle opties uit = het origineel | ⬜ |
 | E13 | (Optioneel) Keen 4 op het gedeelde Galaxy-spel | ⬜ |
 
-**Volgende stap:** E4 (`milestone-e4-wezens`, vanaf `milestone-e3-level`): de
-wezens van Keen 5, elk een eigen klasse, geplaatst via de haak
-`Keen5LevelSession._place_info`; daarbij de additieve naden in de engine
-(`sleep_margin` 6, schoten die alleen op het scherm leven, wit oplichten,
-extra sprites per object). De gebruiker uploadt Keen 2-5 weer naar de
+**Volgende stap:** E5 (`milestone-e5-mechaniek`, vanaf `milestone-e4-wezens`):
+de platforms (rode en paarse as-platforms, vallende, staande met de
+omgekeerde moeilijkheid 33-35, GoPlats op de pijlen met
+`GalaxyPathArrows`, het sluipplatform), de zekeringen en de QED (de
+scherven van de mijn melden een aanraking via `hit_by_piece`). Let op:
+`Keen5Creatures` schrijft de startpijl van een GoPlat al (E4); E5 voegt
+alleen het platform toe. De gebruiker uploadt Keen 2-5 weer naar de
 sessie.
 
 ## Achtergronden Keen 1 en 2: mijlpalen AB
@@ -273,6 +275,73 @@ ligt wordt een gat (`docs/graphics.md`, onderzoek §8).
   in `Keen2GuardRobot`; nu kijkt hij de kant op waar hij heen zweeft en
   schiet. Alleen namen/plaatjes gecontroleerd (js-dos overgeslagen op
   verzoek). Test `test_guard_robot_faces_the_way_it_floats_and_fires`.
+
+## Mijlpaal E4: wat er nu is
+
+Keen 5 heeft al zijn wezens, op `milestone-e4-wezens` (22-10,
+20:31-21:17 UTC). De regels per wezen staan in `docs/keen5/gameplay.md`
+("The creatures"), de klassen en afwijkingen in
+`docs/keen5/architecture.md` ("Keen 5's creatures", "Deviations in E4"),
+de metingen in `docs/keen5/research.md` ("Watched in E4").
+
+- [x] **15 soorten, elk een eigen klasse met eigen actietabel** (getallen
+  uit Omnispeak's `ACTION.CK5`, Omni): Sparky (zoeken, aanloop, charge),
+  Little Ampton (computers, palen op en af, duwt Keen, dodelijk alleen op
+  de paal, stoot Keen van palen), Slicestar (recht met 20 levenspunten en
+  keren bij B-blokken; schuin in een 2 × 2-doos met 50, nooit rechts-op),
+  Shelley (wacht aan een rand, duikt, ontploft door verdover- en
+  vijandschoten, landen en Keens midden; twee scherven), Volteface (volgt
+  de pijlen, 300 tics verdoofd), Shikadi-mijn (zoekt Keen, oog als extra
+  sprite, twee ontploffingszones, zes scherven), Robo Red (10 schoten,
+  schiet terug), Spirogrip, Spindred, Shikadi Master (bal die vonken
+  wordt, teleport, de bugs van het origineel), Shikadi (4 levenspunten,
+  wit oplichten, zapt palen), Shockshund (2, zit, springt, blaft), Sphereful
+  (vier diamanten voor en achter), Korath (onschuldig, duwt) en de
+  laserkanonnen. `Keen5Creatures` plaatst ze per moeilijkheid (Normal
+  zolang er geen menu is).
+- [x] **Naden in de engine** (additief, Keen 4 onveranderd):
+  `GalaxyWorld.sleep_margin` (standaard 4, Keen 5 6),
+  `GalaxyObject.flash_white` met een witte shader in `GalaxyObjectLayer`,
+  nieuw `GalaxyShrapnel` (stuiterende scherven) en `GalaxyPathArrows` (de
+  pijlenregel, ook voor E5's GoPlats). Schoten die alleen op het scherm
+  leven, extra sprites en de doos-botsing bestonden al
+  (`ON_SCREEN_ONLY`, `overlays`, `update_simple_box`).
+- [x] **Keen5Keen**: zijwaarts duwen (Omni CK_PhysPushX) en van een paal
+  stoten zonder duw (anders dan Keen 4).
+- [x] **Naast het origineel (js-dos, v1.4)**: een kladkopie van
+  `GAMEMAPS.CK5` met één wezen bij Keens start in levels 3, 4, 5, 7, 12 en
+  13. Sparky (16 en 32 per tic, aanloop), Little Ampton (heen en terug in
+  258 tics, bij ons 256), Robo Red (64 per 6 tics), Shikadi (heen en weer
+  rond Keen, 128 tics), Shelley (ontploft als Keens midden erin komt) en
+  Sphereful (diamanten) gedragen zich als bij ons. Alle sprite-namen
+  links/rechts op het oog nagekeken: kloppen.
+- [x] **Bekeken**: schermafdrukken van levels 1-13 met wezens; de
+  Sphereful met diamanten in 4:3.
+- [x] **Tests**: nieuw `test_galaxy_creature_seams` (naden),
+  `test_keen5_creatures` en `test_keen5_creatures_more` (mini-levels,
+  `keen5_creature_fixtures.gd`), `test_keen5_creatures_play` (echte data:
+  elke info-waarde bekend, telling per level en moeilijkheid, sprites,
+  Voltefaces op hun pad, elk level 600 frames in god mode).
+  `test_keen5_level` zet Keen in god mode bij de deuren (er zijn nu
+  wezens). **143 suites groen, 1 overgeslagen (Keen 4 v1.4), 0 FAIL, 0
+  SCRIPT ERROR.** `gdformat` en `gdlint` schoon.
+- [x] **Controle Keen 1-4**: regressies tegen de nulmeting: Keen 1 alleen
+  `launcher.png` anders (alleen het vijfde icoon, gelijk aan E3's), Keen 2
+  (4) en Keen 4 (11 beelden) alles gelijk; Keen 4's demo's en
+  echte-datatests groen. `git diff origin/main` op `src/keen2-4`, hun
+  tests, `src/actors`, `src/map`, `src/game`: alleen de twee regels met
+  het aantal spellen.
+- **Niet gedaan:** de apps zijn hier niet gebouwd (de gebruiker bouwt op
+  de Mac). Platforms, zekeringen en de QED zijn E5; de GoPlats schrijven
+  wel al hun startpijl.
+- **Open:** in js-dos niet bekeken (tijd): Volteface, Slicestars, mijn,
+  Spirogrip, Spindred, de teleport van de Master, Shockshund, lasers (de
+  regels zijn Omnispeak's en getest). `tools/keen5_regression.sh` geeft
+  nu andere beelden dan in E3 (er lopen wezens).
+- **Om te proberen:** `godot --path . -- --game=5 --level=3` (Sparkies,
+  Spindreds, Robo Red), `--level=8` (Shelleys, Shockshunds, Shikadi),
+  `--level=11` (Sphereful, Spirogrip, Voltefaces), `--level=12` (mijnen,
+  de Shikadi Master), `--level=13` (25 Koraths); Shift+G voor god mode.
 
 ## Mijlpaal E3: wat er nu is
 
