@@ -223,3 +223,25 @@ What the E5 milestone read in the user's files (details in
   188/189, TELEPORTZAP1/2 190/191, PURPLEPLAT1/2 320/321 (the purple
   platform's box starts 192 units left of its place), PLATFORM 344.
   Pictures: KEENTALK1/2 are 84 and 85 of 93 (the last 9 and 8).
+
+## Checked in E6
+
+The world map (map 0, 52 × 114 tiles) in the user's v1.4:
+
+- **Ride words**: an elevator half (foreground misc 33 left, 34 right) or
+  the teleporter (misc 20, tile 0x427) has an info word whose high byte is
+  the target column and whose low byte (& 0x7F) the row: for an elevator
+  the row above the target (Keen arrives one row lower, under the door),
+  for the teleporter the target itself. Both halves of an elevator carry
+  the same word. The four elevators: (24,77) 0x1638, (22,56) 0x184D,
+  (26,56) 0x181F, (24,31) 0x1A38; the teleporter (44,106) 0x141E.
+- **The door template**: the foreground tiles at (0,0)-(11,1) are six
+  pictures of a 2 × 2 door, picture n at (2n,0): 0 closed (1836, 1837 /
+  1854, 1855) … 5 open (1846, 1847 / 1864, 1865), whose lower row is the
+  elevator (misc 33, 34). In the file the bottom door (24,76) holds
+  picture 5, the doors at (22,55), (26,55) and (24,30) picture 0.
+- **The filler**: background tile 850 is all EGA yellow; map 0 has 1,735
+  of them around the station's star field (rows 2-96) and three on Korath
+  III; level 13 uses it as its sky. Background tile 0 is all black.
+- Korath III's arrival is info 26 at (37,107); the map Keen's info 3 at
+  (28,95).

@@ -14,29 +14,74 @@ and their sources are in [research.md](research.md), the code layout in
 All positions are the original's **global units**: 16 per pixel, 256 per
 tile. Times are **tics** of 1/70 s.
 
-## The flow for now (E3)
+## The flow of a game (E3, E6)
 
-As Keen 4 had it in D4; the original's flow (the world map, the boxes,
-the title, the menus) comes in E6-E9.
+E3 played the levels one after another, as Keen 4 did in D4; since E6 the
+game goes round the world map as the original's does (Omni
+`ck_game.c:CK_GameLoop`, `CK_LoadLevel`, `CK_TryAgainMenu`; seen in the
+original, E6). The title, the menus and the end come in E7-E9.
 
 | What | Then |
 |---|---|
-| Keen 5 picked on the start screen, or `-- --game=5` | Level 1 at once (a new game: 3 lives, 5 charges, the first extra life at 20,000) |
-| `-- --game=5 --level=N` | Map N at once: 1-13 and 15 (the high-score map) played; 0 (the world map) shown with Keen standing, the arrows look around (E6 plays it); 14 does not exist: a message |
-| The exit door (target 0xB1B1), the door to Korath III (0x0000) or walking out of the level | The next level: 1 … 13, then 1 again (14 skipped); from 15 to 1 |
-| The last fuse broken (E5) | The fuse message (two screens, each 30 tics and then a key), then the next level; the level counts as done with 14 |
-| The QED destroyed (map 12, E5) | For now the next level (13); the end pages come in E7 |
-| Keen dies | One life less, the gems and the keycard gone, the level again; with fewer than 0 lives the start screen |
+| Keen 5 picked on the start screen, or `-- --game=5` | A new game (3 lives, 5 charges, the first extra life at 20,000): the box "Keen purposefully wanders about the Omegamatic" with Keen counting down, a fade, the world map with Keen on info 3 (28, 95) |
+| `-- --game=5 --level=N` | Map N at once: 0 the world map (played), 1-13 and 15 (the high-score map) played; 14 does not exist: a message |
+| On the map: jump, pogo or fire on an entrance (0xC000 + n) | "One moment" (28 tics), the level's "Keen ..." box with the count-down, the fade, the level |
+| The exit door (0xB1B1) or walking out of a level | Done with 1; the level-exit sound; the map's box, the fade, the map with Keen where he entered |
+| The last fuse broken | Done with 14; the fuse message (two screens, each 30 tics and then a key), then the map's box and the map |
+| The door to Korath III (0x0000, level 11) | Done with 1; the box "Keen steps out onto Korath III"; the map with Keen on info 26 (37, 107) facing west |
+| Back on the map on Korath III (Keen's place below row 100, as after level 13) | The map's box is "Keen steps out onto Korath III" too |
+| The QED destroyed (map 12) | For now the start screen (the end pages and the high scores come in E7) |
+| Keen dies | One life less, the gems and the keycard gone; the box "You didn't make it past" the level with Try Again (the level again) and Exit to Armageddon (the map); up and down choose, the frame blinks every 16 tics; jump, pogo, Enter or Space take it; Escape is the map |
+| No life left | The start screen (the galaxy explodes in E7: Keen 5 has no "Game Over!" box) |
+| Enter | The status window (below) over the level or the map |
 | Escape | The start screen |
 | Shift+N / Shift+P | The next or previous map, over the missing 14, round from 15 to 0 |
 | Shift+G | God mode (as the original's F10+G: nothing kills Keen but falling out of the level) |
-| Shift+I | All four gems, the keycard and at least 99 charges |
+| Shift+I | All four gems, the keycard and at least 99 charges, in a level or on the map |
 | F1 | The help line; F2-F6 as in Keen 1-4 |
 
-The fuse levels (4, 6, 8, 10 and 13) and map 12 have no exit door
-(13 has both): they end when their fuses are broken or the QED is
-destroyed (E5, below). What each level counted as is kept by the view
-(`Keen5View.levels_done`: 1, or 14 by its fuse) for the world map (E6).
+What each level counts as is kept in `Keen5Progress` (the original's
+levelsDone: 1, or 14 by its fuse); the world map reads it (its flags,
+gates and the upper shaft) and E7's secret end will (level 13 with 14).
+
+## The world map (E6)
+
+Map 0, the Omegamatic, a space station of three parts joined by elevator
+shafts, with Korath III's surface below it (rows beyond 100). Omni
+`ck_map.c`, `ck5_map.c`, `ck5_misc.c:CK5_ScanInfoLayer`, facts and
+numbers; the places checked in the map, the rides watched in the original.
+
+| What | Rule |
+|---|---|
+| Keen | Keen 4's map Keen: 24 units a tic on each axis, eight directions, waving after 360 tics; no water, no Foot |
+| Entrances | Info 0xC001-0xC00D under his box when jump, pogo or fire is pressed: the level; his place is kept for the way back |
+| Done levels | Every info word whose low byte is the level is cleared; 0xD0nn also clears its foreground tile (the gates of levels 1, 2, 3, 5, 7, 9, 11, 13); 0xF0nn gets a waving flag (FLAGFLAP1-4, 10 tics each, from a random point) at (−0x50, −0x1E0) from the holder's corner. No flag is thrown |
+| Teleporter (misc 20, tile 0x427; one, on Korath III at (44, 106), to (20, 30)) | The game stops: Keen walks onto the tile, 2 units a tic per axis, at most 130 tics, his walking-north pictures by the clock (every 8 tics), the tile flashing 0xA7F/0xA80 (every 4 tics); the tile is 0x427 again; Keen stands at the info word's target (x high byte, y low byte & 0x7F), facing south; the view is put on him, sleeping objects in it wake up; sound 41; he walks out south 3 units a tic for 90 tics (walking-south pictures), the target tile flashing; it becomes tile 0 |
+| Elevator going in (misc 33 left half, 34 right half) | The game stops: Keen walks onto the tile as onto a teleporter, the view following; sound 63; the door (2 × 2 tiles, one row up, from the right half one column left) closes: pictures 5 … 0 of the template in the map's corner ((2n, 0)-(2n + 1, 1)), 8 tics each; then the game goes on with Keen flying unseen and unclipped: 64 units a tic up or down, 12 sideways until the target column |
+| Elevator coming out | Past the target's row (x = high byte, y = (low byte & 0x7F) + 1) he stands there facing south; the game stops again: the view follows his last flight box once more, sound 63, Keen a tile up in the door above, the door opens (pictures 0 … 5, 8 tics each), he walks out south 8 units a frame for 32 frames; then he is clipped again |
+| The shafts (set when the map starts, by Keen's row) | Above row 75 or on Korath III (below 100): the bottom door (24, 76) closes, the middle-left door (22, 55) opens. Levels 4, 6, 8 and 10 all done and below row 39: the middle-right door (26, 55), to the top, opens. Above row 39 or on Korath III: the top door (24, 30) opens. In the file only the bottom door is open |
+| The elevators (files) | (24, 77) bottom → (22, 57) middle-left; (22, 56) → (24, 78); (26, 56) middle-right → (24, 32) top; (24, 31) → (26, 57) |
+| Korath III | After the door in level 11 Keen stands on info 26 (37, 107) facing west, not on info 3 |
+
+**Widescreen** (ours): the map is filled with a plain yellow background
+tile (850) around the station's star field, where the original's view
+never comes; a wider view would show it, so it is drawn as black space
+(tile 0) above row 100. Korath III's yellow ground stays. In 4:3 nothing
+changes.
+
+## The status window (E6)
+
+Enter drops it over a level or the map, a key lifts it (Keen 4's
+`GalaxyStatusDrop`; the game waits). Keen 4's window (D7) with Keen 5's
+own row and labels; compared with the original v1.4 to the pixel (E6):
+
+| Part | Keen 5 |
+|---|---|
+| LOCATION | The map's name; on the world map on Korath III (Keen below row 100) Korath III's base, level 13's name (seen in the original; Omnispeak always names the map) |
+| SCORE, EXTRA, LEVEL | As Keen 4's |
+| KEYCARD | The label printed from (80, 92), a black square (135, 91) of 10 × 10, the card (8×8 tile 40) at (136, 92) while Keen has it (the original draws this row one pixel lower than Omnispeak's numbers) |
+| KEYS, AMMO, KEENS, VITALIN | As Keen 4's (VITALIN instead of DROPS) |
+| Below | No wetsuit, no rescued members; the "press a key" tiles (72-91) from (120, 140) (Keen 4: 160) |
 
 ## Keen's moves (E3)
 
@@ -256,6 +301,16 @@ planes (the broken machine), and 60 tics later the level ends as the
 QED's (for now the next level; E7 shows the end). The sound names of the
 fuses and the lightning are listed with their numbers in
 `Keen5Fuses.SOUNDS` for E8.
+
+## Watched in E6 (js-dos, the user's v1.4)
+
+With map 0's start moved onto Korath III (details in
+[research.md](research.md), "Watched in E6"): the box "Keen steps out onto
+Korath III" and its count-down, both status windows (on Korath III and at
+the top) and every frame of the teleporter from the jump on are equal to
+ours to the pixel; the elevator's walk-in and door too; after its flight
+the original's view stands 8 pixels lower (its frames run 2-4 tics, so
+the last flight step overshoots further than ours).
 
 ## Watched in E5 (js-dos, the user's v1.4)
 

@@ -296,12 +296,19 @@ Keen 4 onto these).
 | `GalaxyStart` | `Keen4Start` | Keen's start by the rules' info values: standing or on the world map (Keen 4's swimming start is Keen 4's own) | 70 |
 | `GalaxyLevelSession` | `Keen4LevelSession` | A level played: the world, Keen, the items, the camera, the level's end, the second player; without the swimmer | 283 |
 | `GalaxyLevelScreen` | `Keen4LevelScreen` | Drawing a map: tiles, sprites, xBRZ, camera, cover, pictures behind the levels; files and pictures from the rules | 334 |
-| `GalaxyPlayScreen` | `Keen4PlayScreen` | Playing a level on the clock, the score box, the queue of boxes, looking at a map without a level; without the status window, the world map, sound and music (hooks) | 398 |
+| `GalaxyPlayScreen` | `Keen4PlayScreen` | Playing a level or (E6) the world map on the clock, the score box, the queue of boxes, looking at a map without Keen; sound and music are hooks | 436 |
+| `GalaxyFlowScreen` (E6) | `Keen4View`'s flow, `Keen4PlayScreen`'s status window, `Keen4FrontScreen`'s loading box | The flow between the maps: map N shown, an entrance → "One moment", the loading box and the fade, a level done → marked with its value and back to the map, a death → the choice box, no life left → game over; the status window dropping over the game | 385 |
+| `GalaxyMapSession` (E6) | `Keen4MapSession` | The world map played: the map Keen, the camera, entrances, done levels (gates, waving or thrown flags by the rules) | 214 |
+| `GalaxyProgress` (E6) | `Keen4Progress` | Levels done with a value, the place on the map, the level just finished; a saved game's dictionary with the episode's extras | 89 |
+| `GalaxyGameBoxes` (E6) | `Keen4GameBoxes` | The loading box with the count-down (any text), "One moment", PAUSED, the death box with its blinking choice, "Game Over!" when the episode has the text | 181 |
+| `GalaxyStatusWindow` (E6) | `Keen4StatusWindow` | The status window: frame, labels, digit bars; the episode's own middle and bottom rows as hooks, the "press a key" tiles' place as a field | 280 |
 
 The chain is `GameScreen` → `GalaxyLevelScreen` → `GalaxyPlayScreen` →
-the episode's view (`Keen5View`). When the front, menu, co-op and online
-screens are lifted (E7, E9, E11), they go between `GalaxyPlayScreen` and
-the view, as in Keen 4's chain, and the view's parent moves up.
+`GalaxyFlowScreen` (E6) → the episode's view (`Keen5View`). When the
+front, menu, co-op and online screens are lifted (E7, E9, E11), they go
+between `GalaxyFlowScreen` and the view (Keen 4's chain has the flow in
+its view; here it comes first, so the front screen overrides its hooks
+such as `_game_ended`), and the view's parent moves up.
 
 ### `GalaxyGameRules`
 
@@ -318,6 +325,10 @@ the view, as in Keen 4's chain, and the view's parent moves up.
 | `sprites` | `Keen5Sprites.all()` | Every sprite by name (Keen, items, shot, splash, SCOREBOX); `level_sprites()` for xBRZ |
 | `start_lives`, `start_shots`, `first_extra_life`, `stunner_charges`, `easy_stunner_charges` | 3, 5, 20000, 5, 8 | A new game, `charges_for(level)` |
 | `backdrop_folder`, `sky_tiles` | `res://assets/backgrounds/keen5`, none | The pictures behind the levels (none until E10) |
+| `map_flag_offset`, `throws_map_flag`, `map_flag_throw_offset` (E6) | (−0x50, −0x1E0), false, — | The done levels' flags on the world map (Keen 4: (0x60, −0x1E0), thrown to (0x60, −0x260)) |
+| `menu_font`, `status_texts`, `game_texts` (E6) | 0, "status", "game" | The windows' font and the runs of texts the boxes and the status window read |
+| `game_over_text`, `demo_text`, `try_again_intro_text`, `try_again_text`, `exit_text`, `one_moment_text` (E6) | −1 (none), 1, 6, 7, 8, 11 | Which text of the game run is which (Keen 4: 0, 3, 7, 8, 9, 12) |
+| `countdown_from_end` (E6) | 7 | Keen counting down, from the end of the picture range (Keen 4: 6) |
 
 ### The hooks (virtual methods that do nothing or Keen 4's thing by default)
 
@@ -333,6 +344,18 @@ the view, as in Keen 4's chain, and the view's parent moves up.
 | `GalaxyKeenBody` (engine, additive) | `_action_rows()`, `_item_rows()`, `item_sounds` | Keen 4's rows and twelve sounds | Keen 5's rows without the moon and with `enter_security_door`, `entered_door`; four splash pictures; the keycard's sound |
 | | `_touch_other_tile(cell, kind)` | nothing | — (no Keen 5 tile acts on touch) |
 | `GalaxyKeen` (engine, additive) | `spawn(..., keen)` | a new `GalaxyKeen` | a `Keen5Keen` |
+| `GalaxyPlayScreen` (E6) | `_hold_frame(tics)` | nothing | — (`GalaxyFlowScreen`: the status window holds the game) |
+| `GalaxyFlowScreen` (E6) | `_new_progress()`, `_new_status_window()`, `_new_map_session(map, random_start)` | the Galaxy classes | `Keen5Progress`, `Keen5StatusWindow`, `Keen5MapSession` |
+| | `_loading_box(number)` | the map's "Keen ..." box | the Korath III arrival's box on the map |
+| | `_done_value(finished)`, `_after_level_done(finished)` | 1; the exit sound and the map | `result()` (1, 14, 15); the fuse message, Korath III, the QED |
+| | `_after_map_frame()`, `_after_level_frame()` | an entrance; done or lost | — |
+| | `_game_over()`, `_game_ended()` | "Game Over!" if the episode has it; the start screen | — (E7: the galaxy explodes) |
+| | `_status_map()` | the map played | level 13 on Korath III |
+| `GalaxyMapSession` (E6) | `_new_keen()`, `_keen_place(start, progress)` | a `GalaxyMapKeen`; where he entered or info 3 | `Keen5MapKeen`; info 26 after the Korath door |
+| | `_place_extras(progress)`, `_runs_own_frame(tics, tic)`, `_after_world_frame()` | nothing | the shafts and the filler; the rides |
+| `GalaxyProgress` (E6) | `map_shown()`, `_extra_to_dictionary()`, `_extra_from_dictionary(saved)` | the level just finished is used up; nothing | the Korath arrival is used up |
+| `GalaxyStatusWindow` (E6) | `_draw_middle(...)`, `_draw_bottom(...)`, `key_tiles_at` | nothing; Keen 4's (160, 140) | KEYCARD; (120, 140) |
+| `GalaxyMapFlag` (engine, additive, E6) | `wave_at(..., waving_only)` | false: all of Keen 4's actions | true: only the waving ones (Keen 5 has no flipping sprites) |
 | | `_is_door(kind)`, `_enter_door(kind)` | misc 2; the normal door | misc 32 too; the keycard and the door opener |
 
 What an episode adds beyond these (Keen 5's keycard, its door targets)
@@ -511,3 +534,68 @@ What E5 built differently from the plan above, and why (developer, E5):
    `test_keen5_creatures_play` asks all three.
 9. **The QED's action has no speed**: Omni gives CK5_ACT_QED 128 across,
    which moves nothing because the object has no facing; it is left out.
+
+## Keen 5's world map (from E6)
+
+| Class | What | Lines |
+|---|---|---|
+| `Keen5MapSession` | The Omegamatic on `GalaxyMapSession`: Keen 5's map Keen, the Korath III arrival (info 26), the shafts by Keen's row, the yellow filler drawn as space, the rides that hold the game | 147 |
+| `Keen5MapKeen` | The map Keen on `GalaxyMapKeen`: the tile under him asks for a teleporter or an elevator half (`_touch_tiles`), the unseen flight in the elevator (`_think_elevator`) | 133 |
+| `Keen5MapRide` | The parts of a ride during which the original runs its own loop: the walk onto the tile, the flashing bolt and the jump, the walk out, the door closing and opening from the template | 282 |
+| `Keen5Progress` | `GalaxyProgress` with 14 for a fuse, the four shaft fuses, the Korath III fuse, the arrival on Korath III | 41 |
+| `Keen5StatusWindow` | `GalaxyStatusWindow` with KEYCARD and the key tiles at (120, 140) | 35 |
+
+`Keen5View` now extends `GalaxyFlowScreen` and keeps only what Keen 5
+does: the new game on the map, the Korath III box and location, the fuse
+message, the QED's end (the start screen until E7), the cheats.
+
+## Deviations in E6
+
+What E6 built differently from the plan above, and why (developer, E6):
+
+1. **A sixth class in the chain, `GalaxyFlowScreen`**, between
+   `GalaxyPlayScreen` and the view. The flow (Keen 4's view), the status
+   window (Keen 4's play screen) and the loading box (Keen 4's front
+   screen) together would have made `GalaxyPlayScreen` far over 500 lines;
+   the play screen only learnt to play the world map. The later front,
+   menu, co-op and online screens go between the flow screen and the view
+   and override its hooks (`_game_ended`, `_level_began` when it comes).
+2. **Keen 5's boxes are no class of their own**: `GalaxyGameBoxes` takes
+   the texts' numbers, the font and the count-down's place from the rules,
+   and `loading(text)` makes the Korath III box. Keen 4's "I can't swim!"
+   box stays Keen 4's.
+3. **The rides are a class of their own (`Keen5MapRide`)** that the
+   session runs instead of the world's frame (the hook
+   `_runs_own_frame`), because the original stops the game in loops of
+   its own there (nothing else moves, flags stand still). The elevator's
+   flight in between is an ordinary action of the map Keen (the original's
+   too), so the flags wave and the view follows.
+4. **Keen is clipped after the elevator only when the ride is over**, as
+   the original does after its loop: clipped at once, the closed door
+   above the target pushed him up two tiles (found by the real-data test).
+   The view follows the flight's last box once more on arrival (Omni
+   CK_MapCamera in CK5_MapKeenElevator).
+5. **The KEYCARD row is a pixel lower than Omnispeak's numbers** (label
+   (80, 92), square (135, 91), card (136, 92)): compared with the
+   original's window to the pixel. On Korath III the window names Korath
+   III's base (seen in the original; Omnispeak names the map), through
+   the hook `_status_map`.
+6. **The yellow block in widescreen (E3's open point)** was not the
+   cover: map 0 is filled with an all-yellow background tile (850) where
+   the original's view never comes. `Keen5MapSession` draws it as black
+   space (tile 0) above row 100 (Korath III's yellow ground stays); 4:3
+   never shows those cells, so the original's picture is unchanged.
+7. **The teleporter's target row is the low byte & 0x7F**, as the
+   original (Omnispeak masks 0xFF and notes the 0x7F of the disassembly);
+   both agree on the real map.
+8. **The QED's end goes to the start screen** (not back to the map): the
+   original's end pages and high scores follow it (E7), and the map would
+   let the game go on after it was won. Game over goes to the start
+   screen too (E7: the galaxy explodes). The level-exit sound and the
+   status sounds are asked for by name (`_play_sound`), silent until E8.
+9. **One engine change**: `GalaxyMapFlag.wave_at` got an optional
+   `waving_only` (default false: Keen 4's flags are unchanged); Keen 5 has
+   no flipping or falling flag sprites, which the full action table asks
+   for. Keen 4's demo suite, real-data suites and 11 regression pictures
+   are unchanged.
+

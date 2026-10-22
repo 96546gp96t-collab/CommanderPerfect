@@ -385,10 +385,24 @@ platform 447. E2 checks a few by eye in the data viewer.
   top, 39-74 the middle, 75-100 the bottom (the start), > 100 Korath III.
   The upper shaft opens when levels **4, 6, 8 and 10** (the four fuse
   levels) are done. Fixed places: (24,76), (22,55), (26,55), (24,30)
-  (Omni `CK5_ScanInfoLayer`; to be checked in the map in E6).
+  (Omni `CK5_ScanInfoLayer`). **Checked in the map (E6)**: the doors stand
+  there (the bottom one open in the file, the other three closed; the
+  template's pictures 0 and 5 at (0,0) and (10,0); picture 5's lower row
+  is the elevator, tiles 1864/1865 = misc 33/34), and the elevators' info
+  words point at them: (24,77) 0x1638 → (22,57), (22,56) 0x184D → (24,78),
+  (26,56) 0x181F → (24,32), (24,31) 0x1A38 → (26,57). The one teleporter
+  is on Korath III at (44,106), word 0x141E → (20,30) at the top.
 - **Korath III**: after `LS_TeleportToKorath` the map loads without the
   info-3 Keen, Keen stands on info 26 facing west, the box says "Keen
   steps out onto Korath III".
+
+- **The status window on Korath III** (seen in E6): on the world map
+  with Keen on Korath III the LOCATION reads "Korath III Base" (level 13's
+  name), at the top "Omegamatic"; Omnispeak always prints the map's name.
+- **The yellow filler** (files, E6): back tile 850 is all EGA yellow; map
+  0 is filled with it around the station's star field (1,735 cells, rows
+  2-96), where the original's view never comes. Korath III's ground (rows
+  beyond 100) has three of them too, and level 13 uses it as its sky.
 
 ## 9. Levels, the story and the end (Omni `STRINGS.CK5`, `EPISODE.CK5`; names checked in the files)
 
@@ -505,7 +519,9 @@ lesson: during each milestone, not only at the end):
    PURPLEPLAT1 is ever shown.
 5. The Spirogrip's release distance (64 tics × 16 units = 4 tiles) (E4).
 6. The game-over galaxy scene, frame by frame (E8).
-7. The status window and the menu cards to the pixel (E7, E9).
+7. The status window and the menu cards to the pixel (E7, E9). **The
+   status window answered in E6**: equal to the pixel once its KEYCARD row
+   is a pixel lower than Omnispeak's numbers.
 8. Each creature's speed and frames, with Keen standing still or in god
    mode, as in D5 (E4).
 
@@ -645,3 +661,41 @@ found in the frames by their exact pixels):
   four explosions, the machine broken (Keen fell through), about 60 tics
   later the end pages ("Congratulations ..."). With the mine at its own
   place (17, 8) it wandered above and never came down (ours the same).
+
+## Watched in E6
+
+The original v1.4 in headless js-dos (Normal), with a scratch copy of
+`GAMEMAPS.CK5` (the E4 way: map 0's info plane appended): the map Keen's
+info 3 moved from (28,95) to (44,108) on Korath III, next to the
+teleporter. Recorded frames were compared with ours run on the same
+scratch files (`--data-dir-keen5=`, 4:3, the World viewport saved):
+
+- **A new game** starts with the box "Keen steps out onto Korath III"
+  (Keen's box below row 100 when the map loads): the box and its five
+  count-down screens are equal to ours **to the pixel** (17,312 pixels
+  each; the count-down picture is the seventh from the end, GAMEOVER comes
+  last), each ~300 ms. The map's first view equals ours but for one
+  animated tile (26 pixels of 64,000).
+- **The status window** (Enter on the map): on Korath III it says
+  "Korath III Base", at the top "Omegamatic". Both windows equal ours to
+  the pixel (29,184 pixels) after the KEYCARD row was moved a pixel down:
+  the original prints the label from (80,92) and draws the square at
+  (135,91), not Omnispeak's (80,91) and (135,90).
+- **The teleporter** (Up into (44,106)): Keen walks onto it with the
+  bolt flashing, ~1.1 s later he stands at (20,30) at the top with the
+  view on him and walks out south; every frame from the jump on equals
+  ours (0 pixels different, matched by content: the original shows a
+  frame every 28-57 ms); while walking in, 32-42 pixels differ (his
+  walking picture and the bolt by the clock).
+- **An elevator** (the top one, (24,31), down to (26,57)): walking in and
+  the door closing equal ours to the pixel; the view then follows the
+  unseen Keen down the shaft and the door at (26,55) opens with Keen
+  walking out. After the flight the original's view stands 8 pixels lower
+  and 2 to the right of ours, with everything in it the same: its last
+  flight step overshoots the target by a few tics' worth (js-dos runs 2-4
+  tics a frame; ours always 2, which lands exactly), and the view follows
+  that last box once more (Omni CK_MapCamera in CK5_MapKeenElevator; ours
+  does the same).
+- Walking on the map (Keen 4's map Keen) was seen on the way and not
+  measured again.
+

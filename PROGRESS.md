@@ -115,7 +115,7 @@ bestanden in [docs/keen5/file-formats.md](docs/keen5/file-formats.md).
 | E3 | Het gedeelde Galaxy-spel en een level spelen (sleutelkaart, beveiligingsdeuren, uitgang) | ✅ Klaar (branch `milestone-e3-level`) |
 | E4 | Wezens (alle 15 soorten van levels 1-13, elk een eigen klasse) | ✅ Klaar (branch `milestone-e4-wezens`) |
 | E5 | Platforms op pijlen, zekeringen en de QED | ✅ Klaar (branch `milestone-e5-mechaniek`) |
-| E6 | De wereldkaart (teleporters, liften, Korath III, statusvenster) | ⬜ |
+| E6 | De wereldkaart (teleporters, liften, Korath III, statusvenster) | ✅ Klaar (branch `milestone-e6-kaart`) |
 | E7 | Einde, game over (de melkweg ontploft), titel en demo's | ⬜ |
 | E8 | Geluid en muziek | ⬜ |
 | E9 | Menu's en opslaan | ⬜ |
@@ -124,12 +124,13 @@ bestanden in [docs/keen5/file-formats.md](docs/keen5/file-formats.md).
 | E12 | Naast het origineel; alle opties uit = het origineel | ⬜ |
 | E13 | (Optioneel) Keen 4 op het gedeelde Galaxy-spel | ⬜ |
 
-**Volgende stap:** E6 (`milestone-e6-kaart`, vanaf `milestone-e5-mechaniek`):
-de wereldkaart (map 0) met `GalaxyMapSession`/`Keen5MapSession`, de
-teleporters en liften, de schachten die opengaan na de vier
-zekeringlevels (`Keen5View.levels_done` houdt al 1 of 14 per level bij),
-Korath III (de deur in level 11 eindigt nu met `Keen5Keen.KORATH_ENDING`)
-en het statusvenster. De gebruiker uploadt Keen 2-5 weer naar de sessie.
+**Volgende stap:** E7 (`milestone-e7-einde-titel`, vanaf `milestone-e6-kaart`):
+de algemene voorkant (titel, verhaal, demo's, high scores uit Keen 4's
+`Keen4FrontScreen`, tussen `GalaxyFlowScreen` en `Keen5View`), game over als
+scène (de melkweg ontploft; nu gaat game over naar het startscherm via
+`GalaxyFlowScreen._game_ended`), de eindpagina's na de QED (nu het
+startscherm; `Keen5Progress.korath_fuse_broken()` kiest het geheime einde).
+De gebruiker uploadt Keen 2-5 weer naar de sessie.
 
 ## Achtergronden Keen 1 en 2: mijlpalen AB
 
@@ -273,6 +274,96 @@ ligt wordt een gat (`docs/graphics.md`, onderzoek §8).
   in `Keen2GuardRobot`; nu kijkt hij de kant op waar hij heen zweeft en
   schiet. Alleen namen/plaatjes gecontroleerd (js-dos overgeslagen op
   verzoek). Test `test_guard_robot_faces_the_way_it_floats_and_fires`.
+
+## Mijlpaal E6: wat er nu is
+
+Keen 5 heeft zijn wereldkaart, op `milestone-e6-kaart` (22-10, 22:07-23:05
+UTC). Vanaf de kaart is elk level te spelen, ook Korath III. De regels staan
+in `docs/keen5/gameplay.md` ("The flow of a game", "The world map", "The
+status window"), de klassen en afwijkingen in `docs/keen5/architecture.md`
+("The Galaxy game", "Keen 5's world map", "Deviations in E6"), de metingen
+in `docs/keen5/research.md` (§8, "Watched in E6").
+
+- [x] **Het gedeelde spel** (`src/galaxy/game/`, uit Keen 4's klassen,
+  Keen 4 onaangeraakt): `GalaxyMapSession` (kaart als level, kaart-Keen,
+  camera, ingangen 0xC000+n, gedane levels: info weg, hekken 0xD0nn weg,
+  vlaggen 0xF0nn wapperend of gegooid volgens de regels), `GalaxyProgress`
+  (levels klaar mét waarde, plek op de kaart, haakjes voor extra's in een
+  opgeslagen spel), `GalaxyGameBoxes` (laadvak met aftellen voor elke
+  tekst, "One moment", PAUSED, het vak na een dood met knipperende keuze,
+  "Game Over!" alleen als de episode die tekst heeft),
+  `GalaxyStatusWindow` (kader, labels, cijferbalken; eigen middenrij en
+  onderrij als haakjes) en een nieuwe schakel `GalaxyFlowScreen` (het
+  verloop: kaart → "One moment" → laadvak → level → terug naar de kaart;
+  dood → Try Again / Exit; game over; het statusvenster).
+  `GalaxyPlayScreen` speelt nu ook de kaart. Nieuwe velden in
+  `GalaxyGameRules` (vlaggen, teksten, lettertype, aftelplaatje).
+- [x] **Keen 5's kaart** (`Keen5MapSession`, `Keen5MapKeen`,
+  `Keen5MapRide`): geen water, geen Foot, alleen wapperende vlaggen op
+  (−0x50, −0x1E0); **teleporter** (geluid 41, Keen loopt erop 2 per tic,
+  de tegel flitst 0xA7F/0xA80, sprong naar het doel, wakker maken, naar
+  het zuiden 3 per tic 90 tics, tegel gewist); **liften** (deur dicht uit
+  de sjablonen linksboven, 6 × 8 tics, onzichtbaar 64/12 per tic vliegen,
+  deur open, 32 × 8 naar buiten); **schachten** op Keens rij en na de
+  zekeringlevels 4, 6, 8 en 10, plekken nagekeken in de echte kaart;
+  **Korath III** (deur in level 11 → op info 26, vak "Keen steps out onto
+  Korath III", ook terug uit level 13).
+- [x] **`Keen5Progress`** (1 of 14 per level, de vier schachtzekeringen,
+  de Korath-zekering voor E7, aankomst op Korath III), **statusvenster**
+  met KEYCARD (`Keen5StatusWindow`), Enter opent het; op Korath III heet
+  de plek "Korath III Base" (gezien in het origineel).
+- [x] **Het verloop**: een nieuw spel (`--game=5` zonder `--level`) begint
+  op de kaart achter het vak "Keen purposefully wanders about the
+  Omegamatic"; `--level=0` de kaart meteen; een level vanaf de kaart gaat
+  terug naar de kaart op de plek waar Keen instapte; dood → "You didn't
+  make it past …" met Try Again / Exit to Armageddon; game over en de QED
+  → voorlopig het startscherm (E7). Sleutelkaart en edelstenen weg na elk
+  level en elke dood.
+- [x] **Geel blok in breedbeeld (open punt van E3)**: geen dekking maar
+  een geel opvultegel (850) rond het sterrenveld van het station, waar het
+  originele beeld nooit komt; boven rij 100 nu zwarte ruimte (tegel 0),
+  Korath III's gele grond blijft. In 4:3 verandert niets.
+- [x] **Naast het origineel (js-dos, v1.4)**, met een kladkopie van
+  `GAMEMAPS.CK5` (start op Korath III): het vak "Keen steps out onto
+  Korath III" en de vijf aftelbeelden **pixel-gelijk**; het eerste
+  kaartbeeld gelijk op één geanimeerde tegel na; het **statusvenster
+  pixel-gelijk** (29.184 pixels, op Korath III en bovenin) nadat de
+  KEYCARD-rij een pixel omlaag ging (Omnispeak zit er een hoger); de
+  **teleporter** vanaf de sprong elk beeld pixel-gelijk; de **lift**
+  (boven → midden) instappen en deur dicht pixel-gelijk, na de vlucht staat
+  het beeld van het origineel 8 pixels lager (zijn beelden lopen 2-4 tics,
+  dus de laatste vluchtstap schiet verder door).
+- [x] **Tests**: nieuw `test_galaxy_game_map` (kaartsessie en voortgang
+  met de fixtures), `test_galaxy_game_flow` (het verloop, de vakken, het
+  statusvenster met de fixtures), `test_keen5_map` (teleporter, beide
+  liftkanten, schachten per rij en zekeringen, Korath III, vlaggen en
+  hekken met eigen kaartjes), `test_keen5_map_play` (echte kaart: plekken,
+  elke liftrit, de teleporter, elke ingang, vlaggen, het opvultegel),
+  `test_keen5_status` (KEYCARD, het kaartje, de toetstegels, de vakken);
+  `test_keen5_view` herschreven (nieuw spel op de kaart, elk level 1-13
+  vanaf de kaart en terug, zekering, Korath III, dood met keuze,
+  statusvenster). **151 suites groen, 1 overgeslagen (Keen 4 v1.4), 0
+  FAIL, 0 SCRIPT ERROR.** `gdformat` en `gdlint` schoon.
+- [x] **Controle Keen 1-4**: regressies tegen de nulmeting: Keen 1 alleen
+  `launcher.png` anders (gelijk aan E4's en E5's: het vijfde icoon), Keen
+  2 (4) en Keen 4 (11 beelden) alles gelijk; Keen 4's demo's en
+  echte-datatests groen. `git diff origin/main` op `src/keen2-4`, hun
+  tests, `src/actors`, `src/map`, `src/game`: alleen de twee regels met
+  het aantal spellen. Eén additieve naad in de engine:
+  `GalaxyMapFlag.wave_at(..., waving_only)`. `tools/keen5_regression.sh`
+  kreeg de kaart (4:3, breed, statusvenster); de oude vier beelden zijn
+  gelijk aan E5's, de kaartbeelden twee keer gelijk. Let op: de
+  levelbeelden hangen af van het willekeurige startpunt (`randi()`): in één
+  van drie runs stond in level 1 een wezen anders.
+- **Niet gedaan:** de apps zijn hier niet gebouwd (de gebruiker bouwt op
+  de Mac). Geluiden (deur, teleporter, levelgeluid) worden bij naam
+  gevraagd en zijn stil tot E8. Het vak na een dood niet in js-dos bekeken
+  (zelfde code en indeling als Keen 4's, D7; de teksten komen uit de
+  bestanden van de gebruiker).
+- **Om te proberen:** `godot --path . -- --game=5` (nieuw spel op de
+  kaart; Enter het statusvenster), `-- --game=5 --level=0` (de kaart
+  meteen); met Shift+N naar een level en terug. De lift onderin gaat pas
+  open na levels 1 en 2 (hun hekken staan ervoor).
 
 ## Mijlpaal E5: wat er nu is
 
