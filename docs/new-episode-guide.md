@@ -34,6 +34,15 @@ Galaxy engine goes into `src/galaxy/` (for episodes 4-6) and the episode
 into `src/keen4/`; the user's copy is v1.0 (sources know 1.4); Omnispeak is
 the reference for numbers.
 
+Episode 5 was researched in milestone E1: see `docs/keen5/research.md`,
+`architecture.md` and `roadmap.md`. The short version: the Galaxy
+readers of Keen 4 read it almost unchanged (two additive fields); the
+game around the engine (screens, sessions, saves, title) had stayed in
+`src/keen4/`, so E3-E11 lift it into a generic `src/galaxy/game/`, made
+from Keen 4's classes while Keen 4 stays frozen (the user's choice). Keen
+6 should build on `src/galaxy/game/`, not on `src/keen4/`. The user's copy
+is v1.4, as Omnispeak; milestones `milestone-e<n>-<topic>`.
+
 Episode 3 was researched in milestone C1: see `docs/keen3/research.md`.
 The short version: the same family as 1 and 2; sounds and texts in the EXE
 (text order help, end, previews, story); 624 tiles with a tile table that is
@@ -191,3 +200,19 @@ Add one line per lesson, with the milestone where it was learned.
   became brittle).
 - C11: the original runs in js-dos in the cloud's headless Chromium
   (`tools/original/headless.js`); no browser pane needed.
+- E1: run the existing readers over a new episode's files first, before
+  reading any source: for Keen 5 they found every header by content in
+  minutes and showed exactly the two places where Keen 4's assumptions do
+  not hold (the tile border when the last background tiles are empty; the
+  texts before the misc chunks). Check a derived count against a second
+  table (TILEINFO's left/right tables hold only 0 and 1).
+- E1: Keen 5 has no version text in its EXE; name the version by the
+  program size (CG knows the unpacked sizes).
+- E1: D1's split (engine in `src/galaxy/`, episode in `src/keen4/`) kept
+  the engine clean, but the game around it (the screen chain, sessions,
+  saves) went into the episode folder. For a next engine: put the
+  episode-neutral game in the engine folder from the start, with the
+  episode's numbers in a parameter object and its content behind hooks.
+- E1: the user wants every episode to be playable exactly as the
+  original with all options off; plan the proof (demos frame for frame
+  in 4:3) for every Galaxy episode.

@@ -46,9 +46,9 @@ leaves three ways:
 |---|---|---|---|
 | **1. Copy** | Copy `src/keen4/` (game, screens, sessions) to `src/keen5/` and rename | Fastest start; Keen 4 untouched | ~4,500 lines twice, three times with Keen 6; a fix must be made in every copy |
 | **2. Refactor Keen 4** | Move the neutral parts of Keen 4 into `src/galaxy/` and let Keen 4 and 5 both use them | One copy, best for Keen 6 | Changes Keen 4 a lot; its tests reach ~45 private members of the chain; risk to a finished, tested episode |
-| **3. Lift (advice)** | **New** generic classes in `src/galaxy/game/` (the chain, the sessions, the saved game, ...), made from Keen 4's by copying and generalising: episode numbers come from a parameter object, episode content through small hooks. Keen 5 (and later 6) build on them. **Keen 4 stays exactly as it is** | Keen 4 has no change at all; Keen 5 and 6 share one copy; Keen 4 can move onto it later, proven by its demos and screenshots | For a while two near-equal chains exist (Keen 4's frozen one and the Galaxy one); a bug fix in that part is made twice until Keen 4 moves |
+| **3. Lift (chosen)** | **New** generic classes in `src/galaxy/game/` (the chain, the sessions, the saved game, ...), made from Keen 4's by copying and generalising: episode numbers come from a parameter object, episode content through small hooks. Keen 5 (and later 6) build on them. **Keen 4 stays exactly as it is** | Keen 4 has no change at all; Keen 5 and 6 share one copy; Keen 4 can move onto it later, proven by its demos and screenshots | For a while two near-equal chains exist (Keen 4's frozen one and the Galaxy one); a bug fix in that part is made twice until Keen 4 moves |
 
-The advice is **way 3** (a question to the user, research.md §13): it is
+**Decided by the user (22-10-2026): way 3.** It is
 what the user asked for ("as little as possible of the existing code
 changed, everything keeps working") and it does not cost Keen 6 a third
 copy. Moving Keen 4 onto the Galaxy chain is an optional milestone at the
@@ -65,7 +65,7 @@ end (E13), only if the user wants it.
 | **Galaxy game** (new) | `src/galaxy/game/**` (way 3) | Free during the E milestones; shared once Keen 5 is done (for Keen 6) |
 | **Keen 5 only** (new) | `src/keen5/**`, `tests/test_keen5_*.gd`, `docs/keen5/`, `assets/backgrounds/keen5/` | Free |
 
-Exceptions (to be confirmed by the user, research.md §13):
+Exceptions (approved by the user, 22-10-2026):
 
 1. **The list of games**: the assertions on the number of games grow by
    one (`tests/test_launcher.gd:78`, `test_keen2_files.gd:159`,
@@ -90,8 +90,8 @@ Proof at the end of every E milestone (as in the D series):
    is empty, apart from exceptions 1 and 2.
 5. For changes in `src/galaxy/` (not `game/`): the Keen 4 demo suite
    (`test_keen4_demo_sync`) and the Keen 4 real-data suites pass, which
-   needs the Keen 4 files (research.md §13: upload them to the cloud
-   session or run on the Mac).
+   needs the Keen 4 files: the user uploads Keen 2, 3 and 4 to every Keen
+   5 cloud session (decided 22-10-2026).
 
 `$REF` is the commit the E branch started from.
 
@@ -202,8 +202,17 @@ As in [../keen4/architecture.md](../keen4/architecture.md), unchanged:
 motion as the shared option; three tile layers; the camera stops at scroll
 blocks and widescreen covers what lies beyond; the score box is the HUD;
 our own OPL2 renders AdLib sounds and songs into `user://keen5/cache/`.
-These were the user's decisions for Keen 4; whether they hold for Keen 5
-too is question 2 in research.md §13 (advice: yes).
+These were the user's decisions for Keen 4; they hold for Keen 5 too
+(decided 22-10-2026).
+
+**Playing as the original** (the user's demand, 22-10-2026): with every
+option off (4:3, no pictures behind the levels, no xBRZ, no smooth
+motion) Keen 5 looks and plays exactly like the original v1.4, as Keen 4
+does like its v1.0 and v1.4. So every extra Keen 5 adds is an option that
+can be switched off, and nothing of an extra may leak into the 4:3
+picture with the options off (the pictures behind the levels only show in
+widescreen, as for Keen 1-4). E7 and E12 prove it with the demos frame for
+frame against the original.
 
 Keen 5 has 14 songs (Keen 4: 6) and 64 sounds per device (Keen 4: 52):
 the song per map and the sound names come from `Keen5Sounds` (research.md

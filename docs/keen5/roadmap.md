@@ -49,8 +49,8 @@ Reken op **ongeveer 10-12 uur** (de helft van Keen 4).
   bouwt die, met tests, en werkt `PROGRESS.md` bij. De architect controleert
   daarna de diff tegen de opdracht en de regels, en vult
   `docs/doorlooptijden.md` aan.
-- Getallen komen uit Omnispeak (`(Omni)`, als bij Keen 4; vraag 2 in
-  research.md §13), anders uit Commander Genius (`# estimate`). Nooit code
+- Getallen komen uit Omnispeak (`(Omni)`, als bij Keen 4; besluit van de
+  gebruiker, 22-10-2026), anders uit Commander Genius (`# estimate`). Nooit code
   overnemen.
 - De gebruiker heeft Keen 5 **versie 1.4**, dezelfde versie als Omnispeak
   beschrijft. Alles wordt op **inhoud** gezocht, zodat een 1.0 ook kan
@@ -60,10 +60,16 @@ Reken op **ongeveer 10-12 uur** (de helft van Keen 4).
   Keen 5 v1.4 van de gebruiker (`tools/original/`, start `KEEN5E`).
 - Keen 5 is geen shareware: zonder de bestanden van de gebruiker slaan de
   tests met echte data over. In een cloud-sessie moet de gebruiker ze
-  uploaden (en Keen 1-4 voor de controle, vraag 3 in research.md §13).
+  uploaden, samen met Keen 2-4 voor de controle (besluit van de
+  gebruiker, 22-10-2026; Keen 1 haalt `tools/get_shareware.sh`).
 - Extra's zijn standaard uit, met dezelfde uitzonderingen als bij Keen 1-4
   (widescreen met het scorebord, plaatjes achter de levels in
   widescreen).
+- **Origineel spelen** (wens van de gebruiker, 22-10-2026): met alle
+  opties uit (4:3, geen plaatjes achter de levels, geen xBRZ, geen
+  vloeiende beweging) ziet Keen 5 er precies uit als het origineel en
+  speelt het precies zo; dat geldt ook voor Keen 4. Elke nieuwe extra
+  moet uit te zetten zijn. E12 bewijst het voor Keen 5.
 - Na elke mijlpaal: de app opnieuw bouwen voor macOS en Windows (op de
   Mac), committen en de branch pushen.
 
@@ -135,7 +141,7 @@ springen, pogo'en, klimmen en schieten; items, de sleutelkaart,
 beveiligingsdeuren, edelsteendeuren en de uitgang werken. Nog geen
 wezens.
 
-- **`src/galaxy/game/`** (weg 3): `GalaxyGameRules` (de getallen van een
+- **`src/galaxy/game/`** (weg 3, besluit van de gebruiker 22-10-2026): `GalaxyGameRules` (de getallen van een
   deel) en de eerste algemene klassen, gemaakt uit de Keen 4-versies:
   `GalaxyLevelScreen`, `GalaxyPlayScreen`, `GalaxyLevelSession`,
   `GalaxyStart`, `GalaxyFiles`, `GalaxySettings`, `GalaxyIcon`. Keen 4's
@@ -239,7 +245,7 @@ Klaar als: je vanaf de kaart alle levels kunt spelen, ook Korath III.
 ## E10. Mooier maken (`milestone-e10-extras`)
 
 - Vloeiende beweging en xBRZ nakijken (gedeeld), eigen plaatjes achter de
-  levels in `assets/backgrounds/keen5/` (vraag 5 in research.md §13), de
+  levels in `assets/backgrounds/keen5/` (besluit van de gebruiker, 22-10-2026), de
   builds voor macOS en Windows.
 
 ## E11. Co-op (`milestone-e11-coop`)
@@ -254,6 +260,10 @@ Klaar als: je vanaf de kaart alle levels kunt spelen, ook Korath III.
 
 - Wat na E3-E11 nog `# estimate` of onzeker is, in js-dos nakijken
   (research.md §12).
+- **Alle opties uit = het origineel** (wens van de gebruiker): de demo's
+  frame voor frame en de schermen op de pixel met alle extra's uit, en
+  een test die elke optie van Keen 5 uitzet en nakijkt dat er geen extra
+  meer te zien is.
 - Het statusvenster, de menu's, de highscores, het einde en game over op
   de pixel nameten; de demo's frame voor frame.
 
@@ -287,4 +297,4 @@ Keen 4-tests slagen (hun namen van privéleden blijven bestaan).
 
 | Mijlpaal | Datum | Status |
 |---|---|---|
-| E1 Onderzoek | 22-10-2026 | Klaar; vragen aan de gebruiker (research.md §13) |
+| E1 Onderzoek | 22-10-2026 | Klaar; vragen beantwoord op 22-10-2026 (research.md §13) |

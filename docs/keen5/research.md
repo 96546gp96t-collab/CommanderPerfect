@@ -515,6 +515,25 @@ Asked as a menu (AskUserQuestion) at the end of E1; the answers go below.
 6. **Later**: move Keen 4 onto the shared Galaxy game (E13) once Keen 5 is
    done? *Advice: decide after E12.*
 
-### The user's answers
+### The user's answers (22-10-2026)
 
-(Filled in after the questions.)
+1. **Way 3**: new generic classes in `src/galaxy/game/`, made from Keen
+   4's; Keen 4 stays frozen.
+2. **Yes, all of Keen 4's decisions hold for Keen 5**, with one demand
+   added: **Keen 4 and Keen 5 must also play as the original. With every
+   option off (4:3, no pictures behind the levels, no xBRZ, no smooth
+   motion, PC speaker or AdLib as the player sets it) the game looks and
+   plays exactly like the original.** The defaults stay as for Keen 1-4
+   (widescreen and the pictures behind the levels on); an option that
+   cannot be switched off is not allowed. E12 proves it for Keen 5 (the
+   demos frame for frame, the screens to the pixel, all options off);
+   Keen 4 already proved it in D13 (its five demos 100 % equal in 4:3).
+3. **The user uploads Keen 2, 3 and 4** to every Keen 5 cloud session
+   (Keen 1 comes from `tools/get_shareware.sh`), so every milestone runs
+   the full proof.
+4. **Both exceptions approved**: the one line in
+   `tests/test_keen4_online.gd:26` (E11), and additive changes in
+   `src/galaxy/` that keep Keen 4's behaviour by their defaults.
+5. Pictures behind the levels: yes (part of answer 2), in E10.
+6. Not asked yet: moving Keen 4 onto the Galaxy game (E13) is decided
+   after E12.

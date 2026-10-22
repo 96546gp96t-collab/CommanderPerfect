@@ -121,3 +121,12 @@ Keen 4 is een andere engine (Galaxy); de schatting per mijlpaal staat in
 | Fix: restjes rooster, noppenblokken, bord, lichtbundel | 22-10 | ~70 min | 70 min (15:11-16:21) | Keen 2: uiteinden platforms en balk, zapper per beeld, rechte deur (ook teal in 12); Keen 1: zwarte driehoeken, uitgangsbord, licht door de kasteelmuur (16); alle tegels van alle levels voor/na nagekeken, foto's, regressies |
 | Fix: Guard robot (Keen 2) kijkt achteruit | 22-10 | ~10 min | 10 min (16:35-16:45) | Frames 112-115/116-119 omgewisseld (namen in EGAHEAD.CK2 kloppen niet met de plaatjes); test, apps gebouwd |
 | **Totaal** | 22-10 | **~5 u 55** opgeteld | | De klok liep korter (~4 u 50) doordat AB2 en AB3 tegelijk liepen |
+
+## Keen 5 (mijlpalen E1-E13)
+
+Keen 5 is dezelfde engine als Keen 4; de schatting per mijlpaal staat in
+`docs/keen5/roadmap.md` (in totaal ~10-11 uur, ongeveer de helft van Keen 4).
+
+| Mijlpaal | Datum | Werktijd | Agent | Opmerking |
+|---|---|---|---|---|
+| E1 Onderzoek | 22-10 | ~45 min | developer-agent 8 min, onderzoeksagent 13 min (tegelijk) | In een cloud-sessie; Keen 5 v1.4 geüpload door de gebruiker en door de architect door de bestaande Galaxy-lezers gehaald; vragen als keuzemenu |

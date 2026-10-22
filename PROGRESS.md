@@ -96,6 +96,40 @@ bestanden in [docs/keen4/file-formats.md](docs/keen4/file-formats.md).
 | D13 | Naast het origineel | ✅ Klaar en gecontroleerd door de architect (branch `milestone-d13-origineel`; drie developers en een tester) |
 | D13.2 | Fixes na de test van de gebruiker: split-screen kijken, trillen in pauzes, cheats, online-pagina, glas in Miragia | 🔶 Gebouwd, in test bij de gebruiker (branch `milestone-d13.2-fixes`) |
 
+## Keen 5: mijlpalen E
+
+Het vijfde deel ("The Armageddon Machine") is **dezelfde engine** als Keen
+4 (Galaxy). Het spel rond de engine (schermen, sessies, opslaan, titel)
+wordt één keer algemeen gemaakt in `src/galaxy/game/`, uit de Keen
+4-klassen; Keen 4 zelf blijft bevroren (besluit van de gebruiker,
+22-10-2026). Keen 5 komt in `src/keen5/`. Wat elke mijlpaal inhoudt staat
+in [docs/keen5/roadmap.md](docs/keen5/roadmap.md), de opzet in
+[docs/keen5/architecture.md](docs/keen5/architecture.md), wat er over Keen
+5 bekend is in [docs/keen5/research.md](docs/keen5/research.md) en de
+bestanden in [docs/keen5/file-formats.md](docs/keen5/file-formats.md).
+
+| # | Mijlpaal | Status |
+|---|---|---|
+| E1 | Onderzoek: code in kaart, Keen 5 v1.4 van de gebruiker uitgelezen, Omnispeak, architectuur, mijlpalen | ✅ Klaar (branch `milestone-e1-onderzoek`); vragen beantwoord op 22-10-2026 |
+| E2 | De bestanden van Keen 5 inlezen, data viewer, vijfde icoon | ⬜ |
+| E3 | Het gedeelde Galaxy-spel en een level spelen (sleutelkaart, beveiligingsdeuren, uitgang) | ⬜ |
+| E4 | Wezens | ⬜ |
+| E5 | Platforms op pijlen, zekeringen en de QED | ⬜ |
+| E6 | De wereldkaart (teleporters, liften, Korath III, statusvenster) | ⬜ |
+| E7 | Einde, game over (de melkweg ontploft), titel en demo's | ⬜ |
+| E8 | Geluid en muziek | ⬜ |
+| E9 | Menu's en opslaan | ⬜ |
+| E10 | Mooier maken (plaatjes achter de levels, builds) | ⬜ |
+| E11 | Co-op lokaal en online | ⬜ |
+| E12 | Naast het origineel; alle opties uit = het origineel | ⬜ |
+| E13 | (Optioneel) Keen 4 op het gedeelde Galaxy-spel | ⬜ |
+
+**Volgende stap:** E2 (`milestone-e2-bestanden`, vanaf `main`): de twee
+nieuwe velden in `GalaxyEpisode` (tile-grens 1512, teksten vóór de
+misc-blokken), `Keen5Files`, `Keen5Episode`, het vijfde icoon, `--game=5`,
+de data viewer en de export. De gebruiker uploadt Keen 5 en ook Keen 2-4
+naar de sessie (voor de controle dat Keen 1-4 gelijk blijven).
+
 ## Achtergronden Keen 1 en 2: mijlpalen AB
 
 Branch `milestone-a-b-backgrounds` (vanaf `main`, 22-10). Onderzoek en plan:
@@ -238,6 +272,39 @@ ligt wordt een gat (`docs/graphics.md`, onderzoek §8).
   in `Keen2GuardRobot`; nu kijkt hij de kant op waar hij heen zweeft en
   schiet. Alleen namen/plaatjes gecontroleerd (js-dos overgeslagen op
   verzoek). Test `test_guard_robot_faces_the_way_it_floats_and_fires`.
+
+## Mijlpaal E1: wat er nu is
+
+Onderzoek voor Keen 5, op `milestone-e1-onderzoek` (vanaf `main`, 22-10).
+Alleen documenten, geen code.
+
+- [x] Keen 5 van de gebruiker (zip) uitgelezen in de scratchpad met de
+  bestaande Galaxy-lezers: **versie 1.4** (uitgepakt 254.832 bytes, de
+  1.4 van Commander Genius; geen versietekst in de EXE), alle zes headers
+  op inhoud gevonden zonder bekende plaatsen, 93 plaatjes, 346 sprites,
+  16 maps (14 ontbreekt), 206 geluidsblokken (64 + 64 geluiden, 14
+  liedjes). Twee dingen moeten de lezers anders doen: de grens tussen
+  achter- en voorgrondtiles (1512, de code rekent 1440) en de teksten die
+  vóór de misc-blokken staan (`docs/keen5/file-formats.md`).
+- [x] Code in kaart (developer-agent): `src/galaxy/` noemt Keen 4 alleen in
+  commentaar en twee standaardmappen; het spel rond de engine (~4.500
+  regels) zit in `src/keen4/`, 85-95 % niet Keen 4-specifiek.
+- [x] Omnispeak en Commander Genius (onderzoeksagent): alles wat Keen 5
+  anders doet (`docs/keen5/research.md`): de sleutelkaart (item 12),
+  beveiligingsdeuren, zekeringen en de QED, 15 soorten wezens, platforms
+  op pijlen, teleporters en liften op de kaart, Korath III, het geheime
+  einde, game over als ontploffende melkweg.
+- [x] Architectuur (weg 3: algemeen maken in `src/galaxy/game/`, Keen 4
+  bevroren), roadmap E2-E13 (~10-11 u), de antwoorden van de gebruiker.
+- [x] Tests: 102 suites groen, 31 overgeslagen (geen Keen 2-4-bestanden in
+  deze sessie), 0 FAIL. Zonder Keen 4-bestanden geven een paar Keen
+  4-suites `SCRIPT ERROR` (ze slaan niet netjes over), zo ook op `main`;
+  niet aangeraakt (Keen 4 is bevroren), genoteerd voor E2.
+- Besluiten van de gebruiker (22-10-2026): weg 3; alle keuzes van Keen 4
+  gelden ook voor Keen 5; **met alle opties uit speelt en ziet Keen 4 en 5
+  eruit als het origineel**; Keen 2-4 worden per sessie mee geüpload;
+  de uitzondering in `test_keen4_online.gd` en additieve wijzigingen in
+  `src/galaxy/` zijn goedgekeurd.
 
 ## D13.2: fixes (21-10)
 
