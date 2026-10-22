@@ -14,15 +14,24 @@ extends RefCounted
 ## Which tiles the picture shows through is decided by [method background_tile]:
 ## the plain background of the level, and the same color around everything
 ## drawn on it ([method GraphicsTextures.backdrop_tile_atlas]).
+##
+## [method walls] finds the textures of the walls behind the levels the
+## same way ([LevelWall], milestone AB2): wall01.png for level 1.
 
 const FOLDER := "res://assets/backgrounds"
 const PLAYER_FOLDER := "backgrounds"
 const EXTENSIONS: Array[String] = ["png", "webp", "jpg"]
+const PICTURE_PREFIX := "level"
+const WALL_PREFIX := "wall"
 
 var _files: GameFiles
 var _folder := FOLDER
 var _cache: Dictionary[int, Texture2D] = {}
 var _missing: Dictionary[int, bool] = {}
+var _prefix := PICTURE_PREFIX
+## A picture drawn much smaller than it is needs mipmaps to stay calm; a
+## wall is drawn pixel for pixel.
+var _mipmaps := true
 
 
 ## The pictures for the game in [param files]; those that come with it are
@@ -34,9 +43,24 @@ static func create(files: GameFiles, folder := FOLDER) -> BackdropPictures:
 	return pictures
 
 
+## The textures of the walls for the game in [param files]; those that come
+## with it are in [param folder].
+static func walls(files: GameFiles, folder := FOLDER) -> BackdropPictures:
+	var pictures := create(files, folder)
+	pictures._prefix = WALL_PREFIX
+	pictures._mipmaps = false
+	return pictures
+
+
 ## The file name, without extension, of the picture for level [param number].
 static func picture_name(number: int) -> String:
-	return "level%02d" % number
+	return PICTURE_PREFIX + "%02d" % number
+
+
+## The file name, without extension, of this kind of picture for level
+## [param number] (level07 or wall07).
+func file_name(number: int) -> String:
+	return _prefix + "%02d" % number
 
 
 ## The picture for level [param number], or null when there is none.
@@ -51,8 +75,8 @@ func picture(number: int) -> Texture2D:
 	if image == null:
 		_missing[number] = true
 		return null
-	# The picture is drawn much smaller than it is; mipmaps keep it calm.
-	image.generate_mipmaps()
+	if _mipmaps:
+		image.generate_mipmaps()
 	_cache[number] = ImageTexture.create_from_image(image)
 	return _cache[number]
 
@@ -106,7 +130,7 @@ func _player_image(number: int) -> Image:
 		return null
 	var folder := _files.directory.path_join(PLAYER_FOLDER)
 	for extension in EXTENSIONS:
-		var path := folder.path_join(picture_name(number) + "." + extension)
+		var path := folder.path_join(file_name(number) + "." + extension)
 		if FileAccess.file_exists(path):
 			var image := Image.load_from_file(path)
 			if image != null and not image.is_empty():
@@ -117,7 +141,7 @@ func _player_image(number: int) -> Image:
 
 func _own_image(number: int) -> Image:
 	for extension in EXTENSIONS:
-		var path := _folder.path_join(picture_name(number) + "." + extension)
+		var path := _folder.path_join(file_name(number) + "." + extension)
 		if ResourceLoader.exists(path):
 			var texture := load(path) as Texture2D
 			if texture != null:

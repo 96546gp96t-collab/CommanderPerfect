@@ -405,17 +405,22 @@ picture (Keen 1's `WINDON`/`WINDOFF` are not used).
   Keen 2 actor, Keen on the map and the ending's ships are interpolated.
   The Real-ESRGAN HD graphics are left out for Keen 2 (the user's choice:
   they did not look good enough for Keen 1 either).
-- **Pictures behind the levels** (widescreen, the "Backgrounds" option):
-  Keen 2's own pictures in `assets/backgrounds/keen2/` (none yet), or the
-  player's in `game_data/keen2/backgrounds/` (`level01.png` ... `level16.png`,
-  also .webp or .jpg); Keen 1's pictures are never used. A picture shows
-  through the level's plain background, and through that color in every
-  other tile. Most Keen 2 levels have a patterned background (the gray
-  diamonds) whose dots have the plain tiles' color, so a picture would
-  shine through the dots all over the level: a level gets its picture only
-  when its plain background is also its most used tile
-  (`Keen2BackdropPictures`). In version 1.31 that is level 12. In the dark
-  the picture darkens with the level.
+- **The wall behind the levels** (widescreen, the "Backgrounds" option;
+  milestone AB2, which replaced B8's pictures): every level is a room of
+  the Mothership, so instead of a picture that glides it gets a back wall
+  fixed to the level (it moves 1:1 with the tiles, as the lattice does),
+  from Keen 2's own textures in `assets/backgrounds/keen2/` (`wall01.webp`
+  ... `wall16.webp`) or the player's in `game_data/keen2/backgrounds/`
+  (also .png or .jpg); Keen 1's are never used. The wall takes the place
+  of the lattice (tile 143) wherever a tile has it, pixel for pixel
+  (`LatticeWalls`); the walls' shadows on the lattice (one EGA step darker)
+  become dark bands on the wall without the lattice; the lattice in the
+  dark (tile 147, levels 5 and 14) shows the wall dim, so the grey cones
+  under the lamps there stay lit; level 12's teal (tile 276) is wall too.
+  A level without a texture looks as in the original. In the dark the wall
+  darkens with the level (it is on the level's canvas). B8 showed a
+  gliding picture only behind level 12 (`Keen2BackdropPictures`, kept for
+  Keen 3's comparison but no longer used by `Keen2View`).
 
 ## Two players on one keyboard (B9)
 

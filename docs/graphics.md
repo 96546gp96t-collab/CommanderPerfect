@@ -178,22 +178,65 @@ stays as it was). A level without a picture looks as in the original.
   In a split screen each half has its own.
 - **Keen 2, Keen 3 and Keen 4** have their own folders,
   `assets/backgrounds/keen2/`, `assets/backgrounds/keen3/` and
-  `assets/backgrounds/keen4/` (Keen 2's still empty; Keen 3's painted by
+  `assets/backgrounds/keen4/` (Keen 3's painted by
   `tools/make_keen3_backgrounds.py`, Keen 4's by
   `tools/make_keen4_backgrounds.py`), and the player's
   `game_data/keen2/backgrounds/`, `game_data/keen3/backgrounds/` and
   `game_data/keen4/backgrounds/`, with the same file names; Keen 1's
-  pictures are never shown behind their levels. Each game decides which levels may show one, because a picture
-  shows through the background color in every tile: Keen 2 only where the
-  plain background is the level's most used tile (B8, level 12;
-  `docs/keen2/gameplay.md`), Keen 3 where the level has sky, and then only
+  pictures are never shown behind their levels. Each game decides which
+  levels may show one, because a picture shows through the background
+  color in every tile: Keen 3 where the level has sky, and then only
   through the sky, never the dark gray of a base (levels 1-11, 13, 14 and
   15; `docs/keen3/gameplay.md`, "Extras (C9)"), Keen 4 where the top row
   of the level is sky, and then only through the sky colour (levels 5, 7-14
-  and 16; `docs/keen4/gameplay.md`, "Pictures behind the levels"). The
-  painters are `tools/make_keen3_backgrounds.py` and
+  and 16; `docs/keen4/gameplay.md`, "Pictures behind the levels"). Keen 2
+  has no gliding pictures since AB2 (its rooms have no sky): it has walls,
+  below. The painters are `tools/make_keen3_backgrounds.py` and
   `tools/make_keen4_backgrounds.py`, with their shared canvas in
   `tools/background_painter.py`.
+
+### The wall fixed to the level (Keen 1 and 2, AB2)
+
+Behind a closed room the picture is not a sky that glides but a wall that
+moves 1:1 with the tiles (the user's choice of 22-10-2026; the research is
+in [backgrounds/research.md](backgrounds/research.md)). Same option, same
+rules: only in widescreen, on by default, 4:3 always the original, and a
+level without a wall texture keeps its own background.
+
+- **Where the textures are.** `assets/backgrounds/wallNN.webp` for Keen 1,
+  `assets/backgrounds/keen2/wallNN.webp` for Keen 2 (or `.png`, `.jpg`);
+  the player's `backgrounds/` folder next to the game files wins
+  (`BackdropPictures.walls`). A texture repeats (seamless, any size), one
+  texel per game pixel, drawn without smoothing.
+- **Which pixels are wall** (`BackdropHoles`, per level, by
+  `Keen1Walls` and `Keen2Walls`):
+  - Keen 1: the black of the dark rooms (tile 155) by the colour rule.
+    The grey (143) is the sky only outside: a grey region (cells joined
+    through grey on their shared edge) under a blue lamp (tile 156) is a
+    cone of light and keeps its grey, drawn from a second source of the
+    tile set without the sky's holes (`LevelMap.use_wall`,
+    `LevelTileSet.SKY_KEPT_SOURCE_ID`). So levels 2, 5, 6 and 11 keep every
+    cone, 9, 10, 12, 13, 15 and 16 show the sky only outside, and level 1
+    is exactly as before.
+  - Keen 2: the lattice (tile 143) by the pattern rule (`LatticeWalls`): a
+    pixel is wall where it equals the lattice at the same place, lit; where
+    it equals the lattice one EGA step darker it is a wall's shadow (drawn
+    at 45 %), where it equals the lattice in the dark (tile 147, levels 5
+    and 14; next to a cone of light its lines sit two pixels to the right)
+    the wall in the dark (35 %). A group of such pixels only counts when it
+    looks like the lattice (2x2 thick, touching the tile's edge, both kinds
+    of line in it, its field pixels next to its own lines), so a grey box,
+    a white board or a dithered roof stays whole. The teal of level 12
+    (tile 276) is wall by the colour rule.
+- **How it is drawn.** `LevelWall`, a tile layer behind the tiles with the
+  same cells (a child of `LevelMap`, z index -1), draws per cell the wall's
+  mask of its tile (`GraphicsTextures.wall_mask_atlas`: grey as bright as
+  the wall is drawn there), filled by `level_wall.gdshader` with the
+  texture at the pixel's place in the level (`MODEL_MATRIX`, before the
+  camera), so it never swims. It is on the level's canvas: Keen 2's
+  darkness dims it, and the second half of a split screen shows it. The
+  tiles get their holes from `GraphicsTextures.holes_tile_atlas` (xBRZ: the
+  same holes cut from the larger tiles).
 
 ## Still open
 

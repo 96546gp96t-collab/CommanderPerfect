@@ -191,7 +191,9 @@ death restarts the level, game over and Escape go back to the start screen
 - **`Keen2BackdropPictures extends BackdropPictures`** shows a picture only
   behind levels whose plain background tile is their most used tile;
   otherwise the patterned backgrounds of Keen 2 let it shine through their
-  dots. `Keen2View` builds it from the 16 levels at load.
+  dots. `Keen2View` built it from the 16 levels at load; since AB2 it uses
+  `Keen2Walls` (a wall fixed to the level) instead, see
+  `docs/backgrounds/research.md`.
 - **Darkness over the pictures:** the pictures are on canvas layers of
   their own, which the `CanvasModulate` of the level does not reach, so
   `Keen2SpaceScreen` puts a second and third `Keen2Darkness` into the two
