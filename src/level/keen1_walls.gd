@@ -10,10 +10,16 @@ extends LevelWalls
 ## every grey triangle hangs under a blue lamp (tile 156): a cone of light.
 ## The cones stay grey, as in the original. A grey region (cells joined
 ## through grey that touches their shared edge) is a cone when a cell of it
-## lies right under a lamp ([method sky_kept_cells]). So the levels outside
-## (1, 3, 4, 7, 8, 14) show their sky everywhere, the dark rooms (2, 5, 6,
-## 11) keep every cone, and the mixed ones (9, 10, 12, 13, 15, 16) show the
-## sky only outside; tests/test_level_walls.gd checks it on the real levels.
+## lies right under a lamp ([method sky_kept_cells]). Grey without a lamp
+## is the sky only where it has room: a cell next to the black of a dark
+## room (tile 155, also diagonally) is sky only when it is joined to a grey
+## cell that is not, within [constant ROOM_REACH] cells, so a long narrow
+## grey strip between dark walls stays grey (the
+## slopes and corners inside the castle of level 16, the corner at the
+## bottom left of level 9's shrine). So the levels outside (1, 3, 4, 7, 8,
+## 14) show their sky everywhere, the dark rooms (2, 5, 6, 11) keep every
+## cone, and the mixed ones (9, 10, 12, 13, 15, 16) show the sky only
+## outside; tests/test_level_walls_data.gd checks it on the real levels.
 
 ## The sky outside (Mars' sky is plain light grey in the original).
 const SKY_TILE := 143
@@ -21,6 +27,22 @@ const SKY_TILE := 143
 const WALL_TILE := 155
 ## A lamp at the ceiling of a dark room; the grey under it is its light.
 const LAMP_TILE := 156
+## How many cells next to the dark a grey cell may be from a cell with
+## room, and still be the sky (the edge of the sky along a dark room's
+## wall). Two would give the sky back the upper parts of the slopes in the
+## castle of level 16.
+const ROOM_REACH := 1
+## Every cell around a cell, also diagonally.
+const AROUND: Array[Vector2i] = [
+	Vector2i(-1, -1),
+	Vector2i(0, -1),
+	Vector2i(1, -1),
+	Vector2i(-1, 0),
+	Vector2i(1, 0),
+	Vector2i(-1, 1),
+	Vector2i(0, 1),
+	Vector2i(1, 1),
+]
 
 
 ## Keen 1's walls: textures in [param folder] or the player's own folder in
@@ -50,11 +72,63 @@ func sky_kept_cells(level: LevelData, holes: BackdropHoles) -> Dictionary[Vector
 	if holes == null or not holes.has_sky():
 		return kept
 	var skies := _sky_masks(level, holes.sky_color)
+	var roomy := _roomy_cells(level, skies)
 	for region in _regions(level, skies):
-		if _under_a_lamp(level, region):
-			for cell in region:
+		var lit := _under_a_lamp(level, region)
+		for cell: Vector2i in region:
+			if lit or not roomy.has(cell):
 				kept[cell] = true
 	return kept
+
+
+## The cells with sky colour that have room to be the sky: not next to the
+## black of a dark room, or joined to such a cell.
+func _roomy_cells(
+	level: LevelData, skies: Dictionary[int, PackedByteArray]
+) -> Dictionary[Vector2i, bool]:
+	var area := level.playable_rect()
+	var open: Dictionary[Vector2i, bool] = {}
+	var near: Array[Vector2i] = []
+	for y in range(area.position.y, area.end.y):
+		for x in range(area.position.x, area.end.x):
+			var cell := Vector2i(x, y)
+			if not skies.has(level.tile_at(cell)):
+				continue
+			if _next_to_the_dark(level, cell):
+				near.append(cell)
+			else:
+				open[cell] = true
+	var roomy := open.duplicate()
+	for reach in ROOM_REACH:
+		var reached: Array[Vector2i] = []
+		for cell in near:
+			if not roomy.has(cell) and _beside_roomy(level, skies, roomy, cell):
+				reached.append(cell)
+		for cell in reached:
+			roomy[cell] = true
+	return roomy
+
+
+## Whether [param cell] is joined through grey to a cell of [param roomy].
+static func _beside_roomy(
+	level: LevelData,
+	skies: Dictionary[int, PackedByteArray],
+	roomy: Dictionary[Vector2i, bool],
+	cell: Vector2i
+) -> bool:
+	for step in LatticeWalls.NEIGHBOURS:
+		var next := cell + step
+		if roomy.has(next) and _joined(skies, level.tile_at(cell), level.tile_at(next), step):
+			return true
+	return false
+
+
+static func _next_to_the_dark(level: LevelData, cell: Vector2i) -> bool:
+	var bounds := Rect2i(0, 0, level.width, level.height)
+	for step in AROUND:
+		if bounds.has_point(cell + step) and level.tile_at(cell + step) == WALL_TILE:
+			return true
+	return false
 
 
 ## For every tile that [param level] uses, its pixels of [param color] that
