@@ -315,7 +315,7 @@ func test_audio_chunks() -> void:
 	assert_true(audio.chunk(0).size() > 0, "the first PC sound")
 
 
-func test_icon_and_coming_soon_screen() -> void:
+func test_icon() -> void:
 	if _data == null:
 		return
 	var files := Keen5Files.locate()
@@ -325,8 +325,3 @@ func test_icon_and_coming_soon_screen() -> void:
 		var walking := _data.graphics.sprite(Keen5Episode.KEEN_WALK_RIGHT_SPRITE)
 		assert_equal(Vector2i(picture.get_size()), walking.get_size(), "walking")
 	assert_true(Keen5Icon.title(files, "Keen 5") != null, "the name in Keen 5's font")
-	var lines := Keen5View.map_lines(_data, 13)
-	assert_equal(lines[1], _data.executable.level_names()[13], "the level's name")
-	var plain := Keen5View.picture(_data, -1)
-	var named := Keen5View.picture(_data, 13)
-	assert_true(plain.get_data() != named.get_data(), "the name is printed")

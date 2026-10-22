@@ -4,7 +4,8 @@ extends "res://tests/test_case.gd"
 ## Keen 5 needs (the number of background tiles given, the texts before
 ## the misc chunks) and that Keen 4's files read as before without them;
 ## finding the files; the --game=5 option; the fifth icon; the online id
-## that waits for E11; and the "coming soon" screen.
+## that waits for E11; and the map the game screen is asked for (since
+## E3 the game itself: test_keen5_view.gd).
 
 const Fixtures := preload("res://tests/galaxy_fixtures.gd")
 const FileFixtures := preload("res://tests/galaxy_file_fixtures.gd")
@@ -166,22 +167,9 @@ func test_online_id_waits_for_e11() -> void:
 	assert_equal(GameCatalog.games()[4].game_id, Keen5Files.GAME_ID, "on the icon")
 
 
-func test_coming_soon_screen() -> void:
+func test_the_map_asked_for() -> void:
 	assert_equal(Keen5View.requested_map(["--game=5", "--level=7"]), 7, "the map asked for")
 	assert_equal(Keen5View.requested_map(["--game=5"]), -1, "none")
-	var folder := ProjectSettings.globalize_path(TEST_DIRECTORY)
-	FileFixtures.write_folder(folder)
-	var data := GalaxyData.load_from(GameFiles.open(folder, Fixtures.EXTENSION), Fixtures.episode())
-	_remove(folder)
-	if data == null:
-		assert_true(false, "the fixtures load")
-		return
-	var lines := Keen5View.map_lines(data, 1)
-	assert_equal(lines, PackedStringArray(["Map 1:", "Beta", "Town"]), "the name, line by line")
-	var missing := Keen5View.map_lines(data, 9)
-	assert_equal(missing, PackedStringArray([Keen5View.NOT_A_MAP_MESSAGE % 9]), "no such map")
-	var image := Keen5View.picture(data, 1)
-	assert_equal(image.get_size(), Keen5View.SCREEN_SIZE, "the original's screen")
 
 
 func _touch(folder: String, name: String) -> void:
