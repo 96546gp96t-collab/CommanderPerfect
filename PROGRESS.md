@@ -277,7 +277,7 @@ ligt wordt een gat (`docs/graphics.md`, onderzoek §8).
 ## Mijlpaal E5: wat er nu is
 
 Keen 5 heeft zijn platforms, zekeringen en de QED, op
-`milestone-e5-mechaniek` (22-10, 21:18-22:13 UTC). Elk level is nu uit te
+`milestone-e5-mechaniek` (22-10, 21:18-22:06 UTC). Elk level is nu uit te
 spelen, ook 4, 6, 8, 10 en 13 (zekeringen) en 12 (de QED). De regels staan
 in `docs/keen5/gameplay.md` ("Platforms", "Fuses and the QED"), de klassen
 en afwijkingen in `docs/keen5/architecture.md` ("Keen 5's machinery",
