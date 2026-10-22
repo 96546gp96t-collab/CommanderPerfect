@@ -164,3 +164,29 @@ the menus' texts, Paddle War's ("KEEN:", "COMP:"), the debug texts.
   right (the icon), 14 standing left, 15 walking left (seen by eye).
 - Loading (unpacking, headers, ranges) takes ~75 ms; the six headers
   without the known places ~85 ms.
+
+## Checked in E3
+
+- **Keen's sprites beyond walking are not Keen 4's numbers** (correcting
+  the line above for everything but standing and walking): Omnispeak's
+  `GFXCHUNK.CK5` minus 102 gives them (`Keen5Sprites`); looking down is
+  35/36, KEENONPLAT 37, dying 38/39, the shots, poles, doors, ledges and
+  pogo one further than Keen 4's; the score box is 133, Keen on the map
+  142 (SPR_MAPKEEN_STAND_W). Level 1's first frame in js-dos equals ours
+  to the pixel.
+- **TILEINFO misc kinds** (the low 7 bits; files): 1 pole (51 tiles), 2
+  door (5: 1025, 1293, 1294, 1729, 1730), 3 deadly (19), 4 Vitalin (4), 5/6
+  platform switch (1203/1204), 7-10 gem holders (1196-1199), 15 bridge
+  switch (1185/1186), 16 two tiles (196, 628; nothing in Keen 5), 17 eight
+  tiles (91-96, ...; no meaning known, nothing uses it), 18 bridge (59), 20
+  teleporter (1063), 21-26 point items, 28 stunner, 31 computer (4), 32
+  security door (1741/1742), 33/34 elevators (1864/1865). No 11-14 (water)
+  and no 27 (extra-life tile). The numbers the shared Galaxy code knows
+  mean the same as in Keen 4.
+- **Doors in the maps**: every security door (levels 2, 3, 5, 7, 9, 11,
+  13) is two misc-32 tiles in the middle of a 4 × 4 door picture whose
+  tiles step back by 4 three times into an open door (1729/1730, misc 2);
+  their target is 0xB1B1. Level 1's exit is a plain door; the fuse levels
+  (4, 6, 8, 10, 12) have no 0xB1B1 at all.
+- **Info 70** (the keycard) is item 12: Omnispeak places it with
+  info − 58; one per security-door level.

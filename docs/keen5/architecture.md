@@ -281,3 +281,102 @@ What E2 built differently from the plan above, and why (developer, E2):
    `Keen4View`: the plan's D2 "coming soon" screen is not in the history
    any more, and the real view comes with the shared game in E3. Escape or
    Enter goes back to the start screen.
+
+## The Galaxy game (from E3)
+
+How the shared game around the Galaxy engine is built (way 3). Later
+milestones follow it; Keen 4's own classes stay as they are (E13 may move
+Keen 4 onto these).
+
+### The classes in `src/galaxy/game/` (E3)
+
+| Class | Made from | What it is | Lines |
+|---|---|---|---|
+| `GalaxyGameRules` | the numbers in `Keen4Episode` and the Keen 4 classes | The numbers and tables of one episode (below); the episode fills it in (`Keen5Episode.game_rules()`) | 138 |
+| `GalaxyStart` | `Keen4Start` | Keen's start by the rules' info values: standing or on the world map (Keen 4's swimming start is Keen 4's own) | 70 |
+| `GalaxyLevelSession` | `Keen4LevelSession` | A level played: the world, Keen, the items, the camera, the level's end, the second player; without the swimmer | 283 |
+| `GalaxyLevelScreen` | `Keen4LevelScreen` | Drawing a map: tiles, sprites, xBRZ, camera, cover, pictures behind the levels; files and pictures from the rules | 334 |
+| `GalaxyPlayScreen` | `Keen4PlayScreen` | Playing a level on the clock, the score box, the queue of boxes, looking at a map without a level; without the status window, the world map, sound and music (hooks) | 398 |
+
+The chain is `GameScreen` → `GalaxyLevelScreen` → `GalaxyPlayScreen` →
+the episode's view (`Keen5View`). When the front, menu, co-op and online
+screens are lifted (E7, E9, E11), they go between `GalaxyPlayScreen` and
+the view, as in Keen 4's chain, and the view's parent moves up.
+
+### `GalaxyGameRules`
+
+| Field | Keen 5 | What |
+|---|---|---|
+| `name`, `data_folder`, `data_dir_option` | "Keen 5", `game_data/keen5`, `--data-dir-keen5=` | The messages when the files are missing or unreadable |
+| `locate_files`, `load_data` (Callables) | `Keen5Files.locate`, `Keen5Episode.load_data` | Finding and reading the files |
+| `user_folder` | `user://keen5` | Settings, saves, sound cache (used from E8/E9) |
+| `world_map`, `first_level`, `last_level`, `last_map`, `missing_maps` | 0, 1, 13, 15, [14] | `is_level`, `next_level` |
+| `keen_right_info`, `keen_left_info`, `map_keen_info` | 1, 2, 3 | Keen's start (`GalaxyStart`) |
+| `row_block_info`, `column_block_info` | 25, −1 (none) | Scroll blocks |
+| `first_item_info`, `last_item_info`, `more_item_infos`, `low_stunner_info`, `low_shots` | 57, 68, {70: 12}, 69, 5 | Items by info value (`item_of_info`) |
+| `keen_stand_right_sprite`, `keen_stand_left_sprite`, `map_keen_sprite` | 6, 14, 142 | Keen standing still, on the map |
+| `sprites` | `Keen5Sprites.all()` | Every sprite by name (Keen, items, shot, splash, SCOREBOX); `level_sprites()` for xBRZ |
+| `start_lives`, `start_shots`, `first_extra_life`, `stunner_charges`, `easy_stunner_charges` | 3, 5, 20000, 5, 8 | A new game, `charges_for(level)` |
+| `backdrop_folder`, `sky_tiles` | `res://assets/backgrounds/keen5`, none | The pictures behind the levels (none until E10) |
+
+### The hooks (virtual methods that do nothing or Keen 4's thing by default)
+
+| Where | Hook | Default | Keen 5 |
+|---|---|---|---|
+| `GalaxyLevelSession` | `_new_keen()` | a `GalaxyKeen` | `Keen5Keen` (`Keen5LevelSession`) |
+| | `_set_up_keen(walker)` | easy jumps on Easy | — (Keen 4 would show the moon) |
+| | `_place_info(info, cell)` | nothing | creatures and platforms from E4/E5 |
+| `GalaxyPlayScreen` | `_new_inventory()` | a `GalaxyInventory` with the rules' numbers | `Keen5Inventory` |
+| | `_new_session(map, number, random_start)` | a `GalaxyLevelSession` | `Keen5LevelSession` |
+| | `_play_sound(name, interrupt)`, `_play_map_song(map)` | silent | E8 |
+| | `_after_frame()`, `_waiting(tics)`, `_frame_input(tics)`, `_partner_input()`, `_wide_view_changed(width)`, `_partner_view_width(width)` | as Keen 4's | `Keen5View._after_frame`: the next level, a death |
+| `GalaxyKeenBody` (engine, additive) | `_action_rows()`, `_item_rows()`, `item_sounds` | Keen 4's rows and twelve sounds | Keen 5's rows without the moon and with `enter_security_door`, `entered_door`; four splash pictures; the keycard's sound |
+| | `_touch_other_tile(cell, kind)` | nothing | — (no Keen 5 tile acts on touch) |
+| `GalaxyKeen` (engine, additive) | `spawn(..., keen)` | a new `GalaxyKeen` | a `Keen5Keen` |
+| | `_is_door(kind)`, `_enter_door(kind)` | misc 2; the normal door | misc 32 too; the keycard and the door opener |
+
+What an episode adds beyond these (Keen 5's keycard, its door targets)
+lives in its own subclasses: `Keen5Keen` overrides `_think_enter_door`,
+`Keen5Inventory` overrides `collect` and `drop_gems`.
+
+## Deviations in E3
+
+What E3 built differently from the plan above, and why (developer, E3):
+
+1. **`GalaxyFiles`, `GalaxySettings` and `GalaxyIcon` were not lifted.**
+   `Keen5Files` and `Keen5Icon` from E2 already do their job; the rules
+   hold the two Callables (`locate_files`, `load_data`) the screen needs.
+   `GalaxySettings` belongs to the sound settings (Keen 4's quiet AdLib)
+   and comes with E8/E9.
+2. **The status window, the world map, sound and music stay out of
+   `GalaxyPlayScreen`** until their milestones (E6, E8): Keen 4's
+   `_on_map`, `_status_drop`, `_audio`, `_game_progress` were left out,
+   the sounds go through the hook `_play_sound` (silent). The queue of
+   boxes was lifted (small, generic, tested) though Keen 5 shows no box
+   yet.
+3. **Keen 5's sprites are not Keen 4's numbers.** The brief expected
+   Keen's own sprites at Keen 4's indices; that holds only up to putting
+   the book away (34). Looking down is one earlier in Keen 5 (35, 36), KEENONPLAT
+   follows (37), dying is at Keen 4's 38/39, and from shooting on every
+   picture is one further than Keen 4's: `Keen5Sprites` has its own full
+   table from Omnispeak (chunk − 102), and the js-dos frame of level 1
+   confirms it to the pixel.
+4. **Info 70 is item 12, not 70 − 57.** Omnispeak places it with
+   `infoValue − 58`; a plain item range would have made it 13 and 69 the
+   keycard. The rules have `more_item_infos` for values outside the range.
+5. **Two more engine hooks than planned**: `_action_rows()` and
+   `_item_rows()` in `GalaxyKeenBody`, because `GalaxyKeenActions.create`
+   asks for the moon's sprites (an error in Keen 5) and the Vitalin splash
+   has four pictures. Both return exactly what `use_sprites` built before,
+   so Keen 4 is unchanged (its demo suite, real-data suites and
+   regression screenshots are all the same). `_press_up`'s door part was
+   split into `_is_door` and `_enter_door`; the order of its statements is
+   the same.
+6. **The flow is D4's, not the original's**: level 1 at start, the next
+   level after a done one (13 → 1), a death the level again, game over
+   the start screen. Without `--level` the game starts in level 1 (the
+   title loop comes in E7). Map 15 (the high scores) has a Keen and is
+   played; map 0 is only looked at.
+7. **Not in E3**: the teleport lightning at doors whose head-row info is
+   0 (E6, with the door to Korath III), and the fuse levels cannot be
+   finished yet (no exit door; E5 breaks the fuses).

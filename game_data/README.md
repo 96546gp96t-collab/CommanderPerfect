@@ -111,4 +111,4 @@ program prints no version; it is known by its size); 1.0 should work as
 well. `CONFIG.CK5`, `KEEN5.VIF` and the original's saved games are not
 read. You can also start with `-- --game=5 --data-dir-keen5=/path/to/keen5`.
 The data viewer (`-- --game=5`) shows everything that is read. Keen 5 is
-being built: for now its icon opens a "coming soon" screen.
+being built: for now its icon starts level 1, played without creatures.

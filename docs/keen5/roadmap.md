@@ -299,3 +299,4 @@ Keen 4-tests slagen (hun namen van privéleden blijven bestaan).
 |---|---|---|
 | E1 Onderzoek | 22-10-2026 | Klaar; vragen beantwoord op 22-10-2026 (research.md §13) |
 | E2 Bestanden | 22-10-2026 | Klaar (branch `milestone-e2-bestanden`); vijf iconen, viewer en export voor Keen 5 |
+| E3 Gedeeld spel + level | 22-10-2026 | Klaar (branch `milestone-e3-level`); `src/galaxy/game/` (regels, start, levelsessie, level- en speelscherm), Keen 5 speelt elk level zonder wezens; sleutelkaart, beveiligingsdeuren, uitgang |

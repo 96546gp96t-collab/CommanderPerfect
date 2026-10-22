@@ -112,7 +112,7 @@ bestanden in [docs/keen5/file-formats.md](docs/keen5/file-formats.md).
 |---|---|---|
 | E1 | Onderzoek: code in kaart, Keen 5 v1.4 van de gebruiker uitgelezen, Omnispeak, architectuur, mijlpalen | ✅ Klaar (branch `milestone-e1-onderzoek`); vragen beantwoord op 22-10-2026 |
 | E2 | De bestanden van Keen 5 inlezen, data viewer, vijfde icoon | ✅ Klaar (branch `milestone-e2-bestanden`) |
-| E3 | Het gedeelde Galaxy-spel en een level spelen (sleutelkaart, beveiligingsdeuren, uitgang) | ⬜ |
+| E3 | Het gedeelde Galaxy-spel en een level spelen (sleutelkaart, beveiligingsdeuren, uitgang) | ✅ Klaar (branch `milestone-e3-level`) |
 | E4 | Wezens | ⬜ |
 | E5 | Platforms op pijlen, zekeringen en de QED | ⬜ |
 | E6 | De wereldkaart (teleporters, liften, Korath III, statusvenster) | ⬜ |
@@ -124,11 +124,12 @@ bestanden in [docs/keen5/file-formats.md](docs/keen5/file-formats.md).
 | E12 | Naast het origineel; alle opties uit = het origineel | ⬜ |
 | E13 | (Optioneel) Keen 4 op het gedeelde Galaxy-spel | ⬜ |
 
-**Volgende stap:** E3 (`milestone-e3-level`, vanaf `milestone-e2-bestanden`): het
-gedeelde Galaxy-spel in `src/galaxy/game/` (uit de Keen 4-klassen) en een
-Keen 5-level spelen, met de sleutelkaart, de beveiligingsdeuren en de
-uitgang; `Keen5View` wordt dan het echte spelscherm. De gebruiker uploadt
-Keen 2-5 weer naar de sessie.
+**Volgende stap:** E4 (`milestone-e4-wezens`, vanaf `milestone-e3-level`): de
+wezens van Keen 5, elk een eigen klasse, geplaatst via de haak
+`Keen5LevelSession._place_info`; daarbij de additieve naden in de engine
+(`sleep_margin` 6, schoten die alleen op het scherm leven, wit oplichten,
+extra sprites per object). De gebruiker uploadt Keen 2-5 weer naar de
+sessie.
 
 ## Achtergronden Keen 1 en 2: mijlpalen AB
 
@@ -272,6 +273,71 @@ ligt wordt een gat (`docs/graphics.md`, onderzoek §8).
   in `Keen2GuardRobot`; nu kijkt hij de kant op waar hij heen zweeft en
   schiet. Alleen namen/plaatjes gecontroleerd (js-dos overgeslagen op
   verzoek). Test `test_guard_robot_faces_the_way_it_floats_and_fires`.
+
+## Mijlpaal E3: wat er nu is
+
+Keen 5 is te spelen, nog zonder wezens, op `milestone-e3-level` (22-10,
+19:50-20:35 UTC). Het algemene Galaxy-spel staat in `src/galaxy/game/`,
+gemaakt uit de Keen 4-klassen; Keen 4 zelf is niet veranderd. De opzet
+staat in `docs/keen5/architecture.md` ("The Galaxy game", "Deviations in
+E3"), de spelregels in het nieuwe `docs/keen5/gameplay.md`.
+
+- [x] **`src/galaxy/game/`** (weg 3): `GalaxyGameRules` (de getallen van
+  een deel: maps, info-waarden, items, sprites, nieuwe-spelwaarden,
+  plaatjes, gebruikersmap; Keen 5 vult ze in `Keen5Episode.game_rules()`),
+  `GalaxyStart`, `GalaxyLevelSession`, `GalaxyLevelScreen`,
+  `GalaxyPlayScreen` (samen 1.223 regels). Keen 4-inhoud (zwemmen, de
+  maan, de raad, statusvenster, wereldkaart, geluid) zit er niet in maar
+  komt via haken: `_new_keen`, `_set_up_keen`, `_place_info`,
+  `_new_inventory`, `_new_session`, `_play_sound`, `_play_map_song`.
+- [x] **Naden in de engine** (additief, Keen 4 byte-gelijk):
+  `GalaxyKeen.spawn(..., keen)` (een subklasse plaatsen), `_is_door` /
+  `_enter_door` (andere deuren), `GalaxyKeenBody._action_rows`,
+  `_item_rows`, `item_sounds` (eigen acties, de Vitalin-spat, het 13e
+  item) en `_touch_other_tile` (onbekende tile-soorten).
+- [x] **Keen 5**: `Keen5View` (het echte spelscherm, de node-indeling van
+  Keen 4), `Keen5LevelSession`, `Keen5Keen` (sleutelkaart, de
+  beveiligingsdeur die in drie stappen van 15 tics opengaat terwijl Keen 45
+  tics naar binnen stapt, uitgang 0xB1B1, deur naar Korath III 0x0000),
+  `Keen5SecurityDoor`, `Keen5Inventory` (de sleutelkaart; kaart en
+  edelstenen weg na elk level en elke dood), `Keen5Sprites` (eigen tabel:
+  Keens sprites zijn vanaf omlaag kijken **niet** die van Keen 4).
+  Scrollblokken alleen info 25; info 70 is item 12 (info − 58).
+- [x] **Het verloop zoals Keen 4 in D4**: zonder `--level` level 1; uitgang
+  → volgend level (13 → 1, 14 overgeslagen); dood → het level opnieuw,
+  een leven minder; geen levens meer → startscherm. Shift+N/P, Shift+G,
+  Shift+I (ook de sleutelkaart). De wereldkaart (0) wordt alleen bekeken.
+- [x] **Naast het origineel (js-dos, v1.4)**: het eerste beeld van level 1
+  is pixel voor pixel gelijk (ook Keen en het scorebord); level 11 en de
+  wereldkaart hetzelfde beeld en dezelfde tiles (alleen wezens, het
+  scorebord op de kaart en animaties verschillen). De beveiligingsdeur is
+  in js-dos niet bereikt (te ver, achter wezens); die regels komen uit
+  Omnispeak en worden met de echte levels getest.
+- [x] **Bekeken** (scratchpad `e3/look`): levels 1, 2, 3, 5, 9, 11, 12,
+  13, 15 en de wereldkaart, in 4:3 en breedbeeld, met xBRZ.
+- [x] **Tests**: nieuw `test_galaxy_game_session` en
+  `test_galaxy_game_screen` (zelfgemaakt deel, `galaxy_game_fixtures.gd`),
+  `test_keen5_keen` (mini-levels, `keen5_level_fixtures.gd`),
+  `test_keen5_level` (echte data: Keen start in elke map, elk level loopt,
+  elke beveiligingsdeur gaat open naar het einde, de uitgang van level 1)
+  en `test_keen5_view`. Het coming-soon-scherm en zijn tests zijn weg.
+  **139 suites groen, 1 overgeslagen (Keen 4 v1.4), 0 FAIL, 0 SCRIPT
+  ERROR.** `gdformat` en `gdlint` schoon.
+- [x] **Controle Keen 1-4**: regressies tegen de nulmeting: Keen 1 alleen
+  `launcher.png` anders (gelijk aan E2's, het vijfde icoon), Keen 2 (4) en
+  Keen 4 (11 beelden) alles gelijk; Keen 4's demo's en echte-datatests
+  groen. `git diff origin/main` op `src/keen2-4`, hun tests, `src/actors`,
+  `src/map`, `src/game`: alleen de twee regels met het aantal spellen.
+  `tools/keen5_regression.sh` (level 1 en 11, 4:3 en breedbeeld) is nieuw.
+- **Niet gedaan:** de apps zijn hier niet gebouwd (de gebruiker bouwt op de
+  Mac). De zekeringlevels (4, 6, 8, 10, 12) hebben geen uitgangsdeur en
+  zijn pas uit te spelen met E5; de bliksem bij deuren komt met E6.
+- **Open:** in breedbeeld toont de wereldkaart (alleen bekeken) rechts een
+  geel blok buiten de kaart: voor E6, als de kaart echt gespeeld wordt.
+- **Om te proberen:** `godot --path . -- --game=5` (level 1, uit te lopen
+  door de uitgangsdeur), `-- --game=5 --level=3` (de beveiligingsdeur
+  helemaal links; Shift+I geeft de sleutelkaart, Shift+G god mode), F2,
+  F5, F6.
 
 ## Mijlpaal E2: wat er nu is
 

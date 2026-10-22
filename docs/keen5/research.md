@@ -544,3 +544,20 @@ Asked as a menu (AskUserQuestion) at the end of E1; the answers go below.
 5. Pictures behind the levels: yes (part of answer 2), in E10.
 6. Not asked yet: moving Keen 4 onto the Galaxy game (E13) is decided
    after E12.
+
+## Checked in E3
+
+What the E3 milestone measured (details in [gameplay.md](gameplay.md),
+"Watched in E3", and [file-formats.md](file-formats.md), "Checked in E3"):
+
+- In js-dos (v1.4): level 1's first view after the warp equals ours to the
+  pixel (view, tiles, Keen, score box); level 11 and the world map show the
+  same view and tiles (only creatures, the score box on the map and
+  animated tiles differ). The debug keys are A+2 held with Enter, the warp
+  F10+W, as in Keen 4.
+- In the files: every security door is the exit (0xB1B1) of its level;
+  only level 1 exits by a plain door; the fuse levels have no exit door.
+  Keen 5's Keen sprites differ from Keen 4's numbers from looking down on.
+- Still open for the original: the security door seen opening (not
+  reached quickly by script; the rules are Omnispeak's), the teleport
+  lightning (§12 question 1).
