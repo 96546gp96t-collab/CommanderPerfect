@@ -174,9 +174,11 @@ func _door_cells(map: GalaxyMap, kind: int) -> Array[Vector2i]:
 
 
 ## Puts Keen standing at the spot of the door [param cells] (two tiles
-## wide, his head in their row), the view on him.
+## wide, his head in their row), the view on him; in god mode, as the
+## creatures (since E4) may be near.
 static func _at_door(session: GalaxyLevelSession, cells: Array[Vector2i]) -> void:
 	var keen := session.keen
+	keen.god_mode = true
 	var door := cells[0]
 	keen.position = Vector2i(door.x * TILE + DOOR_SPOT, (door.y + 1) * TILE - STANDING_RISE)
 	keen.direction.x = 1
