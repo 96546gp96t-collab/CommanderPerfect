@@ -133,6 +133,8 @@ const SUITES: Array[Script] = [
 	preload("res://tests/test_galaxy_split_small_areas.gd"),
 	preload("res://tests/test_galaxy_sky_pockets.gd"),
 	preload("res://tests/test_galaxy_wide_waking.gd"),
+	preload("res://tests/test_keen5_files.gd"),
+	preload("res://tests/test_keen5_data.gd"),
 ]
 const TREE_SUITES: Array[Script] = [
 	preload("res://tests/test_keen4_d11_screen.gd"),
