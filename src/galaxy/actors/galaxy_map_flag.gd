@@ -16,7 +16,8 @@ extends GalaxyObject
 ## step, which the tile collision would limit).
 ## The episode gives the offsets ([member wave_offset],
 ## [member throw_offset]); sprites FLAG_WAVE_1-4, FLAG_FLIP_1-4,
-## FLAG_FALL_1.
+## FLAG_FALL_1 (an episode without a thrown flag, Keen 5, only needs the
+## waving ones: [method wave_at] with [code]waving_only[/code]).
 
 const PRIORITY := 3
 ## (Omni CK_ACT_MapFlag0-3, MapFlagFlips0-6.)
@@ -52,6 +53,8 @@ const ARC_PHASES: PackedInt32Array = [10, 15, 20]
 const ARC_LAST := 29
 ## A flag starts its wave at a random number / this.
 const WAVE_START_DIVISOR := 16
+## The first rows of [constant ROWS] are the waving ones.
+const WAVE_ROWS := 4
 
 ## The path of a thrown flag, and where it lands.
 var path: Array[Vector2i] = []
@@ -62,11 +65,17 @@ var _actions: Dictionary[StringName, GalaxyAction] = {}
 
 
 ## A waving flag for the holder at [param cell], [param offset] units from
-## its tile's corner.
+## its tile's corner; with [param waving_only] it knows only the waving
+## actions (an episode whose flags are never thrown has no flipping
+## sprites).
 static func wave_at(
-	world: GalaxyWorld, cell: Vector2i, offset: Vector2i, sprites: Dictionary[StringName, int]
+	world: GalaxyWorld,
+	cell: Vector2i,
+	offset: Vector2i,
+	sprites: Dictionary[StringName, int],
+	waving_only := false
 ) -> GalaxyMapFlag:
-	var flag := GalaxyMapFlag._made(world, sprites)
+	var flag := GalaxyMapFlag._made(world, sprites, waving_only)
 	flag.position = _corner(cell) + offset
 	flag.activity = Activity.ACTIVE
 	flag.start(flag._actions[&"wave_1"])
@@ -112,9 +121,12 @@ static func arc(from: Vector2i, to: Vector2i) -> Array[Vector2i]:
 	return points
 
 
-static func _made(world: GalaxyWorld, sprites: Dictionary[StringName, int]) -> GalaxyMapFlag:
+static func _made(
+	world: GalaxyWorld, sprites: Dictionary[StringName, int], waving_only := false
+) -> GalaxyMapFlag:
 	var flag := GalaxyMapFlag.new()
-	flag._actions = GalaxyAction.table_from(ROWS, sprites)
+	var rows := ROWS.slice(0, WAVE_ROWS) if waving_only else ROWS
+	flag._actions = GalaxyAction.table_from(rows, sprites)
 	flag.clip = Clip.NONE
 	flag.priority = PRIORITY
 	world.add(flag)
