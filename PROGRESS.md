@@ -277,7 +277,7 @@ ligt wordt een gat (`docs/graphics.md`, onderzoek §8).
 ## Mijlpaal E3: wat er nu is
 
 Keen 5 is te spelen, nog zonder wezens, op `milestone-e3-level` (22-10,
-19:50-20:35 UTC). Het algemene Galaxy-spel staat in `src/galaxy/game/`,
+19:50-20:31 UTC). Het algemene Galaxy-spel staat in `src/galaxy/game/`,
 gemaakt uit de Keen 4-klassen; Keen 4 zelf is niet veranderd. De opzet
 staat in `docs/keen5/architecture.md` ("The Galaxy game", "Deviations in
 E3"), de spelregels in het nieuwe `docs/keen5/gameplay.md`.
