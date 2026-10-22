@@ -239,11 +239,19 @@ decided on the way:
 - **Keen 1's cones by the lamp:** a grey region (cells joined through grey
   on their shared edge) is a cone when one of its cells hangs right under a
   lamp (tile 156), instead of "joined to the top of the level"; that also
-  finds the courtyard of level 12, which is closed at the top. The grey
-  diagonals inside the castle of level 16 and the grey corners at the
-  bottom of level 9 are joined to the outside and have no lamp: they show
-  the sky. Every level checked by a picture (scratchpad `verify/k1_LNN.png`:
-  magenta sky, yellow kept grey, green wall).
+  finds the courtyard of level 12, which is closed at the top. Grey
+  without a lamp is the sky only where it has room: a cell next to the
+  black of a dark room (tile 155, also diagonally) counts as sky only when
+  it is joined to a grey cell that is not (`Keen1Walls.ROOM_REACH`, one
+  cell). So the long slopes and the corners inside the castle of level 16,
+  its grey platform in the top room, and the corner at the bottom left of
+  level 9's shrine stay grey (the architect's check of 22-10-2026), while
+  the sky outside is as before. It also keeps the grey of a few one-cell
+  corners where a shrine's black floor meets the grey (levels 9, 10, 12,
+  15) and the grey edge of the sign under the lamps of level 5. Every
+  level checked by a picture (scratchpad `verify2/k1_LNN.png`: magenta
+  sky, yellow kept grey, green wall); levels 1-4, 6-8, 11, 13 and 14 are
+  unchanged by it.
 - **Keen 2 has no gliding pictures any more.** `Keen2BackdropPictures`
   stays (Keen 3's docs and tests compare with its rule) but `Keen2View`
   no longer uses it.

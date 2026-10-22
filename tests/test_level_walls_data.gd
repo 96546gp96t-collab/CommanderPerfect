@@ -23,6 +23,16 @@ const PLATFORM_ROWS := Rect2i(0, 0, SIZE, 5)
 const LEVEL_2_CONE := Vector2i(3, 3)
 const LEVEL_16_CONE := Vector2i(97, 18)
 const LEVEL_16_SKY := Vector2i(10, 10)
+## Grey inside the castle of level 16 without a lamp: on the long slope, and
+## the grey platform in the top room; the corner at the bottom left of
+## level 9's shrine.
+const LEVEL_16_SLOPE := Vector2i(86, 48)
+const LEVEL_16_PLATFORM := Vector2i(94, 10)
+const LEVEL_9_CORNER := Vector2i(2, 35)
+## Outside: level 9's sky right of the shrine, level 16's below the castle's
+## left tower.
+const LEVEL_9_SKY := Vector2i(30, 10)
+const LEVEL_16_YARD := Vector2i(80, 41)
 
 
 func test_keen_2_lattice_tiles() -> void:
@@ -85,6 +95,13 @@ func test_keen_1_cones_stay_grey_and_the_sky_shows_outside() -> void:
 	kept = walls.sky_kept_cells(level_16, walls.holes(level_16, sky, true))
 	assert_true(kept.has(LEVEL_16_CONE), "a cone in the castle stays grey")
 	assert_true(not kept.has(LEVEL_16_SKY), "the sky outside shows")
+	assert_true(not kept.has(LEVEL_16_YARD), "also below the left tower")
+	assert_true(kept.has(LEVEL_16_SLOPE), "a slope inside the castle stays grey")
+	assert_true(kept.has(LEVEL_16_PLATFORM), "and the grey platform in its top room")
+	var level_9 := LevelData.parse(files.read(GameFiles.level_file_name(9)))
+	kept = walls.sky_kept_cells(level_9, walls.holes(level_9, sky, true))
+	assert_true(kept.has(LEVEL_9_CORNER), "the corner in level 9's shrine stays grey")
+	assert_true(not kept.has(LEVEL_9_SKY), "level 9's sky outside shows")
 	var level_1 := LevelData.parse(files.read(GameFiles.level_file_name(1)))
 	assert_true(walls.sky_kept_cells(level_1, walls.holes(level_1, sky, false)).is_empty(), "1")
 
