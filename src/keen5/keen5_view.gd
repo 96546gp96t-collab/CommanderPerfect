@@ -1,40 +1,46 @@
 class_name Keen5View
-extends GalaxyPlayScreen
-## The Keen 5 game screen that the start screen opens (milestone E3): the
-## shared Galaxy game ([GalaxyPlayScreen], with Keen 5's numbers from
-## [method Keen5Episode.game_rules]) and, for now, the simple flow of a
-## game that Keen 4 had in its D4 (docs/keen5/gameplay.md, "The flow for
-## now"):
-##   - it starts in level 1, or in map N with [code]-- --game=5 --level=N[/code]
-##     (0 the world map and 15 the high-score map are only shown, Keen
-##     standing; 14 does not exist);
-##   - the exit door, the door to Korath III, the last fuse broken, the QED
-##     destroyed or walking out of a level: the next level (13 is followed
-##     by 1); after a fuse first the fuse message ([Keen5Messages]), each
-##     of its two screens 30 tics and then until a key; what each level
-##     counts as is kept in [member levels_done] (1, or 14 by its fuse);
-##   - a death: one life less and the level again; with no life left, the
-##     start screen.
-## The world map (E6), the other boxes, title and ending (E7), sound (E8)
-## and menus (E9) come later (docs/keen5/roadmap.md).
+extends GalaxyFlowScreen
+## The Keen 5 game screen that the start screen opens (milestones E3-E6):
+## the shared Galaxy game ([GalaxyFlowScreen], with Keen 5's numbers from
+## [method Keen5Episode.game_rules]) and what only Keen 5 does
+## (docs/keen5/gameplay.md, "The flow of a game"):
+##   - a new game starts on the world map, the Omegamatic
+##     ([Keen5MapSession]: teleporters, elevators, the shafts), behind its
+##     "Keen enters ..." box; [code]-- --game=5 --level=N[/code] opens map N
+##     at once (0 the world map, 1-13 the levels, 15 the high-score map;
+##     14 does not exist);
+##   - a level entered from the map: "One moment", its box with the
+##     count-down, the level; done by a door, its fuse or the door to
+##     Korath III it counts 1 or 14 ([Keen5Progress]); after a fuse the
+##     fuse message ([Keen5Messages]); then back on the map, behind the
+##     map's box, at the place he entered, or after the door to Korath III
+##     on Korath III with the box "Keen steps out onto Korath III";
+##   - the QED destroyed (map 12): the start screen for now (the end pages
+##     come in E7);
+##   - a death: one life less and the box with Try Again and Exit to
+##     Armageddon; with no life left the start screen (the galaxy
+##     explodes in E7);
+##   - Enter: the status window with the keycard ([Keen5StatusWindow]); on
+##     Korath III it names Korath III's base.
+## The title, the menus, sound and the rest come later
+## (docs/keen5/roadmap.md).
 ##
-## Keys: the shared ones (arrows, jump, pogo, fire); Escape the start
-## screen; Shift+N / Shift+P the next or previous map; Shift+G god mode and
-## Shift+I all four gems, the keycard and 99 charges (Keen 1-4's testing
-## cheats); F1 the help line; F2-F6 as in Keen 1-4 (widescreen, pixel
-## shape, full screen, graphics: original or xBRZ, smooth motion).
+## Keys: the shared ones (arrows, jump, pogo, fire); Enter the status
+## window; Escape the start screen; Shift+N / Shift+P the next or previous
+## map; Shift+G god mode and Shift+I all four gems, the keycard and 99
+## charges (Keen 1-4's testing cheats); F1 the help line; F2-F6 as in Keen
+## 1-4 (widescreen, pixel shape, full screen, graphics: original or xBRZ,
+## smooth motion).
 
-const NOT_A_MAP_MESSAGE := "Keen 5 has no map %d"
 ## The testing cheats' messages, worded as in Keen 1-4.
 const GOD_MODE_MESSAGE := "Cheat: god mode %s"
 const EVERYTHING_MESSAGE := "Cheat: all four gems, the keycard and 99 stunner charges"
 ## Shift+I gives at least this many charges (as Keen 4's).
 const CHEAT_SHOTS := 99
+## Keen's place on the world map below this row is Korath III (Omni
+## CK_LoadLevel: his box's top tile beyond row 100).
+const KORATH_ROW := Keen5MapSession.KORATH_ROW
 
-## What each level counts as once done, by map (Omni levelsDone: 1, or
-## 14 when its fuse ended it; [method Keen5LevelSession.result]), for the
-## world map (E6).
-var levels_done: Dictionary[int, int] = {}
 var _messages: Keen5Messages
 
 
@@ -51,18 +57,19 @@ func _ready() -> void:
 		return
 	_messages = Keen5Messages.create(_data)
 	_set_up_play()
+	_set_up_flow()
 	var requested := requested_map(OS.get_cmdline_user_args())
-	_show_level(requested if requested >= 0 else rules.first_level)
+	if requested >= 0:
+		_show_level(requested)
+	else:
+		_enter(rules.world_map, false)
 
 
 func _unhandled_input(event: InputEvent) -> void:
 	if _handle_display_keys(event):
 		get_viewport().set_input_as_handled()
-	elif not _queue.is_empty():
-		if _is_new_press(event):
-			get_viewport().set_input_as_handled()
-			if _queue.press():
-				_show_step()
+	elif _data != null and _flow_input(event):
+		return
 	elif event.is_action_pressed("ui_cancel"):
 		get_viewport().set_input_as_handled()
 		_leave()
@@ -78,29 +85,16 @@ static func requested_map(arguments: PackedStringArray) -> int:
 	return -1
 
 
-## Shows map [param number] at once: played when Keen stands in it,
-## otherwise with Keen standing still and the view on him.
-func _show_level(number: int, random_start := -1) -> void:
-	_map_number = number
-	# A fresh copy: playing changes the map's tiles.
-	var map := _data.maps.load_map(number) if _data.maps.has_map(number) else null
-	if map == null:
-		_show_message(NOT_A_MAP_MESSAGE % number)
-		return
-	_start = GalaxyStart.find(map, rules)
-	_objects.clear()
-	_keen_item = null
-	if random_start < 0:
-		random_start = randi() & GalaxyWorld.RANDOM_MASK
-	var played := _new_session(map, number, random_start)
-	if played != null:
-		_play(played, map)
-	else:
-		_look_at(map)
-
-
 func _new_inventory() -> GalaxyInventory:
 	return Keen5Inventory.new_game()
+
+
+func _new_progress() -> GalaxyProgress:
+	return Keen5Progress.new()
+
+
+func _new_status_window() -> GalaxyStatusWindow:
+	return Keen5StatusWindow.create_keen5(_data, rules)
 
 
 func _new_session(map: GalaxyMap, number: int, random_start: int) -> GalaxyLevelSession:
@@ -109,30 +103,54 @@ func _new_session(map: GalaxyMap, number: int, random_start: int) -> GalaxyLevel
 	)
 
 
-## After a frame: a level done goes on to the next, a death starts it
-## again (or ends the game). Returns whether the frames stop.
-func _after_frame() -> bool:
-	if _played.is_done():
-		_finish_level()
+func _new_map_session(map: GalaxyMap, random_start: int) -> GalaxyMapSession:
+	return Keen5MapSession.start_map(_data, rules, map, _game_progress, random_start)
+
+
+## The world map's box says "Keen steps out onto Korath III" when Keen
+## will stand there (Omni CK_LoadLevel).
+func _loading_box(number: int) -> Array[Image]:
+	if number == rules.world_map and _steps_onto_korath():
+		return _boxes.loading(_boxes.game_text(Keen5Episode.KORATH_TEXT))
+	return super(number)
+
+
+func _steps_onto_korath() -> bool:
+	var keen_5 := _game_progress as Keen5Progress
+	if keen_5.korath_arrival:
 		return true
-	if _played.is_lost():
-		_lose_level()
-		return true
+	return GalaxyUnits.to_tile(keen_5.map_position.y) > KORATH_ROW
+
+
+## On Korath III the status window's location is its base, level 13's
+## name, not the world map's (seen in the original, E6).
+func _status_map() -> int:
+	if _on_map != null and GalaxyUnits.to_tile(_on_map.keen.position.y) > KORATH_ROW:
+		return Keen5Progress.KORATH_LEVEL
 	return super()
 
 
-## The level is done (the exit door, the door to Korath III, its fuse,
-## the QED or walking out): it is marked; after its fuse the fuse message;
-## then the next level (Omni CK_GameLoop; the QED's end pages come in E7).
-func _finish_level() -> void:
-	var done := (_played as Keen5LevelSession).result()
-	_played = null
-	levels_done[_map_number] = done
-	var next := _show_level.bind(rules.next_level(_map_number))
-	if done == Keen5LevelSession.DONE_BY_FUSE:
-		_show_fuse_message(next)
-	else:
-		next.call()
+## What the level counts as: 1, 14 by its fuse, 15 by the QED
+## ([method Keen5LevelSession.result]).
+func _done_value(finished: GalaxyLevelSession) -> int:
+	return (finished as Keen5LevelSession).result()
+
+
+## After a level (Omni CK_GameLoop): the QED's end is the start screen for
+## now (E7: the end pages); a fuse shows its message first; the door to
+## Korath III puts Keen there; then the exit sound and the map.
+func _after_level_done(finished: GalaxyLevelSession) -> void:
+	var session := finished as Keen5LevelSession
+	match session.result():
+		Keen5LevelSession.DONE_BY_QED:
+			_game_progress.mark_done(_map_number, 0)
+			_game_ended()
+		Keen5LevelSession.DONE_BY_FUSE:
+			_play_sound(&"level_exit")
+			_show_fuse_message(_back_to_map)
+		_:
+			(_game_progress as Keen5Progress).korath_arrival = session.left_for_korath()
+			_exit_to_map()
 
 
 ## The two screens after a fuse, each 30 tics before a key counts (Omni
@@ -144,22 +162,6 @@ func _show_fuse_message(then: Callable) -> void:
 	_after_queue(then)
 
 
-## Keen died: a life less and the level again; with none left the game is
-## over and the start screen comes back.
-func _lose_level() -> void:
-	_played = null
-	_inventory.lives -= 1
-	if _inventory.lives < 0:
-		_leave()
-		return
-	_show_level(_map_number)
-
-
-func _leave() -> void:
-	set_process(false)
-	get_tree().change_scene_to_file.call_deferred(GameLaunch.LAUNCHER_SCENE)
-
-
 ## Shift+N and Shift+P: the next or previous map (over the missing one);
 ## Shift+G and Shift+I: the testing cheats. Returns whether it was one.
 func _handle_map_keys(event: InputEvent) -> bool:
@@ -169,7 +171,7 @@ func _handle_map_keys(event: InputEvent) -> bool:
 	if event.is_action_pressed("cheat_god"):
 		_toggle_god_mode()
 		return true
-	if event.is_action_pressed("cheat_items") and _played != null:
+	if event.is_action_pressed("cheat_items") and (_played != null or _on_map != null):
 		_give_everything()
 		return true
 	var step := 0
@@ -204,7 +206,8 @@ func _toggle_god_mode() -> void:
 	_show_message(GOD_MODE_MESSAGE % ("on" if _god_mode else "off"))
 
 
-## Shift+I in a level: all four gems, the keycard and at least 99 charges.
+## Shift+I in a level or on the map: all four gems, the keycard and at
+## least 99 charges.
 func _give_everything() -> void:
 	_inventory.shots = maxi(_inventory.shots, CHEAT_SHOTS)
 	_inventory.gems = PackedInt32Array([1, 1, 1, 1])

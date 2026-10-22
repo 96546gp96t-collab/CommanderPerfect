@@ -120,6 +120,42 @@ const MACHINERY: Dictionary[StringName, int] = {
 	&"PURPLEPLAT2": 321,
 	&"PLATFORM": 344,
 }
+## Keen on the world map and the waving flags (milestone E6; Omni
+## SPR_MAPKEEN_*, SPR_FLAGFLAP1-4, chunk − 102): three pictures per
+## direction (walking 1, walking 2, standing), waving; Keen 5 has no thrown
+## flag, so no flipping or falling pictures.
+const MAP: Dictionary[StringName, int] = {
+	&"MAP_W_WALK_1": 140,
+	&"MAP_W_WALK_2": 141,
+	&"MAP_W_STAND": 142,
+	&"MAP_E_WALK_1": 143,
+	&"MAP_E_WALK_2": 144,
+	&"MAP_E_STAND": 145,
+	&"MAP_N_WALK_1": 146,
+	&"MAP_N_WALK_2": 147,
+	&"MAP_N_STAND": 148,
+	&"MAP_S_WALK_1": 149,
+	&"MAP_S_WALK_2": 150,
+	&"MAP_S_STAND": 151,
+	&"MAP_SE_WALK_1": 152,
+	&"MAP_SE_WALK_2": 153,
+	&"MAP_SE_STAND": 154,
+	&"MAP_SW_WALK_1": 155,
+	&"MAP_SW_WALK_2": 156,
+	&"MAP_SW_STAND": 157,
+	&"MAP_NW_WALK_1": 158,
+	&"MAP_NW_WALK_2": 159,
+	&"MAP_NW_STAND": 160,
+	&"MAP_NE_WALK_1": 161,
+	&"MAP_NE_WALK_2": 162,
+	&"MAP_NE_STAND": 163,
+	&"MAP_WAVE_1": 164,
+	&"MAP_WAVE_2": 165,
+	&"FLAG_WAVE_1": 173,
+	&"FLAG_WAVE_2": 174,
+	&"FLAG_WAVE_3": 175,
+	&"FLAG_WAVE_4": 176,
+}
 ## Items 0-12 ([GalaxyInventory], [Keen5Inventory]): the first of their two
 ## frames, and the shadow that rises when Keen takes one (Omni
 ## CK_ItemSpriteChunks, ck_itemShadows): four gems (red, yellow, blue,
@@ -132,12 +168,14 @@ const ITEM_SHADOWS: PackedInt32Array = [130, 130, 130, 130, 93, 94, 95, 96, 97, 
 
 
 ## All of them in one list, by name, with the creatures'
-## ([Keen5CreatureSprites], E4) and the machinery's (E5).
+## ([Keen5CreatureSprites], E4), the machinery's (E5) and the world map's
+## (E6).
 static func all() -> Dictionary[StringName, int]:
 	var sprites: Dictionary[StringName, int] = KEEN.duplicate()
 	sprites.merge(OBJECTS)
 	sprites.merge(Keen5CreatureSprites.SPRITES)
 	sprites.merge(MACHINERY)
+	sprites.merge(MAP)
 	for item in ITEM_FIRST_FRAMES.size():
 		sprites[StringName("ITEM_%d" % item)] = ITEM_FIRST_FRAMES[item]
 		sprites[StringName("SHADOW_%d" % item)] = ITEM_SHADOWS[item]

@@ -59,8 +59,22 @@ const STATUS_V1_4 := 0x308D3
 const GAME_TEXTS := "game"
 const GAME_LENGTHS: PackedInt32Array = [31, 4, 30, 33, 22, 39, 23, 9, 18, 34, 48, 10]
 const GAME_V1_4 := 0x3053E
-## Which text of [constant GAME_TEXTS] is the arrival on Korath III.
+## Which text of [constant GAME_TEXTS] is which: "DEMO", the arrival on
+## Korath III, the three lines of the box after a death, "One moment".
+const DEMO_TEXT := 1
 const KORATH_TEXT := 2
+const TRY_AGAIN_INTRO_TEXT := 6
+const TRY_AGAIN_TEXT := 7
+const EXIT_TEXT := 8
+const ONE_MOMENT_TEXT := 11
+## No "Game Over!" text (the galaxy explodes instead, milestone E7).
+const NO_TEXT := -1
+## Keen counting down is the seventh picture from the end (Omni
+## PIC_COUNTDOWN5 = 92 of the pictures 6-98: GAMEOVER comes last).
+const COUNTDOWN_FROM_END := 7
+## A done level's flag stands here from its holder's corner (Omni
+## CK_MapFlagSpawn, Keen 5); Keen 5 throws no flag.
+const MAP_FLAG_OFFSET := Vector2i(-0x50, -0x1E0)
 ## The box of the B+A+T cheat, then "PAUSED" and the drive prompt (files),
 ## found by their lengths (the same as Keen 4's).
 const CHEAT_TEXTS := "cheat"
@@ -177,6 +191,18 @@ static func game_rules() -> GalaxyGameRules:
 	rules.start_lives = Keen5Inventory.START_LIVES
 	rules.start_shots = Keen5Inventory.START_SHOTS
 	rules.first_extra_life = Keen5Inventory.FIRST_EXTRA_LIFE
+	rules.map_flag_offset = MAP_FLAG_OFFSET
+	rules.throws_map_flag = false
+	rules.menu_font = MENU_FONT
+	rules.status_texts = STATUS_TEXTS
+	rules.game_texts = GAME_TEXTS
+	rules.game_over_text = NO_TEXT
+	rules.demo_text = DEMO_TEXT
+	rules.try_again_intro_text = TRY_AGAIN_INTRO_TEXT
+	rules.try_again_text = TRY_AGAIN_TEXT
+	rules.exit_text = EXIT_TEXT
+	rules.one_moment_text = ONE_MOMENT_TEXT
+	rules.countdown_from_end = COUNTDOWN_FROM_END
 	rules.backdrop_folder = BACKDROP_FOLDER
 	rules.sky_tiles = SKY_TILES
 	return rules
