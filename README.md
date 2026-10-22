@@ -16,11 +16,12 @@ Like DOSBox, it needs the files of the original Keen series.
 Those files belong to the owners of the original game; they are
 not in this repository and may not be added to it.
 
-### Step 1: get the files of Keen 1
+### Step 1: get the files
 
-Pick one:
+You only need the episodes you want to play; the start screen has an icon
+for each episode, and an episode without its files says so when you pick it.
 
-- **The shareware version (free).** Episode 1 was released as freely
+- **Keen 1 as shareware (free).** Episode 1 was released as freely
   distributable shareware. From the project folder, run:
 
   ```sh
@@ -30,14 +31,30 @@ Pick one:
   This downloads release 1.1 from the PCjs diskette archive on GitHub, checks
   every file and puts it in the right place (step 2 is then done for you). It
   needs `curl` and `python3`.
-- **Your own copy.** If you own the game, for example the *Commander Keen
-  Complete Pack* on Steam or GOG, use the files of episode 1 from its install
-  folder: the files ending in `.CK1`, and `KEEN1.EXE`.
+- **Your own copy.** If you own the games, for example the *Commander Keen
+  Complete Pack* on Steam or GOG, use the files of each episode from its
+  install folder. Keen 4's shareware (1.4) is the whole episode too.
 
-### Step 2: put the files in `game_data/keen1/`
+### Which versions work
 
-Copy all files of episode 1 into the folder `keen1` inside `game_data` (create
-`keen1` if it is not there). It must look like this:
+The files are read by their content, not at fixed places, so versions that
+were not tested should work as well:
+
+| Episode | Tested | Should work too |
+|---|---|---|
+| Keen 1 | 1.1 (shareware) | 1.31 and 1.34 (Steam/GOG) |
+| Keen 2 | 1.31 | 1.00 |
+| Keen 3 | 1.00 | 1.31 (Steam/GOG) |
+| Keen 4 | 1.0, 1.4 (shareware; Steam/GOG sell 1.4) | other 1.x |
+
+The game looks like the version you have (Keen 4's 1.4, for example, has
+red help pages); how it plays is the same.
+
+### Step 2: put the files in `game_data/`
+
+Each episode gets a folder of its own inside `game_data`: `keen1`, `keen2`,
+`keen3` and `keen4` (create the ones you need). For Keen 1 it must look like
+this:
 
 ```
 CommanderPerfect/
@@ -52,18 +69,25 @@ CommanderPerfect/
         └── … (any other files of the episode may stay)
 ```
 
-- Put the files **directly** in `keen1`, not in a folder inside it.
+| Episode | Needed (the other files of the episode go along) |
+|---|---|
+| Keen 2 | `KEEN2.EXE`, `EGAHEAD.CK2`, `EGALATCH.CK2`, `EGASPRIT.CK2` |
+| Keen 3 | `KEEN3.EXE`, `EGAHEAD.CK3`, `EGALATCH.CK3`, `EGASPRIT.CK3` |
+| Keen 4 | `KEEN4E.EXE` (or `KEEN4.EXE`), `EGAGRAPH.CK4`, `GAMEMAPS.CK4`, `AUDIO.CK4` |
+
+- Put the files **directly** in the episode's folder, not in a folder
+  inside it.
 - Upper or lower case in the file names does not matter.
-- Only episode 1 works; the files of episodes 2 and 3 end in `.CK2` and
-  `.CK3`.
 - The files can also stay somewhere else: then start the game with
-  `godot --path . -- --data-dir=/path/to/the/files`.
-- For a built app (see [Building the apps](#building-the-apps)) the files
-  go in `game_data/keen1/` **next to** `CommanderPerfect.app` or
+  `godot --path . -- --data-dir=/path/to/keen1` (and `--data-dir-keen2=`,
+  `--data-dir-keen3=`, `--data-dir-keen4=` for the others).
+- For a built app (see [Building the apps](#building-the-apps)) the folders
+  go in `game_data/` **next to** `CommanderPerfect.app` or
   `CommanderPerfect.exe`. The build scripts copy them there for you.
 
-If the files are missing or in the wrong place, the game says so on the
-screen: "Keen 1 data not found".
+If an episode's files are missing or in the wrong place, picking its icon
+on the start screen says so and names the folder to put them in. More details per
+episode: [game_data/README.md](game_data/README.md).
 
 Git ignores everything in `game_data/` (except its README), so the files can
 never end up in the repository by accident.
@@ -122,7 +146,7 @@ These keys have their own pages in Controls. See
 ### The start screen
 
 The game starts on the CommanderPerfect screen with an icon for each game
-in the bottom left, Keen 1 first; for now only Keen 1. Click it (or press Enter) to get to
+in the bottom left: Keen 1, 2, 3 and 4. Click one (or press Enter) to get to
 its main menu. "Choose Game" in the main menu leads back here.
 
 ### Playing online
@@ -177,8 +201,8 @@ tools/build_macos.sh    # build/CommanderPerfect.app (Intel and Apple Silicon)
 tools/build_windows.sh  # build/windows/CommanderPerfect.exe (64-bit)
 ```
 
-Both copy `game_data/keen1` next to the app, so it starts with a double
-click. For Windows, copy the whole `build/windows` folder to the PC. The
+Both copy the episode folders in `game_data/` next to the app, so it
+starts with a double click. For Windows, copy the whole `build/windows` folder to the PC. The
 builds need the Godot 4.7.2 export templates for macOS and Windows (Editor >
 Manage Export Templates). The `build/` folder is ignored by git, because it
 holds a copy of the game files.

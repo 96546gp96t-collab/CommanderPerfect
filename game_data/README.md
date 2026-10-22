@@ -1,8 +1,30 @@
 # Game data
 
 CommanderPerfect does not contain the game itself: you need the files of the
-original Keen 1 (episode 1). Put them here, directly in a folder called
-`keen1` (upper or lower case does not matter):
+original episodes you want to play. Each episode has a folder of its own
+here: `keen1`, `keen2`, `keen3` and `keen4`. You only need the episodes you
+have; picking an episode without its files on the start screen names
+the folder to put them in.
+
+## Which versions work
+
+Every piece of the files is found by its content, not at a fixed place, so
+versions that were not tested should work as well.
+
+| Episode | Folder | Tested | Should work too |
+|---|---|---|---|
+| Keen 1 | `keen1` | 1.1 (shareware) | 1.31 and 1.34 (Steam/GOG) |
+| Keen 2 | `keen2` | 1.31 | 1.00 |
+| Keen 3 | `keen3` | 1.00 | 1.31 (Steam/GOG) |
+| Keen 4 | `keen4` | 1.0, 1.4 (shareware; Steam/GOG sell 1.4) | other 1.x |
+
+The game looks like the version you have (Keen 4's 1.4, for example, has
+red help pages); how it plays is the same.
+
+## Keen 1
+
+Put the files of Keen 1 (episode 1) directly in a folder called `keen1`
+(upper or lower case does not matter):
 
 ```
 game_data/
@@ -38,8 +60,8 @@ so like them they stay here and are never shared.
 
 ## Keen 2
 
-Keen 2 (episode 2) is not shareware, so you need your own copy. Put its files
-in a folder called `keen2` next to `keen1`: at least `KEEN2.EXE`,
+Keen 2 (episode 2) is not shareware, so you need your own copy (version 1.31 is
+tested). Put its files in a folder called `keen2` next to `keen1`: at least `KEEN2.EXE`,
 `EGAHEAD.CK2`, `EGALATCH.CK2` and `EGASPRIT.CK2`, plus `LEVEL01.CK2` …
 `LEVEL16.CK2`, `LEVEL80.CK2`, `LEVEL81.CK2`, `LEVEL90.CK2` and `FINALE.CK2`.
 There is no `SOUNDS.CK2` or text file: those are inside `KEEN2.EXE`. You can
@@ -55,3 +77,23 @@ As with Keen 2, the sounds and the texts are inside `KEEN3.EXE`. Version
 1.00 is tested; 1.31 (Steam/GOG) should work as well, because everything is
 found by its content. You can also start with
 `-- --data-dir-keen3=/path/to/keen3`.
+
+## Keen 4
+
+Keen 4 (episode 4) is a different engine ("Galaxy"), with other files. Put
+them in a folder called `keen4` next to `keen1`: `EGAGRAPH.CK4`,
+`GAMEMAPS.CK4`, `AUDIO.CK4` and the program, `KEEN4E.EXE` (or
+`KEEN4.EXE`). The headers of the other files are inside the program and are
+found there by their content. Both versions are tested: 1.0 (the program
+says "(v1.0)" when it starts) and the shareware 1.4 ("(v1.4)"; Steam and
+GOG sell 1.4 as well). The game looks like the version you have: 1.4's
+help and end pages are red with a frame, 1.0's light grey. Header files
+next to the game (`EGAHEAD.CK4`, `EGADICT.CK4`, `MAPHEAD.CK4`,
+`AUDIOHED.CK4`, `AUDIODCT.CK4`), as mods have, are used instead of the ones
+in the program. `CONFIG.CK4` and the original's saved games are not read.
+You can also start with `-- --game=4 --data-dir-keen4=/path/to/keen4`. The
+data viewer (`-- --game=4`) shows everything that is read.
+
+For the developers' tests a second copy in `keen4-v14` (or the folder in
+the environment variable `KEEN4_V14_DIR`) is checked as v1.4 by
+`tests/test_keen4_v14.gd`, next to the copy in `keen4`.

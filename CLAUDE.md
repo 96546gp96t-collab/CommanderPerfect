@@ -28,6 +28,9 @@ Real-ESRGAN graphics. Singleplayer comes first; local co-op may follow later.
   again) are on by default; the 4:3 picture is always the original.
 - Work per milestone on a branch named `milestone-<n>-<topic>`.
 - Talk to the user in Dutch. Code, comments and commit messages are in English.
+- **Ask the user questions as a menu of options** (the AskUserQuestion tool:
+  2-4 options per question, the advice first, marked "(Recommended)"), never
+  as a plain list in the text (the user's wish, 19-10-2026).
 
 ## Hard rules
 

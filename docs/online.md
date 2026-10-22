@@ -147,14 +147,22 @@ hosts), or play on two computers.
 
 Keen 2 plays online too (milestone B9, [keen2/gameplay.md](keen2/gameplay.md)),
 with its own game id, and so does Keen 3 (milestone C10,
-[keen3/gameplay.md](keen3/gameplay.md), "Two players (C10)").
+[keen3/gameplay.md](keen3/gameplay.md), "Two players (C10)") and Keen 4
+(milestone D12, [keen4/gameplay.md](keen4/gameplay.md), "Online"). Keen 4
+is another engine: its online pages are under Configure > Online Game,
+its fingerprint is that of its one GAMEMAPS file (`GalaxyFingerprint`),
+and it has messages of its own, appended at the end of
+`OnlineProtocol.Message` (`GALAXY_SCENE`, `GALAXY_TILE`,
+`GALAXY_SNAPSHOT`: the three planes' changed tiles, the sprites, the
+boxes by name, Keen 4's inventory); Keen 1-3's messages stay byte for
+byte the same.
 
 ## Joining another game
 
 A player can join a host who plays another Keen: his game switches over.
 Since C10 this goes for all three (`OnlineProtocol.GAME_IDS`): a Keen 1 or
 Keen 2 player who joins a Keen 3 host switches to Keen 3, and the other
-way round.
+way round; since D12 for Keen 4 too.
 
 - **By IP:** the host's challenge names his game. When it is another of
   ours, the player's game remembers the address and password

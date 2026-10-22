@@ -31,7 +31,9 @@ const START_CELL := Vector2i(4, 2)
 
 func test_keen_3_is_one_of_our_games() -> void:
 	var ids := OnlineProtocol.GAME_IDS
-	assert_equal(ids, [OnlineProtocol.GAME_ID, OnlineProtocol.GAME_ID_KEEN_2, KEEN_3], "three")
+	assert_equal(
+		ids.slice(0, 3), [OnlineProtocol.GAME_ID, OnlineProtocol.GAME_ID_KEEN_2, KEEN_3], "three"
+	)
 	assert_equal(GameCatalog.for_game_id(KEEN_3).scene, GameLaunch.KEEN_3_SCENE, "its scene")
 	assert_equal(GameCatalog.for_game_id(KEEN_3).title, "Keen 3", "its name in Steam's list")
 

@@ -31,8 +31,9 @@ const ACTIONS: Dictionary[String, String] = {
 	"status": "Status",
 }
 ## The actions of each player when two play, with the names the menu shows.
-## Walking up and down is only needed on the world map, where player 1 plays
-## alone with the keys of [constant ACTIONS].
+## Up and down came last (milestone D12): Keen 4 needs them in its levels
+## (poles, doors, looking); Keen 1-3 do not use them in levels, and on their
+## world map the keys of playing alone steer as well.
 const PLAYER_ACTIONS: Array[Dictionary] = [
 	{
 		"p1_left": "Left",
@@ -40,6 +41,8 @@ const PLAYER_ACTIONS: Array[Dictionary] = [
 		"p1_jump": "Jump",
 		"p1_pogo": "Pogo",
 		"p1_fire": "Fire",
+		"p1_up": "Up",
+		"p1_down": "Down",
 	},
 	{
 		"p2_left": "Left",
@@ -47,6 +50,8 @@ const PLAYER_ACTIONS: Array[Dictionary] = [
 		"p2_jump": "Jump",
 		"p2_pogo": "Pogo",
 		"p2_fire": "Fire",
+		"p2_up": "Up",
+		"p2_down": "Down",
 	},
 ]
 ## The status screen is there in both ways of playing.

@@ -3,7 +3,8 @@ extends Control
 ## tiles, sprites, bitmaps and the font. Used to check that the data is
 ## decoded correctly before the game itself is built on top of it.
 ## With [code]-- --game=2[/code] on the command line it shows Keen 2's
-## files instead of Keen 1's, with [code]-- --game=3[/code] Keen 3's.
+## files instead of Keen 1's, with [code]-- --game=3[/code] Keen 3's, with
+## [code]-- --game=4[/code] Keen 4's on a page of its own ([GalaxyViewerPage]).
 
 const TILE_ATLAS_COLUMNS := 16
 const FONT_ATLAS_COLUMNS := 32
@@ -18,6 +19,10 @@ const KEEN_2_MISSING_DATA_MESSAGE := (
 const KEEN_3_MISSING_DATA_MESSAGE := (
 	"Keen 3 data not found. Put the files in game_data/keen3 "
 	+ "(see game_data/README.md) or start with: -- --game=3 --data-dir-keen3=PATH"
+)
+const KEEN_4_MISSING_DATA_MESSAGE := (
+	"Keen 4 data not found. Put the files in game_data/keen4 "
+	+ "(see game_data/README.md) or start with: -- --game=4 --data-dir-keen4=PATH"
 )
 
 var _files: GameFiles
@@ -41,6 +46,9 @@ var _zoom := 2
 
 func _ready() -> void:
 	var game := GameLaunch.game_number(OS.get_cmdline_user_args())
+	if game == 4:
+		_show_keen_4()
+		return
 	var keen_2 := game == 2
 	var keen_3 := game == 3
 	if keen_3:
@@ -81,6 +89,22 @@ func _ready() -> void:
 	_fill_image_lists()
 	_show_selected_level()
 	_apply_zoom()
+
+
+## Keen 4 is a Galaxy game, with files of its own kind: its own page
+## takes the place of the tabs.
+func _show_keen_4() -> void:
+	var files := Keen4Files.locate()
+	var data := Keen4Episode.load_data(files) if files != null else null
+	if data == null:
+		_show_error(KEEN_4_MISSING_DATA_MESSAGE)
+		return
+	_tabs.visible = false
+	var page := GalaxyViewerPage.new()
+	_tabs.get_parent().add_child(page)
+	_status_label.text = (
+		"Loaded game data from %s. %s" % [files.directory, page.show_data(data, _zoom_spin_box)]
+	)
 
 
 func _show_error(message: String) -> void:

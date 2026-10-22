@@ -3,7 +3,7 @@
 
 Our own pictures, drawn from code: nothing in them comes from the game files.
 Each picture is painted small, in the chunky pixels of the game, and then
-blown up without smoothing (tools/keen3_canvas.py), so that it sits well
+blown up without smoothing (tools/background_painter.py), so that it sits well
 behind the level's tiles. Only the levels with sky get one (see
 Keen3BackdropPictures): 1-11, 13, 14 and 15. Every level has its own scene
 that fits what the level shows: a city at dusk behind a city level, a
@@ -22,7 +22,7 @@ import sys
 
 import numpy as np
 
-from keen3_canvas import BAYER, NARROW, WIDE, Canvas, rgb
+from background_painter import BAYER, NARROW, WIDE, Canvas, rgb
 
 # The scenes, one per level ---------------------------------------------------
 

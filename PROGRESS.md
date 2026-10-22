@@ -62,10 +62,918 @@ over Keen 3 bekend is in [docs/keen3/research.md](docs/keen3/research.md).
 | C6 | Wereldkaart: teleporters, Messie, het schip, statusscherm | ✅ Klaar en gecontroleerd door de architect (branch `milestone-c6-kaart`) |
 | C7 | Mortimer, de Mangling Machine en het einde | ✅ Klaar en gecontroleerd door de architect (branch `milestone-c7-mortimer-einde`) |
 | C8 | Geluid, menu's, opslaan, highscores | ✅ Klaar en gecontroleerd door de architect (branch `milestone-c8-geluid-menus`) |
-| C9 | Mooier maken (framerate, xBRZ, achtergronden, builds) | ✅ Gebouwd, wacht op controle architect (branch `milestone-c9-extras`); Real-ESRGAN bewust overgeslagen |
-| C10 | Co-op lokaal en online | ✅ Gebouwd, wacht op controle architect (branch `milestone-c10-coop`); Steam niet te testen hier |
-| C11 | Naast het origineel (wat nog geschat is) | ✅ Gebouwd, wacht op controle architect (branch `milestone-c11-origineel`); een deel blijft geschat (research.md) |
+| C9 | Mooier maken (framerate, xBRZ, achtergronden, builds) | ✅ Klaar en gecontroleerd door de architect, met eigen plaatjes achter de levels (branch `milestone-c9-extras`); Real-ESRGAN bewust overgeslagen |
+| C10 | Co-op lokaal en online | ✅ Klaar en gecontroleerd door de architect (branch `milestone-c10-coop`); Steam niet te testen in de cloud |
+| C11 | Naast het origineel (wat nog geschat is) | ✅ Klaar en gecontroleerd door de architect; C8-C11 gemerged naar `main` (PR #15); een deel blijft geschat (research.md) |
 | C12 | Keen 1 en 2 bijwerken met de getallen uit Chocolate Keen (ook de sprongen) | ⬜ |
+
+## Keen 4: mijlpalen D
+
+Het vierde deel is een **andere engine** (Galaxy): nieuwe bestanden,
+natuurkunde, klok en geluid. De Galaxy-engine komt in `src/galaxy/` (ook
+voor Keen 5 en 6), Keen 4 zelf in `src/keen4/`; Keen 1-3 blijven zoals ze
+zijn. Wat elke mijlpaal inhoudt staat in
+[docs/keen4/roadmap.md](docs/keen4/roadmap.md), de opzet in
+[docs/keen4/architecture.md](docs/keen4/architecture.md), wat er over Keen 4
+bekend is in [docs/keen4/research.md](docs/keen4/research.md) en de
+bestanden in [docs/keen4/file-formats.md](docs/keen4/file-formats.md).
+
+| # | Mijlpaal | Status |
+|---|---|---|
+| D1 | Onderzoek: code in kaart, Keen 4 v1.0 van de gebruiker uitgelezen, Omnispeak, architectuur, mijlpalen | ✅ Klaar (branch `milestone-d1-onderzoek`); vragen beantwoord op 19-10-2026 |
+| D2 | De bestanden van Keen 4 inlezen, data viewer, vierde icoon | ✅ Klaar en gecontroleerd door de architect (branch `milestone-d2-bestanden`) |
+| D3 | Een level tekenen | ✅ Klaar en gecontroleerd door de architect (branch `milestone-d3-level`) |
+| D4 | Keen beweegt (klok, acties, hellingen, palen, randen) | ✅ Klaar en gecontroleerd door de architect (branch `milestone-d4-keen`) |
+| D5 | Vijanden | ✅ Klaar en gecontroleerd door de architect (branch `milestone-d5-vijanden`) |
+| D6 | Platforms, schakelaars, de raad, onder water | ✅ Klaar en gecontroleerd door de architect (branch `milestone-d6-mechaniek`) |
+| D7 | De wereldkaart | ✅ Klaar en gecontroleerd door de architect (branch `milestone-d7-kaart`) |
+| D8 | Het einde, de titel en de demo's | ✅ Klaar en gecontroleerd door de architect (branch `milestone-d8-einde-titel`) |
+| D8.1 | Fix: tekenen op de pixelstappen van het origineel | ✅ Klaar en gecontroleerd door de architect (branch `milestone-d8.1-pixelstappen`) |
+| D9 | Geluid en muziek (eigen OPL2-synthesizer) | ✅ Klaar en gecontroleerd door de architect (branch `milestone-d9-geluid`; developer + tester) |
+| D10 | Menu's en opslaan | ✅ Klaar en gecontroleerd door de architect (branch `milestone-d10-menus`; developer + tester) |
+| D11 | Mooier maken en Paddle War | ✅ Klaar en gecontroleerd door de architect (branch `milestone-d11-extras`; menu-developer + tester en een tekenaar tegelijk) |
+| D12 | Co-op | ✅ Klaar en gecontroleerd door de architect (branch `milestone-d12-coop`; developer + tester) |
+| D13 | Naast het origineel | ✅ Klaar en gecontroleerd door de architect (branch `milestone-d13-origineel`; drie developers en een tester) |
+| D13.2 | Fixes na de test van de gebruiker: split-screen kijken, trillen in pauzes, cheats, online-pagina, glas in Miragia | 🔶 Gebouwd, in test bij de gebruiker (branch `milestone-d13.2-fixes`) |
+
+## D13.2: fixes (21-10)
+
+Zes bugs uit de test van de gebruiker, op `milestone-d13.2-fixes` (vanaf
+`milestone-d13.1-versies`). Alleen Galaxy- en Keen 4-code; Keen 1-3 en
+de gedeelde code zijn niet veranderd (regressies Keen 1, 2 en 4: 0
+verschillen, byte voor byte).
+
+1. **Kijken in split-screen.** Elke Keen had al zijn eigen camera die
+   omhoog/omlaag kijkt, maar de split-screen keek naar het midden van
+   de Keens en negeerde dat. Nu schuift elke helft mee met de blik van
+   zijn eigen Keen (`GalaxyCamera.look_pixels`, `GalaxySplitView`),
+   glijdend, maar zo dat zijn Keen 16 px binnen zijn helft blijft en
+   nooit voorbij de scroll-blokken. Eén gedeeld beeld schuift niet mee
+   (anders kan de ander uit beeld raken).
+2. **Trillen in pauzes.** Oorzaak: met vloeiende beweging tekende het
+   spel tussen de laatste twee logische frames op het punt van de klok;
+   de klok liep in een pauze (vensters, statusvenster, menu, "You didn't
+   make it past", na het uitlopen, "One moment") door, dus Keen en
+   platforms wiebelden tussen twee plekken. Nu blijft dat punt staan
+   zolang het spel niet stapt (`Keen4PlayScreen._blend_to_draw`); ook de
+   split-screen glijdt dan niet en wie online meedoet tekent stil zonder
+   nieuw beeld van de host. Keen 1-3 hadden dit niet: zij tekenen hun
+   sprites niet terwijl een venster of menu het spel stilzet (in de code
+   nagekeken); daar is niets aan veranderd.
+3. **Cheats.** Keen 4 had Shift+G zonder melding en geen Shift+I. Nu als
+   Keen 1-3, in een level en op de kaart, met dezelfde meldingen op
+   dezelfde plek: "Cheat: god mode on/off" (ook voor speler 2) en
+   Shift+I "Cheat: all four gems and 99 stunner charges" (alle vier de
+   edelstenen, minstens 99 ladingen, geen extra leven en geen venster;
+   B+A+T en E+N+D blijven). Shift+I in een level gaat mee in een
+   opgeslagen level.
+4. **Online Game zwart.** De online-pagina's werden op een zwart scherm
+   getekend; nu over de pols-computer heen, zoals de andere vensters van
+   het menu (`GalaxyOnlinePageView`).
+5. **God mode zonder melding**: zie 3.
+6. **Door de glazen vloer van Miragia kijken.** Het glas is
+   voorgrond-tiles met doorzichtige binnenkant over de effen lucht; met
+   een plaatje achter het level zag je het plaatje door het glas, en ook
+   door de vloer waar een glazen zuil in de loopband staat. Eerste versie
+   (alle ingesloten lucht lichtblauw) nam het plaatje ook uit het glas;
+   op verzoek van de gebruiker vervangen door een vloer-regel (zie 8).
+7. **Split-screen in kleine ruimtes** (tweede ronde, 21-10). Ging één
+   speler een huisje in (een ruimte tussen scroll-blokken die nauwelijks
+   groter is dan het beeld, zoals het huisje in Border Village: 8 px
+   hoger dan het beeld), dan stond dat huisje midden in het hele scherm,
+   bij een schuine lijn deels in de helft van de ander, en zijn eigen
+   helft was zwart. Nu: is het scherm gesplitst en is de ruimte van een
+   van beiden kleiner dan 1,2 beeld breed of hoog, dan draait de lijn
+   (glijdend) naar een rechte lijn door het midden. Wie op dat moment
+   het meest links staat krijgt de linkerhelft; de kanten blijven tot de
+   lijn weer terug is gedraaid (geen wissel terwijl hij recht staat). Elke
+   Keen staat dan midden in zijn eigen helft en zijn helft blijft in zijn
+   ruimte: een ruimte kleiner dan de helft staat in het midden van zijn
+   helft. Zijn beiden weer buiten, dan draait de lijn terug naar de
+   schuine. Eén gedeeld beeld blijft zoals het was (`GalaxySplitView`).
+8. **Vloer dicht, glas doorzichtig** (tweede ronde, 21-10). Nu toont al
+   het glas het plaatje (gebouwen, zuilen, koepels, ramen) en worden
+   alleen gaten in een vloer lichtblauw geschilderd: een rij
+   vloercellen (op een tile waar Keen op loopt) met lucht erachter, met
+   aan minstens één kant de loopband (voorgrond, dicht, zelf niet om op
+   te lopen) en aan de andere kant de band of een muur
+   (`GalaxySkyPockets`). Nagekeken op alle Keen 4-levels met een
+   plaatje: alleen level 9 (de voeten van de zuilen en koepels in de
+   loopband en op de platforms, hoekjes bij muren, de gaten van de
+   palen) en 3 pixels in level 5.
+9. **Lucht boven de looprand van Miragia** (derde ronde, 21-10). Naast de
+   gele slak (level 9, cellen 60-63 in rij 61) schilderde de vloer-regel
+   de lucht boven een lage richel lichtblauw: de bovenkant van die richel
+   vult alleen de onderste helft van zijn cellen, tussen de band van een
+   hogere richel en een hoge muur. Nu moet een gat ook bovenaan dicht zijn
+   (geen doorzichtige pixel in de bovenste rij van de cellen: de bovenlijn
+   van de band loopt erover); lucht die van boven binnenkomt toont het
+   plaatje. In het origineel (js-dos) is dat stuk dezelfde lucht als
+   tussen de richels. Alleen die vier cellen en de 3 pixels van level 5
+   (een inkeping aan de lucht, aan de rand van de kaart) zijn veranderd;
+   alle gaten van ronde 8 blijven dicht.
+10. **Vijanden en items die opduiken in breedbeeld** (derde ronde, 21-10).
+   Het spel besliste wie wakker is met het beeld van het origineel (320
+   pixels); in breedbeeld stond er links en rechts al iets in beeld dat
+   nog sliep en pas verscheen als het beeld van het origineel dichtbij
+   kwam. Nu telt het brede beeld mee (`GalaxyCamera.view_tiles`): wakker
+   worden binnen 1 tile, slapen voorbij 4, schoten weg op 10 tiles,
+   "in beeld" (Bounder-geluid, schot dat slapers raakt, Keen die sterft):
+   de marges van het origineel rond wat je ziet. In split screen telt
+   wat elke helft laat zien; online telt de host voor de meespeler het
+   breedste beeld (426 pixels). In 4:3 en in de demo's blijft alles als
+   het origineel (een demo zou anders lopen). Een opgeslagen level speelt
+   zijn frames weer met dezelfde breedte (die staat tussen de frames, ook
+   na F2). Tegels animeren al op de hele kaart; items zijn sprites, dus
+   er dook verder niets op.
+
+- [x] Nieuwe suites `test_keen4_d13_2_fixes` (boom), `test_galaxy_split_look`, `test_galaxy_sky_pockets`; ze falen met de fixes uitgezet. 124 suites: 123 groen, `test_keen4_v14` overgeslagen (geen 1.4-bestanden op deze Mac), 0 fouten, geen SCRIPT ERROR, gdlint schoon.
+- [x] Regressies Keen 1, 2 en 4 tegen 314286d: alles gelijk. Apps gebouwd (Mac en Windows).
+- [x] Tweede ronde (7 en 8): nieuwe suite `test_galaxy_split_small_areas`, `test_galaxy_sky_pockets` herschreven, de glastest in `test_keen4_d13_2_fixes` aangepast en de split-wandeling daar met een vaste seed (het level begint op een willekeurige plek; soms hield een wezen speler 2 tegen, ook al op e3c8482). 125 suites: 124 groen, `test_keen4_v14` overgeslagen, 0 fouten, geen SCRIPT ERROR, gdlint schoon. Regressies Keen 1, 2 en 4 tegen e3c8482: alles gelijk. Apps opnieuw gebouwd.
+- [x] Derde ronde (9): `test_galaxy_sky_pockets` met de lage richel tegen een muur (faalt op de oude regel), de level 9-test kijkt ook naar die plek. 125 suites: 124 groen, `test_keen4_v14` overgeslagen, 0 fouten, geen SCRIPT ERROR, gdlint schoon. Regressies Keen 1, 2 en 4 tegen 50138bc: alles gelijk. Apps opnieuw gebouwd.
+- [x] Derde ronde (10): nieuwe suites `test_galaxy_wide_waking` (een ding naast het 4:3-beeld slaapt in 4:3 en is wakker en getekend in breedbeeld, marges, split-helft, een breed gespeeld level met F2 halverwege komt terug uit zijn frames; faalt zonder de brede telling) en `test_keen4_wide_waking_screen` (scherm: breedte in een level en in de opslag, 4:3 en demo het origineel). 127 suites: 126 groen, `test_keen4_v14` overgeslagen, 0 fouten, geen SCRIPT ERROR, gdlint schoon. Regressies Keen 1, 2 en 4 tegen 50138bc: alles gelijk (op de regressiebeelden van Keen 4 staat niets aan de rand van het brede beeld). Apps opnieuw gebouwd.
+- [x] **Plaatjes: piramides en Miragia** (21-10, verzoek van de gebruiker). Level 11 en 12: de piramides zweefden (lucht tussen hun voet en de duinen, in 12 schaduwen recht eronder als spiegelbeelden). Nu loopt het zand als vlakte door tot hun voet, staat elke piramide er 2-3 rijen in en valt de schaduw over het zand van het licht af: in 12 lang en opzij van de lage zon (nu links), in 11 kort van de maan. Level 9: de paarse heuvels met koepels en masten zijn weg; nu meer zand: duinen met ribbels (zoals het zand van het level zelf), een luchtspiegeling met rotsnaalden en palmen aan de horizon, en een karavaan kamelen op een duinkam. Nagekeken: 5, 7, 8, 10, 13, 14 en 16 staan al op de grond en zijn pixel voor pixel gelijk gebleven. Bekeken als plaatje en in het spel (breedbeeld, levels 9, 11 en 12). 127 suites: 126 groen, `test_keen4_v14` overgeslagen, 0 fouten, geen SCRIPT ERROR (geen GDScript veranderd). Apps opnieuw gebouwd.
+- Open: alleen of met twee spelers blijft de blik staan na het loslaten tot Keen van de grond gaat (onze engine; niet naast het origineel gelegd).
+- Open: gaat een Keen door een deur terwijl het scherm gesplitst is, dan glijdt zijn helft over het level naar de nieuwe plek (zo was het al); zeg het als dat moet springen.
+- Open: schermafbeeldingen met `scripted_play.gd` op de Mac lopen qua frames niet vast (laden duurt wisselend); pauzes zijn daarom vooral in de tests vergeleken.
+
+## Mijlpaal D13: wat er nu is
+
+Gebouwd door vier agents (A: de demo's, B en B2: de metingen, C: versie
+1.4 en de laatste controle), gecontroleerd en samengevoegd door de
+architect in `milestone-d13-origineel`. Keen 4 is hiermee af.
+
+**A, de demo's.** Alle vijf demo's van v1.0 zijn nu in hele 4:3-beelden
+100 % gelijk aan het origineel. Drie oorzaken gevonden: alle wezens slapen
+bij de start van een level (en worden wakker binnen een tile van het
+beeld), de gedeelde stap van het origineel (een wezen dat een ander
+object maakt, zet de stap van het lopende object terug) en een deur zet
+het beeld al in Keens eigen beurt op hem. Een nieuwe suite speelt de vijf
+demo's en controleert 67 sprites op 24 frames.
+
+**B en B2, de schattingen.** Naast het origineel gelegd (js-dos, v1.0):
+wachtanimaties en het boek, de edelsteendeur, het vallende platform, het
+statusvenster en "Game Over!" (0 pixels verschil), de Dopefish, de sprite
+onder water, de mijn, de slak, de Wormmouth, de wolk, de inchworms, de
+dartguns, de Berkeloid en omhoog kijken. Aangepast: "Game Over!" blijft
+333 tics staan (gemeten 4,758 s), Keen eindigt na het optrekken aan een
+richel naar rechts een stap eerder (zoals het origineel), platforms en
+mijnen stuiteren terug bij een keerpunt, en het wetsuitvenster wacht tot
+het geluid van het wetsuit klaar is (1,9 s).
+
+**C, versie 1.4.** De shareware 1.4 van de gebruiker werkt: de headers
+worden op inhoud gevonden, de help- en eindpagina's zijn rood met een
+lijst (0 pixels verschil met het origineel), de rest (levels, wezens,
+geluid, menu's) is gelijk aan 1.0. Bij de controle nog twee fouten
+opgelost: Keen houdt de stap van zijn loop als hij in hetzelfde frame
+stopt en springt (demo 0 van 1.4: 63 % → 75 % gelijk), en F1 opende de
+help onder het "PAUSED"-venster na het laden van een spel.
+
+- [x] Alle vijf demo's van v1.0 100 % gelijk in hele beelden.
+- [x] De schattingen nagemeten; vier dingen aangepast, de rest vastgelegd in `test_keen4_d13_seen`.
+- [x] Versie 1.4 ondersteund en getest (`test_keen4_v14`, slaat over zonder 1.4).
+- [x] 121 suites groen, gdlint schoon, regressies Keen 1, 2 en 4: 0 verschillen.
+- Let op: een opgeslagen spel midden in een level van vóór D13 begint dat level opnieuw (de terugvaloptie van D10); opslag op de kaart blijft werken.
+- Open (gezien, niet aangepast): de plaatjes tijdens het optrekken aan een richel (geen regel past), de beet van de Dopefish (2 px / 2 tics), het schot van de sprite een frame later, de Wormmouth-beet, de Foot, een schakelaar met een platform en het teleporteren van Smirky niet gevangen; de demo's van 1.4 (75/99/79/42 %) en demo 2 en 3 van 1.0 in de oude meting verschillen alleen in wezens met toevalskeuzes.
+- Open: twee tests zijn onder zware CPU-belasting soms traag (`test_keen4_coop_screen`, `test_keen4_online_play` met de echte poort 24800).
+- Na D13 (`milestone-d13.1-versies`): de README en `game_data/README.md` noemen nu alle vier de episodes, hun mappen en bestanden, en een tabel met de geteste versies (Keen 1: 1.1; Keen 2: 1.31; Keen 3: 1.00; Keen 4: 1.0 en 1.4) en de versies die zouden moeten werken.
+
+## Mijlpaal D12: wat er nu is
+
+Gebouwd door een developer en een tester tegelijk, gecontroleerd door de
+architect.
+
+Keen 4 kan nu met twee spelers. Op één toetsenbord voegt F7 (of Configure >
+Two Players) speler 2 toe. Hij speelt met de toetsen voor twee spelers, die
+nu ook omhoog en omlaag hebben (W/S en de pijltjes, goedgekeurd door de
+gebruiker; dat zie je ook in het Controls-menu van Keen 1-3, die verder
+precies hetzelfde spelen). Het beeld splitst zoals in Keen 1-3, maar nooit
+voorbij een scroll-blok. De inventaris en de levens zijn gedeeld, er is één
+scorebord en op de kaart loopt één Keen die door allebei bestuurd wordt.
+Onder water zwemmen er twee. Gaat één Keen dood, dan is de poging voor
+beiden voorbij; uitlopen terwijl de ander sterft kan niet. Speler 2 wordt
+niet opgeslagen. Online gaat via Configure > Online Game, via IP of Steam,
+met eigen Galaxy-berichten (de kaart met gewijzigde tiles van drie lagen,
+per frame de sprites, geluid, muziek en vakjes, die de meespeler uit zijn
+eigen bestanden tekent). Wie bij een host van een andere episode aanklopt,
+schakelt over (getest: Keen 1 naar een Keen 4-host en andersom). De
+berichten van Keen 1-3 zijn byte voor byte gelijk gebleven (getest tegen
+29 opgenomen berichten).
+
+- [x] Twee spelers op één toetsenbord met split-screen; gedeelde toetsen omhoog/omlaag erbij.
+- [x] Online (IP en Steam), overschakelen tussen de delen; getest met twee vensters via IP.
+- [x] Tests van de tester: 10 suites, 98 tests; twee fouten gevonden en opgelost.
+- Open: Steam met twee echte accounts (niet te testen in de cloud); online pauzeren het menu, het statusvenster en de vakjes van de host het spel voor beiden; `test_keen4_online_play` gebruikt de echte poort 24800 (botst met een draaiend spel op dezelfde Mac).
+
+## Mijlpaal D11: wat er nu is
+
+Gebouwd door drie agents tegelijk (een developer en een tester voor het
+menu, een tekenaar voor de plaatjes), gecontroleerd en samengevoegd door de
+architect in `milestone-d11-extras`.
+
+**Het menu.** Het hoofdmenu van het horloge is nu precies dat van het
+origineel: PADDLE WAR staat weer op zijn eigen rij. Het spelletje is
+nagebouwd zoals versie 1.0 het speelt en tekent (70 tics per seconde, Keens
+batje 2 pixels per tic, de computer 2 van de 3 tics, opslag na 70 tics,
+sneller na elke 10 slagen, tot 21, met de vijf eigen geluiden); 0 pixels
+verschil met het origineel. "Choose Game" zit onder QUIT (besluit van de
+gebruiker): de vraag "REALLY QUIT?" heeft een regel "PRESS C TO CHOOSE
+GAME" (C naar het startscherm, Y stopt, elke andere toets terug). Configure
+heeft de kaarten SOUND (geen, PC-speaker, AdLib, stille AdLib) en MUSIC
+(geen, AdLib) zoals het origineel (0 pixels verschil); kiezen werkt meteen
+en blijft bewaard, Shift+S/M werken nog. F1 in het menu opent de help,
+Escape brengt je terug op dezelfde kaart. De muziek stopt als het menu
+opengaat; "Terug naar spel" start het lied van de kaart opnieuw. De melding
+over het scorebord laat eerst nog "(ON)" staan, zoals het origineel. Met
+xBRZ blijven het menu, de vensters en de titelplaatjes scherp, en flitst een
+level niet meer terug naar de originele graphics bij een schakelaar of
+edelsteen. Vloeiende beweging werkt overal. Beide staan standaard uit.
+
+**De plaatjes.** Tien eigen achtergronden voor de levels met lucht (5, 7-14,
+16), getekend vanuit code (`tools/make_keen4_backgrounds.py`, met de
+gedeelde `tools/background_painter.py`): besneeuwde bergen, een heuveldorp,
+buttes bij zonsondergang, duinen met een luchtspiegeling en een karavaan,
+een oase, drie manen boven piramides, piramides met lange schaduwen bij rode zon, ruïnes, een storm, een vulkaan.
+Samen ~57 KB, alleen in breedbeeld.
+
+- [x] Paddle War, Choose Game onder Quit, SOUND- en MUSIC-kaarten, F1 in het menu, muziek in het menu.
+- [x] xBRZ- en vloeiende-beweging-fixes; tests die een draaiend scherm nodig hebben lopen nu mee (`TREE_SUITES` in de testrunner).
+- [x] Tien achtergronden en `test_keen4_backgrounds`.
+- Besluit van de gebruiker (20-10-2026): de vensters, het menu en de volle schermen van Keen 4 blijven in originele pixels, ook met xBRZ aan.
+
+## Mijlpaal D10: wat er nu is
+
+Gebouwd door een developer en een tester tegelijk (in een eigen worktree,
+naast D9), gecontroleerd door de architect en daarna samengevoegd met D8.1
+en D9 in `milestone-d11-extras`.
+
+Keen 4 heeft nu het menu van het origineel: het polshorloge met de kaarten,
+pixel voor pixel gelijk aan v1.0 (hoofdmenu, nieuw spel, laden, opslaan, de
+vragen, het PAUSED-vak). Een toets in de titellus of Escape in een spel
+opent het. Je kiest Easy, Normal of Hard, laadt of bewaart in zes slots met
+een eigen naam, stelt het scorebord, het beeld en de toetsen in, beëindigt
+het spel (highscores, dan de titellus), gaat terug naar het startscherm
+(Choose Game, op de plek van Paddle War) of stopt. Op Easy geeft de
+verdover 8 schoten en valt Keen na een sprong langzamer (75 in plaats van
+67 pixels, nagemeten in het origineel). Opslaan kan overal, net als in het
+origineel: op de kaart en midden in een level. Een level wordt bewaard als
+zijn begin plus alle frames sinds dat begin; bij laden worden die frames
+achter een zwart scherm opnieuw afgespeeld, dus alles staat precies waar
+het was. De regels staan in `docs/keen4/gameplay.md`, de afwijkingen in
+`docs/keen4/architecture.md` ("Deviations in D10").
+
+- [x] Menu (`GalaxyMenuController`, `GalaxyMenuView`): kaarten, knipperende cursor, vragen; 0 pixels verschil met v1.0.
+- [x] Moeilijkheidsgraad overal: info-laag, verdover +8 op Easy, zwaartekracht midden op Easy.
+- [x] Opslaan en laden (`GalaxySaveSlots`, `Keen4SavedGame`) in `user://keen4/saves`, los van Keen 1-3; scorebord aan/uit (`Keen4Settings`).
+- [x] Tests van de tester: `test_galaxy_menus`, `test_keen4_save`, `test_keen4_save_play`.
+- Open: een lang level laden duurt seconden (0,5-2 s per minuut in het level); F1 in het menu (help) en de "(ON)"-tekst onder de scorebord-melding wijken nog af; geluid en muziek in het menu en Paddle War volgen in D11.
+
+## Mijlpaal D9: wat er nu is
+
+Gebouwd door een developer en een tester tegelijk (in een eigen worktree,
+naast D10), gecontroleerd door de architect.
+
+Keen 4 heeft geluid en muziek. Een eigen OPL2-synthesizer (`GalaxyOpl`,
+geschreven vanuit de handleiding van de YM3812: negen kanalen met twee
+operatoren, vier golfvormen, envelopes met key-scale rate, feedback, FM en
+additief, tremolo en vibrato) rendert de 52 AdLib-geluiden en de zes liedjes
+één keer op de achtergrond en bewaart ze in `user://keen4/cache/`. Bij de
+eerste start zijn alle geluiden na 3 s klaar, het lied van de kaart na 9 s
+en alles na 42 s; de tweede start leest alles in 0,5 s. De
+PC-speakergeluiden gaan door de gedeelde `SpeakerSynth`, die alleen een
+optionele snelheid kreeg (Keen 1 klinkt byte voor byte hetzelfde). Elke
+kaart speelt haar eigen lied (de tabel van Omnispeak), de raad en de
+conciërge hun eigen lied, het einde het lied van map 7 en het verhaal dat
+van map 12; de help en Lindsey zetten de muziek stil. Elk geluid uit het
+origineel klinkt op zijn plek, met de prioriteiten van het origineel.
+Standaard staan AdLib en muziek aan (nieuwe instellingen); Shift+S kiest
+AdLib, PC-speaker of uit en Shift+M zet de muziek aan of uit (in het menu
+in D11). In js-dos opgenomen: dezelfde noten en klank, dezelfde volgorde
+van de geluiden in demo 0.
+
+- [x] `GalaxyOpl` en de geluids- en muziekformaten, cache, achtergrondtaken.
+- [x] Alle geluiden en liedjes op hun plek; prioriteiten.
+- [x] Tests van de tester (84): de chip tegen het datasheet, envelopes, formaten, muziek, cache, speler, de wereld; vijf fouten gevonden en opgelost.
+- Open: muziek zelf is niet in de testrunner af te spelen (alleen de boekhouding); de absolute snelheid is alleen tegen Omnispeak nagekeken.
+
+## Fix D8.1: wat er nu is
+
+Besloten door de gebruiker op 20-10-2026: Keen 4 tekent nu precies zoals
+het origineel. Het origineel heeft van elke sprite maar 1, 2 of 4
+verschoven kopieën (staat in de spritetabel) en zet een sprite dus op x
+afgerond naar beneden op 8 / shifts pixels; het beeld schuift opzij in
+stappen van 2 pixels (de EGA-kaart). Bij ons stond iets tot 7 pixels
+opzij en sprong Keen niet bij een deur; nu wel (6 pixels naar links, zoals
+het origineel). De regels staan in `docs/keen4/gameplay.md` ("Drawing", "The
+camera"), de keuzes in `docs/keen4/architecture.md` ("Deviations in
+D8.1"), de vergelijking in `docs/keen4/research.md` ("Watched in D8.1").
+
+- [x] **Sprites op hun stap** (`GalaxyObjectLayer.pixel_of`, `x_step`): 2
+  pixels bij 4 shifts (155 sprites), 4 bij 2 (53), 8 bij 1 (189, onder
+  andere Keen in een deur). De y blijft de hele pixel.
+- [x] **Het beeld in stappen van 2 pixels** (`GalaxyCamera.view_pixels`,
+  `PAN_STEP`), in 4:3 en breedbeeld; het scorebord, het DEMO-bord en de
+  voorgrondtegels gaan mee zoals bij het origineel.
+- [x] **Vloeiende beweging** (F6, standaard uit) blijft zoals hij was:
+  sprites tussen de frames op hun precieze plek en het beeld op hele
+  pixels (`scroll_pixels`); afronden zou de optie weer schokkerig maken.
+- [x] **Het DEMO-bord** stond 3 pixels te hoog (de oorsprong van de sprite
+  ontbrak); gevonden met de vergelijking van hele frames, gerepareerd.
+- [x] **Naast het origineel** (de opnames van D8, nu hele frames van het
+  4:3-beeld pixel voor pixel): demo 1 **100 % gelijk** (662 frames, was
+  26 %), demo 0 **91 %** (583 van 639, was 41 %), demo 2 85 %, demo 3 42 %.
+  Wat nog verschilt zijn wezens: sterren boven een verdoofd wezen in een
+  andere fase, druppels en rupsen, een Bounder en slakken die door hun
+  toeval ergens anders lopen. Keen en het beeld zelf zijn in elk frame
+  gelijk.
+- [x] **De antwoorden van de gebruiker vastgelegd:** in de titellus start
+  elke toets een nieuw spel tot de menu's van D10 (Escape = startscherm,
+  F1 = help); in Keen 4 staat de hulpregel van Keen 1-3 op Shift+F1 (F1 is
+  de help van het origineel).
+- [x] **Tests**: `test_galaxy_level` (zelfgemaakte data: x per aantal
+  shifts, de sprong bij de deur, het beeld in stappen van 2, breedbeeld en
+  vloeiend) en `test_keen4_front_play` (de deur-sprite op de laag, met en
+  zonder vloeiende beweging). 91 suites, 995 tests (was 991), alle slagen,
+  geen SCRIPT ERROR, gdlint schoon.
+- [x] **Regressie** (lege gebruikersmap): Keen 1 en 2 gelijk aan D8; Keen 4
+  ook helemaal gelijk aan D8 (de beginbeelden van level 1, 11 en de kaart
+  staan al op even pixels, en de intro en help zijn geen levelbeeld).
+  Alleen `src/galaxy` en `src/keen4` veranderd, geen gedeelde bestanden.
+- **Gezien, niet veranderd:** de wezens lopen in demo 2 en 3 na een tijd
+  anders dan in het origineel (hun toeval); een kandidaat om later naar te
+  kijken (Omnispeak trekt een toevalsgetal als een wezen buiten beeld gaat).
+- **Om te proberen:** `godot --path . -- --game=4`: kijk naar de demo's en
+  ga in een spel door een deur (Keen schuift 6 pixels naar links, zoals het
+  origineel).
+- **Volgende stap: D9**, geluid en muziek (`milestone-d9-geluid`).
+
+## Mijlpaal D8: wat er nu is
+
+Keen 4 is nu van de titel tot de highscores te spelen. Het spel begint met
+de titellus van het origineel: de intro-aftiteling (de twee grote woorden
+die over elkaar schuiven, de vier namen die omhoog vliegen, het inzoomen en
+het titelplaatje dat erin "fizzlet"), demo 0, het verhaal dat in de verte
+wegschuift, demo 1, de highscores (demo 4 op map 19 achter de tabel), demo
+2 en demo 3, en weer opnieuw. Een toets start een nieuw spel (de menu's
+komen in D10), Escape gaat terug naar het startscherm, F1 opent de help.
+Na de achtste redding (of de cheat E+N+D) komen de eindpagina's met de
+knipperende pijl, daarna typ je je naam op map 19 als je score in de tabel
+komt, dan de highscores en weer de titellus. De regels staan in
+`docs/keen4/gameplay.md` ("The title loop", "Help", "The end and the high
+scores"), de afwijkingen van het plan in `docs/keen4/architecture.md`
+("Deviations in D8"), wat het origineel liet zien in
+`docs/keen4/research.md` ("Watched in D8").
+
+- [x] **Teksten met opmaak** (`GalaxyTextPages`, `GalaxyPageLayout`): ^P,
+  ^E, ^G (y eerst!), ^T met pauze, ^L, ^C, ^B; 18 regels van 10 pixels,
+  woorden die passen, ruimte naast plaatjes. Alle help- en eindpagina's die
+  we naast het origineel legden: **pixel voor pixel gelijk**.
+- [x] **Help (F1)** (`Keen4Help`): het menu met de wijzende hand, vijf
+  onderwerpen (ComputerWrist, The Game, The Story, Order Info, About Id),
+  bladeren zoals het origineel, "pg 1 of 13" rechtsonder. Gelijk aan het
+  origineel (menu en pagina's: 0 pixels verschil). In een spel wacht het
+  spel erachter; Shift+F1 is nu de hulpregel van Keen 1-3.
+- [x] **Het einde** (`Keen4Ending`): 16 pagina's, de getimede plaatjes met
+  de pauzes van het origineel (gemeten: dezelfde), de pijl rechtsonder die
+  elke 70 tics knippert; een toets tijdens de plaatjes doet niets. Pagina's
+  1, 3 en 16 en de naam typen (met en zonder cursor): 0 pixels verschil.
+- [x] **Highscores** (`GalaxyHighScores`, `Keen4HighScoreBoard`): acht
+  plaatsen, de standaardtabel uit de EXE (gevonden op vorm: 8 records van
+  64 bytes), bij gelijke score wint wie meer raadsleden redde; de tabel op
+  map 19 met XOR in het plaatje van de map (0 pixels verschil met het
+  origineel), de raadsleden als icoontjes, de naam typen met de knipperende
+  cursor; bewaard in `user://keen4/high_scores.json`.
+- [x] **Cheats** (`Keen4Cheats`): E+N+D (de achtste redding op de plek
+  waar Keen is, dan het einde) en B+A+T (het vak "Cheat Option!", dan de
+  vier edelstenen, 99 schoten en een leven).
+- [x] **De titellus** (`Keen4TitleLoop`, `Keen4FrontScreen`,
+  `GalaxyTitleLayer`): de intro (`GalaxyIntroCredits`,
+  `GalaxyIntroBitmap`: de twee woorden uit de misc-chunks), het verhaal
+  (`GalaxyStoryScroller`, met een shader; **pixel voor pixel gelijk** aan
+  het origineel), het schuiven en inzoomen ook (de eerste naam staat bij het
+  origineel 4 pixels verder naar rechts: gecentreerd op hele bytes,
+  gerepareerd), de demo's met het vak "DEMO" en het DEMO-bord, de
+  highscores. Tijden gemeten: fizzle 1 tic per stap, titel 6,0 s.
+- [x] **De vijf demo's** (`GalaxyDemo`, `GalaxyTwoButtonFiring`): kaart en
+  invoer uit EGAGRAPH, 3 tics per frame, de vaste toevalstabel vanaf 0,
+  "two-button firing", geen extra leven voor punten. **Alle vijf demo's lopen
+  frame voor frame gelijk aan het origineel** (Keen gezocht in elk opgenomen
+  frame van het origineel en naast onze frames gelegd: sprite en plek gelijk
+  tot het eind van elke demo). Er hoefde niets in Keen, de natuurkunde of de
+  wezens gerepareerd te worden.
+- [x] **Tests**: nieuwe suites `test_galaxy_front` (zelfgemaakte data:
+  opmaak, demo-invoer, two-button firing, highscores met gelijke scores,
+  opslaan en laden, de standaardtabel op vorm, de intro, het verhaal, de
+  volgorde van de titellus, cheats) en `test_keen4_front_play` (echte
+  data: de pagina's van de help en het einde, bladeren, de pauzes van het
+  einde, de tabel, de vijf demo's, de eerste seconden van demo 0 tegen het
+  origineel, het einde tot de naam in de tabel). 91 suites, 991 tests
+  (was 89 en 964), alle slagen, geen SCRIPT ERROR, gdlint schoon.
+- [x] **Keen 1-3-controle:** `keen1_regression.sh` en `keen2_regression.sh`
+  tegen D7 (lege gebruikersmap): alles gelijk. `git diff
+  milestone-d7-kaart` op `src/keen2`, `src/keen3`, hun tests en fixtures,
+  `src/actors`, `src/map` en `src/game/level_view.gd` is leeg. Gedeeld
+  bestand veranderd: alleen de testlijst (`tests/run_tests.gd`). De Keen
+  4-regressie: levels 1 en 11, de kaart en het statusvenster gelijk aan D7;
+  nieuw erbij: de intro (breedbeeld en 4:3), het helpmenu en een helppagina.
+- [x] **Gerepareerd na de screenshots:** de highscore-stap van de titellus
+  bleef hangen (een getypte array uit `[] if … else …`); geen suite speelt
+  de flow van de view (die heeft een draaiende scene tree nodig), de
+  screenshots van de hele lus vonden het. De tabel blijft nu onder het vak
+  van de volgende demo staan, zoals bij het origineel.
+- [x] **Bekeken** (scratchpad `d8shots/`): intro, zoom, fizzle, titel,
+  het verhaal, elke demo, de highscores, de help, de eindpagina's, de naam
+  typen, in 4:3 en breedbeeld.
+- **Niet gedaan:** het tekstscherm vooraf (DOS), de menu's (D10), muziek
+  (D9). Gezien maar niet veranderd (voor D13): het origineel tekent sprites
+  op stappen van 8 / (shifts) pixels (2 pixels voor de meeste, 8 voor Keen
+  die een deur in gaat) en scrollt het beeld in stappen van 2 pixels; bij
+  ons kan iets 1 tot 7 pixels opzij staan. (Toch gedaan in D8.1.)
+- **Om te proberen:** `godot --path . -- --game=4`: kijk naar de intro, het
+  verhaal en de demo's; F1 voor de help; een toets voor een nieuw spel; in
+  het spel E+N+D tegelijk ingedrukt voor het einde (daarna je naam typen;
+  met 0 punten kom je niet in de tabel, speel eerst wat), B+A+T voor de
+  edelstenen. Het hele spel van titel tot highscores kan nu, zonder geluid.
+- **Volgende stap: D9**, geluid en muziek (`milestone-d9-geluid`): de
+  PC-speaker-geluiden en een eigen OPL2-synthesizer voor AdLib en de liedjes.
+
+## Mijlpaal D7: wat er nu is
+
+Keen 4 begint nu op de wereldkaart: Keen loopt in acht richtingen, zwaait
+als hij stilstaat, gaat met springen, pogo of schieten een level in (eerst
+"One moment", dan het vak "Keen enters …" met Keen die op zijn vingers
+aftelt) en komt na het level terug op de plek waar hij erin ging. Gedane
+levels krijgen hun vlag (de laatste wordt gegooid), de hekken verdwijnen,
+water houdt hem tegen tot hij het wetsuit heeft, Miragia komt en gaat, de
+Foot vliegt hem over de kaart. Na een dood komt het vak "Try Again / Exit
+to Shadowlands", zonder levens "Game Over!". Enter laat het statusvenster
+zakken, in een level en op de kaart. De regels staan in
+`docs/keen4/gameplay.md` ("The course of the game (D7)", "The world map",
+"Between the levels", "The status window"), de afwijkingen van het plan in
+`docs/keen4/architecture.md` ("Deviations in D7"), wat het origineel liet
+zien in `docs/keen4/research.md` ("Watched in D7").
+
+- [x] **De kaart-Keen** (`GalaxyMapKeen`, Galaxy; `Keen4MapKeen`): 24 per
+  tic op elke as (gemeten: 3 px per frame), de loopbeelden lopen 2, staan,
+  lopen 1, staan (gelijk aan het origineel), zwaaien na 360 tics, de
+  ingangen 0xC001-0xC012 (alleen met een knop, niet bij gedane levels).
+- [x] **Gedane levels** (`Keen4MapSession`, `GalaxyMapFlag`): elk
+  info-woord met dat level in de lage byte wordt gewist, 0xD0 haalt het
+  hek weg (levels 1 en 2), 0xF0 krijgt een wapperende vlag; de vlag van het
+  net gedane level wordt gegooid in een boog (30 punten, 50 tics) en landt
+  in de houder (pad gelijk aan het origineel). Map 18 (de Megarocket) is
+  een gewoon level zonder vlag: uitlopen = terug, opnieuw in te gaan (zo
+  gezien in het origineel).
+- [x] **Water**: zonder wetsuit "I can't swim!" en terug; met wetsuit
+  zwemt hij (16 per tic, eigen beelden), frame voor frame gelijk aan het
+  origineel (twee kleine afwijkingen van Omnispeak overgenomen van het
+  origineel).
+- [x] **Miragia** (`Keen4Miragia`): 300 tics weg, drie stappen van 30, 300
+  tics helemaal, drie stappen terug, gekopieerd uit rij 60 van de kaart;
+  blijft weg als Keen op die plek staat. Tijden gelijk aan het origineel.
+- [x] **De Foot-vlucht**: na de Foot vliegt Keen naar de Pyramid of the
+  Forbidden (vanuit het westen, 280 tics) of terug (140 tics).
+- [x] **De vakken tussen de levels** (`Keen4GameBoxes`, `GalaxyScreenQueue`):
+  "One moment", "Keen enters …" met de aftellende vingers en de fade, "I
+  can't swim!", "Try Again / Exit to Shadowlands" (knipperend kader,
+  omhoog/omlaag kiezen), "Game Over!". Alle **pixel voor pixel gelijk** aan
+  het origineel ("One moment" staat in het midden en "I can't swim!" 12 px
+  omlaag: zo doet het origineel, Omnispeak anders). De laadtijd is vast
+  (gemeten: 0,13-0,63 s per vinger in het origineel, hangt af van de schijf).
+- [x] **Het statusvenster** (`Keen4StatusWindow`, `GalaxyStatusDrop`):
+  locatie, score, extra leven bij, geredde raadsleden, moeilijkheid,
+  edelstenen, lading, levens, druppels, wetsuit; zakt in ~0,3 s en gaat
+  weer omhoog; met de arm en de band van het origineel. **Pixel voor pixel
+  gelijk** aan het origineel.
+- [x] **Voortgang** (`Keen4Progress`): gedane levels, plek op de kaart,
+  laatste level (voor de gegooide vlag), de Foot, geredde leden, wetsuit;
+  ook als dictionary voor het opslaan in D10.
+- [x] **Teksten** van het statusvenster en de vakken uit de EXE, gezocht op
+  de lengtes van de records (nooit op de woorden).
+- [x] **Tests**: nieuwe suites `test_keen4_map`, `test_keen4_map_more`
+  (zelfgemaakte kaarten, `keen4_map_fixtures.gd`) en `test_keen4_map_play`
+  (echte data: alle 18 ingangen, vlaggen en hekken, Miragia, teksten,
+  vakken, statusvenster). 89 suites, 964 tests (was 86 en 942), alle
+  slagen, geen SCRIPT ERROR, gdlint schoon. De flow van de view (kaart →
+  level → dood → kaart) is met scripted screenshots bekeken; een test
+  daarvoor heeft een draaiende scene tree nodig.
+- [x] **Keen 1-3-controle:** `keen1_regression.sh` en `keen2_regression.sh`
+  tegen D6 (lege gebruikersmap): alles gelijk. `git diff
+  milestone-d6-mechaniek` op `src/keen2`, `src/keen3`, hun tests en
+  fixtures, `src/actors`, `src/map` en `src/game/level_view.gd` is leeg.
+  Gedeeld bestand veranderd: alleen de testlijst (`tests/run_tests.gd`).
+  De Keen 4-regressie: level 1 en 11 gelijk aan D6; nieuw erbij: de
+  wereldkaart (breedbeeld en 4:3) en het statusvenster.
+- [x] **Bekeken** (scratchpad `d7shots/`): de kaart, "One moment", het
+  intrevak met de vingers, de Megarocket, het statusvenster op de kaart en
+  in een level, de Foot en de vlucht, de gegooide en wapperende vlag, het
+  hek voor en na, "I can't swim!", zwemmen, Miragia, Try Again en Exit, in
+  4:3 en breedbeeld.
+- **Niet gedaan:** de apps zijn hier niet gebouwd (Mac-build alleen op de
+  Mac; voor Windows ontbreken hier de export templates). Geluid (D9), de
+  cheat E+N+D (D8). Gezien maar niet veranderd: het origineel tekent
+  sprites op even pixels (vier verschuivingen); bij ons kan een sprite een
+  pixel opzij staan, ook in de levels (voor D13).
+- **Om te proberen:** `godot --path . -- --game=4` (een nieuw spel op de
+  kaart: loop met de pijlen, Ctrl op een ingang; de Megarocket ligt vlak
+  onder Keen, de Border Village erboven), Enter voor het statusvenster,
+  `-- --game=4 --level=14` (snel dood: Try Again / Exit to Shadowlands),
+  `--level=9` (het wetsuit; daarna kun je op de kaart zwemmen), `--level=0`
+  (meteen de kaart).
+- **Volgende stap: D8**, het einde, de titel en de demo's
+  (`milestone-d8-einde-titel`).
+
+## Mijlpaal D6: wat er nu is
+
+Platforms varen heen en weer en Keen rijdt mee, schakelaars zetten
+keerpunten aan en uit, bruggen schuiven uit, de raadsleden worden gered
+met de berichtvakken van het origineel, Lindsey geeft haar hint, het
+wetsuit maakt het level af, en in level 17 (de Well of Wishes) zwemt Keen
+tussen de Dopefish, scholen vissen, sprites en mijnen. De regels staan in
+`docs/keen4/gameplay.md` ("Platforms and switches", "The council,
+Lindsey and the wetsuit", "Message windows", "The Well of Wishes"), de
+afwijkingen van het plan in `docs/keen4/architecture.md` ("Deviations in
+D6"), wat het origineel liet zien in `docs/keen4/research.md` ("Watched
+in D6").
+
+- [x] **Platforms** (`GalaxyPlatform`, Galaxy): vier richtingen, 12 per
+  tic (gemeten: 52 px per seconde), keren bij een keerpunt (info 31); een
+  verticaal platform tussen twee keerpunten die twee tiles uit elkaar
+  liggen blijft staan. In Keen 4 met de straalmotortjes eronder of
+  erachter (`Keen4Platform`). Keen rijdt mee (de basis van D5); een
+  platform dat hem van een paal haalt, zet hem erop.
+- [x] **Het vallende platform** (`GalaxyFallingPlatform`): zakt onder
+  Keen, valt na een halve tile, stopt boven een keerpunt, stijgt zonder
+  Keen terug naar zijn plek.
+- [x] **Schakelaars en bruggen**: de schakelaar van D4 zet nu echt een
+  keerpunt aan of uit (de platforms reageren meteen); de brug schuift uit
+  en in.
+- [x] **De raad** (`Keen4Council`): schuifelen en nadenken; staand
+  aanraken = gered, level klaar; het bedankje van de oudere, Keens
+  antwoord (acht verschillende, op volgorde van het aantal geredde) en
+  zijn duim omhoog; in level 17 de "bubbelende" tekst. **De conciërge** in
+  level 14: vijf vakken (vier teksten en een vak met alleen Keens boze
+  gezicht, zo gezien in het origineel), daarna is hij weg en gaat het
+  level door; hij telt niet mee. **Lindsey** (`Keen4Lindsey`): drijft,
+  geeft haar hint (level 7: het wetsuit, level 5: de piramide) en
+  verdwijnt. **Het wetsuit** (`Keen4Wetsuit`): bericht, level klaar, Keen
+  heeft het wetsuit.
+- [x] **Berichtvakken in de stijl van het origineel** (`GalaxyWindow`,
+  `Keen4Messages`): het venster van 26 × 8 vakjes met de randtiles, het
+  menulettertype en de plaatjes (de laatste van het plaatjesbereik, in
+  1.0 en 1.4 gelijk). Alle vakken (raad, conciërge, Lindsey, wetsuit)
+  zijn **pixel voor pixel gelijk** aan het origineel. Het spel staat stil
+  tot een toets; F1-F6 blijven werken; in breedbeeld midden in beeld.
+- [x] **Voortgang** (`Keen4Progress`): het aantal geredde raadsleden, het
+  wetsuit en de gedane levels, klaar voor de kaart (D7) en het einde
+  (D8). Gekozen voor nu: na de achtste redding een melding "All eight
+  council members are rescued" en gewoon het volgende level.
+- [x] **Level 17 onder water** (`Keen4SwimmingKeen`): eigen acties,
+  eenvoudige botsing, elke 8e tic remmen naar langzaam zinken (gemeten:
+  20 px per seconde, zoals Omnispeak), de stick, de trap (18), belletjes,
+  geen verdover; de kaartcamera. De **Dopefish** eet Keen (en scholen
+  vissen) en boert; **scholen vissen** volgen Keen; **sprites** dobberen,
+  mikken en schieten; **mijnen** varen als platforms en ontploffen.
+- [x] **Volgorde zonder kaart**: na level 16 komt 17, na 17 weer 1; een
+  redding of het wetsuit opent het volgende level.
+- [x] **Tests**: nieuwe suites `test_keen4_platforms`, `test_keen4_people`,
+  `test_keen4_water` (mini-levels) en `test_keen4_d6_play` (echte data:
+  elke info-waarde in level 1-17 maakt iets, alleen de kaartwaarden 3 en
+  33 blijven voor D7; level 17 wordt gezwommen; de teksten per
+  reddingsnummer en per level; de vensterplaats; de view compileert).
+  86 suites, 942 tests (was 82 en 901), alle slagen, geen SCRIPT ERROR,
+  gdlint schoon.
+- [x] **Keen 1-3-controle:** `keen1_regression.sh` en `keen2_regression.sh`
+  tegen D5 (lege gebruikersmap): alles gelijk. `git diff
+  milestone-d5-vijanden` op `src/keen2`, `src/keen3`, hun tests en
+  fixtures, `src/actors`, `src/map` en `src/game/level_view.gd` is leeg.
+  Gedeeld bestand veranderd: alleen de testlijst (`tests/run_tests.gd`).
+  De Keen 4-regressie is gelijk aan D5 (in het eerste beeld van level 1
+  en 11 staat niets van D6).
+- [x] **Bekeken** (scratchpad `d6shots/`): Keen op een platform, het
+  vallende platform, schakelaar en brug voor en na, de vakken van de raad,
+  de conciërge, Lindsey en het wetsuit, level 17 met de Dopefish, vissen
+  en mijnen, in 4:3 en breedbeeld.
+- **Niet gedaan:** de apps zijn hier niet gebouwd (Mac-build alleen op de
+  Mac; voor Windows ontbreken hier de export templates). In het origineel
+  niet gemeten (blijft Omnispeak): het vallende platform, het effect van
+  een schakelaar op een platform, het keren van een horizontaal platform,
+  de Dopefish, de sprites en mijnen onder water.
+- **Om te proberen:** `godot --path . -- --game=4 --level=3` (een
+  raadslid), `--level=14` (de conciërge), `--level=7` (Lindsey),
+  `--level=9` (het wetsuit, en platforms vlak bij de start), `--level=8`
+  (platforms, schakelaars en de brug), `--level=17` (zwemmen: pijlen om te
+  sturen, springen om te trappen; de Dopefish zit rechts). Shift+G zet
+  god mode aan of uit.
+- **Volgende stap: D7**, de wereldkaart (`milestone-d7-kaart`).
+
+## Mijlpaal D5: wat er nu is
+
+Alle wezens die op het land leven lopen, springen, vliegen en schieten in
+de levels van Keen 4; de verdover verdooft ze (met sterretjes) of doet
+niets, zoals in het origineel. De regels staan in `docs/keen4/gameplay.md`
+("The creatures", "The stun", "Difficulty"), de afwijkingen van het plan in
+`docs/keen4/architecture.md` ("Deviations in D5"), wat het origineel liet
+zien in `docs/keen4/research.md` ("Watched in D5").
+
+- [x] **Een basis voor wezens** (`GalaxyCreature`, Galaxy): eigen
+  actietabel per wezen, de verdoving (sprongetje −24, hoogstens −48), de
+  sterretjes (drie beelden van 10 tics, per soort op een eigen plek), lopen
+  en omkeren bij muren en randen, vallen; `GalaxyEnemyShot` (dodelijk
+  schot, weg bij een muur), `GalaxyDifficulty` (Easy/Normal/Hard).
+- [x] **Vijftien soorten** (`src/keen4/actors/`, elk een eigen klasse met
+  de getallen van Omnispeak): slak met slijm, Mad Mushroom, ei en vogel
+  (uitkomen, lopen, vliegen als Keen hoog staat, landen), Arachnut,
+  Skypest (alleen dood door de pogo als hij op de grond zit), Wormmouth,
+  wolk met bliksem, Berkeloid met vuurbal die brandt, Lick, Mimrock,
+  Bounder, Smirky (eet items en item-tiles, teleporteert), inchworms en de
+  Foot (11 wormen tegen elkaar → de Foot; de Foot aanraken = level klaar,
+  de vlucht komt in D7), dart guns in vier richtingen.
+- [x] **Meerijden**: Keen landt op een Bounder (of een verdoofde) en rijdt
+  mee; op een levende Bounder stuurt hij (links, rechts of recht omhoog).
+  Een Bounder duwt Keen opzij en stoot hem van een paal. Dit is meteen de
+  basis voor de platforms van D6.
+- [x] **Moeilijkheidsgraad**: de info-waarden per graad
+  (`Keen4Creatures`), als parameter van de sessie; voorlopig Normal (het
+  menu komt in D10).
+- [x] **Naast het origineel (js-dos)**, met een kopie van `GAMEMAPS` in de
+  scratchpad waarin een wezen bij de start staat: Bounder (39 px, 24
+  opzij), paddenstoel (twee hopjes van 31 px, dan een grote sprong),
+  ei op Normal (dus geen vogel; research §12 punt 5 opgelost), vogel (8 px
+  per 7 tics), Arachnut (128 per 6 tics), Skypest (poetsen 10 tics per
+  beeld, rust 100), Lick (vlam 4 tics per beeld), Berkeloid (vuurbal 48
+  opzij), Mimrock (sluipt als Keen wegkijkt): allemaal zoals Omnispeak.
+  Het teleporteren van Smirky is niet gezien (punt 4 blijft open).
+- [x] **Tests**: nieuwe suites `test_galaxy_creatures`,
+  `test_keen4_creatures`, `test_keen4_creatures_more` (mini-levels,
+  `keen4_creature_fixtures.gd`) en `test_keen4_creatures_play` (echte
+  data: elke info-waarde in level 1-16 is bekend, level 1 per graad, elk
+  level loopt met zijn wezens). 82 suites, 901 tests (was 78 en 870), alle
+  slagen, gdlint schoon.
+- [x] **Keen 1-3-controle:** `keen1_regression.sh` en `keen2_regression.sh`
+  tegen D4 (lege gebruikersmap): alles gelijk. `git diff
+  milestone-d4-keen` op `src/keen2`, `src/keen3`, hun tests en fixtures,
+  `src/actors`, `src/map` en `src/game/level_view.gd` is leeg. Gedeeld
+  bestand veranderd: alleen de testlijst (`tests/run_tests.gd`). De Keen
+  4-regressie verschilt alleen in level 1: de Bounder links in beeld
+  (level 11 heeft geen wezen in het eerste beeld).
+- [x] **Bekeken** (scratchpad `d5shots/`): elk wezen in zijn level, actief
+  en na een schot (verdoofd met sterretjes, of niets), in 4:3 en
+  breedbeeld.
+- **Niet gedaan:** de apps zijn hier niet gebouwd (Mac-build alleen op de
+  Mac; voor Windows ontbreken hier de export templates). In het origineel
+  nog niet gezien: het slijm van de slak, Wormmouth, wolk, inchworms en de
+  Foot, dart guns, het teleporteren van Smirky (open voor D13).
+- **Om te proberen:** `godot --path . -- --game=4` (level 1: de Bounders
+  links; spring erop en laat je meevoeren, ga links of rechts staan om te
+  sturen; schiet er een met Spatie: dan staat hij stil en kun je erop
+  staan), `--level=2` (paddenstoel en slakken), `--level=14` (Licks bij de
+  start), `--level=11` (dart guns, inchworms). Shift+G zet god mode aan of
+  uit om rustig te kijken.
+- **Volgende stap: D6**, platforms, schakelaars, de raad en onder water
+  (`milestone-d6-mechaniek`).
+
+## Mijlpaal D4: wat er nu is
+
+Keen loopt, springt, pogot, klimt, hangt aan randen, schiet, gaat door
+deuren en pakt items in elk level van Keen 4 (nog zonder vijanden). Het
+scorebord staat linksboven. De regels staan in `docs/keen4/gameplay.md`
+("Keen's moves", "Items and tiles", "The score box"), de afwijkingen van
+het plan in `docs/keen4/architecture.md` ("Deviations in D4"), wat het
+origineel liet zien in `docs/keen4/research.md` ("Watched in D4").
+
+- [x] **Het actiesysteem** (`GalaxyAction`, `GalaxyObject`, `GalaxyWorld`):
+  elke toestand een regel tekst (sprites, soort, protect, aan de grond
+  plakken, timer, snelheid, think/contact/react als methodenaam, volgende),
+  wakker worden en slapen, beide contact-functies, de volgorde van een
+  frame zoals het origineel.
+- [x] **Botsen met tiles** (`GalaxyClip`): vloeren en hellingen onder de
+  middenkolom (Omnispeaks hoogtetabel), muren links en rechts, plafonds,
+  paalgaten, de grens per frame (239/255), het "eenvoudige" vak voor later;
+  zwaartekracht en versnellen op oneven tics (`GalaxyPhysics`).
+- [x] **Keen** (`GalaxyKeen`, in drie bestanden): staan met de
+  wachtanimaties (omhoog kijken, verveeld, de maan, het boek), lopen (ook
+  op hellingen), omhoog/omlaag kijken, door een dunne vloer zakken,
+  springen, vallen, pogo, schieten in alle richtingen (ook aan een paal en
+  omlaag in de lucht), palen (pakken, klimmen 8, glijden 24, afspringen),
+  randen (hangen, optrekken, loslaten), deuren (naar het doel in de
+  info-laag), schakelaars en bruggen, dood (dodelijke tiles en uit het
+  level vallen) met de doodsanimatie.
+- [x] **Items en tiles**: punten (sprites en tiles, met de "schaduw" die
+  opstijgt), edelstenen, extra leven, lading (+5), druppels (100 = een
+  leven), extra leven bij 20.000 en dan steeds het dubbele, edelsteenhouders
+  en de deur die in drie stappen opengaat. De verdover: 64 per tic, 4
+  beelden, stopt tegen muren, gaat door paalgaten, kost een lading.
+- [x] **Het scorebord** (`GalaxyScoreBox`): de eigen sprite van het spel
+  met de cijfers erin zoals het origineel, linksboven in het zichtbare
+  beeld, in 4:3 en breedbeeld.
+- [x] **Het verloop** (`Keen4LevelSession`, `Keen4Inventory`, `Keen4View`):
+  de camera volgt Keen met de regels uit D3; uit het level lopen → het
+  volgende level (1-16, daarna weer 1); dood → het level opnieuw (een leven
+  minder); geen levens meer → startscherm. De kaart (0) en level 17
+  (zwemmen) blijven nog "rondkijken".
+- [x] **Naast het origineel (js-dos)**: de sprong is 67 px (niet 70: het
+  eerste frame van een level duurt 3 tics, daarna begint elk frame op een
+  oneven tic), de pogo vastgehouden 105 px en los 41 px, lopen 24 per tic,
+  heuvelop 20, paal klimmen 8 en glijden 24, de deur naar de juiste kamer,
+  het scorebord gelijk. Onze getallen zijn daarop gezet.
+- [x] **Tests**: nieuwe suites `test_galaxy_actions`, `test_galaxy_keen`,
+  `test_galaxy_items` (zelfgemaakte mini-levels, `galaxy_keen_fixtures.gd`)
+  en `test_keen4_play` (echte data: alle levels, de sprong, de deur in
+  level 1, items, scorebord). 78 suites, 870 tests (was 74 en 836), alle
+  slagen, gdlint schoon.
+- [x] **Keen 1-3-controle:** `keen1_regression.sh` en `keen2_regression.sh`
+  tegen D3 (lege gebruikersmap): alles gelijk. `git diff
+  milestone-d3-level` op `src/keen2`, `src/keen3`, hun tests en fixtures,
+  `src/actors`, `src/map` en `src/game/level_view.gd` is leeg. Gedeeld
+  bestand veranderd: alleen de testlijst (`tests/run_tests.gd`). De Keen
+  4-regressie verschilt alleen in het scorebord (bekeken).
+- [x] **Bekeken** (scratchpad `d4shots/`): lopen, helling, sprong, pogo,
+  deur, paal, rand (level 4), edelsteendeur (level 4), items, scorebord, in
+  4:3 en breedbeeld, met xBRZ en vloeiende beweging.
+- **Niet gedaan:** de apps zijn hier niet gebouwd (Mac-build alleen op de
+  Mac; voor Windows ontbreken hier de export templates). In het origineel
+  nog niet nagemeten: het hangen aan een rand, de edelsteendeur, de
+  wachtanimaties (open voor D13).
+- **Om te proberen:** `godot --path . -- --game=4` (level 1: naar links
+  lopen, de heuvel op, springen met Ctrl, pogo met Alt, schieten met
+  Spatie; de deur van het linker huis met pijl omhoog leidt naar de kamer
+  met de paal), `-- --game=4 --level=4` (randen, edelstenen en de deur),
+  F5 (xBRZ), F6 (vloeiende beweging), F2 (breedbeeld).
+- **Volgende stap: D5**, vijanden (`milestone-d5-vijanden`).
+
+## Mijlpaal D3: wat er nu is
+
+Elke map van Keen 4 staat op het scherm zoals in het origineel, met Keen
+die stilstaat op zijn startplek; je kunt rondkijken. Bewegen komt in D4.
+De regels staan in het nieuwe `docs/keen4/gameplay.md`, de afwijkingen
+van het plan in `docs/keen4/architecture.md` ("Deviations in D3"), wat het
+origineel liet zien in `docs/keen4/research.md` ("Watched in D3").
+
+- [x] **Drie tile-lagen** (`GalaxyLevelMap`): achtergrond, voorgrond
+  achter de sprites, en voorgrond vóór de sprites, alleen waar
+  `TILEINFO` bit 0x80 dat zegt. Eén `set_tile` voor tiles die veranderen
+  (kaart, scherm en animatie samen). Een atlas per tileset en per level
+  met alleen de tiles die het level kan tonen (`GalaxyTileAtlas`).
+- [x] **Bewegende tiles** (`GalaxyTileAnimator`) met de tijden uit
+  `TILEINFO` in tics van 1/70 s, achter en voor, op de klok van het
+  origineel (`GalaxyClock`: 2 tics per logisch frame, 35 per seconde).
+- [x] **Sprites** (`GalaxyObjectLayer`) op positie + oorsprong, op hele
+  pixels of met vloeiende beweging (`Interpolation`), in de volgorde van
+  de prioriteiten (0-2 onder de tiles vóór, 3 erboven).
+- [x] **Keen op zijn start** (`Keen4Start`): info 1/2 staand naar
+  rechts/links (y = tile × 256 − 241), op de kaart de kaart-Keen, in level
+  17 de zwemmende Keen.
+- [x] **De camera van het origineel** (`GalaxyCamera`): de rand van 2
+  tiles, de scroll-blokken (info 26 een kolom, info 25 een rij), het eerste
+  beeld (Keen 152 px van links, voeten 140 px van boven) en het volgen
+  (Keen tussen 144-192 px, voeten tussen 33 en 167 px) voor D4.
+- [x] **Breedbeeld**: het brede beeld blijft tussen de scroll-blokken; wat
+  daarbuiten zou komen wordt afgedekt (zwart, of het plaatje achter het
+  level) met `GalaxyViewCover`. In 4:3 is het beeld precies het origineel.
+- [x] **xBRZ** (F5) via `GalaxyScaledGraphics` met de gedeelde
+  `XbrzScaler`, op de achtergrond per level (~0,6 s), daarna bewaard.
+- [x] **Plaatjes achter de levels** (breedbeeld, `GalaxyBackdropPictures`):
+  alleen waar de bovenste rij van het level lucht is (de effen lichtblauwe
+  tiles): levels 5, 7-14 en 16. Map `assets/backgrounds/keen4` (nog leeg)
+  en `game_data/keen4/backgrounds` van de speler.
+- [x] **Rondkijken**: pijltjes/WASD verplaatsen het punt waar Keen zou
+  staan; het beeld volgt met de regels van het origineel (dus nooit voorbij
+  een scroll-blok). Shift+N/P: volgende/vorige map. Escape: terug naar het
+  startscherm. Zonder `--level` opent level 1 (het "coming soon"-scherm is
+  weg).
+- [x] **Naast het origineel (js-dos, headless)**: het eerste beeld van
+  levels 1, 4, 11, 14, 17 en van de wereldkaart is pixel voor pixel gelijk
+  (tiles van alle drie lagen, camera, Keen); alleen het scorebord (D4), de
+  vijanden (D5) en de stand van de animaties verschillen. De animatietijden
+  gemeten: druppels 114 ms (8 tics), ogen 571/2855 ms, boom 286 ms: precies
+  `TILEINFO`.
+- [x] **Tests**: nieuwe suites `test_galaxy_level` (zelfgemaakte data:
+  klok, animatie, lagen, atlas, camera met blokken, breedbeeld, volgorde,
+  lucht) en `test_keen4_level` (echte data: start in alle 20 maps, het
+  eerste beeld van level 1, blokken, tiles, lucht-levels). 74 suites, 836
+  tests (was 72 en 816), alle slagen, gdlint schoon.
+  `tools/keen4_regression.sh`: level 1 en 11 in 4:3 en breedbeeld.
+- [x] **Keen 1-3-controle:** `keen1_regression.sh` en `keen2_regression.sh`
+  tegen D2 (lege gebruikersmap): alles gelijk, ook `launcher.png`.
+  `git diff milestone-d2-bestanden` op `src/keen2`, `src/keen3`, hun tests
+  en fixtures, `src/actors`, `src/map` en `src/game/level_view.gd` is leeg.
+  Gedeeld bestand veranderd: alleen de testlijst (`tests/run_tests.gd`).
+- [x] **Bekeken** (scratchpad `d3shots/`): alle 20 maps in 4:3 en
+  breedbeeld, met en zonder xBRZ; tiles vóór Keen, bewegende tiles,
+  scroll-blokken, afdekken in breedbeeld, en een testplaatje achter de
+  lucht-levels (niet gecommit).
+- **Niet gedaan:** de apps zijn hier niet gebouwd (Mac-build alleen op de
+  Mac; voor Windows ontbreken hier de export templates).
+- **Om te proberen:** `godot --path . -- --game=4` (level 1),
+  `-- --game=4 --level=18` (smal: breedbeeld afgedekt), `--level=4` en
+  `--level=14` (scroll-blokken; rondkijken met de pijltjes), Shift+N door
+  alle maps, F2 (breedbeeld), F5 (xBRZ), en een eigen plaatje als
+  `game_data/keen4/backgrounds/level07.png`.
+- **Volgende stap: D4**, Keen beweegt (acties, hellingen, palen, randen,
+  de camera die hem volgt, het scorebord).
+
+## Mijlpaal D2: wat er nu is
+
+Alle bestanden van Keen 4 worden gelezen, met de eigen Keen 4 v1.0 van de
+gebruiker nagekeken. Er beweegt nog niets. De bestanden staan in
+`docs/keen4/file-formats.md` (met "D2" waar de code iets leerde), de
+afwijkingen van het plan in `docs/keen4/architecture.md`, "Deviations in D2".
+
+- [x] **De Galaxy-lezers** (`src/galaxy/data/`, ook voor Keen 5 en 6; de
+  getallen van een deel komen uit een `GalaxyEpisode`): Huffman, Carmack,
+  RLEW met eigen tag, de chunks van EGAGRAPH, plaatjes, gemaskeerde
+  plaatjes, sprites met oorsprong en hitbox (`GalaxySpriteInfo`), 8×8- en
+  16×16-tiles (achter en voor, met masker), de drie lettertypen, de
+  teksten, de demo's, de maps met drie lagen (`GalaxyMapFile`,
+  `GalaxyMap`), `GalaxyTileInfo` en de geluids-chunks als bytes
+  (`GalaxyAudioFile`). Keen 4 zelf: `Keen4Files` en `Keen4Episode`.
+- [x] **Alles op inhoud gezocht** in `KEEN4E.EXE` (`GalaxyHeaderSearch`,
+  `GalaxyHeaders`): de zes headers, eerst op de plekken van 1.0 en 1.4,
+  daarna in het hele programma (dan ~0,2 s); losse header-bestanden naast
+  het spel gaan voor. In 1.0 gevonden waar de architect ze zag
+  (AUDIOHED 0x1FB80 met het blok onzin-offsets 104-155, EGAHEAD 0x1FE10,
+  MAPHEAD 0x235B0, TILEINFO 0x23742, AUDIODCT 0x33FF6, EGADICT 0x343F6).
+  De versie uit het opstartscherm ("(v1.0)": letter en kleur om en om),
+  anders uit de grootte.
+- [x] **Nooit vaste chunknummers**: het aantal plaatjes, sprites enz. komt
+  uit de tabellen; de grens tussen achter- en voorgrond-tiles uit de data
+  zelf (een achtergrond-tile past niet in 160 bytes). 1.0: 107 plaatjes,
+  3 gemaskeerd, 397 sprites, 104 + 20 kleine tiles, 1296 + 2916 tiles, 20
+  maps die allemaal uitpakken.
+- [x] **Teksten op vorm gevonden** (nooit op woorden): de 19 levelnamen,
+  de 19 "Keen enters …"-teksten, de conciërge, en de berichten van de
+  raad, Lindsey en het wetsuit (17 stuks); ook de tabel met willekeurige
+  getallen. Nog niet: statusvenster, menu's, "Try Again", highscores (die
+  zoeken de mijlpalen die ze nodig hebben op dezelfde manier).
+- [x] **Kleuren en masker nagekeken** met screenshots: de vlakken staan in
+  de volgorde blauw, groen, rood, intensiteit; bij sprites, gemaskeerde
+  plaatjes en voorgrond-tiles komt het masker eerst. De hitbox geldt
+  vanaf de plek van het object, het plaatje staat op plek + oorsprong.
+- [x] **Snelheid**: laden (EXE uitpakken, headers, bereiken) ~70 ms, één
+  sprite voor het icoon < 1 ms, heel EGAGRAPH ~1 s, alle maps ~45 ms.
+  Alles wordt pas uitgepakt als het nodig is; geen thread nodig.
+- [x] **Het startscherm heeft vier iconen**: "Keen 4" met Keen uit de eigen
+  sprites en de naam in het eigen lettertype van Keen 4 (via
+  `icon_picture` en `icon_title`); zonder bestanden grijs met uitleg. Met
+  bestanden opent het "Keen 4 - coming soon" (Enter of Escape terug).
+  Vier iconen passen (tot 800 van 1280 px).
+- [x] **`--game=4`** (ook met `--level=N`, dan staat de levelnaam erbij),
+  de data viewer (`-- --game=4`: maps met de drie lagen aan/uit en de
+  waarden onder de muis, beide tilesets, sprites met hitbox en oorsprong,
+  plaatjes, lettertypen en kleine tiles, wat er in het programma
+  gevonden is) en `tools/export_graphics.gd -- --game=4` (naar
+  `exported/keen4/`). Bouwscripts nemen `game_data/keen4` mee;
+  `game_data/README.md` heeft een stukje over Keen 4.
+- [x] **Tests**: nieuwe suites `test_galaxy_data` (decoders, de zoektochten
+  met de headers op andere plekken, het AUDIOHED-gat, de versie, teksten),
+  `test_galaxy_files` (wat de lezers van zelfgemaakte bestanden maken) en
+  `test_keen4_data` (echte data: versie, plekken, aantallen, alle maps,
+  map 0, tileinfo, demo's, geluid); zelfgemaakte data in
+  `tests/galaxy_fixtures.gd` en `tests/galaxy_file_fixtures.gd`. 72
+  suites, 816 tests (was 69 en 778), alle slagen, gdlint schoon.
+- [x] **Keen 1-3-controle:** `keen1_regression.sh` en `keen2_regression.sh`
+  tegen de referentie van `main` (lege gebruikersmap): alles gelijk
+  behalve `launcher.png`, en dat verschilt alleen binnen het vierde icoon.
+  `git diff milestone-d1-onderzoek` op `src/keen2`, `src/keen3`, hun tests
+  en fixtures, `src/actors`, `src/map` en `src/game/level_view.gd`: alleen
+  de regels met het aantal spellen (3 → 4). Gedeelde code alleen
+  aangevuld: `GameCatalog` (vierde spel, `icon_picture`, `icon_title`),
+  `GameIcon.title_picture`, `Launcher._make_icon`, `GameLaunch` (`--game=4`),
+  de data viewer, `export_graphics.gd`, de bouwscripts, de testlijst.
+- **Niet gedaan:** de apps zijn hier niet gebouwd (de Mac-build kan alleen
+  op de Mac; voor Windows ontbreken hier de export templates).
+- **Om te proberen:** het startscherm (vierde icoon, klikken, Escape
+  terug); de data viewer met `godot --path . res://src/viewer/data_viewer.tscn -- --game=4`;
+  `godot --path . -- --game=4 --level=13`.
+- **Volgende stap: D3**, een level tekenen (`Keen4View` met drie
+  tile-lagen, animatie uit `TILEINFO`, de camera met scroll-blokken).
+
+## Mijlpaal D1: wat er nu is
+
+- **Onderzoek in `docs/keen4/`** (19-10-2026), alleen documenten, geen code.
+  Een developer-agent bracht de code in kaart (wat Keen 4 kan gebruiken:
+  startscherm, menu's, instellingen, opslaan, xBRZ, `Interpolation`,
+  online-transport, split-screen, tools; wat Vorticons-specifiek is:
+  decoders, `LevelMap`, `KeenBody`, `LevelCollision`, actoren, kaart,
+  `GameWindow`, `Hud`), een onderzoeksagent las Omnispeak en de
+  Galaxy-code van Commander Genius.
+- **De Keen 4 van de gebruiker is versie 1.0** (geüpload 19-10-2026;
+  Omnispeak en Commander Genius kennen 1.4). De EXE is LZEXE-ingepakt;
+  alle zes headers (`AUDIOHED`, `EGAHEAD`, `MAPHEAD`, `TILEINFO`,
+  `AUDIODCT`, `EGADICT`) zijn **op inhoud** gevonden. 1.0 heeft 107
+  plaatjes (1.4: 115), dus alle chunknummers daarna verschillen: nooit
+  vaste chunknummers. 397 sprites, 1296 + 2916 tiles, 20 maps die alle
+  goed uitpakken, de tileinfo-volgorde nagekeken.
+- **Besluiten van de gebruiker (19-10-2026):** Omnispeak-getallen mogen
+  (`(Omni)`), de gereconstrueerde broncode niet; 35 logische frames per
+  seconde zoals het origineel; in breedbeeld wordt wat achter een
+  scroll-blok ligt afgedekt; het scorebord is de HUD; een eigen
+  OPL2-synthesizer in GDScript met cache, AdLib en muziek standaard aan;
+  omhoog/omlaag voor twee spelers; Paddle War en de demo's wel,
+  Real-ESRGAN niet; D2 pas als Keen 3 op `main` staat (20-10-2026: zo).
+- **Vragen aan de gebruiker gaan altijd als keuzemenu** (wens van de
+  gebruiker, 19-10-2026; nu ook in `CLAUDE.md`).
 
 ## Mijlpaal C11: wat er nu is
 
@@ -154,7 +1062,7 @@ Drie bugs die de gebruiker vond, op dezelfde branch.
   de nabije; levels 1, 6 en 7: koepels, huisjes en het fort staan op de
   laagste grond eronder. Level 14 is helemaal nieuw (noorderlicht boven
   een bevroren zee, ijsbergen, een planeet met ring, een wachttoren met
-  zoeklicht). De tekenhulp staat nu in `tools/keen3_canvas.py`. 3, 8, 11,
+  zoeklicht). De tekenhulp staat nu in `tools/background_painter.py` (sinds D11 gedeeld met Keen 4). 3, 8, 11,
   13 en 15 zweefden niet en zijn niet veranderd.
 - [x] **Level 10 (en 9) een plaatje:** een level krijgt nu een plaatje
   als het lucht heeft, en het plaatje komt alleen door de lucht (tile
@@ -1894,6 +2802,23 @@ Keen 3:
    `Keen2Shot.put_against_wall`)?
 11. Later: Eigen achtergrondplaatjes voor Keen 1 en Keen 2, later in een
    eigen branch (wens van de gebruiker, 19-10-2026).
+
+
+Keen 4:
+
+1. **Voor de gebruiker:** de fixes van D13.2 proberen in `build/` (bouw
+   vanaf `milestone-d13.2-fixes`): kijken met twee spelers in split
+   screen, stilstand in pauzes (vloeiende beweging aan), Shift+G en
+   Shift+I in een level en op de kaart, Configure > Online Game, en
+   level 9 (Miragia) met plaatjes aan (ook de lucht boven de lage richel
+   bij de slak), en in breedbeeld of er nog iets aan de rand opduikt.
+   Daarna verder Keen 4 helemaal
+   spelen: ook online en met de bestanden van 1.4 als je die hebt.
+2. `milestone-d13.2-fixes` (bevat D13.1) kan in één keer naar `main`.
+3. Eventueel later: de open punten van D13 (de plaatjes van het optrekken
+   aan een richel, de Dopefish-beet, de Foot, Smirky's teleport).
+4. Daarna Keen 5 en 6 (zelfde Galaxy-engine; zie de lessen in
+   `docs/keen4/research.md`).
 
 Keen 2:
 

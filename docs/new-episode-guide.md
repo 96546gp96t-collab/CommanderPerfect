@@ -28,6 +28,12 @@ new episode is in before you estimate anything.
 | **Galaxy** | 4, 5, 6 | Completely different: Huffman-compressed `EGAGRAPH`, `GAMEMAPS`/`MAPHEAD` with Carmack + RLEW compression, three map planes, sloped floors, AdLib music and sound (`AUDIO.CK4`), new physics, actions/states, a 2.5D world map | Only the outer layer: launcher, menus, settings, saves, scaling shaders, xBRZ/HD pipeline, online transport, test runner. Plan it as a new engine: new decoders, new physics, new collision (slopes), an OPL (AdLib) emulator. Roughly as much work as Keen 1 was. |
 | **Keen Dreams** | (between 3 and 4) | Its own engine, close to Galaxy | As Galaxy. Its source code was published under the GPL: our "no copied code" rule still applies; use it as documentation only. |
 
+Episode 4 was researched in milestone D1: see `docs/keen4/research.md`,
+`architecture.md` and `roadmap.md`. The short version: a new engine; the
+Galaxy engine goes into `src/galaxy/` (for episodes 4-6) and the episode
+into `src/keen4/`; the user's copy is v1.0 (sources know 1.4); Omnispeak is
+the reference for numbers.
+
 Episode 3 was researched in milestone C1: see `docs/keen3/research.md`.
 The short version: the same family as 1 and 2; sounds and texts in the EXE
 (text order help, end, previews, story); 624 tiles with a tile table that is
@@ -173,3 +179,15 @@ Add one line per lesson, with the milestone where it was learned.
   estimates). Things seen while Keen stands still can be measured any time.
 - C1: subagents may not write report files; let them return the report as
   text and save what must last in `docs/` (the scratchpad is temporary).
+- D1: the Galaxy headers can all be found by content in the unpacked EXE:
+  the two Huffman trees by their shape, the offset tables by their end
+  value, `MAPHEAD` by its tag. Do the same for Keen 5 and 6.
+- D1: Omnispeak (github.com/sulix/omnispeak) is to Galaxy what Chocolate
+  Keen is to Vorticons; clone it from GitHub (davidgow.net and shikadi.net
+  are blocked in the cloud). The Keen 4 shareware is not in the PCjs
+  repository: ask the user to upload their files.
+- D1: keep the engine (`src/galaxy/`) apart from the episode, so later
+  episodes never subclass an earlier one (Keen 3's three-level chain
+  became brittle).
+- C11: the original runs in js-dos in the cloud's headless Chromium
+  (`tools/original/headless.js`); no browser pane needed.

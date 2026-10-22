@@ -22,4 +22,8 @@ if [ -d game_data/keen3 ]; then
 	mkdir -p build/game_data
 	cp -R game_data/keen3 build/game_data/
 fi
+if [ -d game_data/keen4 ]; then
+	mkdir -p build/game_data
+	cp -R game_data/keen4 build/game_data/
+fi
 echo "Built build/CommanderPerfect.app"

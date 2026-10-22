@@ -26,6 +26,9 @@ var title := ""
 var sprite: Texture2D
 ## The game's graphics, for its font; null without the game's files.
 var textures: GraphicsTextures
+## The name already drawn in the game's own font, for a game whose font
+## [member textures] cannot hold (Keen 4); null: the name is drawn as text.
+var title_picture: Texture2D
 var available := true:
 	set(value):
 		available = value
@@ -82,7 +85,10 @@ func _draw() -> void:
 		var top := floorf((BASE_SIZE.y - sprite.get_height()) / 2.0)
 		draw_texture(sprite, Vector2(SPRITE_X, top))
 	var text_top := (BASE_SIZE.y - CHAR) / 2
-	if textures != null:
+	if title_picture != null:
+		var title_top := floorf((BASE_SIZE.y - title_picture.get_height()) / 2.0)
+		draw_texture(title_picture, Vector2(TEXT_X, title_top))
+	elif textures != null:
 		textures.draw_text(self, Vector2(TEXT_X, text_top), title, true)
 	else:
 		var font := ThemeDB.fallback_font

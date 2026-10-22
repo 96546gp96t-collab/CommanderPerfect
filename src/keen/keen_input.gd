@@ -6,7 +6,8 @@ extends RefCounted
 
 ## -1 for left, 1 for right, 0 for neither (or both).
 var direction := 0
-## -1 for up, 1 for down, 0 for neither. Only used on the world map.
+## -1 for up, 1 for down, 0 for neither. Keen 1-3 only use it on the
+## world map; Keen 4 in its levels too.
 var vertical := 0
 var jump := false
 var pogo := false
@@ -49,12 +50,14 @@ static func from_actions() -> KeenInput:
 ## keyboard; see [constant KeyBindings.PLAYER_ACTIONS].
 static func for_player(player: int) -> KeenInput:
 	var prefix := "p%d_" % (player + 1)
-	return create(
+	var input := create(
 		int(signf(Input.get_axis(prefix + "left", prefix + "right"))),
 		Input.is_action_pressed(prefix + "jump"),
 		Input.is_action_pressed(prefix + "pogo"),
 		Input.is_action_pressed(prefix + "fire"),
 	)
+	input.vertical = int(signf(Input.get_axis(prefix + "up", prefix + "down")))
+	return input
 
 
 ## Everything held in [param inputs] together: a button counts when it is

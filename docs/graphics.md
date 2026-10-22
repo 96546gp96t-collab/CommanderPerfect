@@ -176,19 +176,24 @@ stays as it was). A level without a picture looks as in the original.
   right edge at the right end (`LevelBackdrop`). A wider picture glides
   more and looks deeper; 3840x1080 or so suits a level like level 1 well.
   In a split screen each half has its own.
-- **Keen 2 and Keen 3** have their own folders, `assets/backgrounds/keen2/`
-  and `assets/backgrounds/keen3/` (Keen 2's still empty; Keen 3's painted by
-  `tools/make_keen3_backgrounds.py`), and the player's
-  `game_data/keen2/backgrounds/` and `game_data/keen3/backgrounds/`, with
-  the same file names; Keen 1's pictures are never shown behind their
-  levels. Each game decides which levels may show one, because a picture
+- **Keen 2, Keen 3 and Keen 4** have their own folders,
+  `assets/backgrounds/keen2/`, `assets/backgrounds/keen3/` and
+  `assets/backgrounds/keen4/` (Keen 2's still empty; Keen 3's painted by
+  `tools/make_keen3_backgrounds.py`, Keen 4's by
+  `tools/make_keen4_backgrounds.py`), and the player's
+  `game_data/keen2/backgrounds/`, `game_data/keen3/backgrounds/` and
+  `game_data/keen4/backgrounds/`, with the same file names; Keen 1's
+  pictures are never shown behind their levels. Each game decides which levels may show one, because a picture
   shows through the background color in every tile: Keen 2 only where the
   plain background is the level's most used tile (B8, level 12;
   `docs/keen2/gameplay.md`), Keen 3 where the level has sky, and then only
   through the sky, never the dark gray of a base (levels 1-11, 13, 14 and
-  15; `docs/keen3/gameplay.md`, "Extras (C9)"). The painter is
-  `tools/make_keen3_backgrounds.py` with its canvas in
-  `tools/keen3_canvas.py`.
+  15; `docs/keen3/gameplay.md`, "Extras (C9)"), Keen 4 where the top row
+  of the level is sky, and then only through the sky colour (levels 5, 7-14
+  and 16; `docs/keen4/gameplay.md`, "Pictures behind the levels"). The
+  painters are `tools/make_keen3_backgrounds.py` and
+  `tools/make_keen4_backgrounds.py`, with their shared canvas in
+  `tools/background_painter.py`.
 
 ## Still open
 
