@@ -10,6 +10,11 @@ extends TileMapLayer
 ## in front of Keen, and animated tiles cycle through their frames. A masked
 ## tile with a mask ([MaskedTiles]) is drawn whole behind Keen and, on a
 ## third layer in front of him, only where its mask lets it through.
+##
+## Behind the tiles a [LevelWall] can draw the wall of a level whose tiles
+## have holes for it ([method use_wall], milestone AB2). Cells whose sky
+## colour is not the sky (a cone of light in Keen 1's dark rooms) are drawn
+## from the tile set's [constant LevelTileSet.SKY_KEPT_SOURCE_ID].
 
 ## Seconds per animation frame of animated tiles.
 const ANIMATION_FRAME_TIME := 0.1
@@ -19,6 +24,9 @@ const FOREGROUND_Z_INDEX := 1
 var _foreground := TileMapLayer.new()
 ## The parts of masked tiles that are drawn in front of Keen.
 var _masked := TileMapLayer.new()
+var _wall := LevelWall.new()
+## The cells drawn with the sky's colour kept.
+var _sky_kept_cells: Dictionary[Vector2i, bool] = {}
 var _properties: TileProperties
 ## Animated cells and the tile the level puts there.
 var _animated_cells: Dictionary[Vector2i, int] = {}
@@ -33,6 +41,7 @@ func _init() -> void:
 	_masked.name = "Masked"
 	_masked.z_index = FOREGROUND_Z_INDEX
 	add_child(_masked)
+	add_child(_wall)
 
 
 func _process(delta: float) -> void:
@@ -47,6 +56,7 @@ func show_level(level: LevelData, properties: TileProperties = null) -> void:
 	clear()
 	_foreground.clear()
 	_masked.clear()
+	_wall.clear()
 	_use_tile_set_in_front(tile_set)
 	_properties = properties
 	_animated_cells.clear()
@@ -89,6 +99,32 @@ func masked() -> TileMapLayer:
 	return _masked
 
 
+## The wall behind the tiles.
+func wall() -> LevelWall:
+	return _wall
+
+
+## Draws [param texture] behind the tiles through the wall masks of
+## [param masks] ([method LevelTileSet.build_wall_masks]; null for either:
+## no wall), and the cells of [param sky_kept_cells] with the sky's colour
+## kept. Every cell is drawn again.
+func use_wall(
+	masks: TileSet, texture: Texture2D, sky_kept_cells: Dictionary[Vector2i, bool]
+) -> void:
+	if (
+		not _wall.is_showing()
+		and (masks == null or texture == null)
+		and sky_kept_cells.is_empty()
+		and _sky_kept_cells.is_empty()
+	):
+		return
+	_wall.set_up(masks, texture)
+	_sky_kept_cells = sky_kept_cells
+	for layer: TileMapLayer in [self, _foreground]:
+		for cell in layer.get_used_cells():
+			_draw_tile(cell, LevelTileSet.tile_at(layer.get_cell_atlas_coords(cell)))
+
+
 ## Advances the tile animations by [param seconds].
 func animate(seconds: float) -> void:
 	if _animated_cells.is_empty():
@@ -110,6 +146,7 @@ func _use_tile_set_in_front(new_tile_set: TileSet) -> void:
 
 func _draw_tile(cell: Vector2i, tile: int) -> void:
 	_masked.erase_cell(cell)
+	_wall.draw_tile(cell, tile)
 	if _is_masked_with_mask(tile):
 		_foreground.erase_cell(cell)
 		_put_tile(self, cell, tile)
@@ -131,10 +168,13 @@ func _is_masked_with_mask(tile: int) -> bool:
 
 
 func _put_tile(layer: TileMapLayer, cell: Vector2i, tile: int) -> void:
-	var source := tile_set.get_source(LevelTileSet.SOURCE_ID) as TileSetAtlasSource
+	var source_id := LevelTileSet.SOURCE_ID
+	if _sky_kept_cells.has(cell) and tile_set.has_source(LevelTileSet.SKY_KEPT_SOURCE_ID):
+		source_id = LevelTileSet.SKY_KEPT_SOURCE_ID
+	var source := tile_set.get_source(source_id) as TileSetAtlasSource
 	var atlas_coords := LevelTileSet.atlas_coords_of(tile)
 	if source.has_tile(atlas_coords):
-		layer.set_cell(cell, LevelTileSet.SOURCE_ID, atlas_coords)
+		layer.set_cell(cell, source_id, atlas_coords)
 	else:
 		layer.erase_cell(cell)
 

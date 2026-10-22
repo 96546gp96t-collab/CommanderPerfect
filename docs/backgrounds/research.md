@@ -205,3 +205,57 @@ Without changing Keen 1-3's other code (only additive, as before):
    original.**
 4. **Level 1's picture stays** (the user's own Mars picture of 16-10); the
    other Keen 1 skies get the same mood, per city.
+
+## 7. Deviations and decisions in AB2
+
+Built as planned (holes of two kinds, `LevelWall`, Keen 2 walls in every
+level, Keen 1's sky only outside); what differs from sections 2-4, or was
+decided on the way:
+
+- **The pattern rule needed more than "equal and joined to the edge".**
+  Plain colours equal the lattice wherever its field is, so the first rule
+  ate a riveted box (an X), the edges and dots of the white sign boards and
+  the dithered roof of London's tower. A group now counts only when, in one
+  kind (lit, dark, shadow), it is at least 2x2 pixels thick, touches the
+  tile's edge, holds both kinds of line (the white and the dark grey one)
+  and its field pixels have its own line pixels next to them at least three
+  times as often as not (`LatticeWalls.LINE_RATIO`); real lattice tiles
+  score ten times or more, the false ones about two. The lit groups are
+  found first; where a shadow or the dark meets them, their lines count.
+  The boxes (tiles 385, 386, 400), the boards and the roof stay whole.
+- **Thin shadows** (two pixels under a platform, the bevels) join a wall
+  next to them when they hold a darkened white line; their black pixels
+  (the darkened dark line) only with three wall neighbours, so a black
+  outline is never taken. Stray groups of up to four grey pixels with only
+  wall around them become wall (the corners where two tiles' lines do not
+  meet, a white corner pixel of tile 148).
+- **The dark lattice next to a cone of light** (tiles 157, 158) has its
+  lines two pixels to the right of tile 147's; both count as the dark wall.
+  Tile 147 has no shadow kind: one step darker it is black.
+- **Brightness:** the wall in the dark at 35 %, in a shadow at 45 %
+  (`BackdropHoles`), lit at 100 %.
+- **Keen 1's sky is always tile 143's grey.** The old rule (the level's most
+  used plain tile) gives black in the dark rooms (levels 2, 5, 6, 11, 12).
+- **Keen 1's cones by the lamp:** a grey region (cells joined through grey
+  on their shared edge) is a cone when one of its cells hangs right under a
+  lamp (tile 156), instead of "joined to the top of the level"; that also
+  finds the courtyard of level 12, which is closed at the top. The grey
+  diagonals inside the castle of level 16 and the grey corners at the
+  bottom of level 9 are joined to the outside and have no lamp: they show
+  the sky. Every level checked by a picture (scratchpad `verify/k1_LNN.png`:
+  magenta sky, yellow kept grey, green wall).
+- **Keen 2 has no gliding pictures any more.** `Keen2BackdropPictures`
+  stays (Keen 3's docs and tests compare with its rule) but `Keen2View`
+  no longer uses it.
+- **`LevelWall` is a child of `LevelMap`** (z index -1) rather than a
+  sibling in the scene, so every screen that draws a level has it without
+  a scene change, and it follows every tile change (items, animation,
+  online). Keen 3 and 4 get an empty one that draws nothing.
+- **Left as in the original:** the lattice inside small gaps that do not
+  pass the test (between the Yorp statues of levels 5 and 14, the glass of
+  the Tantalus machines and the windows of the big white machine), and with
+  xBRZ a faint edge of lattice colour around items (as around the sky's
+  holes since 16-10).
+- **Cost:** sorting Keen 2's 689 tiles takes about 0.6 s the first time a
+  kind of level is entered (three kinds: lattice, lattice in the dark, with
+  teal); Keen 1's colour rules are quick.

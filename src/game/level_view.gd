@@ -139,6 +139,7 @@ func _ready() -> void:
 	_textures = GraphicsTextures.create(_graphics)
 	_level_map.tile_set = LevelTileSet.build(_graphics, _textures)
 	_backdrop_pictures = BackdropPictures.create(_files)
+	_walls = Keen1Walls.create(_files, _graphics.tiles)
 	_keen.set_textures(_textures)
 	_second_player.set_textures(_textures)
 	_mark.set_textures(_textures)

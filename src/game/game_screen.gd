@@ -6,7 +6,8 @@ extends Control
 ## a window, the camera's limits, the status line and the [Hud], short
 ## messages and the [GameWindow]. The keys F1-F6 change how it looks. In
 ## widescreen a level with a picture of its own shows it behind it
-## ([LevelBackdrop]), when the option is on.
+## ([LevelBackdrop]), when the option is on; in Keen 1 and 2 also a wall
+## fixed to the level ([LevelWalls], [LevelWall]).
 ##
 ## [LevelView] extends it with what happens in the game; the mode (what is
 ## shown) and the state that the drawing needs live here.
@@ -30,6 +31,11 @@ var _properties: TileProperties
 ## tiles for the one shown now (transparent when none is).
 var _backdrop_pictures: BackdropPictures
 var _backdrop_color := Color.TRANSPARENT
+## The walls behind the levels (Keen 1 and 2; null for an episode without),
+## and the holes left out of the tiles for the level shown now (null when
+## there are none).
+var _walls: LevelWalls
+var _backdrop_holes: BackdropHoles
 ## The map or level on the screen, and its data.
 var _level_number := 0
 var _level: LevelData
@@ -233,6 +239,9 @@ func _apply_display_settings() -> void:
 ## the settings want it, and leaves the level's own background out of its
 ## tiles; otherwise the level looks as in the original.
 func _apply_backdrop() -> void:
+	if _walls != null:
+		_apply_walls()
+		return
 	var picture: Texture2D = null
 	var color := Color.TRANSPARENT
 	var picture_level := ShipLevels.picture_level(_level_number)
@@ -262,6 +271,46 @@ func _apply_backdrop() -> void:
 			_level_map.use_tile_set(_level_tile_set())
 
 
+## [method _apply_backdrop] for an episode with walls ([member _walls]):
+## the sky's picture where the level has sky, the wall's texture behind it
+## where it has a wall, and the tiles with holes for both.
+func _apply_walls() -> void:
+	var number := ShipLevels.picture_level(_level_number)
+	var shown := (
+		_level != null and _settings.shows_backgrounds() and GameFiles.is_playable_level(number)
+	)
+	var picture := _backdrop_pictures.picture(number) if shown and _backdrop_pictures else null
+	var wall := _walls.texture(number) if shown else null
+	var sky := Color.TRANSPARENT
+	if picture != null:
+		var tile := BackdropPictures.background_tile(_level, _properties, _graphics.tiles)
+		sky = BackdropPictures.color_of(_graphics.tiles[tile]) if tile >= 0 else sky
+		picture = picture if tile >= 0 else null
+	var holes := _walls.holes(_level, sky, wall != null) if _level != null else null
+	if _level_number == ShipLevels.INSIDE_LEVEL and _graphics != null:
+		# The cabin is drawn behind the tiles: their background goes.
+		holes = BackdropHoles.create(
+			BackdropPictures.color_of(_graphics.tiles[ShipLevels.BACKGROUND_TILE])
+		)
+	var area := Rect2(LevelMap.playable_pixels(_level)) if _level != null else Rect2()
+	_backdrop.show_picture(picture, area)
+	_backdrop_2.show_picture(picture, area)
+	_update_backdrops()
+	var changed := (
+		(holes.key() if holes else "") != (_backdrop_holes.key() if _backdrop_holes else "")
+	)
+	_backdrop_holes = holes
+	if changed and _textures != null:
+		_level_map.use_tile_set(_level_tile_set())
+	var masks: TileSet = null
+	if wall != null and holes != null and holes.has_wall() and _textures != null:
+		masks = LevelTileSet.build_wall_masks(_textures, holes)
+	var kept: Dictionary[Vector2i, bool] = {}
+	if holes != null and picture != null:
+		kept = _walls.sky_kept_cells(_level, holes)
+	_level_map.use_wall(masks, wall, kept)
+
+
 ## Puts the pictures behind the level where the cameras look.
 func _update_backdrops() -> void:
 	if not _backdrop.is_showing():
@@ -272,8 +321,10 @@ func _update_backdrops() -> void:
 
 
 ## The tiles of the level, without its background when a picture is behind
-## it.
+## it (or with the holes for the sky and the wall, in an episode with walls).
 func _level_tile_set() -> TileSet:
+	if _backdrop_holes != null:
+		return LevelTileSet.build_with_holes(_graphics, _textures, _backdrop_holes)
 	return LevelTileSet.build(_graphics, _textures, _backdrop_color)
 
 

@@ -23,6 +23,11 @@ var _doors: Dictionary[PackedInt32Array, ImageTexture] = {}
 var _finale: ImageTexture
 ## Tile atlases with a level's background color left out, by that color.
 var _backdrop_atlases: Dictionary[Color, ImageTexture] = {}
+## The same with the holes of a [BackdropHoles] (by its key and whether the
+## sky stays), the wall's masks, and every tile's kinds of hole.
+var _hole_atlases: Dictionary[String, ImageTexture] = {}
+var _wall_masks: Dictionary[String, ImageTexture] = {}
+var _hole_kinds: Dictionary[String, Array] = {}
 
 
 static func create(ega_graphics: EgaGraphics) -> GraphicsTextures:
@@ -44,6 +49,8 @@ func use_scaled(scaled_graphics: ScaledGraphics) -> void:
 	_doors.clear()
 	_finale = null
 	_backdrop_atlases.clear()
+	_hole_atlases.clear()
+	_wall_masks.clear()
 
 
 ## How many times larger the images in the textures are than the original.
@@ -169,6 +176,54 @@ func backdrop_tile_atlas(columns: int, padding: int, color: Color) -> ImageTextu
 	var big := _atlas(bigs, scaled.factor, columns, padding) if scaled != null else null
 	_backdrop_atlases[color] = _texture(original, big)
 	return _backdrop_atlases[color]
+
+
+## The tile atlas of [method tile_atlas] with the holes of [param holes]
+## left out: every hole, or with [param keep_sky] only the wall's (for the
+## cells where the sky's colour is something else, such as a cone of light
+## in a dark room). Scaled graphics get the same holes, enlarged.
+func holes_tile_atlas(
+	columns: int, padding: int, holes: BackdropHoles, keep_sky := false
+) -> ImageTexture:
+	var key := holes.key() + ("/sky kept" if keep_sky else "")
+	if _hole_atlases.has(key):
+		return _hole_atlases[key]
+	var kinds := hole_kinds(holes)
+	var originals: Array[Image] = []
+	var bigs: Array[Image] = []
+	for index in graphics.tiles.size():
+		var image := BackdropHoles.cut(graphics.tiles[index], kinds[index], keep_sky)
+		originals.append(image)
+		if scaled != null:
+			bigs.append(_with_holes_of(scaled.tiles[index], image))
+	var original := _atlas(originals, 1, columns, padding)
+	var big := _atlas(bigs, scaled.factor, columns, padding) if scaled != null else null
+	_hole_atlases[key] = _texture(original, big)
+	return _hole_atlases[key]
+
+
+## The wall's shape on every tile ([method BackdropHoles.mask]) in the
+## layout of [method tile_atlas], at the size of the original tiles.
+func wall_mask_atlas(columns: int, padding: int, holes: BackdropHoles) -> ImageTexture:
+	var key := holes.key()
+	if not _wall_masks.has(key):
+		var masks: Array[Image] = []
+		for kinds: PackedByteArray in hole_kinds(holes):
+			masks.append(BackdropHoles.mask(kinds, EgaGraphics.TILE_SIZE))
+		_wall_masks[key] = ImageTexture.create_from_image(_atlas(masks, 1, columns, padding))
+	return _wall_masks[key]
+
+
+## The kinds of hole ([method BackdropHoles.kinds]) of every tile, worked
+## out once per set of holes (they do not depend on the scaled graphics).
+func hole_kinds(holes: BackdropHoles) -> Array:
+	var key := holes.key()
+	if not _hole_kinds.has(key):
+		var kinds: Array[PackedByteArray] = []
+		for tile_image in graphics.tiles:
+			kinds.append(holes.kinds(tile_image))
+		_hole_kinds[key] = kinds
+	return _hole_kinds[key]
 
 
 func _scaled_font_char(code: int) -> Image:
