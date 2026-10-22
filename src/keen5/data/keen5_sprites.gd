@@ -115,10 +115,12 @@ const ITEM_FIRST_FRAMES: PackedInt32Array = [
 const ITEM_SHADOWS: PackedInt32Array = [130, 130, 130, 130, 93, 94, 95, 96, 97, 98, 99, 100, 107]
 
 
-## All of them in one list, by name.
+## All of them in one list, by name, with the creatures'
+## ([Keen5CreatureSprites], E4).
 static func all() -> Dictionary[StringName, int]:
 	var sprites: Dictionary[StringName, int] = KEEN.duplicate()
 	sprites.merge(OBJECTS)
+	sprites.merge(Keen5CreatureSprites.SPRITES)
 	for item in ITEM_FIRST_FRAMES.size():
 		sprites[StringName("ITEM_%d" % item)] = ITEM_FIRST_FRAMES[item]
 		sprites[StringName("SHADOW_%d" % item)] = ITEM_SHADOWS[item]

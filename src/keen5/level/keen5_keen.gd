@@ -14,7 +14,11 @@ extends GalaxyKeen
 ##     [constant KORATH_ENDING]); he is gone from sight for 9 tics first;
 ##   - the Vitalin splash has four pictures of 8 tics (Keen 4's lifewater
 ##     three of 10);
-##   - no moon (misc 16 is on two tiles but means nothing in Keen 5).
+##   - no moon (misc 16 is on two tiles but means nothing in Keen 5);
+##   - the creatures that push him (the Little Ampton, the Korath, the
+##     Shelley) push him only sideways ([method push_sideways]), and those
+##     that knock him off a pole or ledge do not push him as well
+##     ([method knock_off_pole]; E4).
 
 ## Misc kind of the security door (Omni MISCFLAG_SECURITYDOOR).
 const SECURITY_DOOR := 32
@@ -84,6 +88,37 @@ func _action_rows() -> PackedStringArray:
 
 func _item_rows() -> PackedStringArray:
 	return ITEM_ROWS
+
+
+## [param pusher] pushes him out of its way sideways, when it moved into
+## him (Omni CK_PhysPushX): he is moved with the normal clipping and stands
+## against it.
+func push_sideways(pusher: GalaxyObject) -> void:
+	var dx := pusher.moved.x - moved.x
+	var from_left := pusher.box.right - box.left
+	var from_right := box.right - pusher.box.left
+	if from_left > 0 and from_left <= dx:
+		_shove(from_left)
+		right_hit = 1
+	elif from_right > 0 and -dx >= from_right:
+		_shove(-from_right)
+		left_hit = 1
+
+
+## [param pusher] knocks him off a pole or ledge: he falls where he is, in
+## front of nothing (Omni CK_KeenSpecialColFunc, Keen 5: no push; the
+## pole-door glitch of the original is kept, his vertical facing stays).
+func knock_off_pole(_pusher: GalaxyObject) -> void:
+	priority = 1
+	clip = Clip.NORMAL
+	_become(&"fall_1")
+	jump_timer = 0
+	velocity = Vector2i.ZERO
+
+
+func _shove(distance: int) -> void:
+	step = Vector2i(distance, 0)
+	world.clip.update_normal(self)
 
 
 ## The keycard he holds.
