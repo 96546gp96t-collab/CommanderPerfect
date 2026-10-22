@@ -195,6 +195,18 @@ stays as it was). A level without a picture looks as in the original.
   `tools/make_keen4_backgrounds.py`, with their shared canvas in
   `tools/background_painter.py`.
 
+**Keen 1's and Keen 2's pictures and walls (AB3).** Painted by our own
+tools on the same canvas: `tools/make_keen1_backgrounds.py` writes Keen 1's
+skies `assets/backgrounds/levelNN.webp` (levels 3, 4, 7, 8, 9, 10, 12, 13,
+14, 15 and 16, in the mood of level 1's picture, which it leaves alone;
+3840, 2880 or 1920 by 1080 pixels) and its walls
+`assets/backgrounds/wallNN.webp` (levels 2, 5, 6, 9, 10, 11, 12, 13, 15
+and 16); `tools/make_keen2_walls.py` writes Keen 2's walls
+`assets/backgrounds/keen2/wallNN.webp` (levels 1-16, a wall per kind of
+room). A wall is 256x256, one texture pixel per game pixel, seamless in
+both directions (`Tile` in the painter), and dark enough to read both at
+full light and dimmed. Running a tool again writes the same files.
+
 ### The wall fixed to the level (Keen 1 and 2, AB2)
 
 Behind a closed room the picture is not a sky that glides but a wall that

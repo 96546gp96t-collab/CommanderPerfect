@@ -1,5 +1,7 @@
 """The canvas that the pictures behind the levels are painted on, shared by
-tools/make_keen3_backgrounds.py and tools/make_keen4_backgrounds.py.
+tools/make_keen3_backgrounds.py, tools/make_keen4_backgrounds.py and
+tools/make_keen1_backgrounds.py, and the seamless wall tile of
+tools/make_keen1_backgrounds.py and tools/make_keen2_walls.py.
 
 Our own drawing helpers, nothing from the game files: a small picture in the
 chunky pixels of the game (dithered gradients, discs, clouds, hills, ridges,
@@ -43,9 +45,9 @@ def mix(a, b, t):
 class Canvas:
     """A small picture being painted, with the helpers every scene uses."""
 
-    def __init__(self, width, seed):
+    def __init__(self, width, seed, height=HEIGHT):
         self.w = width
-        self.h = HEIGHT
+        self.h = height
         self.px = np.zeros((self.h, self.w, 3), dtype=float)
         self.rng = np.random.default_rng(seed)
         self.sky_bottom = None
@@ -344,7 +346,86 @@ class Canvas:
             inside &= ys <= flat_below
         self.px[inside] = rgb(colour)
 
-    def save(self, path):
+    def save(self, path, pixel=PIXEL):
         small = Image.fromarray(np.clip(self.px, 0, 255).astype(np.uint8), "RGB")
-        big = small.resize((self.w * PIXEL, self.h * PIXEL), Image.NEAREST)
+        big = small.resize((self.w * pixel, self.h * pixel), Image.NEAREST)
         big.save(path, "WEBP", lossless=True, quality=100, method=6)
+
+
+class Tile:
+    """A wall texture being painted: drawn in game pixels (saved 1:1) and
+    seamless, because everything drawn past one edge comes back in at the
+    other. The game repeats it in both directions behind a room."""
+
+    def __init__(self, width, height, seed):
+        self.w = width
+        self.h = height
+        self.px = np.zeros((self.h, self.w, 3), dtype=float)
+        self.rng = np.random.default_rng(seed)
+
+    def fill(self, colour):
+        self.px[:, :] = rgb(colour)
+
+    def rect(self, x, y, w, h, colour):
+        """A filled rectangle, wrapped around the edges."""
+        if w <= 0 or h <= 0:
+            return
+        rows = np.arange(int(y), int(y) + int(h)) % self.h
+        cols = np.arange(int(x), int(x) + int(w)) % self.w
+        self.px[np.ix_(rows, cols)] = rgb(colour)
+
+    def dot(self, x, y, colour):
+        self.px[int(y) % self.h, int(x) % self.w] = rgb(colour)
+
+    def get(self, x, y):
+        return self.px[int(y) % self.h, int(x) % self.w]
+
+    def mask(self, inside, colour):
+        """Paints `colour` wherever the (h, w) boolean array is true."""
+        self.px[inside] = rgb(colour)
+
+    def bevel(self, x, y, w, h, face, light, shade, seam=None):
+        """A raised plate: its face, a lit top and left edge, a shaded bottom
+        and right edge, and optionally a seam line along its right and
+        bottom side (so a grid of plates shares one seam between them)."""
+        self.rect(x, y, w, h, face)
+        self.rect(x, y, w, 1, light)
+        self.rect(x, y, 1, h, light)
+        inner = 1 if seam is not None else 0
+        self.rect(x, y + h - 1 - inner, w - inner, 1, shade)
+        self.rect(x + w - 1 - inner, y, 1, h - inner, shade)
+        if seam is not None:
+            self.rect(x, y + h - 1, w, 1, seam)
+            self.rect(x + w - 1, y, 1, h, seam)
+
+    def inset(self, x, y, w, h, face, light, shade):
+        """A sunken box (a screen, a vent): shaded at the top and left, lit
+        at the bottom and right."""
+        self.rect(x, y, w, h, face)
+        self.rect(x - 1, y - 1, w + 2, 1, shade)
+        self.rect(x - 1, y - 1, 1, h + 2, shade)
+        self.rect(x - 1, y + h, w + 2, 1, light)
+        self.rect(x + w, y - 1, 1, h + 2, light)
+
+    def speckle(self, x, y, w, h, colour, density):
+        """Scattered single pixels of `colour` in a rectangle: grain in metal
+        or stone."""
+        count = int(w * h * density)
+        for _ in range(count):
+            self.dot(x + self.rng.integers(0, w), y + self.rng.integers(0, h), colour)
+
+    def scaled(self, factor):
+        """A copy darkened to `factor` (how the wall looks in a shadow or in
+        the dark), for previews."""
+        copy = Tile(self.w, self.h, 0)
+        copy.px = self.px * factor
+        return copy
+
+    def colours(self):
+        """How many different colours the texture uses."""
+        flat = np.clip(self.px, 0, 255).astype(np.uint8).reshape(-1, 3)
+        return len(np.unique(flat, axis=0))
+
+    def save(self, path):
+        image = Image.fromarray(np.clip(self.px, 0, 255).astype(np.uint8), "RGB")
+        image.save(path, "WEBP", lossless=True, quality=100, method=6)
