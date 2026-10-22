@@ -382,7 +382,7 @@ func _think_press_switch() -> void:
 	# The switch's click is the "no charges" sound (Omni).
 	world.play_sound(&"keen_out_of_ammo")
 	if world.tile_info.fore(GalaxyTileInfo.Fore.MISC, tile) != GalaxyTileKinds.BRIDGE_SWITCH:
-		world.set_info(at, world.info_at(at.x, at.y) ^ TURN_POINT_TOGGLE)
+		world.set_info(at, _switched_info(world.info_at(at.x, at.y)))
 		return
 	for row in BRIDGE_ROWS:
 		var x := at.x - (0 if row == 0 else 1)
@@ -393,6 +393,13 @@ func _think_press_switch() -> void:
 				break
 			world.set_fore_tile(Vector2i(x, at.y + row), next)
 			x += 1
+
+
+## The info value a platform switch leaves at its target that held
+## [param value]: the turn point turned on or off (Keen 5 also turns a
+## path arrow round, [Keen5Keen]).
+func _switched_info(value: int) -> int:
+	return value ^ TURN_POINT_TOGGLE
 
 
 func _tile_at_head() -> int:

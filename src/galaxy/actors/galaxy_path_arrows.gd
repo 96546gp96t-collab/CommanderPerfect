@@ -6,8 +6,9 @@ extends RefCounted
 ## value 0x5B-0x62 (91-98 in Keen 5): up, right, down, left, up-right,
 ## down-right, down-left, up-left. The mover goes the way of its arrow a
 ## whole tile at a time; each time it reaches the next tile it reads the
-## arrow there (at its position plus a look offset: the GoPlats look 0x40
-## further, the Volteface not) and goes on that way with what is left of
+## arrow there (at its position plus a look offset: Keen 5's purple
+## GoPlats, placed 0x40 into their tile, look 0x40 further; the red ones
+## and the Volteface not) and goes on that way with what is left of
 ## its move. A switch can turn an arrow round ([GalaxyKeen]), so the way
 ## changes the next time the mover reaches that tile.
 ##
