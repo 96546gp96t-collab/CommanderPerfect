@@ -19,7 +19,7 @@ extends RefCounted
 ## A colour that equals the lattice at one place is common in the things
 ## drawn on it (a plain grey box, a white board, a dithered roof), so a
 ## group of matching pixels only counts when it looks like the lattice:
-##   - it is at least two by two pixels thick ([method _opened]), in one kind
+##   - it is at least two by two pixels thick ([method opened]), in one kind
 ##   - it touches the edge of the tile, as the colour rule's holes do
 ##   - it holds both kinds of line and its field pixels mostly have their
 ##     line pixels next to them ([method _looks_like_lattice]); a plain grey
@@ -46,6 +46,8 @@ const SPECK_SIZE := 4
 ## A stray group needs at least this many wall pixels around it (a corner
 ## pixel has two neighbours in the tile).
 const SPECK_NEIGHBOURS := 2
+## How far from a tile's edge [method edge_strip] looks, in pixels.
+const EDGE_STRIP := 2
 ## A black pixel of a shadow is wall with at least this many wall neighbours
 ## (a lattice's dark line is black in the shadow; a black outline is not).
 const BLACK_NEIGHBOURS := 3
@@ -110,6 +112,51 @@ func kinds(tile: Image) -> PackedByteArray:
 	return result
 
 
+## The lattice around an item on [param tile] (1 for each such pixel): every
+## pixel that equals the lit lattice at its place and is joined to the
+## tile's edge through more of them. Items have a dark outline, so this
+## stops at the item; the pattern rule of [method kinds] would leave the
+## thin sides between an item and the tile's edge, and the small pockets
+## around it, as lattice.
+func item_background(tile: Image) -> PackedByteArray:
+	return _edge_flood(_matches(_rgb(tile), _lit))
+
+
+## The lattice along the edge of [param tile]: the pixels of
+## [method item_background] that lie within [constant EDGE_STRIP] pixels of
+## the edge, joined to it through such pixels. Where something stands on the
+## lattice a pixel or two from the tile's edge (a sign, a lamp's arms), that
+## thin strip is too thin for the pattern rule.
+func edge_strip(tile: Image) -> PackedByteArray:
+	var matched := _matches(_rgb(tile), _lit)
+	for i in matched.size():
+		var x := i % SIZE
+		var y := i / SIZE
+		if mini(mini(x, y), mini(SIZE - 1 - x, SIZE - 1 - y)) >= EDGE_STRIP:
+			matched[i] = 0
+	return _edge_flood(matched)
+
+
+## The pixels of [param matched] joined to the tile's edge through more of
+## them.
+static func _edge_flood(matched: PackedByteArray) -> PackedByteArray:
+	var result := PackedByteArray()
+	result.resize(SIZE * SIZE)
+	var pending: Array[int] = []
+	for i in SIZE * SIZE:
+		var x := i % SIZE
+		var y := i / SIZE
+		if matched[i] and (x == 0 or y == 0 or x == SIZE - 1 or y == SIZE - 1):
+			result[i] = 1
+			pending.append(i)
+	while not pending.is_empty():
+		for j in _neighbours(pending.pop_back()):
+			if matched[j] and not result[j]:
+				result[j] = 1
+				pending.append(j)
+	return result
+
+
 func _any_dark(rgb: PackedByteArray) -> bool:
 	for dark in _darks:
 		if _matches(rgb, dark).has(1):
@@ -122,7 +169,7 @@ func _any_dark(rgb: PackedByteArray) -> bool:
 func _accepted(matched: PackedByteArray, beside: PackedByteArray) -> PackedByteArray:
 	var accepted := PackedByteArray()
 	accepted.resize(SIZE * SIZE)
-	for group in _groups(_opened(matched)):
+	for group in _groups(opened(matched)):
 		if _touches_edge(group) and _looks_like_lattice(group, beside):
 			for i in group:
 				accepted[i] = 1
@@ -225,7 +272,7 @@ func _holds_places(group: PackedInt32Array, wanted: Array) -> bool:
 
 
 ## [param mask] with only the pixels that lie in a 2x2 square of it.
-static func _opened(mask: PackedByteArray) -> PackedByteArray:
+static func opened(mask: PackedByteArray) -> PackedByteArray:
 	var kept := PackedByteArray()
 	kept.resize(SIZE * SIZE)
 	for y in SIZE - 1:

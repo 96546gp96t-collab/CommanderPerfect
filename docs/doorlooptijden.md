@@ -116,4 +116,5 @@ Keen 4 is een andere engine (Galaxy); de schatting per mijlpaal staat in
 | AB2 De vaste wand | 22-10 | ~55 min | 45 min + 9 min (fix kasteel) | `LevelWall`, patroonregel met schaduw, lichtbundels van Keen 1 grijs |
 | AB3 De plaatjes | 22-10 | ~50 min | 50 min (tegelijk met AB2) | 16 Keen 2-wanden, 11 Keen 1-luchten, 10 Keen 1-wanden |
 | AB4 Samenvoegen en nakijken | 22-10 | ~40 min | | Door de architect: een conflict in `docs/graphics.md`, twee tests aangepast, 32 levels gefotografeerd, regressies |
-| **Totaal** | 22-10 | **~3 u 35** opgeteld | | De klok liep korter (~2 u 30) doordat AB2 en AB3 tegelijk liepen |
+| Fixes (22-10) | 22-10 | ~45 min | 45 min (13:39-14:24) | Items en HUD zonder rooster, ramen heel, ingesloten grijs/zwart blijft (`ColorGroups`), trappen van driehoeken lucht; zes meldingen |
+| **Totaal** | 22-10 | **~4 u 20** opgeteld | | De klok liep korter (~3 u 15) doordat AB2 en AB3 tegelijk liepen |

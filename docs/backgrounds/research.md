@@ -267,3 +267,23 @@ decided on the way:
 - **Cost:** sorting Keen 2's 689 tiles takes about 0.6 s the first time a
   kind of level is entered (three kinds: lattice, lattice in the dark, with
   teal); Keen 1's colour rules are quick.
+
+## 8. Fixes of 22-10 (the user's test in widescreen)
+
+Six reports, all of one kind: a pixel of the colour that is left out (or
+equal to the lattice) belonged to the drawing of a tile, or a sky was kept
+grey. The rules are in `docs/graphics.md` ("Only what lies behind the
+drawing is a hole").
+
+| Report | Cause | Fix |
+|---|---|---|
+| Keen 2: old lattice at the sides of items | the pattern rule wants groups 2x2 thick; the one-pixel columns between an item and its tile's edge, and the small pockets around it, stayed lattice | items: every lattice pixel joined to the edge (`item_background`); other tiles: the same up to 2 pixels from the edge |
+| Keen 2: the glass of a window falls away | the window's white glass streaks are single pixels between lattice pixels; the speck rule made them wall, and the masked layer then drew nothing in front of Keen | windows (masked tiles with a mask) are drawn whole: lattice behind the glass, as the original |
+| Keen 2: background and a stray line in the HUD icons | the HUD left out only the plain grey; the lattice's white and dark lines stayed (since B3, not from AB) | the HUD clears the lattice pattern (`clear_tile_on`) |
+| Keen 1: the picture in the bottom edge of the snow platforms | the platform's grey shading touches the left and right edge of its tiles | grey shut in by the level's drawing stays (`ColorGroups`) |
+| Keen 1: the picture leaking into the dark wall above Keen (level 9) and two grey triangles left of Keen (level 10) | the grey triangles where a shrine's wall slants down to the floor next to the sky: the rule of AB2 (one cell from a cell with room) took the first step for sky and kept the next grey, so the staircase looked broken | a grey cell with the dark on one side only is sky when joined to the sky, however far |
+| (found on the way) Keen 1: the wall in the outlines of platforms, blocks and mushrooms in levels with a wall | the black colour rule took every black pixel at a tile's edge | black is wall only 2x2 thick and when not shut in |
+
+In the original (the 4:3 picture, unchanged) the triangles are the plain
+sky grey, the window shows the lattice with white glass streaks, and the
+platforms have a grey shading above their black bottom outline.

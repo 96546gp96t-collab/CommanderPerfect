@@ -275,7 +275,8 @@ func _load_data() -> bool:
 	_hud.set_textures(_textures)
 	_hud.raygun_tile = Keen2Icons.raygun(_properties)
 	_hud.keycard_icons = Keen2Icons.keycards(_properties)
-	_walls = Keen2Walls.create(files, _graphics.tiles, BACKGROUNDS_FOLDER)
+	_hud.background_tile = Keen2Walls.LATTICE_TILE
+	_walls = Keen2Walls.create(files, _graphics.tiles, BACKGROUNDS_FOLDER, _properties)
 	_graphics_loader = GraphicsLoader.create(files, _graphics, _finale_image)
 	_menus.hd_available = HdPack.exists(files)
 	_apply_graphics()

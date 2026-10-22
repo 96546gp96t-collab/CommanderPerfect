@@ -17,6 +17,8 @@ var _font: Dictionary[int, ImageTexture] = {}
 var _clear_font: Dictionary[int, ImageTexture] = {}
 var _tiles: Dictionary[int, ImageTexture] = {}
 var _clear_tiles: Dictionary[int, ImageTexture] = {}
+## Tiles without a patterned background, by tile and background tile.
+var _clear_tiles_on: Dictionary[int, ImageTexture] = {}
 var _sprites: Dictionary[int, ImageTexture] = {}
 var _bitmaps: Dictionary[String, ImageTexture] = {}
 var _doors: Dictionary[PackedInt32Array, ImageTexture] = {}
@@ -44,6 +46,7 @@ func use_scaled(scaled_graphics: ScaledGraphics) -> void:
 	_clear_font.clear()
 	_tiles.clear()
 	_clear_tiles.clear()
+	_clear_tiles_on.clear()
 	_sprites.clear()
 	_bitmaps.clear()
 	_doors.clear()
@@ -105,6 +108,27 @@ func clear_tile(index: int) -> ImageTexture:
 		_clear_background(image, EgaPalette.color(EgaPalette.LIGHT_GRAY))
 		_clear_tiles[index] = _derived_texture(image, _scaled_tile(index))
 	return _clear_tiles[index]
+
+
+## Tile [param index] without the patterned background around the item on
+## it: every pixel that equals tile [param background] (Keen 2's lattice)
+## at the same place and is joined to the tile's edge through more of
+## them. Null when there is no such tile.
+func clear_tile_on(index: int, background: int) -> ImageTexture:
+	if graphics == null or index < 0 or index >= graphics.tiles.size():
+		return null
+	if background < 0 or background >= graphics.tiles.size():
+		return clear_tile(index)
+	var key := index * graphics.tiles.size() + background
+	if not _clear_tiles_on.has(key):
+		var image := graphics.tiles[index].duplicate() as Image
+		image.convert(Image.FORMAT_RGBA8)
+		var around := LatticeWalls.create(graphics.tiles[background]).item_background(image)
+		for i in around.size():
+			if around[i]:
+				image.set_pixel(i % image.get_width(), i / image.get_width(), Color.TRANSPARENT)
+		_clear_tiles_on[key] = _derived_texture(image, _scaled_tile(index))
+	return _clear_tiles_on[key]
 
 
 func sprite(index: int) -> ImageTexture:
@@ -188,6 +212,7 @@ func holes_tile_atlas(
 	var key := holes.key() + ("/sky kept" if keep_sky else "")
 	if _hole_atlases.has(key):
 		return _hole_atlases[key]
+	_forget_other_levels(holes)
 	var kinds := hole_kinds(holes)
 	var originals: Array[Image] = []
 	var bigs: Array[Image] = []
@@ -202,6 +227,18 @@ func holes_tile_atlas(
 	return _hole_atlases[key]
 
 
+## Forgets the atlases, masks and kinds made for what another level shuts
+## in, with the same rules as [param holes]: one level is played at a time,
+## and with scaled graphics an atlas is large.
+func _forget_other_levels(holes: BackdropHoles) -> void:
+	var base := holes.base_key() + "/"
+	var own := holes.key()
+	for cache: Dictionary in [_hole_atlases, _hole_kinds, _wall_masks]:
+		for key: String in cache.keys():
+			if key.begins_with(base) and not key.begins_with(own):
+				cache.erase(key)
+
+
 ## The wall's shape on every tile ([method BackdropHoles.mask]) in the
 ## layout of [method tile_atlas], at the size of the original tiles.
 func wall_mask_atlas(columns: int, padding: int, holes: BackdropHoles) -> ImageTexture:
@@ -214,16 +251,25 @@ func wall_mask_atlas(columns: int, padding: int, holes: BackdropHoles) -> ImageT
 	return _wall_masks[key]
 
 
-## The kinds of hole ([method BackdropHoles.kinds]) of every tile, worked
-## out once per set of holes (they do not depend on the scaled graphics).
+## The kinds of hole ([method BackdropHoles.kinds_of]) of every tile,
+## worked out once per set of rules (they do not depend on the scaled
+## graphics); what a level shuts in ([member BackdropHoles.shut_in]) only
+## changes the tiles it names.
 func hole_kinds(holes: BackdropHoles) -> Array:
 	var key := holes.key()
-	if not _hole_kinds.has(key):
-		var kinds: Array[PackedByteArray] = []
-		for tile_image in graphics.tiles:
-			kinds.append(holes.kinds(tile_image))
-		_hole_kinds[key] = kinds
-	return _hole_kinds[key]
+	if _hole_kinds.has(key):
+		return _hole_kinds[key]
+	var base_key := holes.base_key()
+	if not _hole_kinds.has(base_key):
+		var base: Array[PackedByteArray] = []
+		for index in graphics.tiles.size():
+			base.append(holes.base_kinds_of(index, graphics.tiles[index]))
+		_hole_kinds[base_key] = base
+	var kinds: Array[PackedByteArray] = []
+	for index in graphics.tiles.size():
+		kinds.append(holes.without_shut_in(index, _hole_kinds[base_key][index]))
+	_hole_kinds[key] = kinds
+	return kinds
 
 
 func _scaled_font_char(code: int) -> Image:

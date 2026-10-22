@@ -11,8 +11,10 @@ extends Node2D
 ##               on the world map and in the ship also the ship parts he
 ##               has found
 ## Each corner is one row on a small light blue panel, drawn with the game
-## font and the item tiles, whose gray level background is left out. Put
-## the node in a CanvasLayer, so that the camera does not move it.
+## font and the item tiles, whose gray level background is left out (or,
+## with a [member background_tile], the pattern of that tile: Keen 2's
+## lattice). Put the node in a CanvasLayer, so that the camera does not
+## move it.
 
 ## Keen on the map, looking at the player, stands for a life.
 const LIFE_SPRITE := MapMessages.LIFE_SPRITE
@@ -40,6 +42,10 @@ var view_size := Vector2i(426, 200)
 ## its own.
 var raygun_tile := StatusScreen.RAYGUN_TILE
 var keycard_icons: PackedInt32Array = StatusScreen.KEYCARD_TILES
+## The tile whose pattern is the background around the item tiles (Keen 2's
+## lattice, [method GraphicsTextures.clear_tile_on]); -1 for Keen 1's plain
+## gray.
+var background_tile := -1
 var _textures: GraphicsTextures
 var _lives := 0
 var _score := 0
@@ -145,6 +151,10 @@ func _panel(at: Vector2, width: int) -> Vector2:
 
 
 func _draw_tile(at: Vector2, tile: int) -> void:
-	var texture := _textures.clear_tile(tile)
+	var texture := (
+		_textures.clear_tile_on(tile, background_tile)
+		if background_tile >= 0
+		else _textures.clear_tile(tile)
+	)
 	if texture != null:
 		draw_texture(texture, at)

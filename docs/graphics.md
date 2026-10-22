@@ -249,6 +249,41 @@ level without a wall texture keeps its own background.
   darkness dims it, and the second half of a split screen shows it. The
   tiles get their holes from `GraphicsTextures.holes_tile_atlas` (xBRZ: the
   same holes cut from the larger tiles).
+- **Only what lies behind the drawing is a hole** (fixes of 22-10, after
+  the user's test). A pixel of the sky's or the wall's colour that belongs
+  to a tile's own drawing stays:
+  - Keen 1, grey and black shut in by the level's drawing
+    (`ColorGroups`): the pixels of the colour at a tile's edge fall apart
+    in groups, the groups of neighbouring cells join where they meet on the
+    shared edge, and a join is open when it holds a plain cell of that
+    colour (143, 155) or reaches the level's edge. A tile's group that is
+    open nowhere in the level stays (`BackdropHoles.shut_in`, worked out
+    per level, about 0.1 s): the grey shading under the snow platforms
+    (384-386), the glass of the ice blocks, the "ID" panel of level 1, the
+    black specks along a sand platform.
+  - Keen 1, black is wall only where it is 2x2 thick
+    (`BackdropHoles.thick_wall`): outlines of platforms, blocks and
+    mushrooms stay black.
+  - Keen 1, the grey triangles where a dark room's wall slants down next to
+    the sky (levels 9, 10, the edges of the wide area in 16) are sky: a
+    grey cell next to the dark on one side only (no dark within 4 grey
+    cells on the opposite side; a block stops the search) is sky when it is
+    joined to the sky, however far (`Keen1Walls`); narrow grey strips
+    between dark walls stay grey, as before.
+  - Keen 2, items (`TileProperties.is_item`): the lattice around them is
+    every pixel equal to the lattice at its place and joined to the tile's
+    edge (`LatticeWalls.item_background`); items have a dark outline, so it
+    stops there. Other tiles with lattice wall lose the lattice along their
+    edge the same way, up to 2 pixels in (`LatticeWalls.edge_strip`).
+  - Keen 2, windows (masked tiles whose next tile is their mask; in the
+    levels 403-422 and 371-373): drawn whole (`BackdropHoles.whole_tiles`), as in
+    the original: the white glass streaks in front of Keen and the lattice
+    behind the glass. Before, the speck rule took the one-pixel streaks for
+    lattice and the glass vanished.
+  - The HUD (`Hud.background_tile`, Keen 2: 143) leaves out the lattice
+    around the raygun and the keycards the same way
+    (`GraphicsTextures.clear_tile_on`); Keen 1 keeps its grey rule, Keen 3
+    its own (`Keen3Hud`).
 
 ## Still open
 

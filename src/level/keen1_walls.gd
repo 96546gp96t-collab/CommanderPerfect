@@ -20,6 +20,21 @@ extends LevelWalls
 ## 14) show their sky everywhere, the dark rooms (2, 5, 6, 11) keep every
 ## cone, and the mixed ones (9, 10, 12, 13, 15, 16) show the sky only
 ## outside; tests/test_level_walls_data.gd checks it on the real levels.
+##
+## The fixes of 22-10 (the user's test in widescreen):
+##   - a grey cell next to the dark on one side only (no dark on the
+##     opposite side, within [constant SHUT_REACH] cells) is sky when it is
+##     joined to the sky, however far: the steps of grey triangles where a
+##     dark room's wall slants down to the floor next to the sky (levels 9
+##     and 10) show the picture, as the open sky beside them does; a narrow
+##     grey strip between dark walls stays grey
+##   - black is the wall only where it is two by two pixels thick, so the
+##     outlines of platforms, blocks and mushrooms stay black
+##     ([member BackdropHoles.thick_wall])
+##   - grey and black that the level's drawing shuts in are not the sky or
+##     the wall ([ColorGroups]): the shading under the white snow platforms
+##     runs from tile to tile to the platform's rounded ends and stays grey,
+##     the black specks along a sand platform's bottom stay black
 
 ## The sky outside (Mars' sky is plain light grey in the original).
 const SKY_TILE := 143
@@ -32,6 +47,9 @@ const LAMP_TILE := 156
 ## wall). Two would give the sky back the upper parts of the slopes in the
 ## castle of level 16.
 const ROOM_REACH := 1
+## How far (in cells) dark on the opposite side makes a grey cell next to
+## the dark lie between two dark walls.
+const SHUT_REACH := 4
 ## Every cell around a cell, also diagonally.
 const AROUND: Array[Vector2i] = [
 	Vector2i(-1, -1),
@@ -58,12 +76,31 @@ static func create(
 
 ## The sky is always the grey of [constant SKY_TILE], also in a dark room
 ## whose most used plain tile is its black.
-func holes(_level: LevelData, sky_color: Color, wall: bool) -> BackdropHoles:
+func holes(level: LevelData, sky_color: Color, wall: bool) -> BackdropHoles:
 	var sky := _color_of(SKY_TILE) if sky_color.a > 0.0 else Color.TRANSPARENT
 	var wall_color := _color_of(WALL_TILE) if wall else Color.TRANSPARENT
 	if sky.a <= 0.0 and wall_color.a <= 0.0:
 		return null
-	return BackdropHoles.create(sky, wall_color)
+	var holes := BackdropHoles.create(sky, wall_color)
+	holes.thick_wall = true
+	for color: Color in [sky, wall_color]:
+		if color.a > 0.0:
+			_add_pixels(holes.shut_in, ColorGroups.create(level, _tiles, color).shut_pixels())
+	return holes
+
+
+## Adds the pixels of [param more] to those of [param pixels], tile by tile.
+static func _add_pixels(
+	pixels: Dictionary[int, PackedByteArray], more: Dictionary[int, PackedByteArray]
+) -> void:
+	for tile: int in more:
+		if not pixels.has(tile):
+			pixels[tile] = more[tile]
+			continue
+		var both := pixels[tile].duplicate()
+		for i in both.size():
+			both[i] = both[i] | more[tile][i]
+		pixels[tile] = both
 
 
 ## The cells of the grey regions of [param level] that hang under a lamp.
@@ -99,6 +136,7 @@ func _roomy_cells(
 			else:
 				open[cell] = true
 	var roomy := open.duplicate()
+	_spread_along_one_side(level, skies, roomy, near)
 	for reach in ROOM_REACH:
 		var reached: Array[Vector2i] = []
 		for cell in near:
@@ -107,6 +145,52 @@ func _roomy_cells(
 		for cell in reached:
 			roomy[cell] = true
 	return roomy
+
+
+## Adds to [param roomy] the cells of [param near] that have the dark on one
+## side only and are joined to it, through each other as far as they go.
+func _spread_along_one_side(
+	level: LevelData,
+	skies: Dictionary[int, PackedByteArray],
+	roomy: Dictionary[Vector2i, bool],
+	near: Array[Vector2i]
+) -> void:
+	var one_sided: Array[Vector2i] = []
+	for cell in near:
+		if not _between_the_dark(level, skies, cell):
+			one_sided.append(cell)
+	var grown := true
+	while grown:
+		grown = false
+		for cell in one_sided:
+			if not roomy.has(cell) and _beside_roomy(level, skies, roomy, cell):
+				roomy[cell] = true
+				grown = true
+
+
+## Whether [param cell] has the dark of a room on two opposite sides: a
+## dark cell around it, and another one on the other side of it within
+## [constant SHUT_REACH] cells, with only grey between (a block between
+## them, such as the studded row above level 9's floor, belongs to another
+## room).
+static func _between_the_dark(
+	level: LevelData, skies: Dictionary[int, PackedByteArray], cell: Vector2i
+) -> bool:
+	for step in AROUND:
+		if not _is_dark(level, cell + step):
+			continue
+		for reach in range(1, SHUT_REACH + 1):
+			var other := cell - step * reach
+			if _is_dark(level, other):
+				return true
+			if not skies.has(level.tile_at(other)):
+				break
+	return false
+
+
+static func _is_dark(level: LevelData, cell: Vector2i) -> bool:
+	var bounds := Rect2i(0, 0, level.width, level.height)
+	return bounds.has_point(cell) and level.tile_at(cell) == WALL_TILE
 
 
 ## Whether [param cell] is joined through grey to a cell of [param roomy].
@@ -124,9 +208,8 @@ static func _beside_roomy(
 
 
 static func _next_to_the_dark(level: LevelData, cell: Vector2i) -> bool:
-	var bounds := Rect2i(0, 0, level.width, level.height)
 	for step in AROUND:
-		if bounds.has_point(cell + step) and level.tile_at(cell + step) == WALL_TILE:
+		if _is_dark(level, cell + step):
 			return true
 	return false
 

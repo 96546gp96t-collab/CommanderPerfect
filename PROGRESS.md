@@ -108,6 +108,7 @@ Branch `milestone-a-b-backgrounds` (vanaf `main`, 22-10). Onderzoek en plan:
 | AB2 | De vaste wand (`LevelWall`, patroonregel voor het rooster, schaduwen, lichtbundels) | ✅ Klaar en gecontroleerd door de architect (developer) |
 | AB3 | De plaatjes: Keen 2-wanden, Keen 1-luchten en -wanden | ✅ Klaar en gecontroleerd door de architect (tekenaar, tegelijk met AB2) |
 | AB4 | Samenvoegen en nakijken | ✅ Klaar |
+| AB-fix | Fixes na de test van de gebruiker: items, ramen, HUD, sneeuwplatforms, trappen van driehoeken | 🔶 Gebouwd, in test bij de gebruiker |
 
 **Wat er nu is.** In breedbeeld (optie Backgrounds, standaard aan; 4:3
 blijft het origineel):
@@ -147,6 +148,64 @@ blijft het origineel):
   dunne rand roosterkleur rond items, zoals rond de lucht nu; Keen 2's
   donker, split-screen en vloeiende beweging niet per schermafbeelding
   nagekeken (de wand hoort bij het level zelf, dus volgt ze).
+
+### Fixes (22-10)
+
+Zes meldingen uit de test van de gebruiker (breedbeeld, plaatjes aan), alle
+van één soort: een pixel in de kleur die wegvalt hoorde bij de tekening
+van een tile, of lucht bleef grijs. Regel nu: alleen wat áchter de dingen
+ligt wordt een gat (`docs/graphics.md`, onderzoek §8).
+
+1. **Keen 2: oud rooster naast items.** De patroonregel wil groepen van
+   2x2; de kolommen van één pixel tussen een item en de rand van zijn tile
+   (chocolade, kaarten, flesje, hamburger, taart, beer, straalgeweer)
+   bleven rooster. Nu is bij items elk roosterpixel dat via roosterpixels
+   aan de rand vastzit wand (items hebben een donkere rand, daar stopt
+   het); bij andere tiles met wand hetzelfde tot 2 pixels van de rand
+   (lampen, borden).
+2. **Keen 2: het glas valt weg.** De witte glasstrepen van een raam zijn
+   losse pixels tussen roosterpixels; de "spikkel"-regel maakte ze wand, en
+   dan tekende de maskerlaag niets meer vóór Keen. Nu blijven ramen
+   (gemaskeerde tiles met masker: 403-422, 371-373) heel, zoals het
+   origineel: het rooster achter het glas en de strepen vóór Keen. Levels
+   6, 7 en 9. Mocht het raam liever de nieuwe wand achter het glas tonen
+   (met de strepen erover): zeg het.
+3. **Keen 2: HUD-icoontjes.** De HUD haalde alleen het effen grijs weg; de
+   witte en donkere lijnen van het rooster bleven (al sinds B3). Nu valt
+   het hele roosterpatroon rond straalgeweer en kaarten weg
+   (`Hud.background_tile`). Keen 1 en 3 ongewijzigd.
+4. **Keen 1: plaatje in de onderrand van de sneeuwplatforms** (levels 8,
+   9, 10, ...). De grijze schaduw onder het wit raakt links en rechts de
+   rand van de tile. Nu blijft grijs (en zwart) dat door de tekening van
+   het level is ingesloten (`ColorGroups`: groepen over de tiles heen,
+   open als ze effen lucht of de rand van het level raken). Ook het glas
+   van de ijsblokken en het "ID"-paneel van level 1 blijven daardoor grijs,
+   zoals in het origineel.
+5. **Keen 1: plaatje in de donkere muur boven Keen (level 9) en twee grijze
+   driehoeken links van Keen (level 10).** Dezelfde trap van grijze
+   driehoeken waar de muur van het heiligdom naar de vloer afloopt naast
+   de lucht: de AB2-regel maakte de eerste trede lucht en hield de
+   volgende grijs. In het origineel zijn ze effen luchtgrijs. Nu is een
+   grijze cel met het donker aan maar één kant lucht als ze aan de lucht
+   vastzit, hoe ver ook; smalle grijze stroken tussen donkere muren (de
+   lange helling in het kasteel van 16) blijven grijs. In 16 zijn ook de
+   randen van het brede grijze vlak nu lucht (geen grijze zoom meer).
+6. **Gevonden onderweg: Keen 1's zwarte omlijningen werden wand** in levels
+   met een wand (platforms, blokken, paddenstoelen). Nu is zwart alleen
+   wand als het 2x2 dik is en niet ingesloten.
+
+- [x] Nieuwe suites `test_level_walls_fixes` (tiles en levels van code) en
+  `test_level_walls_fixes_data` (echte bestanden); elke fix uitgezet laat
+  ze falen. Bestaande tests niet aangepast. 131 suites: 130 groen,
+  `test_keen4_v14` overgeslagen, 0 fouten, geen SCRIPT ERROR, gdlint
+  schoon.
+- [x] Regressies Keen 1, 2 en 4 tegen fe57224: in 4:3 alles gelijk (ook 10
+  eigen 4:3-beelden van de plekken); in breedbeeld Keen 1 en 4 gelijk,
+  Keen 2 alleen level 1 (items zonder roosterrand) en de HUD (ook op de
+  kaart). Apps gebouwd (Mac en Windows).
+- Kosten: een Keen 1-level indelen kost nu ~0,15 s bij het starten.
+- Open: tussen de helling en het brede vlak in het kasteel van 16 blijft
+  één grijze cel staan (de testcel van AB2); de grens daar was al grillig.
 
 ## D13.2: fixes (21-10)
 
