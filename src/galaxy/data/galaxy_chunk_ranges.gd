@@ -8,10 +8,12 @@ extends RefCounted
 ## their lengths give those counts. The fonts come right after them, their
 ## number from the episode, then the pictures, masked pictures, sprites, one
 ## chunk of 8×8 tiles and one of masked 8×8 tiles. At the end of the file
-## come the episode's misc chunks, texts and demos. In between lie the
-## 16×16 tiles, background then foreground, one chunk each: a background
-## tile holds 128 bytes, a foreground tile 160, which the Huffman data
-## itself tells apart.
+## come the episode's misc chunks, texts and demos (Keen 5: texts, misc
+## chunks, demos; [member GalaxyEpisode.texts_before_misc]). In between lie
+## the 16×16 tiles, background then foreground, one chunk each: a
+## background tile holds 128 bytes, a foreground tile 160, which the
+## Huffman data itself tells apart, unless the episode gives the number of
+## background tiles ([member GalaxyEpisode.back_tile_count]).
 
 const PICTURE_TABLE := 0
 const MASKED_PICTURE_TABLE := 1
@@ -78,13 +80,19 @@ static func from_file(file: GalaxyGraphicsFile, episode: GalaxyEpisode) -> Galax
 	ranges.text_count = episode.text_count
 	ranges.demo_count = episode.demo_count
 	ranges.demo_start = file.chunk_count() - episode.demo_count
-	ranges.text_start = ranges.demo_start - episode.text_count
-	ranges.misc_start = ranges.text_start - episode.misc_count
-	var tile_count := ranges.misc_start - ranges.back_tile_start
-	if ranges.sprite_count <= 0 or tile_count <= 0:
+	if episode.texts_before_misc:
+		ranges.misc_start = ranges.demo_start - episode.misc_count
+		ranges.text_start = ranges.misc_start - episode.text_count
+	else:
+		ranges.text_start = ranges.demo_start - episode.text_count
+		ranges.misc_start = ranges.text_start - episode.misc_count
+	var tile_count := mini(ranges.misc_start, ranges.text_start) - ranges.back_tile_start
+	if ranges.sprite_count <= 0 or tile_count <= 0 or episode.back_tile_count > tile_count:
 		push_error("EGAGRAPH has too few chunks for its tables.")
 		return null
-	ranges.back_tile_count = _back_tile_count(file, ranges.back_tile_start, tile_count)
+	ranges.back_tile_count = episode.back_tile_count
+	if ranges.back_tile_count <= 0:
+		ranges.back_tile_count = _back_tile_count(file, ranges.back_tile_start, tile_count)
 	ranges.fore_tile_start = ranges.back_tile_start + ranges.back_tile_count
 	ranges.fore_tile_count = tile_count - ranges.back_tile_count
 	return ranges
