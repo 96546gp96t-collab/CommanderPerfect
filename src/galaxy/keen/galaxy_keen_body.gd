@@ -54,6 +54,10 @@ const GEM_SPOT := -64
 const RIDE_GAP := 16
 const RIDE_X_BITS := 0x1F
 
+## The sound of each item by its number; an episode with more items gives
+## its own list (Keen 5's keycard, [Keen5Keen]). Beyond the list the last
+## one plays.
+var item_sounds: Array[StringName] = ITEM_SOUNDS
 ## His actions by name ([GalaxyKeenActions]).
 var actions: Dictionary[StringName, GalaxyAction] = {}
 ## The episode's sprites by name (Keen's, the items', the shot's).
@@ -95,12 +99,25 @@ var _fire_used := false
 ## [param episode_sprites].
 func use_sprites(episode_sprites: Dictionary[StringName, int]) -> void:
 	sprites = episode_sprites
-	actions = GalaxyKeenActions.create(episode_sprites)
-	_item_actions = GalaxyItem.actions_for(episode_sprites)
+	actions = GalaxyAction.table_from(_action_rows(), episode_sprites)
+	_item_actions = GalaxyAction.table_from(_item_rows(), episode_sprites)
 	_shot_actions = GalaxyStunnerShot.actions_for(episode_sprites)
 	clips_like_keen = true
 	activity = Activity.ALWAYS
 	priority = 1
+
+
+## His action rows ([GalaxyAction.table_from]): Keen's
+## ([GalaxyKeenActions]); an episode with actions of its own adds them
+## (Keen 5's [Keen5Keen]).
+func _action_rows() -> PackedStringArray:
+	return GalaxyKeenActions.ROWS
+
+
+## The rows of the items' actions ([GalaxyItem]); an episode whose items
+## move otherwise gives its own (Keen 5's Vitalin splash, [Keen5Keen]).
+func _item_rows() -> PackedStringArray:
+	return GalaxyItem.ROWS
 
 
 ## The actions the items use (for placing them).
@@ -246,6 +263,17 @@ func _touch_tiles() -> void:
 				moon = 1
 			elif GalaxyTileKinds.is_item(kind):
 				_take_item_tile(Vector2i(x, y), kind - GalaxyTileKinds.ITEM_TILE_OFFSET)
+			elif kind != GalaxyTileKinds.NOTHING and kind != GalaxyTileKinds.MOON:
+				_touch_other_tile(Vector2i(x, y), kind)
+
+
+## He touches a tile at [param cell] whose misc [param kind] the shared
+## Galaxy code does not know: nothing by default. For an episode's own
+## tiles that act when he touches them (Keen 5 has none: its computers,
+## misc 31, are the Little Ampton's, its security doors, 32, work with
+## up, [Keen5Keen]).
+func _touch_other_tile(_cell: Vector2i, _kind: int) -> void:
+	pass
 
 
 func _take_drop(cell: Vector2i) -> void:
@@ -293,7 +321,7 @@ func _contact_normal(other: GalaxyObject) -> void:
 ## Takes item [param item] with its sound, and the extra life's sound
 ## when its points give one (Omni CK_KeenColFunc, CK_IncreaseScore).
 func _collect(item: int, as_tile := false) -> void:
-	world.play_sound(ITEM_SOUNDS[mini(item, ITEM_SOUNDS.size() - 1)])
+	world.play_sound(item_sounds[mini(item, item_sounds.size() - 1)])
 	if inventory.collect(item, as_tile):
 		world.play_sound(&"got_extra_life")
 

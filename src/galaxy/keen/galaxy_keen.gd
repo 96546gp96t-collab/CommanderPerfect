@@ -74,11 +74,18 @@ var _stepped := false
 
 ## Keen of [param world] at the start of a level: info 1 or 2 at
 ## [param cell], facing [param facing] (Omni CK_SpawnKeen: x = tile, y =
-## tile − 241 units).
+## tile − 241 units). An episode with a Keen of its own (Keen 5's
+## [Keen5Keen]) passes him as [param keen]; otherwise he is a new
+## [GalaxyKeen].
 static func spawn(
-	world: GalaxyWorld, cell: Vector2i, facing: int, episode_sprites: Dictionary[StringName, int]
+	world: GalaxyWorld,
+	cell: Vector2i,
+	facing: int,
+	episode_sprites: Dictionary[StringName, int],
+	keen: GalaxyKeen = null
 ) -> GalaxyKeen:
-	var keen := GalaxyKeen.new()
+	if keen == null:
+		keen = GalaxyKeen.new()
 	keen.position = Vector2i(cell.x * TILE, cell.y * TILE - START_RISE)
 	keen.direction = Vector2i(facing, 1)
 	world.add(keen)
@@ -282,20 +289,33 @@ func _press_up() -> bool:
 			_slide_to(spot)
 		sliding = true
 		return true
-	if misc != GalaxyTileKinds.DOOR:
+	if not _is_door(misc):
 		return false
 	var spot := box.tile_middle * TILE + DOOR_SPOT
 	var left := world.fore_tile(box.tile_middle - 1, box.tile_top)
-	if world.tile_info.fore(GalaxyTileInfo.Fore.MISC, left) == GalaxyTileKinds.DOOR:
+	if _is_door(world.tile_info.fore(GalaxyTileInfo.Fore.MISC, left)):
 		spot -= TILE
-	if position.x == spot:
-		safe_tics = DOOR_SAFE_TICS
-		world.play_sound(&"keen_walk_1")
-		_continue_as(&"enter_door_1")
-		priority = 0
-	else:
-		_slide_to(spot)
 	sliding = true
+	if position.x != spot:
+		_slide_to(spot)
+		return true
+	return _enter_door(misc)
+
+
+## Whether a tile of misc [param kind] is a door Keen goes through with up
+## (Keen 5 adds its security door, [Keen5Keen]).
+func _is_door(kind: int) -> bool:
+	return kind == GalaxyTileKinds.DOOR
+
+
+## Keen stands at the door of misc [param kind] and goes in (Omni
+## CK_KeenPressUp); returns whether up did something, as [method _press_up]
+## (Keen 5's security door without the keycard does not, [Keen5Keen]).
+func _enter_door(_kind: int) -> bool:
+	safe_tics = DOOR_SAFE_TICS
+	world.play_sound(&"keen_walk_1")
+	_continue_as(&"enter_door_1")
+	priority = 0
 	return true
 
 
