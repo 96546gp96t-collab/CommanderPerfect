@@ -107,3 +107,13 @@ Keen 4 is een andere engine (Galaxy); de schatting per mijlpaal staat in
 | Fix: vijanden en items die opduiken in breedbeeld (D13.2) | 21-10 | ~13 min | 13 min | Wakker worden, slapen en "in beeld" tellen met het brede beeld (en elke split-helft) plus de marges van het origineel; 4:3 en demo's als het origineel; de breedte staat tussen de frames van een opgeslagen level; regressies Keen 1, 2 en 4 gelijk |
 | Plaatjes: piramides en Miragia (D13.2) | 21-10 | ~10 min | 10 min | Piramides in 11 en 12 staan op een zandvlakte met schaduwen over het zand (in 12 lang, opzij van de lage zon); Miragia zonder heuvels, met ribbelduinen, een luchtspiegeling met rotsnaalden en palmen en een karavaan; de andere plaatjes nagekeken (ongewijzigd) |
 | **Totaal** | 19-10 t/m 21-10 | **~21 u 13** opgeteld | | D1-D13 en D13.2; vanaf D9 werkten agents deels tegelijk, dus de klok liep korter. Iets meer dan de schatting (13-15 u) door co-op, online, 1.4 en de metingen naast het origineel |
+
+## Achtergronden Keen 1 en 2 (mijlpalen AB)
+
+| Mijlpaal | Datum | Werktijd | Agent | Opmerking |
+|---|---|---|---|---|
+| AB1 Onderzoek | 22-10 | ~1 u 10 | | Door de architect: alle levels geëxporteerd en gemeten (kleurregel tegen patroonregel), proefplaatjes, keuzes van de gebruiker als menu |
+| AB2 De vaste wand | 22-10 | ~55 min | 45 min + 9 min (fix kasteel) | `LevelWall`, patroonregel met schaduw, lichtbundels van Keen 1 grijs |
+| AB3 De plaatjes | 22-10 | ~50 min | 50 min (tegelijk met AB2) | 16 Keen 2-wanden, 11 Keen 1-luchten, 10 Keen 1-wanden |
+| AB4 Samenvoegen en nakijken | 22-10 | ~40 min | | Door de architect: een conflict in `docs/graphics.md`, twee tests aangepast, 32 levels gefotografeerd, regressies |
+| **Totaal** | 22-10 | **~3 u 35** opgeteld | | De klok liep korter (~2 u 30) doordat AB2 en AB3 tegelijk liepen |
