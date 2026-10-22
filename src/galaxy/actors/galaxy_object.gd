@@ -130,6 +130,10 @@ var draw_offset := Vector2i.ZERO
 var hidden := false
 ## Sprites drawn with this one ([Overlay]).
 var overlays: Array[Overlay] = []
+## Drawn all white, every pixel of its sprite that is not see-through
+## (Omni RF_AddSpriteDraw's white mode: Keen 5's Shikadi and Shockshund
+## flash when a shot hits them). Off for everything of Keen 4.
+var flash_white := false
 var _world: WeakRef
 
 

@@ -66,6 +66,10 @@ var back_tile_writer: Callable
 ## Called as (name, interrupt) to play a sound ([GalaxySoundPlayer.play]);
 ## the episode gives the names their numbers. Unset: silent (tests).
 var sound_player: Callable
+## Awake objects fall asleep (and those that only live on the screen are
+## removed) beyond this many tiles of the view: Keen 4's
+## [constant SLEEP_MARGIN]; Keen 5 sets 6 (Omni CK_activeLimit, EPISODE.CK5).
+var sleep_margin := SLEEP_MARGIN
 ## The object whose action runs now ([method _run_action]), or null. The
 ## original keeps the step of that object in one shared place, which an
 ## action started on another object resets ([method GalaxyObject.start]).
@@ -238,7 +242,7 @@ func _wake_or_sleep(object: GalaxyObject) -> bool:
 			return false
 		object.activity = GalaxyObject.Activity.ACTIVE
 		object.needs_react = true
-	if _far_from_all(object.box, views):
+	if _far_from_all(object.box, views, sleep_margin):
 		match object.activity:
 			GalaxyObject.Activity.ON_SCREEN_ONLY:
 				remove(object)
@@ -257,9 +261,11 @@ static func _near_any(box: GalaxyObject.Box, views: Array[Rect2i]) -> bool:
 	return false
 
 
-static func _far_from_all(box: GalaxyObject.Box, views: Array[Rect2i]) -> bool:
+static func _far_from_all(
+	box: GalaxyObject.Box, views: Array[Rect2i], margin := SLEEP_MARGIN
+) -> bool:
 	for view in views:
-		if not _is_far(box, view):
+		if not _is_far(box, view, margin):
 			return false
 	return true
 
@@ -273,12 +279,12 @@ static func _is_near(box: GalaxyObject.Box, view: Rect2i) -> bool:
 	)
 
 
-static func _is_far(box: GalaxyObject.Box, view: Rect2i) -> bool:
+static func _is_far(box: GalaxyObject.Box, view: Rect2i, margin := SLEEP_MARGIN) -> bool:
 	return (
-		box.tile_right < maxi(view.position.x - SLEEP_MARGIN, 0)
-		or box.tile_left > view.end.x + SLEEP_MARGIN
-		or box.tile_top > view.end.y + SLEEP_MARGIN
-		or box.tile_bottom < maxi(view.position.y - SLEEP_MARGIN, 0)
+		box.tile_right < maxi(view.position.x - margin, 0)
+		or box.tile_left > view.end.x + margin
+		or box.tile_top > view.end.y + margin
+		or box.tile_bottom < maxi(view.position.y - margin, 0)
 	)
 
 
