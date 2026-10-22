@@ -134,7 +134,7 @@ func test_player_picture_wins_and_missing_ones_are_none() -> void:
 	var picture := pictures.picture(7)
 	assert_true(picture != null, "found in the player's folder")
 	assert_equal(picture.get_size(), Vector2(30, 20), "that picture")
-	assert_true(pictures.picture(15) == null, "no picture for level 15")
+	assert_true(pictures.picture(11) == null, "no picture for level 11 (a dark room)")
 
 
 func test_level_1_has_a_picture_of_its_own() -> void:

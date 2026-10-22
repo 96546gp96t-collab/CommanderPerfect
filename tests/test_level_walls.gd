@@ -177,7 +177,7 @@ func test_wall_textures_and_the_players_own() -> void:
 	var texture := walls.picture(5)
 	assert_true(texture != null and texture.get_size() == Vector2(SIZE, SIZE), "found")
 	assert_true(not texture.get_image().has_mipmaps(), "drawn pixel for pixel")
-	assert_true(walls.picture(6) == null, "none for level 6")
+	assert_true(walls.picture(14) == null, "none for level 14 (all outside)")
 	assert_true(BackdropPictures.create(files).picture(5) == null, "not a picture to glide")
 	DirAccess.remove_absolute(ProjectSettings.globalize_path(folder.path_join("wall05.png")))
 	DirAccess.remove_absolute(ProjectSettings.globalize_path(folder))
