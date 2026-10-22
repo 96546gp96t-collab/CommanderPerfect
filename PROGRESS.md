@@ -114,7 +114,7 @@ bestanden in [docs/keen5/file-formats.md](docs/keen5/file-formats.md).
 | E2 | De bestanden van Keen 5 inlezen, data viewer, vijfde icoon | ✅ Klaar (branch `milestone-e2-bestanden`) |
 | E3 | Het gedeelde Galaxy-spel en een level spelen (sleutelkaart, beveiligingsdeuren, uitgang) | ✅ Klaar (branch `milestone-e3-level`) |
 | E4 | Wezens (alle 15 soorten van levels 1-13, elk een eigen klasse) | ✅ Klaar (branch `milestone-e4-wezens`) |
-| E5 | Platforms op pijlen, zekeringen en de QED | ⬜ |
+| E5 | Platforms op pijlen, zekeringen en de QED | ✅ Klaar (branch `milestone-e5-mechaniek`) |
 | E6 | De wereldkaart (teleporters, liften, Korath III, statusvenster) | ⬜ |
 | E7 | Einde, game over (de melkweg ontploft), titel en demo's | ⬜ |
 | E8 | Geluid en muziek | ⬜ |
@@ -124,14 +124,12 @@ bestanden in [docs/keen5/file-formats.md](docs/keen5/file-formats.md).
 | E12 | Naast het origineel; alle opties uit = het origineel | ⬜ |
 | E13 | (Optioneel) Keen 4 op het gedeelde Galaxy-spel | ⬜ |
 
-**Volgende stap:** E5 (`milestone-e5-mechaniek`, vanaf `milestone-e4-wezens`):
-de platforms (rode en paarse as-platforms, vallende, staande met de
-omgekeerde moeilijkheid 33-35, GoPlats op de pijlen met
-`GalaxyPathArrows`, het sluipplatform), de zekeringen en de QED (de
-scherven van de mijn melden een aanraking via `hit_by_piece`). Let op:
-`Keen5Creatures` schrijft de startpijl van een GoPlat al (E4); E5 voegt
-alleen het platform toe. De gebruiker uploadt Keen 2-5 weer naar de
-sessie.
+**Volgende stap:** E6 (`milestone-e6-kaart`, vanaf `milestone-e5-mechaniek`):
+de wereldkaart (map 0) met `GalaxyMapSession`/`Keen5MapSession`, de
+teleporters en liften, de schachten die opengaan na de vier
+zekeringlevels (`Keen5View.levels_done` houdt al 1 of 14 per level bij),
+Korath III (de deur in level 11 eindigt nu met `Keen5Keen.KORATH_ENDING`)
+en het statusvenster. De gebruiker uploadt Keen 2-5 weer naar de sessie.
 
 ## Achtergronden Keen 1 en 2: mijlpalen AB
 
@@ -275,6 +273,79 @@ ligt wordt een gat (`docs/graphics.md`, onderzoek §8).
   in `Keen2GuardRobot`; nu kijkt hij de kant op waar hij heen zweeft en
   schiet. Alleen namen/plaatjes gecontroleerd (js-dos overgeslagen op
   verzoek). Test `test_guard_robot_faces_the_way_it_floats_and_fires`.
+
+## Mijlpaal E5: wat er nu is
+
+Keen 5 heeft zijn platforms, zekeringen en de QED, op
+`milestone-e5-mechaniek` (22-10, 21:18-22:13 UTC). Elk level is nu uit te
+spelen, ook 4, 6, 8, 10 en 13 (zekeringen) en 12 (de QED). De regels staan
+in `docs/keen5/gameplay.md` ("Platforms", "Fuses and the QED"), de klassen
+en afwijkingen in `docs/keen5/architecture.md` ("Keen 5's machinery",
+"Deviations in E5"), de metingen in `docs/keen5/research.md` ("Watched in
+E5"), wat in de bestanden staat in `docs/keen5/file-formats.md`
+("Checked in E5").
+
+- [x] **Platforms** (`Keen5Platforms` plaatst ze): rode asplatforms
+  (27-30), paarse (84-87: +0x40, kijken verticaal een kolom verder naar
+  het B-blok, **animeren niet**), vallend (32, Keen 4's), staand (33-35,
+  **omgekeerde moeilijkheid**: 33 alleen Easy, 34 Easy en Normal, 35
+  altijd), het sluipplatform (40: schuift weg als Keen er springend naar
+  kijkt) en de rode en paarse GoPlats (36-39, 80-83) op de pijlen met
+  `GalaxyPathArrows`. Keen "surft" erop (KEENONPLAT, `ride_platform`).
+- [x] **Schakelaars**: een schakelaar draait een pijl om
+  ({2,3,0,1,6,7,4,5}) of zet een B-blok aan/uit; de enige nieuwe naad in de
+  engine is `GalaxyKeen._switched_info` (standaard Keen 4's XOR). Bruggen
+  zoals Keen 4. **Krachtvelden gaan nooit uit**: geen schakelaar wijst
+  ernaar (bestanden).
+- [x] **Zekeringen** (`Keen5Fuses`): top 57 is een vlakke vloer; landen
+  geeft geluid 57, een pogo-landing met snelheid ≥ 48 breekt hem (explosie
+  een tegel links, het puin uit de hoek (0,0)/(0,1), Keen valt door); het
+  aantal komt uit info 41 (`Keen5Inventory.fuses_remaining`); bij 0 eindigt
+  het level 60 tics later (`Keen5LevelEnd`, waarde 14). Daarna **het
+  bericht** (`Keen5Messages`): Keen pratend, dan duim omhoog, elk 30 tics
+  en een toets; level 13 met de eigen tekst.
+- [x] **De QED** (map 12, `Keen5Qed`): geen zekeringtegels in map 12;
+  alleen een scherf van een mijn vernietigt hem (vier explosies, de twee
+  blokken uit de hoek, 60 tics later het einde, waarde 15; voorlopig het
+  volgende level, de eindpagina's in E7).
+- [x] **De bliksem bij de deur naar Korath III**: alleen de 0x0000-deur
+  van level 11 (de teleporter op (7,33)) heeft info 0 op Keens hoofdrij;
+  twee bliksems en geluid 41.
+- [x] **Uitslag per level** (`Keen5LevelSession.result()`: 1, 14 of 15),
+  bewaard in `Keen5View.levels_done` voor E6's `Keen5Progress`.
+- [x] **Naast het origineel (js-dos, v1.4)**: een kladkopie van
+  `GAMEMAPS.CK5` met Keens start verplaatst. GoPlats (level 1): alle 280
+  beelden op dezelfde plekken als bij ons; paarse platform (level 10): 204
+  beelden gelijk, nooit het tweede plaatje; zekering (level 8): breekt na
+  ~856 ms (bij ons 886 ms), Keen stuitert verder, **beide berichtschermen
+  pixel-gelijk**; bliksem (level 11) op dezelfde pixels; de QED (map 12)
+  door een mijn vernietigd, daarna de eindpagina's. Vragen 1-4 van
+  research.md §12 beantwoord.
+- [x] **Tests**: nieuw `test_keen5_platforms` (elk soort, snelheden,
+  keren, omgekeerde moeilijkheid, GoPlats en een omgedraaide pijl,
+  sluipplatform, surfen), `test_keen5_fuses` (pogo/sprong/langzame pogo,
+  telling, einde met 14, map 12, de QED, de bliksem),
+  `test_keen5_mechanics_play` (echte data: levels 4, 6, 8, 10, 13 eindigen
+  door hun zekeringen met 14, map 12 door de QED, de deur in level 11, de
+  berichten, Keen rijdt op elk soort, elk level met platforms in god
+  mode) en `keen5_machine_fixtures.gd`; `test_keen5_view` kreeg het
+  zekeringbericht en het puin in xBRZ. **146 suites groen, 1 overgeslagen
+  (Keen 4 v1.4), 0 FAIL, 0 SCRIPT ERROR.** `gdformat` en `gdlint` schoon.
+- [x] **Controle Keen 1-4**: regressies tegen de nulmeting: Keen 1 alleen
+  `launcher.png` anders (gelijk aan E4's: alleen het vijfde icoon), Keen 2
+  (4) en Keen 4 (11 beelden) alles gelijk; Keen 4's demo's en
+  echte-datatests groen. `git diff origin/main` op `src/keen2-4`, hun
+  tests, `src/actors`, `src/map`, `src/game`: alleen de twee regels met
+  het aantal spellen. `tools/keen5_regression.sh` twee keer gedraaid: alle
+  vier beelden gelijk (andere beelden dan in E4: de wezens en platforms
+  lopen).
+- **Niet gedaan:** de apps zijn hier niet gebouwd (de gebruiker bouwt op
+  de Mac). Het wachten op het einde van het levelgeluid voor het
+  zekeringbericht (~2,3 s in het origineel) komt met het geluid (E8).
+- **Om te proberen:** `godot --path . -- --game=5 --level=4` (paarse
+  GoPlats, twee zekeringen in een schacht), `--level=1` (GoPlats,
+  sluipplatform), `--level=13` (Korath III: vallende platforms, één
+  zekering); Shift+G voor god mode.
 
 ## Mijlpaal E4: wat er nu is
 

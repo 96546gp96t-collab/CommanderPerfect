@@ -185,16 +185,18 @@ and the five types are Keen 4's.
 - Target **0xB1B1** ends the level (the exit door). Keen 5 has no exits by
   walking off the side (files: 0xB1B1 appears twice in most levels, the
   two halves of the exit door).
-- Target **0x0000** gives `LS_TeleportToKorath` (§8). Which level holds it
-  is to be read from the maps (uncertain; E6). A Keen knocked off a pole
+- Target **0x0000** gives `LS_TeleportToKorath` (§8). Level 11 holds it:
+  the glass teleporter at (7, 33)-(8, 33) (files, E5; seen in js-dos:
+  Keen arrives on Korath III). A Keen knocked off a pole
   into a door can read a wrong target too (a real bug of the original,
   Omni `ck_poleDoorGlitch`, kept by default).
 - When Keen starts into a door whose info at his **head** row is 0, a
   **teleport lightning** appears (sound 41): a horizontal bolt at (tile x
   of Keen·256 − 0x80, Keen's bottom row·256 − 0x500) and a vertical one at
   (Keen's tile x·256, Keen's top row·256 − 0x80); TELEPORTSPARK1/2 and
-  TELEPORTZAP1/2, 6 tics each. Which doors show it (exit doors only?) is
-  to be checked in the maps (uncertain).
+  TELEPORTZAP1/2, 6 tics each. A door's target lies in its own tiles'
+  row, Keen's head row at the door (files, E5), so only the 0x0000 door
+  of level 11 shows it (seen in js-dos, E5).
 
 ### Fuses and the Quantum Explosion Dynamo
 
@@ -219,8 +221,9 @@ and the five types are Keen 4's.
   mine** touches it: four fuse explosions at its corners, the 4 × 2 tile
   blocks at the fixed places (16,11) and (16,13) are replaced by the ones
   at map (0,0) and (4,0), the level-end object, the QED removed.
-  Omnispeak would also let four broken fuses end map 12; CG only the mine
-  (uncertain whether map 12 has fuse tiles: E5 reads it from the map).
+  Omnispeak would also let four broken fuses end map 12; CG only the mine.
+  Map 12 has **no fuse tile** (files, E5), so only the mine's piece ends
+  it (seen in js-dos, E5).
 
 ### Switches, bridges, platforms on paths
 
@@ -230,9 +233,10 @@ and the five types are Keen 4's.
   only, Omni `CK_KeenPressSwitchThink`).
 - Bridge switches (misc 15) and bridges (misc 18, 59 tiles with
   animation offset ±4: the energy bridges) as in Keen 4.
-- Deadly tiles: misc 3 (19 tiles, some animated: likely the force fields)
-  and top value 9 (deadly floor, 12 tiles). Whether a switch turns a
-  force field off: check in the maps (uncertain; E5).
+- Deadly tiles: misc 3 (19 tiles, some animated: the force fields) and
+  top value 9 (deadly floor, 12 tiles). **No switch turns a force field
+  off** (files, E5): every platform switch of levels 1-13 points at a
+  B-block or a path arrow, every bridge switch at an energy bridge.
 - **Not in Keen 5**: darkness, conveyor belts, zappers (Keen 6), water and
   swimming (misc 11-14 unused), the moon.
 
@@ -333,10 +337,13 @@ Keen dies. Most of Keen 5's cast **cannot be stunned**.
 Platforms (Omni `ck_obj.c`, `ck5_misc.c`):
 
 - **Red axis platform** (27-30) as Keen 4's (12 units/tic, turns at a
-  B-block). **Purple** (84-87): the same, checks one tile further right
-  when moving vertically, two sprites (whether they animate is uncertain).
+  B-block). **Purple** (84-87): the same, placed +0x40, checks one tile
+  further right when moving vertically (its stop rule not), two sprites
+  but its actions' timer is 0, so it **never animates** (E5, seen in
+  js-dos).
 - **GoPlat** (36-39 red, 80-83 purple): always awake, unclipped,
-  12 units/tic; at each tile it reads the arrow at its position + 0x40 and
+  12 units/tic; at each tile it reads the arrow at its position (the
+  purple one, placed +0x40, at its position + 0x40: the same tile) and
   goes that way (diagonals too); a GoPlat on a tile without arrow is an
   error in the original. It writes its start arrow into its own tile.
 - **Falling platform** (32) as Keen 4.
@@ -487,10 +494,15 @@ To be checked in js-dos with the user's v1.4 while building (Keen 4's
 lesson: during each milestone, not only at the end):
 
 1. Which level holds the 0x0000 door to Korath III, and which doors show
-   the lightning (E5/E6; the maps answer the first part).
-2. Whether map 12 has fuse tiles, or only the mine route (E5).
-3. Force fields: deadly tiles that a switch turns off? (E5)
-4. Do the purple platforms animate? (E5)
+   the lightning (E5/E6; the maps answer the first part). **Answered in
+   E5**: level 11, its teleporter at (7, 33)-(8, 33); only that door
+   shows the lightning (a door's target is in Keen's head row).
+2. Whether map 12 has fuse tiles, or only the mine route (E5). **Answered
+   in E5**: no fuse tile; only a mine's piece ends it.
+3. Force fields: deadly tiles that a switch turns off? (E5) **Answered in
+   E5**: no; no switch points at one.
+4. Do the purple platforms animate? (E5) **Answered in E5**: no, only
+   PURPLEPLAT1 is ever shown.
 5. The Spirogrip's release distance (64 tics × 16 units = 4 tiles) (E4).
 6. The game-over galaxy scene, frame by frame (E8).
 7. The status window and the menu cards to the pixel (E7, E9).
@@ -598,3 +610,38 @@ so times are ±4 tics. Measured by tracking a creature's colours:
 Not watched (time): Volteface, Slicestars, the mine, Spirogrip, Spindred,
 the Master's teleport, the Shockshund, the turrets' lasers; their rules
 are Omnispeak's and tested in mini levels (`test_keen5_creatures*`).
+
+## Watched in E5
+
+The original v1.4 in headless js-dos (Normal, god mode F10+G, warp
+F10+W), with a scratch copy of `GAMEMAPS.CK5` (the E4 way: new info
+planes appended): Keen's start moved in level 1 to (31, 9) (the GoPlats'
+octagon in view), level 8 to (11, 60) (standing on the fuse), level 10 to
+(7, 11) (over the purple platform), level 11 to (8, 34) (at the
+teleporter), level 12 to (16, 12) with a mine (info 7) put at (17, 13)
+beside the QED. Recorded frames were compared with ours run on the same
+scratch files (`--data-dir-keen5=`, a session per level, the sprites
+found in the frames by their exact pixels):
+
+- **GoPlats** (level 1): the red platform found in all 280 frames of 8 s;
+  every place equals ours at one frame offset (±1 frame).
+- **Purple axis platform** (level 10): 204 frames with it whole, all at
+  ours' places; PURPLEPLAT2 never shown (question 4). Keen missed it
+  (it had moved on) and stood in the force field below in god mode.
+- **A fuse** (level 8): a pogo from on top of the fuse broke it about
+  856 ms later (ours 31 frames, 886 ms; js-dos shows a frame every
+  ~28 ms); the explosion one tile left, Keen bounced off the floor beside
+  the hole and went on pogoing; 60 tics later the game stood still, and
+  the fuse message came ~2.3 s after that (the level-exit sound playing
+  out, Omni SD_WaitSoundDone). Both message screens equal ours to the
+  pixel (17,312 pixels of window each).
+- **The door to Korath III** (level 11): the two bolts at (72, 45) and
+  (80, 105) on the screen, flickering, as ours; then the world map with
+  Keen on Korath III (E6). In a first try Keen's start was on the door's
+  feet row, so the door read that info value (1) as its target and sent
+  him to (0, 1): the original reads the target in Keen's own row when a
+  ceiling keeps the door's steps from lifting him (ours the same).
+- **The QED** (map 12): the mine burst at Keen, its pieces hit the QED:
+  four explosions, the machine broken (Keen fell through), about 60 tics
+  later the end pages ("Congratulations ..."). With the mine at its own
+  place (17, 8) it wandered above and never came down (ours the same).

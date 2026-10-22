@@ -190,3 +190,36 @@ the menus' texts, Paddle War's ("KEEN:", "COMP:"), the debug texts.
   (4, 6, 8, 10, 12) have no 0xB1B1 at all.
 - **Info 70** (the keycard) is item 12: Omnispeak places it with
   info − 58; one per security-door level.
+
+## Checked in E5
+
+What the E5 milestone read in the user's files (details in
+[gameplay.md](gameplay.md), "Platforms" and "Fuses and the QED"):
+
+- **Fuses**: tile 1948 (top 57, bottom 1, animated) under its upper half
+  1930; in levels 4 (2, stacked at (58, 8) and (58, 10)), 6 (3), 8 (1),
+  10 (4) and 13 (1), each count equal to the level's info-41 values. The
+  map corner of the fuse levels holds the rubble: (0, 0) = 1932 and
+  (0, 1) = 1950 (no sides). Map 12 has one info 41 (the QED at (17, 12))
+  and no fuse tile; its corner rows 0-1, columns 0-7 hold the two 4 × 2
+  blocks of the broken machine (all three planes are copied; their info
+  is 0).
+- **Door targets** are in the row of the door's own tiles (Keen's head
+  row at the door), in both of its columns; the only target 0x0000 is
+  level 11's teleporter at (7, 33)-(8, 33). (The fuse levels 4, 6, 8, 10
+  and map 12 have no 0xB1B1; level 13 has both a fuse and an exit.)
+- **Switches**: the platform switches (misc 5, tile 1203) of levels 3, 6,
+  8, 11, 12 and 13 point at path arrows (91-98), level 2's at a B-block;
+  the bridge switches (misc 15, tile 1185) of levels 2, 4, 5, 6, 11 and
+  12 point at energy bridges (misc 18, offsets ±4 and 1/−1 for the
+  middle). No switch points at a deadly tile (misc 3).
+- **Platform values** per level (files): red axis 27-30 in 1, 2, 11, 13;
+  purple axis 84-87 in 1, 4, 10, 11; falling 32 in 1, 8, 13; standing
+  33 in 3, 8, 12 and 35 in 6, 11, 13; red GoPlats 36-39 in 1, 2, 3, 6, 8,
+  11, 13; purple GoPlats 80-83 in 1, 4, 6, 8, 12; the sneak platform 40
+  only in level 1. Every GoPlat finds an arrow at each tile of its path
+  (3,000 frames on Hard).
+- **Sprites** (chunk − 102): FUSEFLASH1-3 181-183, TELEPORTSPARK1/2
+  188/189, TELEPORTZAP1/2 190/191, PURPLEPLAT1/2 320/321 (the purple
+  platform's box starts 192 units left of its place), PLATFORM 344.
+  Pictures: KEENTALK1/2 are 84 and 85 of 93 (the last 9 and 8).

@@ -447,3 +447,67 @@ What E4 built differently from the plan above, and why (developer, E4):
    as nested literals reads 0 when indexed with variables; the bounce
    table of `GalaxyShrapnel` is one flat `PackedInt32Array` (row × 8 +
    column).
+
+## Keen 5's machinery (from E5)
+
+The platforms, the fuses and the QED, each a class of its own beside the
+creatures; the rules are in [gameplay.md](gameplay.md), "Platforms" and
+"Fuses and the QED".
+
+| Class | What | Lines |
+|---|---|---|
+| `Keen5Platforms` | Info value → platform (27-30, 32-40, 80-87), the standing platform's reversed difficulty; called by `Keen5LevelSession._place_info` beside `Keen5Creatures` (which still writes a GoPlat's start arrow) | 72 |
+| `Keen5Platform` | The red and purple axis platforms (on `GalaxyPlatform`; the purple one overrides `_turn_point_entered` to look one column further going up or down) | 69 |
+| `Keen5GoPlat` | The red and purple GoPlats (on `GalaxyPlatform` for riding, moving by `GalaxyPathArrows`) | 62 |
+| `Keen5StillPlatform` | The standing and the sneak platform | 79 |
+| `Keen5Flash` | Pictures that only show: a fuse's explosion, the teleport lightning | 70 |
+| `Keen5Fuses` | The fuse rules (static): counting info 41 (the QED on map 12), breaking a fuse; the sound names with their numbers for E8 | 73 |
+| `Keen5Qed` | The QED: a fixed unseen box; a mine's piece calls `hit_by_piece` | 72 |
+| `Keen5LevelEnd` | Ends the level 60 tics after the last fuse or the QED (`&"fuse"`, `&"qed"`) | 34 |
+| `Keen5Messages` | The fuse message's two screens (`GalaxyWindow`, Keen 4's layout of "I can't swim!") | 58 |
+
+`Keen5Keen` gained the surfing action (`ride_platform`), the fuse landing
+(`_react_jump`, `_react_pogo`), the arrow-turning switch (`_switched_info`)
+and the lightning at a door (`_enter_door`). `Keen5Inventory` holds
+`fuses_remaining`, `Keen5LevelSession` gives `result()` (1, 14, 15) and
+`fuses_remaining()`, `Keen5View` keeps `levels_done` and shows the fuse
+message.
+
+## Deviations in E5
+
+What E5 built differently from the plan above, and why (developer, E5):
+
+1. **One engine seam only**: `GalaxyKeen._switched_info(value)` (default:
+   the B-block toggle `value ^ 0x1F`, the statement it replaces), so Keen
+   5's switch can turn a path arrow round. Everything else is Keen 5's
+   own: `Keen5Keen` overrides Keen's private `_think_standing`,
+   `_handle_ground_input`, `_react_jump` and `_react_pogo` (calling the
+   shared code), `Keen5Platform` overrides `GalaxyPlatform._turn_point_entered`.
+   Keen 4's demo suite, real-data suites and regression pictures are
+   unchanged.
+2. **The red GoPlat reads its arrow at its position, the purple one 0x40
+   further** (Omni CK_GoPlatThink, CK5_PurpleGoPlatThink), not both at
+   +0x40 as research.md §7 said: the purple one is placed 0x40 into its
+   tile, so both read the arrows of the tile they are in.
+3. **The fuse count is Keen's** (`Keen5Inventory.fuses_remaining`), not a
+   field of a `Keen5Fuses` object: it is game state (saved with the game,
+   Omni ck_gameState), and Keen breaking a fuse reaches it through his
+   inventory. `Keen5Fuses` holds only static rules. The session sets it to
+   0 before the scan; a loaded game's value wins in E9.
+4. **The fuse message comes at once after the level**: the original first
+   waits for the level-exit sound to end (about 2.3 s, Omni
+   SD_WaitSoundDone; seen in js-dos). With no sounds yet (E8) there is
+   nothing to wait for; E8 should add the wait.
+5. **The QED's end goes to the next level for now** (the end pages are
+   E7), and the door to Korath III ends the level as in E3 (the arrival on
+   the map is E6). Each level's result is kept in `Keen5View.levels_done`
+   for E6's `Keen5Progress`.
+6. **The teleport lightning came in E5** (E3 had left it for E6), because
+   the maps answered which door shows it: only the 0x0000 door of level 11.
+7. **The sneak platform watches both Keens** when two play (ours); alone
+   it is the original's rule.
+8. **`Keen5Creatures.LATER` is only [3, 26]** now, the platforms are
+   `Keen5Platforms.is_platform` and 41 is `Keen5Fuses.COUNTER_INFO`;
+   `test_keen5_creatures_play` asks all three.
+9. **The QED's action has no speed**: Omni gives CK5_ACT_QED 128 across,
+   which moves nothing because the object has no facing; it is left out.

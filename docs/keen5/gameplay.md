@@ -24,6 +24,8 @@ the title, the menus) comes in E6-E9.
 | Keen 5 picked on the start screen, or `-- --game=5` | Level 1 at once (a new game: 3 lives, 5 charges, the first extra life at 20,000) |
 | `-- --game=5 --level=N` | Map N at once: 1-13 and 15 (the high-score map) played; 0 (the world map) shown with Keen standing, the arrows look around (E6 plays it); 14 does not exist: a message |
 | The exit door (target 0xB1B1), the door to Korath III (0x0000) or walking out of the level | The next level: 1 … 13, then 1 again (14 skipped); from 15 to 1 |
+| The last fuse broken (E5) | The fuse message (two screens, each 30 tics and then a key), then the next level; the level counts as done with 14 |
+| The QED destroyed (map 12, E5) | For now the next level (13); the end pages come in E7 |
 | Keen dies | One life less, the gems and the keycard gone, the level again; with fewer than 0 lives the start screen |
 | Escape | The start screen |
 | Shift+N / Shift+P | The next or previous map, over the missing 14, round from 15 to 0 |
@@ -31,9 +33,10 @@ the title, the menus) comes in E6-E9.
 | Shift+I | All four gems, the keycard and at least 99 charges |
 | F1 | The help line; F2-F6 as in Keen 1-4 |
 
-The fuse levels (4, 6, 8, 10 and 12) have no exit door: they end when
-their fuses are broken (E5). Until then they can only be left by
-Shift+N.
+The fuse levels (4, 6, 8, 10 and 13) and map 12 have no exit door
+(13 has both): they end when their fuses are broken or the QED is
+destroyed (E5, below). What each level counted as is kept by the view
+(`Keen5View.levels_done`: 1, or 14 by its fuse) for the world map (E6).
 
 ## Keen's moves (E3)
 
@@ -48,8 +51,9 @@ Keen 4's, unchanged: the actions in `ACTION.CK5` are the same as in
   Omnispeak's `GFXCHUNK.CK5` (index = chunk − 102), checked in js-dos
   (level 1's first frame is the original's to the pixel, Keen included)
   and by eye in our screenshots of levels 1-3, 5, 9, 11-13 and 15.
-- Riding a platform (KEENONPLAT) and landing on a fuse come in E5. The
-  Ampton and the Korath knocking him off a pole came in E4 (below).
+- Riding a platform he "surfs" (KEENONPLAT) and landing on a fuse plays
+  its sound or breaks it (E5, below). The Ampton and the Korath knocking
+  him off a pole came in E4 (below).
 
 ## Items and tiles (E3)
 
@@ -94,9 +98,23 @@ tiles wide in the middle of a 4 × 4 door picture, its target is the exit
 2: tiles 1741/1742 become 1729/1730). Level 1's exit is a plain door; the
 other levels with an exit have a security door.
 
-Not built yet: the teleport lightning when Keen starts into a door whose
-info at his head row is 0 (research.md §4; E6), and the "pole-door
-glitch" (it is kept by Keen 4's code as it is).
+**The teleport lightning (E5)**: when Keen starts into a plain door whose
+info at his head row is 0, two bolts appear in front of everything with
+the sound `teleport` (41): across (TELEPORTSPARK1/2, 6 tics each) at
+(his left column's tile − 0x80, his bottom row's tile − 0x500) and down
+over him (TELEPORTZAP1/2) at (his left column's tile, his top row's tile
+− 0x80); they flicker until the level ends (Omni CK5_SpawnLightning).
+In the files a door's target lies in its own tiles' row, which is Keen's
+head row at the door, so only a door with target 0x0000 shows it: the
+**one door to Korath III, in level 11 at (7, 33) and (8, 33)** (the glass
+teleporter at the left of the level). Seen in js-dos: the bolts at the
+same pixels as ours.
+
+Kept as the original: the "pole-door glitch" (Keen 4's code as it is),
+and a door does not lift Keen when a ceiling is over him: the door
+actions move him up 64 units a step with the normal clipping, so in the
+low teleporter of level 11 he stays where he is and the target is read
+in his own row (Omni CK_KeenEnterDoor).
 
 ## The camera (E3)
 
@@ -147,10 +165,10 @@ tic (16 units a pixel); every number is Omnispeak's (Omni) unless marked
 | Korath (124; map 13) | Walks 16 a tic; 10 in 256 a step: waits 30 tics facing a random way | Harmless: pushed sideways, knocked off poles | Stunned for good |
 | Laser turret (45-48 / 49-52 / 53-56: up, right, down, left) | Unseen; fires every 120 tics while awake (`enemy_shoot`); the laser 64 a tic, 4 × 8 tics, stops at walls (`enemy_shot_hit`, 2 × 10 tics) | The laser is deadly | Passes the laser |
 
-What later milestones place: platforms, GoPlats (their start arrows are
-written now, so Voltefaces sharing their paths find them), the fuse
-counter and the QED (E5); Keen on the world map and Korath III's arrival
-(E6). The sound names are listed with their numbers in
+The platforms, the GoPlats (their start arrows are written while the
+level is scanned, so Voltefaces sharing their paths find them), the fuse
+counter and the QED came in E5 (below); Keen on the world map and Korath
+III's arrival come in E6. The sound names are listed with their numbers in
 `Keen5Creatures.SOUNDS` for E8.
 
 ### The stun and the flash (E4)
@@ -163,6 +181,94 @@ stunned. Stars: the Sparky's +0x40 across, the Ampton's and Korath's
 but the last (`GalaxyObject.flash_white`): every pixel of the sprite that
 is not see-through is drawn in white; they are drawn when they move or
 change their picture, so a standing one stays white until then.
+
+## Platforms (E5)
+
+Placed from the info plane by `Keen5Platforms` (Omni CK5_ScanInfoLayer);
+all are drawn behind everything (priority 0) and Keen rides them as in
+Keen 4 (docs/keen4/gameplay.md, "Platforms and switches"). Speeds are
+units a tic.
+
+| Info | Platform | How it moves |
+|---|---|---|
+| 27-30 | Red axis platform (up, right, down, left) | Keen 4's rule (`GalaxyPlatform`): 12 a tic, clipped, always awake; it turns when its leading edge enters a tile with a B-block (info 31) on its first row (column); going up or down a second B-block two tiles back holds it. No jets in Keen 5 |
+| 84-87 | Purple axis platform | The same, placed 0x40 right of and below its tile's corner; going up or down it looks for the B-block **one column right** of its box's left column (its box starts 12 pixels left of its place, in the column before); its stop rule still looks at the left column. It shows PURPLEPLAT1 only: its action's timer is 0, so PURPLEPLAT2 never comes (seen in js-dos: 204 frames, never the second picture) |
+| 32 | Falling platform | Keen 4's (`GalaxyFallingPlatform`) |
+| 33 / 34 / 35 | Standing platform | Never moves; sleeps far from the view. **Reversed difficulty**: 33 only on Easy, 34 on Easy and Normal, 35 always (files: level 3's four 33s, levels 6, 11, 13's 35s, level 8 and 12's 33) |
+| 36-39 / 80-83 | Red / purple GoPlat (starting up, right, down, left) | Always awake, never clipped, 12 a tic along the path arrows (info 91-98, diagonals too) a whole tile at a time (`GalaxyPathArrows`); at each tile it reads the arrow at its position (the purple one, placed 0x40 into its tile, 0x40 further: the same tile). Its start arrow is written into its own tile while the level is scanned |
+| 40 | Sneak platform (level 1) | Waits; when a Keen is in the first picture of a jump facing it, his front 0-4 tiles from its near side and within 6 tiles up or down, it slides his way 32 a tic for 48 tics, back at 16 for 96 tics, and waits |
+
+Standing on any of them Keen **surfs** (Omni CK_ACT_keenRidePlatform: the
+picture KEENONPLAT, 4 tics again and again, the buttons work as when he
+stands; he is never bored there).
+
+**Switches** (misc 5/6) as Keen 4's, with one addition: when the target
+holds a path arrow, it turns round (up ↔ down, right ↔ left, up-right ↔
+down-left, down-right ↔ up-left; Omni {2,3,0,1,6,7,4,5}), so a GoPlat
+goes back when it reaches that tile; any other target gets a B-block on
+or off. In the files the platform switches of levels 3, 6, 8, 11, 12 and
+13 all point at arrows (a GoPlat's way), level 2's at a B-block. Bridge
+switches (misc 15) extend the energy bridges (misc 18) as Keen 4's; all
+nine in levels 2-12 point at a bridge.
+
+**Force fields**: the deadly tiles (misc 3: 19 tiles, 1126-1133 an
+8-picture animation) are never switched off in Keen 5: no switch of
+levels 1-13 points at one (files), and the bridge rule only changes tiles
+with an animation offset from the target on. They kill as Keen 4's
+deadly tiles.
+
+## Fuses and the QED (E5)
+
+A **fuse** is the foreground tile with top 57 (tile 1948, under its upper
+half 1930; a flat floor, not deadly). Info 41 counts them while the level
+is scanned (levels 4: 2, 6: 3, 8: 1, 10: 4, 13: 1; files: each count
+matches the fuse tiles); the count is Keen's
+(`Keen5Inventory.fuses_remaining`, saved with the game from E9).
+
+| Keen comes down on a fuse | Then |
+|---|---|
+| From a jump or a fall | Sound `keen_land_on_fuse` (57), he lands as on any floor |
+| On the pogo, slower than 48 a tic | The same sound, he bounces |
+| On the pogo, 48 a tic or faster | It breaks: an explosion one tile left of his middle column at his bottom row (FUSEFLASH1 10 tics, 2 20 tics, 3 10 tics, in front; sound `fuse_break`, 52), one fuse fewer, the 1 × 2 tiles from his feet down become the map's (0, 0) and (0, 1) (the rubble, 1932 and 1950), and he goes on falling (no bounce) |
+
+A pogo jump from the fuse itself comes back at 60 a tic and breaks it
+(seen in js-dos, level 8: the fuse broke after 30 frames, ours 31; Keen
+then bounced off the thin floor beside the hole, as ours by the corner
+rule). With no fuse left an unseen object waits 60 tics and ends the
+level as a fuse's (`Keen5LevelEnd`; the level counts 14); then the
+**fuse message**: a window of 26 × 8 cells with Keen talking at its right
+and "One of the four / machines protecting the / main elevator shaft-- /
+toast!" (level 13, Korath III: "I wonder what that / fuse was for....")
+12 pixels down, centred left of the picture; 30 tics, a key, then his
+thumb up in the same box, 30 tics, a key (`Keen5Messages`). Both screens
+equal the original's to the pixel (js-dos, level 8). The original waits
+for the level-exit sound to end before the box (about 2.3 s in js-dos);
+that comes with the sounds (E8).
+
+**The QED** (map 12): info 41 there sets the count to 4 and places the
+QED, an unseen object whose box is 0x220 units square from 0x10 left of
+and above its tile (17, 12). Map 12 has no fuse tile (files), so only
+the QED ends it. A **Shikadi mine's piece** touching it (a Shelley's
+does not) destroys it: four fuse explosions at its tile and the tiles
+right of and below it (four sounds), the 4 × 2 blocks at (16, 11) and
+(16, 13) become the map's blocks at (0, 0) and (4, 0) in all three
+planes (the broken machine), and 60 tics later the level ends as the
+QED's (for now the next level; E7 shows the end). The sound names of the
+fuses and the lightning are listed with their numbers in
+`Keen5Fuses.SOUNDS` for E8.
+
+## Watched in E5 (js-dos, the user's v1.4)
+
+A scratch copy of `GAMEMAPS.CK5` with Keen's start moved (the E4 way;
+details in research.md, "Watched in E5"), on Normal in god mode:
+
+| What | The original | Ours |
+|---|---|---|
+| Red GoPlats (level 1) | Round their octagon of arrows | All 280 recorded frames at the places ours shows at one frame offset (±1 frame) |
+| Purple axis platform (level 10) | Along its rail between two B-blocks, always PURPLEPLAT1 | All 204 frames where it is whole at ours' places; never the second picture |
+| A fuse (level 8), a pogo from on top of it | Broke after ~856 ms, explosion one tile left, Keen bounced off the floor beside; the box after the level-exit sound | Broke after 31 frames (886 ms), the same; both message screens equal to the pixel |
+| The door to Korath III (level 11) | The two bolts over the teleporter, then the world map with Keen on Korath III | The same bolts at the same pixels (72, 45) and (80, 105); the level ends for Korath III (the arrival on the map is E6) |
+| The QED (map 12), a mine put beside it | The mine burst, four explosions on the QED, the machine broken (Keen fell through), about 60 tics later the end pages | The same: the QED hit 22 frames in, the level ended 30 frames (60 tics) later |
 
 ## Watched in E4 (js-dos, the user's v1.4)
 
