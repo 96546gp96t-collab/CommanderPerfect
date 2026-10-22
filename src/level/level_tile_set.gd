@@ -11,6 +11,9 @@ extends RefCounted
 ## The tile set also knows which tiles have a mask ([MaskedTiles]).
 
 const SOURCE_ID := 0
+## The same tiles with only the wall's holes ([method build_with_holes]),
+## for the cells where the sky's colour is not the sky.
+const SKY_KEPT_SOURCE_ID := 1
 const ATLAS_COLUMNS := 16
 const PADDING := 1
 
@@ -24,26 +27,73 @@ static func build(
 ) -> TileSet:
 	if textures == null:
 		textures = GraphicsTextures.create(graphics)
-	var tile_size := Vector2i(EgaGraphics.TILE_SIZE, EgaGraphics.TILE_SIZE)
+	var texture: Texture2D
+	if backdrop_color.a > 0.0:
+		texture = textures.backdrop_tile_atlas(ATLAS_COLUMNS, PADDING, backdrop_color)
+	else:
+		texture = textures.tile_atlas(ATLAS_COLUMNS, PADDING)
+	var tile_set := _tile_set()
+	tile_set.add_source(_source(texture, graphics.tiles.size()), SOURCE_ID)
+	MaskedTiles.mark(tile_set, graphics, backdrop_color)
+	return tile_set
+
+
+## The tiles of [param graphics] (from [param textures]) with the holes of
+## [param holes] left out, for the sky and the wall behind the level
+## (milestone AB2). With a sky it has a second source,
+## [constant SKY_KEPT_SOURCE_ID], whose tiles keep the sky's colour.
+static func build_with_holes(
+	graphics: EgaGraphics, textures: GraphicsTextures, holes: BackdropHoles
+) -> TileSet:
+	var count := graphics.tiles.size()
+	var tile_set := _tile_set()
+	var atlas := textures.holes_tile_atlas(ATLAS_COLUMNS, PADDING, holes)
+	tile_set.add_source(_source(atlas, count), SOURCE_ID)
+	if holes.has_sky():
+		var kept := textures.holes_tile_atlas(ATLAS_COLUMNS, PADDING, holes, true)
+		tile_set.add_source(_source(kept, count), SKY_KEPT_SOURCE_ID)
+	MaskedTiles.mark(tile_set, graphics, holes.sky_color)
+	return tile_set
+
+
+## The wall's shape on the tiles of [param textures] that have some wall,
+## for [LevelWall]; the others are left out.
+static func build_wall_masks(textures: GraphicsTextures, holes: BackdropHoles) -> TileSet:
+	var source := _source(textures.wall_mask_atlas(ATLAS_COLUMNS, PADDING, holes), 0)
+	var kinds := textures.hole_kinds(holes)
+	for tile_number in kinds.size():
+		if BackdropHoles.has_wall_in(kinds[tile_number]):
+			source.create_tile(atlas_coords_of(tile_number))
+	var tile_set := _tile_set()
+	tile_set.add_source(source, SOURCE_ID)
+	return tile_set
+
+
+## The tile number at atlas cell [param coords].
+static func tile_at(coords: Vector2i) -> int:
+	return coords.y * ATLAS_COLUMNS + coords.x
+
+
+static func _tile_set() -> TileSet:
+	var tile_set := TileSet.new()
+	tile_set.tile_size = Vector2i(EgaGraphics.TILE_SIZE, EgaGraphics.TILE_SIZE)
+	return tile_set
+
+
+## An atlas source of [param texture] (laid out as [method
+## GraphicsTextures.tile_atlas]) with its first [param count] tiles.
+static func _source(texture: Texture2D, count: int) -> TileSetAtlasSource:
 	var source := TileSetAtlasSource.new()
 	# Our own border instead of the one Godot can add, which would be made
 	# from the larger images inside scaled textures.
 	source.use_texture_padding = false
-	if backdrop_color.a > 0.0:
-		source.texture = textures.backdrop_tile_atlas(ATLAS_COLUMNS, PADDING, backdrop_color)
-	else:
-		source.texture = textures.tile_atlas(ATLAS_COLUMNS, PADDING)
+	source.texture = texture
 	source.margins = Vector2i(PADDING, PADDING)
 	source.separation = Vector2i(2 * PADDING, 2 * PADDING)
-	source.texture_region_size = tile_size
-	for tile_number in graphics.tiles.size():
+	source.texture_region_size = Vector2i(EgaGraphics.TILE_SIZE, EgaGraphics.TILE_SIZE)
+	for tile_number in count:
 		source.create_tile(atlas_coords_of(tile_number))
-
-	var tile_set := TileSet.new()
-	tile_set.tile_size = tile_size
-	tile_set.add_source(source, SOURCE_ID)
-	MaskedTiles.mark(tile_set, graphics, backdrop_color)
-	return tile_set
+	return source
 
 
 ## Atlas cell of a tile number; matches [method EgaGraphics.create_tile_atlas].

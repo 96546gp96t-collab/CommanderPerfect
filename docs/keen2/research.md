@@ -694,7 +694,8 @@ workaround turns into plain tiles; sprites cannot overlap them anyway.
   mothership's tiles at (1-7, 4-5).
 
 **Sprites** (`EGAHEAD.CK2`): the names agree with section 5 except the
-Guard robot (112-115 left, 116-119 right) and 31 (`KEENMELT`). Collision
+Guard robot (named 112-115 left, 116-119 right; the pictures face the
+other way, see gameplay.md) and 31 (`KEENMELT`). Collision
 boxes (left, top, right, bottom; the table holds the last pixel inside):
 
 | Sprites | Box |

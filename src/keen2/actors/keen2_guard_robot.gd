@@ -12,10 +12,11 @@ extends Keen2Enemy
 
 enum Mode { HOVERING, LOOKING }
 
-## GUARDLEFT1-4 and GUARDRIGHT1-4 in EGAHEAD.CK2 (Commander Genius has
-## them the other way round).
-const SPRITE_HOVER_LEFT := 112
-const SPRITE_HOVER_RIGHT := 116
+## EGAHEAD.CK2 names 112-115 GUARDLEFT1-4 and 116-119 GUARDRIGHT1-4, but
+## the pictures say otherwise: 112-115 have the gun and the eye on the
+## right, 116-119 on the left. The robot faces the way it floats and fires.
+const SPRITE_HOVER_RIGHT := 112
+const SPRITE_HOVER_LEFT := 116
 const HOVER_FRAMES := 4
 const SPRITE_LOOK := 120
 const LOOK_FRAMES := 2

@@ -96,6 +96,149 @@ bestanden in [docs/keen4/file-formats.md](docs/keen4/file-formats.md).
 | D13 | Naast het origineel | ✅ Klaar en gecontroleerd door de architect (branch `milestone-d13-origineel`; drie developers en een tester) |
 | D13.2 | Fixes na de test van de gebruiker: split-screen kijken, trillen in pauzes, cheats, online-pagina, glas in Miragia | 🔶 Gebouwd, in test bij de gebruiker (branch `milestone-d13.2-fixes`) |
 
+## Achtergronden Keen 1 en 2: mijlpalen AB
+
+Branch `milestone-a-b-backgrounds` (vanaf `main`, 22-10). Onderzoek en plan:
+[docs/backgrounds/research.md](docs/backgrounds/research.md) en
+[docs/backgrounds/roadmap.md](docs/backgrounds/roadmap.md).
+
+| # | Mijlpaal | Status |
+|---|---|---|
+| AB1 | Onderzoek: elk level bekeken en gemeten, keuzes van de gebruiker | ✅ Klaar |
+| AB2 | De vaste wand (`LevelWall`, patroonregel voor het rooster, schaduwen, lichtbundels) | ✅ Klaar en gecontroleerd door de architect (developer) |
+| AB3 | De plaatjes: Keen 2-wanden, Keen 1-luchten en -wanden | ✅ Klaar en gecontroleerd door de architect (tekenaar, tegelijk met AB2) |
+| AB4 | Samenvoegen en nakijken | ✅ Klaar |
+| AB-fix | Fixes na de test van de gebruiker: items, ramen, HUD, sneeuwplatforms, trappen van driehoeken | 🔶 Gebouwd, in test bij de gebruiker |
+
+**Wat er nu is.** In breedbeeld (optie Backgrounds, standaard aan; 4:3
+blijft het origineel):
+
+- **Keen 2** speelt in het moederschip: het grijze ruitjespatroon is de
+  achterwand van elke kamer. Die wand is nu een eigen textuur die 1:1 met
+  de tiles meeschuift (vast aan het level, keuze van de gebruiker). Het
+  spel vindt het rooster pixel voor pixel (ook rond items, die heel
+  blijven); de schaduw van de muren is het rooster één kleurstap donkerder
+  en valt nu als donkere band over de nieuwe wand, zonder ruitjes (wens van
+  de gebruiker). Het rooster in het donker (levels 5 en 14) wordt een
+  gedimde wand, het teal van level 12 ook wand. Per soort kamer een wand:
+  gangen (1-3), Tantalus-centra (elke stad een eigen tint), Home A en B,
+  wapenkamers en de donkere schacht. Keen 2's donker (lichten uit) dimt de
+  wand mee.
+- **Keen 1**: buiten een glijdende Mars-lucht in de sfeer van het plaatje
+  van level 1 (dat bleef zoals het was), per stad eigen: ijs (8, 9, 10),
+  groen kristal (7), rode rots (13), een kasteel op een rots (16). Binnen
+  (de heiligdommen, het kasteel, de tunnel van 13) een vaste stenen wand
+  achter het zwart. Het grijs onder een blauwe lamp is een lichtbundel en
+  blijft grijs, net als smalle grijze stroken tussen donkere muren (de
+  schuine stroken in het kasteel van 16).
+- Gemaakt door eigen tekenprogramma's (`tools/make_keen1_backgrounds.py`,
+  `tools/make_keen2_walls.py`); niets komt uit de spelbestanden. Een eigen
+  plaatje of wand in `game_data/keenN/backgrounds/` wint
+  (`levelNN`, `wallNN`).
+
+- [x] Tests: 129 suites groen, 0 SCRIPT ERROR, gdlint schoon.
+- [x] Regressies tegen `main`: Keen 1 gelijk; Keen 2 verschilt alleen in
+  breedbeeld (de nieuwe wand). In 4:3 alleen verschillen door timing aan
+  het begin van een level (ook tussen twee runs van `main`; op frame 300
+  identiek).
+- [x] Alle 32 levels in breedbeeld gefotografeerd en nagekeken.
+- Open: een Keen 2-level indelen kost de eerste keer ~0,6 s (drie soorten
+  levels); kleine gaatjes houden het oude rooster (tussen de Yorp-beelden
+  in 5 en 14, het glas van de Tantalus-machines); met xBRZ blijft een
+  dunne rand roosterkleur rond items, zoals rond de lucht nu; Keen 2's
+  donker, split-screen en vloeiende beweging niet per schermafbeelding
+  nagekeken (de wand hoort bij het level zelf, dus volgt ze).
+
+### Fixes (22-10)
+
+Zes meldingen uit de test van de gebruiker (breedbeeld, plaatjes aan), alle
+van één soort: een pixel in de kleur die wegvalt hoorde bij de tekening
+van een tile, of lucht bleef grijs. Regel nu: alleen wat áchter de dingen
+ligt wordt een gat (`docs/graphics.md`, onderzoek §8).
+
+1. **Keen 2: oud rooster naast items.** De patroonregel wil groepen van
+   2x2; de kolommen van één pixel tussen een item en de rand van zijn tile
+   (chocolade, kaarten, flesje, hamburger, taart, beer, straalgeweer)
+   bleven rooster. Nu is bij items elk roosterpixel dat via roosterpixels
+   aan de rand vastzit wand (items hebben een donkere rand, daar stopt
+   het); bij andere tiles met wand hetzelfde tot 2 pixels van de rand
+   (lampen, borden).
+2. **Keen 2: het glas valt weg.** De witte glasstrepen van een raam zijn
+   losse pixels tussen roosterpixels; de "spikkel"-regel maakte ze wand, en
+   dan tekende de maskerlaag niets meer vóór Keen. Nu blijven ramen
+   (gemaskeerde tiles met masker: 403-422, 371-373) heel, zoals het
+   origineel: het rooster achter het glas en de strepen vóór Keen. Levels
+   6, 7 en 9. **Keuze van de gebruiker (22-10): achter het glas de nieuwe
+   wand.** Nu toont elk raam van Keen 2 (levels 6, 7 en 9) achter het glas
+   de wand, naadloos met de cellen eromheen (onder de bovenrand de schaduw
+   van het kozijn); alleen de glasstrepen en het kozijn (het masker) staan
+   vóór Keen. 4:3 en zonder plaatjes blijft het rooster (origineel).
+3. **Keen 2: HUD-icoontjes.** De HUD haalde alleen het effen grijs weg; de
+   witte en donkere lijnen van het rooster bleven (al sinds B3). Nu valt
+   het hele roosterpatroon rond straalgeweer en kaarten weg
+   (`Hud.background_tile`). Keen 1 en 3 ongewijzigd.
+4. **Keen 1: plaatje in de onderrand van de sneeuwplatforms** (levels 8,
+   9, 10, ...). De grijze schaduw onder het wit raakt links en rechts de
+   rand van de tile. Nu blijft grijs (en zwart) dat door de tekening van
+   het level is ingesloten (`ColorGroups`: groepen over de tiles heen,
+   open als ze effen lucht of de rand van het level raken). Ook het glas
+   van de ijsblokken en het "ID"-paneel van level 1 blijven daardoor grijs,
+   zoals in het origineel.
+5. **Keen 1: plaatje in de donkere muur boven Keen (level 9) en twee grijze
+   driehoeken links van Keen (level 10).** Dezelfde trap van grijze
+   driehoeken waar de muur van het heiligdom naar de vloer afloopt naast
+   de lucht: de AB2-regel maakte de eerste trede lucht en hield de
+   volgende grijs. In het origineel zijn ze effen luchtgrijs. Nu is een
+   grijze cel met het donker aan maar één kant lucht als ze aan de lucht
+   vastzit, hoe ver ook; smalle grijze stroken tussen donkere muren (de
+   lange helling in het kasteel van 16) blijven grijs. In 16 zijn ook de
+   randen van het brede grijze vlak nu lucht (geen grijze zoom meer).
+6. **Gevonden onderweg: Keen 1's zwarte omlijningen werden wand** in levels
+   met een wand (platforms, blokken, paddenstoelen). Nu is zwart alleen
+   wand als het 2x2 dik is en niet ingesloten.
+
+- [x] Nieuwe suites `test_level_walls_fixes` (tiles en levels van code) en
+  `test_level_walls_fixes_data` (echte bestanden); elke fix uitgezet laat
+  ze falen. Bestaande tests niet aangepast. 131 suites: 130 groen,
+  `test_keen4_v14` overgeslagen, 0 fouten, geen SCRIPT ERROR, gdlint
+  schoon.
+- [x] Regressies Keen 1, 2 en 4 tegen fe57224: in 4:3 alles gelijk (ook 10
+  eigen 4:3-beelden van de plekken); in breedbeeld Keen 1 en 4 gelijk,
+  Keen 2 alleen level 1 (items zonder roosterrand) en de HUD (ook op de
+  kaart). Apps gebouwd (Mac en Windows).
+- Kosten: een Keen 1-level indelen kost nu ~0,15 s bij het starten.
+- [x] Ramen met de wand achter het glas (`BackdropHoles.windows`,
+  `window_kinds`): tests aangepast (de raamtests van 964f9a8 verwachtten
+  het rooster), regressies Keen 1, 2 en 4 tegen 964f9a8 gelijk (4:3 en
+  breedbeeld; daar zitten geen ramen in), eigen foto's van de ramen: 4:3
+  gelijk, breedbeeld alleen anders binnen de ramen. Apps gebouwd.
+- [x] **Tweede ronde (22-10, de volgende test van de gebruiker).** Keen 2:
+  geen rooster meer aan de uiteinden van de kleine platforms (schaduw
+  zonder eigen lijn hoort bij de schaduw ernaast) en van de rode balk
+  (smalle strook tussen rand en zwarte omlijning is wand); de zapper heeft
+  in elk beeld zijn armen en dezelfde wand (frames delen hun gaten); de
+  uitgang heeft een rechte rand (rechte lijnen van de tekening zijn nooit
+  wand); gevonden: de deur in level 12 was doorzichtig (teal, nu
+  ingesloten). Keen 1: de zwarte driehoek van de donkere noppenblokken en
+  het uitgangsbord (beide beelden) blijven zwart; het licht door de muur
+  van het kasteel (level 16) is grijs vanaf de muur, de opening zelf
+  toont de lucht. Ook: het "ID"-paneel (level 1) en de ranken (7, 14) per
+  animatiebeeld gelijk. Suites `test_level_walls_fixes2` en `_data`
+  (falen op de oude regels); 133 suites groen (keen4_v14 overgeslagen),
+  gdlint schoon. Regressies tegen 4ccfcfc: Keen 1 en 4 gelijk, Keen 2
+  alleen level 1 breedbeeld (balk, platform, zapper); 12 eigen plekken in
+  4:3 gelijk, breedbeeld alleen anders waar bedoeld. Kost: een Keen
+  1-level indelen ~0,3-0,4 s (was ~0,15 s). Open: twee zwarte pixels in
+  tegel 158 (levels 5, 14).
+- De testcel van AB2 in het kasteel van 16 is opgelost (zie hierboven):
+  de opening in de muur toont de lucht, daarachter grijs.
+- [x] **Keen 2: de paarse Guard robot keek achteruit.** `EGAHEAD.CK2` noemt
+  112-115 GUARDLEFT en 116-119 GUARDRIGHT, maar de plaatjes zeggen het
+  omgekeerde (geweer en oog rechts in 112-115). Links/rechts omgewisseld
+  in `Keen2GuardRobot`; nu kijkt hij de kant op waar hij heen zweeft en
+  schiet. Alleen namen/plaatjes gecontroleerd (js-dos overgeslagen op
+  verzoek). Test `test_guard_robot_faces_the_way_it_floats_and_fires`.
+
 ## D13.2: fixes (21-10)
 
 Zes bugs uit de test van de gebruiker, op `milestone-d13.2-fixes` (vanaf
@@ -2746,6 +2889,14 @@ Na de eerste eigen test van de gebruiker:
 - Tests in `test_online_menus.gd`: adressen in de setup, het hosting-venster ververst, `address_lines`, eigen wachtwoord typen en onthouden.
 
 ## Volgende stap
+
+Achtergronden Keen 1 en 2:
+
+1. **Voor de gebruiker:** bouwen vanaf `milestone-a-b-backgrounds` en
+   Keen 1 en 2 in breedbeeld spelen: past elke wand en lucht bij zijn
+   level? Zeg wat beter kan (een eigen textuur proberen kan zonder bouwen:
+   `game_data/keen2/backgrounds/wallNN.png`).
+2. Daarna kan `milestone-a-b-backgrounds` in één keer naar `main`.
 
 Keen 3:
 

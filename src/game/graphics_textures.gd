@@ -17,12 +17,19 @@ var _font: Dictionary[int, ImageTexture] = {}
 var _clear_font: Dictionary[int, ImageTexture] = {}
 var _tiles: Dictionary[int, ImageTexture] = {}
 var _clear_tiles: Dictionary[int, ImageTexture] = {}
+## Tiles without a patterned background, by tile and background tile.
+var _clear_tiles_on: Dictionary[int, ImageTexture] = {}
 var _sprites: Dictionary[int, ImageTexture] = {}
 var _bitmaps: Dictionary[String, ImageTexture] = {}
 var _doors: Dictionary[PackedInt32Array, ImageTexture] = {}
 var _finale: ImageTexture
 ## Tile atlases with a level's background color left out, by that color.
 var _backdrop_atlases: Dictionary[Color, ImageTexture] = {}
+## The same with the holes of a [BackdropHoles] (by its key and whether the
+## sky stays), the wall's masks, and every tile's kinds of hole.
+var _hole_atlases: Dictionary[String, ImageTexture] = {}
+var _wall_masks: Dictionary[String, ImageTexture] = {}
+var _hole_kinds: Dictionary[String, Array] = {}
 
 
 static func create(ega_graphics: EgaGraphics) -> GraphicsTextures:
@@ -39,11 +46,14 @@ func use_scaled(scaled_graphics: ScaledGraphics) -> void:
 	_clear_font.clear()
 	_tiles.clear()
 	_clear_tiles.clear()
+	_clear_tiles_on.clear()
 	_sprites.clear()
 	_bitmaps.clear()
 	_doors.clear()
 	_finale = null
 	_backdrop_atlases.clear()
+	_hole_atlases.clear()
+	_wall_masks.clear()
 
 
 ## How many times larger the images in the textures are than the original.
@@ -98,6 +108,27 @@ func clear_tile(index: int) -> ImageTexture:
 		_clear_background(image, EgaPalette.color(EgaPalette.LIGHT_GRAY))
 		_clear_tiles[index] = _derived_texture(image, _scaled_tile(index))
 	return _clear_tiles[index]
+
+
+## Tile [param index] without the patterned background around the item on
+## it: every pixel that equals tile [param background] (Keen 2's lattice)
+## at the same place and is joined to the tile's edge through more of
+## them. Null when there is no such tile.
+func clear_tile_on(index: int, background: int) -> ImageTexture:
+	if graphics == null or index < 0 or index >= graphics.tiles.size():
+		return null
+	if background < 0 or background >= graphics.tiles.size():
+		return clear_tile(index)
+	var key := index * graphics.tiles.size() + background
+	if not _clear_tiles_on.has(key):
+		var image := graphics.tiles[index].duplicate() as Image
+		image.convert(Image.FORMAT_RGBA8)
+		var around := LatticeWalls.create(graphics.tiles[background]).item_background(image)
+		for i in around.size():
+			if around[i]:
+				image.set_pixel(i % image.get_width(), i / image.get_width(), Color.TRANSPARENT)
+		_clear_tiles_on[key] = _derived_texture(image, _scaled_tile(index))
+	return _clear_tiles_on[key]
 
 
 func sprite(index: int) -> ImageTexture:
@@ -169,6 +200,78 @@ func backdrop_tile_atlas(columns: int, padding: int, color: Color) -> ImageTextu
 	var big := _atlas(bigs, scaled.factor, columns, padding) if scaled != null else null
 	_backdrop_atlases[color] = _texture(original, big)
 	return _backdrop_atlases[color]
+
+
+## The tile atlas of [method tile_atlas] with the holes of [param holes]
+## left out: every hole, or with [param keep_sky] only the wall's (for the
+## cells where the sky's colour is something else, such as a cone of light
+## in a dark room). Scaled graphics get the same holes, enlarged.
+func holes_tile_atlas(
+	columns: int, padding: int, holes: BackdropHoles, keep_sky := false
+) -> ImageTexture:
+	var key := holes.key() + ("/sky kept" if keep_sky else "")
+	if _hole_atlases.has(key):
+		return _hole_atlases[key]
+	_forget_other_levels(holes)
+	var kinds := hole_kinds(holes)
+	var originals: Array[Image] = []
+	var bigs: Array[Image] = []
+	for index in graphics.tiles.size():
+		var image := BackdropHoles.cut(graphics.tiles[index], kinds[index], keep_sky)
+		originals.append(image)
+		if scaled != null:
+			bigs.append(_with_holes_of(scaled.tiles[index], image))
+	var original := _atlas(originals, 1, columns, padding)
+	var big := _atlas(bigs, scaled.factor, columns, padding) if scaled != null else null
+	_hole_atlases[key] = _texture(original, big)
+	return _hole_atlases[key]
+
+
+## Forgets the atlases, masks and kinds made for what another level shuts
+## in, with the same rules as [param holes]: one level is played at a time,
+## and with scaled graphics an atlas is large.
+func _forget_other_levels(holes: BackdropHoles) -> void:
+	var base := holes.base_key() + "/"
+	var own := holes.key()
+	for cache: Dictionary in [_hole_atlases, _hole_kinds, _wall_masks]:
+		for key: String in cache.keys():
+			if key.begins_with(base) and not key.begins_with(own):
+				cache.erase(key)
+
+
+## The wall's shape on every tile ([method BackdropHoles.mask]) in the
+## layout of [method tile_atlas], at the size of the original tiles.
+func wall_mask_atlas(columns: int, padding: int, holes: BackdropHoles) -> ImageTexture:
+	var key := holes.key()
+	if not _wall_masks.has(key):
+		var masks: Array[Image] = []
+		for kinds: PackedByteArray in hole_kinds(holes):
+			masks.append(BackdropHoles.mask(kinds, EgaGraphics.TILE_SIZE))
+		_wall_masks[key] = ImageTexture.create_from_image(_atlas(masks, 1, columns, padding))
+	return _wall_masks[key]
+
+
+## The kinds of hole ([method BackdropHoles.kinds_of]) of every tile, the
+## frames of an animation alike ([method BackdropHoles.share_between_frames]),
+## worked out once per set of rules (they do not depend on the scaled
+## graphics); what a level shuts in ([member BackdropHoles.shut_in]) only
+## changes the tiles it names.
+func hole_kinds(holes: BackdropHoles) -> Array:
+	var key := holes.key()
+	if _hole_kinds.has(key):
+		return _hole_kinds[key]
+	var base_key := holes.base_key()
+	if not _hole_kinds.has(base_key):
+		var base: Array[PackedByteArray] = []
+		for index in graphics.tiles.size():
+			base.append(holes.base_kinds_of(index, graphics.tiles[index]))
+		holes.share_between_frames(base, graphics.tiles)
+		_hole_kinds[base_key] = base
+	var kinds: Array[PackedByteArray] = []
+	for index in graphics.tiles.size():
+		kinds.append(holes.without_shut_in(index, _hole_kinds[base_key][index]))
+	_hole_kinds[key] = kinds
+	return kinds
 
 
 func _scaled_font_char(code: int) -> Image:

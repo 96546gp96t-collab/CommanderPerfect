@@ -107,7 +107,7 @@ tick per tick, at most 104/32. Speeds are in pixels per tick.
 | Youth | Runs at 77/32 (48-51 left, 52-55 right, 7 ticks a frame), starting left or right at random; turns at walls; runs off ledges. On the ground it hops (chance 100; at a wall chance 200), 80/32 or 200/32 up at random. | **stuns** Keen | 1 | frame 56 for 21 ticks, then 57; slides on at 20/32, 1/32 slower every 11 ticks; VORTSCREAM |
 | Elite | Walks at 31/32 (88-91 left, 92-95 right, 7 ticks a frame), turns at walls, walks off ledges. When Keen's feet are less than 2 tiles above or below its own it turns to him (9 times out of 10), and when he is also less than 6 tiles away sideways it charges at 62/32. On the ground, with the lights on: jumps (chance 15; 90-149/32; 98 left, 99 right), or, at least 26 ticks after its last shot, aims (chance 8): faces Keen 4 times out of 5, holds the raygun out (96 left, 97 right) for 23 ticks, fires (KEENFIRESND), holds it 21 more ticks. Trapped (a wall less than 150 ticks after the last) it jumps. | deadly | 4; the Guard robots' shots do not hurt it | frame 100 for 46 ticks, then 101; VORTSCREAM |
 | Scrub | Crawls at 25/32 along floors, walls and ceilings (two frames each, 12 ticks a frame: 102-103 left on a floor, 104-105 up a wall on its left, 106-107 right along a ceiling, 108-109 down a wall on its right). An inside corner turns it to the next way, an outside corner takes it round the edge; when that edge is not solid (a floor that is only solid on top) it falls (frame 102), and crawls left again where it lands. | harmless: Keen rides it; it pushes him aside | 1 | pops up (10/32) as frame 110, lies as 111; SHOTHIT |
-| Guard robot | Floats (never falls) at 31/32, starting to the right (112-115 left, 116-119 right, as `EGAHEAD.CK2` names them; 7 ticks a frame). At a wall it looks around for 26 ticks (120-121, 5 ticks each) and goes back. Volleys: the first after 200 ticks, then after 31-199 ticks (counted from the last volley or look). It stops for 25 ticks, fires 4 shots 13 ticks apart while it floats on (TANKFIRE; it holds a shot back while it touches a wall), and stops 25 ticks again. Looking around ends a volley. Shots leave 5 pixels below its top, 4 pixels in front. | deadly | invincible; it stops Keen's shots | never |
+| Guard robot | Floats (never falls) at 31/32, starting to the right (112-115 right, 116-119 left: the pictures have the gun and eye on that side, although `EGAHEAD.CK2` names them the other way round; 7 ticks a frame). At a wall it looks around for 26 ticks (120-121, 5 ticks each) and goes back. Volleys: the first after 200 ticks, then after 31-199 ticks (counted from the last volley or look). It stops for 25 ticks, fires 4 shots 13 ticks apart while it floats on (TANKFIRE; it holds a shot back while it touches a wall), and stops 25 ticks again. Looking around ends a volley. Shots leave 5 pixels below its top, 4 pixels in front. | deadly | invincible; it stops Keen's shots | never |
 | Platform | Floats sideways at 23/32, starting to the right (126-127, 16 ticks a frame). At a wall or the map edge it waits 51 ticks and goes back. Always awake. | harmless: Keen rides it | swallows every shot | never |
 
 The collision boxes inside the sprites come from `EGAHEAD.CK2`'s sprite
@@ -405,17 +405,22 @@ picture (Keen 1's `WINDON`/`WINDOFF` are not used).
   Keen 2 actor, Keen on the map and the ending's ships are interpolated.
   The Real-ESRGAN HD graphics are left out for Keen 2 (the user's choice:
   they did not look good enough for Keen 1 either).
-- **Pictures behind the levels** (widescreen, the "Backgrounds" option):
-  Keen 2's own pictures in `assets/backgrounds/keen2/` (none yet), or the
-  player's in `game_data/keen2/backgrounds/` (`level01.png` ... `level16.png`,
-  also .webp or .jpg); Keen 1's pictures are never used. A picture shows
-  through the level's plain background, and through that color in every
-  other tile. Most Keen 2 levels have a patterned background (the gray
-  diamonds) whose dots have the plain tiles' color, so a picture would
-  shine through the dots all over the level: a level gets its picture only
-  when its plain background is also its most used tile
-  (`Keen2BackdropPictures`). In version 1.31 that is level 12. In the dark
-  the picture darkens with the level.
+- **The wall behind the levels** (widescreen, the "Backgrounds" option;
+  milestone AB2, which replaced B8's pictures): every level is a room of
+  the Mothership, so instead of a picture that glides it gets a back wall
+  fixed to the level (it moves 1:1 with the tiles, as the lattice does),
+  from Keen 2's own textures in `assets/backgrounds/keen2/` (`wall01.webp`
+  ... `wall16.webp`) or the player's in `game_data/keen2/backgrounds/`
+  (also .png or .jpg); Keen 1's are never used. The wall takes the place
+  of the lattice (tile 143) wherever a tile has it, pixel for pixel
+  (`LatticeWalls`); the walls' shadows on the lattice (one EGA step darker)
+  become dark bands on the wall without the lattice; the lattice in the
+  dark (tile 147, levels 5 and 14) shows the wall dim, so the grey cones
+  under the lamps there stay lit; level 12's teal (tile 276) is wall too.
+  A level without a texture looks as in the original. In the dark the wall
+  darkens with the level (it is on the level's canvas). B8 showed a
+  gliding picture only behind level 12 (`Keen2BackdropPictures`, kept for
+  Keen 3's comparison but no longer used by `Keen2View`).
 
 ## Two players on one keyboard (B9)
 

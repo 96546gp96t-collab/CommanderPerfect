@@ -12,10 +12,11 @@ extends Keen2OnlineScreen
 ## that is done, or a death, brings Keen back to the map. Enter shows the
 ## status screen ([Keen2StatusScreen]), Escape the main menu. With all eight
 ## cities saved the ending runs ([Keen2Ending]); after it, and after GAME
-## OVER, the high scores. In widescreen, with the option on, a level can
-## show a picture behind it (milestone B8: Keen 2's own pictures in
-## [constant BACKGROUNDS_FOLDER] or the player's game_data/keen2/backgrounds,
-## never Keen 1's); it darkens with the level.
+## OVER, the high scores. In widescreen, with the option on, a level shows
+## its back wall fixed to the level (milestone AB2, [Keen2Walls]: Keen 2's
+## own textures in [constant BACKGROUNDS_FOLDER] or the player's
+## game_data/keen2/backgrounds, never Keen 1's); it darkens with the level.
+## Keen 2 has no gliding pictures (B8's for level 12 made way for the wall).
 ##
 ## Milestone B5 added what the switches do: the darkness ([Keen2Darkness]),
 ## the Vorticon Elders' messages (in a [GameWindow], the game waits until
@@ -274,7 +275,8 @@ func _load_data() -> bool:
 	_hud.set_textures(_textures)
 	_hud.raygun_tile = Keen2Icons.raygun(_properties)
 	_hud.keycard_icons = Keen2Icons.keycards(_properties)
-	_backdrop_pictures = _make_backdrop_pictures()
+	_hud.background_tile = Keen2Walls.LATTICE_TILE
+	_walls = Keen2Walls.create(files, _graphics.tiles, BACKGROUNDS_FOLDER, _properties)
 	_graphics_loader = GraphicsLoader.create(files, _graphics, _finale_image)
 	_menus.hd_available = HdPack.exists(files)
 	_apply_graphics()
@@ -293,19 +295,6 @@ func _load_data() -> bool:
 	play.won.connect(_start_ending)
 	play.earth_exploded.connect(_on_earth_exploded)
 	return true
-
-
-## The pictures behind the levels, for the levels they suit
-## ([Keen2BackdropPictures]).
-func _make_backdrop_pictures() -> Keen2BackdropPictures:
-	var levels: Dictionary[int, LevelData] = {}
-	for number in range(Keen2Files.FIRST_LEVEL, Keen2Files.LAST_LEVEL + 1):
-		var level := LevelData.parse(files.read(files.level_file(number)))
-		if level != null:
-			levels[number] = level
-	return Keen2BackdropPictures.for_levels(
-		files, BACKGROUNDS_FOLDER, levels, _properties, _graphics.tiles
-	)
 
 
 func _start_level(number: int) -> void:

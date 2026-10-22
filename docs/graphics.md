@@ -178,22 +178,167 @@ stays as it was). A level without a picture looks as in the original.
   In a split screen each half has its own.
 - **Keen 2, Keen 3 and Keen 4** have their own folders,
   `assets/backgrounds/keen2/`, `assets/backgrounds/keen3/` and
-  `assets/backgrounds/keen4/` (Keen 2's still empty; Keen 3's painted by
+  `assets/backgrounds/keen4/` (Keen 3's painted by
   `tools/make_keen3_backgrounds.py`, Keen 4's by
   `tools/make_keen4_backgrounds.py`), and the player's
   `game_data/keen2/backgrounds/`, `game_data/keen3/backgrounds/` and
   `game_data/keen4/backgrounds/`, with the same file names; Keen 1's
-  pictures are never shown behind their levels. Each game decides which levels may show one, because a picture
-  shows through the background color in every tile: Keen 2 only where the
-  plain background is the level's most used tile (B8, level 12;
-  `docs/keen2/gameplay.md`), Keen 3 where the level has sky, and then only
+  pictures are never shown behind their levels. Each game decides which
+  levels may show one, because a picture shows through the background
+  color in every tile: Keen 3 where the level has sky, and then only
   through the sky, never the dark gray of a base (levels 1-11, 13, 14 and
   15; `docs/keen3/gameplay.md`, "Extras (C9)"), Keen 4 where the top row
   of the level is sky, and then only through the sky colour (levels 5, 7-14
-  and 16; `docs/keen4/gameplay.md`, "Pictures behind the levels"). The
-  painters are `tools/make_keen3_backgrounds.py` and
+  and 16; `docs/keen4/gameplay.md`, "Pictures behind the levels"). Keen 2
+  has no gliding pictures since AB2 (its rooms have no sky): it has walls,
+  below. The painters are `tools/make_keen3_backgrounds.py` and
   `tools/make_keen4_backgrounds.py`, with their shared canvas in
   `tools/background_painter.py`.
+
+**Keen 1's and Keen 2's pictures and walls (AB3).** Painted by our own
+tools on the same canvas: `tools/make_keen1_backgrounds.py` writes Keen 1's
+skies `assets/backgrounds/levelNN.webp` (levels 3, 4, 7, 8, 9, 10, 12, 13,
+14, 15 and 16, in the mood of level 1's picture, which it leaves alone;
+3840, 2880 or 1920 by 1080 pixels) and its walls
+`assets/backgrounds/wallNN.webp` (levels 2, 5, 6, 9, 10, 11, 12, 13, 15
+and 16); `tools/make_keen2_walls.py` writes Keen 2's walls
+`assets/backgrounds/keen2/wallNN.webp` (levels 1-16, a wall per kind of
+room). A wall is 256x256, one texture pixel per game pixel, seamless in
+both directions (`Tile` in the painter), and dark enough to read both at
+full light and dimmed. Running a tool again writes the same files.
+
+### The wall fixed to the level (Keen 1 and 2, AB2)
+
+Behind a closed room the picture is not a sky that glides but a wall that
+moves 1:1 with the tiles (the user's choice of 22-10-2026; the research is
+in [backgrounds/research.md](backgrounds/research.md)). Same option, same
+rules: only in widescreen, on by default, 4:3 always the original, and a
+level without a wall texture keeps its own background.
+
+- **Where the textures are.** `assets/backgrounds/wallNN.webp` for Keen 1,
+  `assets/backgrounds/keen2/wallNN.webp` for Keen 2 (or `.png`, `.jpg`);
+  the player's `backgrounds/` folder next to the game files wins
+  (`BackdropPictures.walls`). A texture repeats (seamless, any size), one
+  texel per game pixel, drawn without smoothing.
+- **Which pixels are wall** (`BackdropHoles`, per level, by
+  `Keen1Walls` and `Keen2Walls`):
+  - Keen 1: the black of the dark rooms (tile 155) by the colour rule.
+    The grey (143) is the sky only outside: a grey region (cells joined
+    through grey on their shared edge) under a blue lamp (tile 156) is a
+    cone of light and keeps its grey, drawn from a second source of the
+    tile set without the sky's holes (`LevelMap.use_wall`,
+    `LevelTileSet.SKY_KEPT_SOURCE_ID`). So levels 2, 5, 6 and 11 keep every
+    cone, 9, 10, 12, 13, 15 and 16 show the sky only outside, and level 1
+    is exactly as before.
+  - Keen 2: the lattice (tile 143) by the pattern rule (`LatticeWalls`): a
+    pixel is wall where it equals the lattice at the same place, lit; where
+    it equals the lattice one EGA step darker it is a wall's shadow (drawn
+    at 45 %), where it equals the lattice in the dark (tile 147, levels 5
+    and 14; next to a cone of light its lines sit two pixels to the right)
+    the wall in the dark (35 %). A group of such pixels only counts when it
+    looks like the lattice (2x2 thick, touching the tile's edge, both kinds
+    of line in it, its field pixels next to its own lines), so a grey box,
+    a white board or a dithered roof stays whole. The teal of level 12
+    (tile 276) is wall by the colour rule.
+- **How it is drawn.** `LevelWall`, a tile layer behind the tiles with the
+  same cells (a child of `LevelMap`, z index -1), draws per cell the wall's
+  mask of its tile (`GraphicsTextures.wall_mask_atlas`: grey as bright as
+  the wall is drawn there), filled by `level_wall.gdshader` with the
+  texture at the pixel's place in the level (`MODEL_MATRIX`, before the
+  camera), so it never swims. It is on the level's canvas: Keen 2's
+  darkness dims it, and the second half of a split screen shows it. The
+  tiles get their holes from `GraphicsTextures.holes_tile_atlas` (xBRZ: the
+  same holes cut from the larger tiles).
+- **Only what lies behind the drawing is a hole** (fixes of 22-10, after
+  the user's test). A pixel of the sky's or the wall's colour that belongs
+  to a tile's own drawing stays:
+  - Keen 1, grey and black shut in by the level's drawing
+    (`ColorGroups`): the pixels of the colour at a tile's edge fall apart
+    in groups, the groups of neighbouring cells join where they meet on the
+    shared edge, and a join is open when it holds a plain cell of that
+    colour (143, 155) or reaches the level's edge. A tile's group that is
+    open nowhere in the level stays (`BackdropHoles.shut_in`, worked out
+    per level, about 0.1 s): the grey shading under the snow platforms
+    (384-386), the glass of the ice blocks, the "ID" panel of level 1, the
+    black specks along a sand platform.
+  - Keen 1, black is wall only where it is 2x2 thick
+    (`BackdropHoles.thick_wall`): outlines of platforms, blocks and
+    mushrooms stay black.
+  - Keen 1, the grey triangles where a dark room's wall slants down next to
+    the sky (levels 9, 10, the edges of the wide area in 16) are sky: a
+    grey cell next to the dark on one side only (no dark within 4 grey
+    cells on the opposite side; a block stops the search) is sky when it is
+    joined to the sky, however far (`Keen1Walls`); narrow grey strips
+    between dark walls stay grey, as before.
+  - Keen 2, items (`TileProperties.is_item`): the lattice around them is
+    every pixel equal to the lattice at its place and joined to the tile's
+    edge (`LatticeWalls.item_background`); items have a dark outline, so it
+    stops there. Other tiles with lattice wall lose the lattice along their
+    edge the same way, up to 2 pixels in (`LatticeWalls.edge_strip`).
+  - Keen 2, windows (masked tiles whose next tile is their mask; in the
+    levels 403-422, in levels 6, 7 and 9): the wall shows through the glass
+    (the user's choice of 22-10, `BackdropHoles.windows`,
+    `window_kinds`). The pixels the mask draws in front of Keen (the white
+    glass streaks and the frame) stay, behind and in front of Keen; every
+    other pixel that equals the lattice at its place is the wall, lit or,
+    in the frame's shadow under its top edge, shadowed
+    (`LatticeWalls.pixel_kinds`; a pixel that is lit by chance in that
+    shadow joins it). So the wall layer fills the glass with the same
+    texture as the cells around it, Keen is seen through the glass in front
+    of the wall, and the streaks pass over him. The mask tiles themselves
+    are never cut (the masked layer reads them), and a masked tile whose
+    see-through part is mostly not the lattice is drawn whole. With xBRZ
+    the holes are cut from the larger tile as everywhere; the masked layer
+    then draws where the scaled mask is black and the tile is not cut. In
+    4:3, and with the pictures off, the window is the original: the lattice
+    behind the glass. Before (964f9a8) the speck rule took the one-pixel
+    streaks for lattice and the glass vanished; then the window was drawn
+    whole, with the old lattice behind the glass.
+  - The second round of 22-10 (the user's next test), for every tile:
+    - Keen 2, a strip of lattice (lit or shadowed, at least 4 pixels, at
+      most 2 pixels from the edge, touching it) with only black or wall
+      around it inside the tile is the wall (`LatticeWalls.framed_strips`):
+      the two columns at the ends of the thick red beam (225, 227).
+    - Keen 2, a thin shadow that holds no darkened white line joins the
+      shadow beside it, and then the black pixels it surrounds (counting
+      grey wall only): the right end of the shadow under the small
+      platforms (177-181).
+    - Keen 2, a straight line (row or column, at least 6 pixels) of one
+      colour that goes on past a place where it is not the lattice, up to
+      another such place or the tile's edge, is the drawing and never wall
+      (`LatticeWalls.drawing_runs`, inside the pattern rule and after the
+      item, edge and strip rules): the exit door's frame (160, 162-164)
+      stays straight, the bands of level 12's machine and the white
+      pillars stay whole. A field run that meets a thing of its colour on
+      one side only stays lattice.
+    - Keen 2, a lone pixel becomes wall only in a kind whose colours it has
+      and that at least two of its neighbours have: the black arms of the
+      zapper (169-172) are no lit lattice.
+    - Every frame of an animation gets the holes of the other frames where
+      it shows the same pixel (`BackdropHoles.share_between_frames`, in
+      `GraphicsTextures.hole_kinds`): the lattice between the zapper's arms
+      is the wall also in the frames where the spark shuts it in.
+    - Keen 1, the black a block's drawing holds (a solid tile: more than
+      half of the group has another colour on both sides in its row or
+      column) or a black face held almost all round (90 %, at least 64
+      pixels) stays black (`BackdropHoles.block_tiles`, `_without_held`):
+      the bottom triangle of the dark studded blocks (290), the exit sign
+      (167, 168). Fire and the dark around things are not held.
+    - Shut-in pixels per animation step (`ColorGroups.shut_in_every_step`):
+      each frame of an animated tile gets its own groups (the exit sign's
+      second frame, the "ID" panel's frames, the vines of levels 7 and 14);
+      Keen 1 level start now ~0.3-0.4 s with the pictures on.
+    - Keen 2 level 12: teal that the level shuts in stays (the exit door).
+    - Keen 1, the light that falls through a gap in a wall of blocks into a
+      dark room (`Keen1Walls._close_inside_gaps`): a gap is grey of at most
+      3 cells between two blocks that end a thin wall; the grey beyond it
+      that lies mostly next to the dark and turns grey somewhere is grey
+      from the wall on, the gap itself and the step just outside it show
+      the sky (level 16, the castle's outer wall at x 86).
+  - The HUD (`Hud.background_tile`, Keen 2: 143) leaves out the lattice
+    around the raygun and the keycards the same way
+    (`GraphicsTextures.clear_tile_on`); Keen 1 keeps its grey rule, Keen 3
+    its own (`Keen3Hud`).
 
 ## Still open
 

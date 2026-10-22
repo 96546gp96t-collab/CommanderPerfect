@@ -107,3 +107,17 @@ Keen 4 is een andere engine (Galaxy); de schatting per mijlpaal staat in
 | Fix: vijanden en items die opduiken in breedbeeld (D13.2) | 21-10 | ~13 min | 13 min | Wakker worden, slapen en "in beeld" tellen met het brede beeld (en elke split-helft) plus de marges van het origineel; 4:3 en demo's als het origineel; de breedte staat tussen de frames van een opgeslagen level; regressies Keen 1, 2 en 4 gelijk |
 | Plaatjes: piramides en Miragia (D13.2) | 21-10 | ~10 min | 10 min | Piramides in 11 en 12 staan op een zandvlakte met schaduwen over het zand (in 12 lang, opzij van de lage zon); Miragia zonder heuvels, met ribbelduinen, een luchtspiegeling met rotsnaalden en palmen en een karavaan; de andere plaatjes nagekeken (ongewijzigd) |
 | **Totaal** | 19-10 t/m 21-10 | **~21 u 13** opgeteld | | D1-D13 en D13.2; vanaf D9 werkten agents deels tegelijk, dus de klok liep korter. Iets meer dan de schatting (13-15 u) door co-op, online, 1.4 en de metingen naast het origineel |
+
+## Achtergronden Keen 1 en 2 (mijlpalen AB)
+
+| Mijlpaal | Datum | Werktijd | Agent | Opmerking |
+|---|---|---|---|---|
+| AB1 Onderzoek | 22-10 | ~1 u 10 | | Door de architect: alle levels geëxporteerd en gemeten (kleurregel tegen patroonregel), proefplaatjes, keuzes van de gebruiker als menu |
+| AB2 De vaste wand | 22-10 | ~55 min | 45 min + 9 min (fix kasteel) | `LevelWall`, patroonregel met schaduw, lichtbundels van Keen 1 grijs |
+| AB3 De plaatjes | 22-10 | ~50 min | 50 min (tegelijk met AB2) | 16 Keen 2-wanden, 11 Keen 1-luchten, 10 Keen 1-wanden |
+| AB4 Samenvoegen en nakijken | 22-10 | ~40 min | | Door de architect: een conflict in `docs/graphics.md`, twee tests aangepast, 32 levels gefotografeerd, regressies |
+| Fixes (22-10) | 22-10 | ~45 min | 45 min (13:39-14:24) | Items en HUD zonder rooster, ramen heel, ingesloten grijs/zwart blijft (`ColorGroups`), trappen van driehoeken lucht; zes meldingen |
+| Fix: ramen met de wand achter het glas | 22-10 | ~15 min | 15 min (14:33-14:48) | Keuze van de gebruiker: in alle ramen van Keen 2 (levels 6, 7, 9) de wand achter het glas, alleen strepen en kozijn vóór Keen; schaduw onder het kozijn; foto's voor/na, regressies gelijk |
+| Fix: restjes rooster, noppenblokken, bord, lichtbundel | 22-10 | ~70 min | 70 min (15:11-16:21) | Keen 2: uiteinden platforms en balk, zapper per beeld, rechte deur (ook teal in 12); Keen 1: zwarte driehoeken, uitgangsbord, licht door de kasteelmuur (16); alle tegels van alle levels voor/na nagekeken, foto's, regressies |
+| Fix: Guard robot (Keen 2) kijkt achteruit | 22-10 | ~10 min | 10 min (16:35-16:45) | Frames 112-115/116-119 omgewisseld (namen in EGAHEAD.CK2 kloppen niet met de plaatjes); test, apps gebouwd |
+| **Totaal** | 22-10 | **~5 u 55** opgeteld | | De klok liep korter (~4 u 50) doordat AB2 en AB3 tegelijk liepen |
