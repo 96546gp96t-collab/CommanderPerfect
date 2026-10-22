@@ -8,13 +8,15 @@ extends GalaxyPlayScreen
 ##   - it starts in level 1, or in map N with [code]-- --game=5 --level=N[/code]
 ##     (0 the world map and 15 the high-score map are only shown, Keen
 ##     standing; 14 does not exist);
-##   - the exit door, the door to Korath III or walking out of a level: the
-##     next level (13 is followed by 1);
+##   - the exit door, the door to Korath III, the last fuse broken, the QED
+##     destroyed or walking out of a level: the next level (13 is followed
+##     by 1); after a fuse first the fuse message ([Keen5Messages]), each
+##     of its two screens 30 tics and then until a key; what each level
+##     counts as is kept in [member levels_done] (1, or 14 by its fuse);
 ##   - a death: one life less and the level again; with no life left, the
 ##     start screen.
-## Creatures (E4), platforms (E5), the world map (E6), the boxes, title and
-## ending (E7), sound (E8) and menus (E9) come later
-## (docs/keen5/roadmap.md).
+## The world map (E6), the other boxes, title and ending (E7), sound (E8)
+## and menus (E9) come later (docs/keen5/roadmap.md).
 ##
 ## Keys: the shared ones (arrows, jump, pogo, fire); Escape the start
 ## screen; Shift+N / Shift+P the next or previous map; Shift+G god mode and
@@ -29,6 +31,12 @@ const EVERYTHING_MESSAGE := "Cheat: all four gems, the keycard and 99 stunner ch
 ## Shift+I gives at least this many charges (as Keen 4's).
 const CHEAT_SHOTS := 99
 
+## What each level counts as once done, by map (Omni levelsDone: 1, or
+## 14 when its fuse ended it; [method Keen5LevelSession.result]), for the
+## world map (E6).
+var levels_done: Dictionary[int, int] = {}
+var _messages: Keen5Messages
+
 
 func _init() -> void:
 	rules = Keen5Episode.game_rules()
@@ -41,6 +49,7 @@ func _ready() -> void:
 	_set_up_screen()
 	if not _load_data():
 		return
+	_messages = Keen5Messages.create(_data)
 	_set_up_play()
 	var requested := requested_map(OS.get_cmdline_user_args())
 	_show_level(requested if requested >= 0 else rules.first_level)
@@ -49,6 +58,11 @@ func _ready() -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	if _handle_display_keys(event):
 		get_viewport().set_input_as_handled()
+	elif not _queue.is_empty():
+		if _is_new_press(event):
+			get_viewport().set_input_as_handled()
+			if _queue.press():
+				_show_step()
 	elif event.is_action_pressed("ui_cancel"):
 		get_viewport().set_input_as_handled()
 		_leave()
@@ -107,11 +121,27 @@ func _after_frame() -> bool:
 	return super()
 
 
-## The level is done (the exit door, the door to Korath III or walking
-## out): the next level.
+## The level is done (the exit door, the door to Korath III, its fuse,
+## the QED or walking out): it is marked; after its fuse the fuse message;
+## then the next level (Omni CK_GameLoop; the QED's end pages come in E7).
 func _finish_level() -> void:
+	var done := (_played as Keen5LevelSession).result()
 	_played = null
-	_show_level(rules.next_level(_map_number))
+	levels_done[_map_number] = done
+	var next := _show_level.bind(rules.next_level(_map_number))
+	if done == Keen5LevelSession.DONE_BY_FUSE:
+		_show_fuse_message(next)
+	else:
+		next.call()
+
+
+## The two screens after a fuse, each 30 tics before a key counts (Omni
+## CK5_FuseMessage); then [param then].
+func _show_fuse_message(then: Callable) -> void:
+	for screen in _messages.fuse(_map_number):
+		_queue.add(screen, Keen5Messages.KEY_WAIT_TICS)
+		_queue.add_box(screen)
+	_after_queue(then)
 
 
 ## Keen died: a life less and the level again; with none left the game is

@@ -5,7 +5,10 @@ extends GalaxyInventory
 ## (Omni ck_gameState.ep.ck5.securityCard; docs/keen5/research.md §4-§5):
 ## taking it (item 12, no points) sets it, a security door uses it up
 ## ([Keen5Keen]), and it is lost at the end of every level and at every
-## death, with the gems ([method drop_gems]).
+## death, with the gems ([method drop_gems]). The fuses still to break in
+## the level played (Omni ck_gameState.ep.ck5.fusesRemaining) are kept
+## here too: the game's state, counted again at every level's start
+## ([Keen5Fuses], milestone E5).
 
 ## The keycard's item number (Omni).
 const KEYCARD_ITEM := 12
@@ -17,6 +20,8 @@ const FIRST_EXTRA_LIFE := 20000
 const STUNNER_CHARGES := 5
 
 var keycard := false
+## The fuses of the level played that are not broken yet.
+var fuses_remaining := 0
 
 
 ## The inventory of a new game.

@@ -104,6 +104,22 @@ const OBJECTS: Dictionary[StringName, int] = {
 	&"SPLASH_4": 104,
 	&"SCOREBOX": 133,
 }
+## The machinery of the levels (milestone E5; Omni GFXCHUNK.CK5, chunk −
+## 102): the fuse's explosion, the teleport lightning at the door to
+## Korath III, the red platform (every kind but the purple ones) and the
+## purple platform's two pictures.
+const MACHINERY: Dictionary[StringName, int] = {
+	&"FUSEFLASH1": 181,
+	&"FUSEFLASH2": 182,
+	&"FUSEFLASH3": 183,
+	&"TELEPORTSPARK1": 188,
+	&"TELEPORTSPARK2": 189,
+	&"TELEPORTZAP1": 190,
+	&"TELEPORTZAP2": 191,
+	&"PURPLEPLAT1": 320,
+	&"PURPLEPLAT2": 321,
+	&"PLATFORM": 344,
+}
 ## Items 0-12 ([GalaxyInventory], [Keen5Inventory]): the first of their two
 ## frames, and the shadow that rises when Keen takes one (Omni
 ## CK_ItemSpriteChunks, ck_itemShadows): four gems (red, yellow, blue,
@@ -116,11 +132,12 @@ const ITEM_SHADOWS: PackedInt32Array = [130, 130, 130, 130, 93, 94, 95, 96, 97, 
 
 
 ## All of them in one list, by name, with the creatures'
-## ([Keen5CreatureSprites], E4).
+## ([Keen5CreatureSprites], E4) and the machinery's (E5).
 static func all() -> Dictionary[StringName, int]:
 	var sprites: Dictionary[StringName, int] = KEEN.duplicate()
 	sprites.merge(OBJECTS)
 	sprites.merge(Keen5CreatureSprites.SPRITES)
+	sprites.merge(MACHINERY)
 	for item in ITEM_FIRST_FRAMES.size():
 		sprites[StringName("ITEM_%d" % item)] = ITEM_FIRST_FRAMES[item]
 		sprites[StringName("SHADOW_%d" % item)] = ITEM_SHADOWS[item]

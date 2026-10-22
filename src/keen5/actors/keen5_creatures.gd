@@ -3,13 +3,16 @@ extends RefCounted
 ## Places Keen 5's creatures from a level's info plane (Omni
 ## `ck5_misc.c:CK5_ScanInfoLayer`, facts only; docs/keen5/research.md §6):
 ## most kinds have three values, one placed on every difficulty, one from
-## Normal on and one only on Hard. What later milestones place (the
-## platforms, the fuse counter and the QED in E5; Keen on the world map and
-## Korath III's arrival in E6) is listed in [constant LATER], so a test can
-## tell a forgotten value from a planned one. [constant READ_ONLY] values
-## place nothing: the B-block (straight Slicestars and platforms turn
-## there), the path arrows (the Volteface follows them), and 125 (the
-## original only loads the lightning's pictures for it).
+## Normal on and one only on Hard. The platforms are [Keen5Platforms]'s,
+## the fuse counter and the QED (41) [Keen5Fuses]'s (E5); what a later
+## milestone places (Keen on the world map and Korath III's arrival in E6)
+## is listed in [constant LATER], so a test can tell a forgotten value
+## from a planned one. [constant READ_ONLY] values place nothing: the
+## B-block (straight Slicestars and platforms turn there), the path arrows
+## (the Volteface and the GoPlats follow them), and 125 (the original only
+## loads the lightning's pictures for it). A GoPlat's start arrow is
+## written here, as the original does while it scans
+## ([method place_info]).
 
 enum Kind {
 	SPARKY,
@@ -62,38 +65,13 @@ const TURRETS: Dictionary[int, GalaxyDifficulty.Level] = {45: EASY, 49: NORMAL, 
 const TURRET_WAYS := 4
 ## The Korath: one value, every difficulty (Omni).
 const KORATH_INFO := 124
-## Values later milestones place (Omni): Keen on the world map (3) and
-## Korath III's arrival (26) in E6; the platforms (27-30, 32-40, 80-87),
-## the fuse counter and the QED (41) in E5.
-const LATER: PackedInt32Array = [
-	3,
-	26,
-	27,
-	28,
-	29,
-	30,
-	32,
-	33,
-	34,
-	35,
-	36,
-	37,
-	38,
-	39,
-	40,
-	41,
-	80,
-	81,
-	82,
-	83,
-	84,
-	85,
-	86,
-	87,
-]
-## The GoPlats (red from 36, purple from 80: up, right, down, left): E5
-## places them, but their start arrow is written now, as the original does
-## while it scans, so a Volteface on the same path finds it (level 13).
+## Values a later milestone places (Omni): Keen on the world map (3) and
+## Korath III's arrival (26) in E6.
+const LATER: PackedInt32Array = [3, 26]
+## The GoPlats (red from 36, purple from 80: up, right, down, left):
+## [Keen5Platforms] places them; their start arrow is written here, as the
+## original does while it scans, so a Volteface on the same path finds it
+## (level 13).
 const GOPLAT_FIRSTS: PackedInt32Array = [36, 80]
 const GOPLAT_WAYS := 4
 ## Values that place nothing: the B-block, the path arrows, 125 (Omni).
@@ -149,7 +127,7 @@ static func goplat_arrow(info: int) -> int:
 
 ## The creature info value [param info] places at [param cell] on
 ## [param difficulty], or null (none, or not on this difficulty). A
-## GoPlat's value only writes its arrow ([method goplat_arrow]).
+## GoPlat's value only writes its arrow here ([method goplat_arrow]).
 static func place_info(
 	world: GalaxyWorld,
 	info: int,

@@ -18,7 +18,16 @@ extends GalaxyKeen
 ##   - the creatures that push him (the Little Ampton, the Korath, the
 ##     Shelley) push him only sideways ([method push_sideways]), and those
 ##     that knock him off a pole or ledge do not push him as well
-##     ([method knock_off_pole]; E4).
+##     ([method knock_off_pole]; E4);
+##   - standing on a platform he "surfs" (KEENONPLAT: the action
+##     [code]ride_platform[/code], which takes the buttons as standing does);
+##   - the fuses ([Keen5Fuses]): landing on one plays its sound, a pogo
+##     landing at 48 units a tic or faster breaks it and he falls on;
+##   - a platform switch turns a path arrow round instead of a B-block
+##     when its target holds one;
+##   - starting into a plain door whose info at his head row is 0 (the
+##     door to Korath III) the teleport lightning strikes ([Keen5Flash];
+##     E5).
 
 ## Misc kind of the security door (Omni MISCFLAG_SECURITYDOOR).
 const SECURITY_DOOR := 32
@@ -36,7 +45,11 @@ const DOOR_FROM_KEEN := Vector2i(-2, -4)
 const ROWS: PackedStringArray = [
 	"enter_security_door ENTER_1 ENTER_1 step -- 45 0 -64 - - - enter_door_1",
 	"entered_door x x step -- 9 0 -64 enter_door - - stand",
+	"ride_platform ON_PLATFORM ON_PLATFORM step+ -s 4 0 32 ground_input normal ground ride_platform",
 ]
+## A switch turns the path arrow at its target round: the arrow (0-7)
+## each becomes (Omni CK_KeenPressSwitchThink).
+const TURNED_ARROWS: PackedInt32Array = [2, 3, 0, 1, 6, 7, 4, 5]
 ## Keen 4's actions Keen 5 has no sprites for.
 const LEFT_OUT_PREFIX := "moon_"
 ## The items' actions (Omni CK_ACT_item, CK_ACT_itemNotify,
@@ -121,6 +134,68 @@ func _shove(distance: int) -> void:
 	world.clip.update_normal(self)
 
 
+## Think while standing: on a platform he surfs (Omni
+## CK_KeenStandingThink, Keen 5).
+func _think_standing() -> void:
+	_surf_on_platform()
+	super()
+
+
+## What the buttons start on the ground; on a platform he surfs first
+## (Omni CK_HandleInputOnGround, Keen 5).
+func _handle_ground_input() -> void:
+	_surf_on_platform()
+	super()
+
+
+## Think while surfing: the buttons as standing (Omni
+## CK_ACT_keenRidePlatform's think).
+func _think_ground_input() -> void:
+	_handle_ground_input()
+
+
+func _surf_on_platform() -> void:
+	if top_hit == ON_PLATFORM:
+		_continue_as(&"ride_platform")
+
+
+## React in the air: landing on a fuse plays its sound first (Omni
+## CK_KeenJumpDrawFunc, Keen 5).
+func _react_jump() -> void:
+	if top_hit == Keen5Fuses.FUSE_TOP:
+		world.play_sound(&"keen_land_on_fuse")
+	super()
+
+
+## React on the pogo: coming down on a fuse fast enough breaks it and he
+## falls on through it; slower he bounces off it with its sound (Omni
+## CK_KeenPogoDrawFunc, Keen 5).
+func _react_pogo() -> void:
+	if top_hit != Keen5Fuses.FUSE_TOP:
+		super()
+		return
+	if velocity.y < Keen5Fuses.BREAK_SPEED:
+		world.play_sound(&"keen_land_on_fuse")
+		super()
+		return
+	_stop_at_walls()
+	_bump_head()
+	moved.y = 0
+	var carried := inventory as Keen5Inventory
+	if carried != null:
+		var cell := Vector2i(box.tile_middle, box.tile_bottom)
+		Keen5Fuses.break_fuse(world, cell, carried, sprites)
+
+
+## A platform switch: a path arrow at its target turns round, anything
+## else as in every episode (Omni CK_KeenPressSwitchThink, Keen 5).
+func _switched_info(value: int) -> int:
+	var arrow := GalaxyPathArrows.arrow_of(value)
+	if arrow < 0:
+		return super(value)
+	return GalaxyPathArrows.FIRST_ARROW + TURNED_ARROWS[arrow]
+
+
 ## The keycard he holds.
 func has_keycard() -> bool:
 	var carried := inventory as Keen5Inventory
@@ -132,10 +207,14 @@ func _is_door(kind: int) -> bool:
 
 
 ## At a security door the keycard decides (Omni CK_KeenPressUp); other
-## doors as in every episode.
+## doors as in every episode, and one whose info at his head row is 0
+## (the door to Korath III) brings the teleport lightning.
 func _enter_door(kind: int) -> bool:
 	if kind != SECURITY_DOOR:
-		return super(kind)
+		var entered := super(kind)
+		if world.info_at(box.tile_middle, box.tile_top) == 0:
+			Keen5Flash.lightning(world, self, sprites)
+		return entered
 	if not has_keycard():
 		world.play_sound(&"need_keycard")
 		_continue_as(&"stand")

@@ -5,7 +5,7 @@ extends RefCounted
 ## (`data/keen5/GFXCHUNK.CK5`, v1.4) without "SPR_" and minus 102, the
 ## first sprite chunk (Omni). The stun stars are shared by all creatures
 ## ([GalaxyCreature]); the four diamonds round the Sphereful are
-## SPHEREGUARD1-4. The platforms' sprites come with E5.
+## SPHEREGUARD1-4. The platforms' sprites are [Keen5Sprites]'s MACHINERY (E5).
 
 const SPRITES: Dictionary[StringName, int] = {
 	&"STARS_1": 41,
