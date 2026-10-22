@@ -296,10 +296,12 @@ Alleen documenten, geen code.
   einde, game over als ontploffende melkweg.
 - [x] Architectuur (weg 3: algemeen maken in `src/galaxy/game/`, Keen 4
   bevroren), roadmap E2-E13 (~10-11 u), de antwoorden van de gebruiker.
-- [x] Tests: 102 suites groen, 31 overgeslagen (geen Keen 2-4-bestanden in
-  deze sessie), 0 FAIL. Zonder Keen 4-bestanden geven een paar Keen
-  4-suites `SCRIPT ERROR` (ze slaan niet netjes over), zo ook op `main`;
-  niet aangeraakt (Keen 4 is bevroren), genoteerd voor E2.
+- [x] Tests: zonder Keen 2-4 102 suites groen, 31 overgeslagen; een paar
+  Keen 4-suites geven dan `SCRIPT ERROR` (ze slaan niet netjes over, ook
+  op `main`; niet aangeraakt, Keen 4 is bevroren). Daarna uploadde de
+  gebruiker Keen 2 (1.31), 3 en 4 (v1.0) en haalde de sessie Keen 1:
+  **132 suites groen, 1 overgeslagen (Keen 4 v1.4), 0 FAIL, 0 SCRIPT
+  ERROR**, `gdlint` schoon. Dat is de nulmeting voor E2.
 - Besluiten van de gebruiker (22-10-2026): weg 3; alle keuzes van Keen 4
   gelden ook voor Keen 5; **met alle opties uit speelt en ziet Keen 4 en 5
   eruit als het origineel**; Keen 2-4 worden per sessie mee geüpload;
