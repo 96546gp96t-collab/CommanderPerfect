@@ -119,4 +119,5 @@ Keen 4 is een andere engine (Galaxy); de schatting per mijlpaal staat in
 | Fixes (22-10) | 22-10 | ~45 min | 45 min (13:39-14:24) | Items en HUD zonder rooster, ramen heel, ingesloten grijs/zwart blijft (`ColorGroups`), trappen van driehoeken lucht; zes meldingen |
 | Fix: ramen met de wand achter het glas | 22-10 | ~15 min | 15 min (14:33-14:48) | Keuze van de gebruiker: in alle ramen van Keen 2 (levels 6, 7, 9) de wand achter het glas, alleen strepen en kozijn vóór Keen; schaduw onder het kozijn; foto's voor/na, regressies gelijk |
 | Fix: restjes rooster, noppenblokken, bord, lichtbundel | 22-10 | ~70 min | 70 min (15:11-16:21) | Keen 2: uiteinden platforms en balk, zapper per beeld, rechte deur (ook teal in 12); Keen 1: zwarte driehoeken, uitgangsbord, licht door de kasteelmuur (16); alle tegels van alle levels voor/na nagekeken, foto's, regressies |
-| **Totaal** | 22-10 | **~5 u 45** opgeteld | | De klok liep korter (~4 u 40) doordat AB2 en AB3 tegelijk liepen |
+| Fix: Guard robot (Keen 2) kijkt achteruit | 22-10 | ~10 min | 10 min (16:35-16:45) | Frames 112-115/116-119 omgewisseld (namen in EGAHEAD.CK2 kloppen niet met de plaatjes); test, apps gebouwd |
+| **Totaal** | 22-10 | **~5 u 55** opgeteld | | De klok liep korter (~4 u 50) doordat AB2 en AB3 tegelijk liepen |

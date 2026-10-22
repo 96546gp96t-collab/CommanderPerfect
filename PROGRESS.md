@@ -232,6 +232,12 @@ ligt wordt een gat (`docs/graphics.md`, onderzoek §8).
   tegel 158 (levels 5, 14).
 - De testcel van AB2 in het kasteel van 16 is opgelost (zie hierboven):
   de opening in de muur toont de lucht, daarachter grijs.
+- [x] **Keen 2: de paarse Guard robot keek achteruit.** `EGAHEAD.CK2` noemt
+  112-115 GUARDLEFT en 116-119 GUARDRIGHT, maar de plaatjes zeggen het
+  omgekeerde (geweer en oog rechts in 112-115). Links/rechts omgewisseld
+  in `Keen2GuardRobot`; nu kijkt hij de kant op waar hij heen zweeft en
+  schiet. Alleen namen/plaatjes gecontroleerd (js-dos overgeslagen op
+  verzoek). Test `test_guard_robot_faces_the_way_it_floats_and_fires`.
 
 ## D13.2: fixes (21-10)
 

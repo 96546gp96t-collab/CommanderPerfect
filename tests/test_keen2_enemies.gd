@@ -261,6 +261,29 @@ func test_guard_robot_hovers_and_fires_volleys_of_four() -> void:
 	assert_equal(sounds.count(Sound.Id.TANK_FIRE), Keen2GuardRobot.VOLLEY_SHOTS, "TANKFIRE")
 
 
+## 112-115 show the gun on the right, 116-119 on the left (the EGAHEAD
+## names say the opposite): the picture faces the way it floats and fires.
+func test_guard_robot_faces_the_way_it_floats_and_fires() -> void:
+	var session := _session(FIELD)
+	session.view_rects = [Rect2(Vector2.ZERO, Vector2(2000, 2000))]
+	var robot := Keen2GuardRobot.create(Fixtures.cell_top_left(Vector2i(3, 4)))
+	_add(session, robot, true)
+	var x := robot.position.x
+	var shot: Keen2EnemyShot = null
+	for tick in Keen2GuardRobot.FIRST_VOLLEY_TICKS + Keen2GuardRobot.PAUSE_TICKS + 2:
+		session.step(KeenInput.create(0))
+		for actor in session.actors:
+			if actor is Keen2EnemyShot and shot == null:
+				shot = actor
+	assert_true(robot.position.x > x, "floats to the right")
+	var frame := robot.sprite_index()
+	assert_true(frame >= 112 and frame <= 115, "right frames 112-115, got %d" % frame)
+	assert_true(shot != null and shot.direction == 1, "fires to the right")
+	robot.facing = -1
+	frame = robot.sprite_index()
+	assert_true(frame >= 116 and frame <= 119, "left frames 116-119, got %d" % frame)
+
+
 func test_guard_robot_is_invincible() -> void:
 	var session := _session(FIELD)
 	session.inventory.charges = 1
