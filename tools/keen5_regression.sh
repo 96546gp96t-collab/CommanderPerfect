@@ -1,6 +1,7 @@
 #!/bin/sh
 # Takes a fixed set of Keen 5 screenshots (level 1 and level 11, each in
-# widescreen and in 4:3; milestone E3), so that a later milestone can show
+# widescreen and in 4:3; milestone E3; the world map of a new game in both
+# and its status window, E6), so that a later milestone can show
 # that Keen 5 still looks the same. The same shape as
 # tools/keen4_regression.sh: it needs the player's own Keen 5 files in
 # game_data/keen5 and a display (on Linux it uses xvfb-run). Run it with an
@@ -39,6 +40,7 @@ shoot() {
 
 shoot "40:shot_keen5_level1_wide,41:F2,50:shot_keen5_level1,51:F2" --level=1
 shoot "40:shot_keen5_level11_wide,41:F2,50:shot_keen5_level11,51:F2" --level=11
+shoot "250:shot_keen5_map_wide,251:F2,260:shot_keen5_map,262:Enter,300:shot_keen5_map_status,302:Space,330:F2"
 
 if [ -n "$BASE" ]; then
 	status=0
