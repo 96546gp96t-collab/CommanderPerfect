@@ -119,6 +119,47 @@ const MAP_KEEN_SPRITE := 142
 ## no sky tiles named, so no level shows one.
 const BACKDROP_FOLDER := "res://assets/backgrounds/keen5"
 const SKY_TILES: PackedInt32Array = []
+## What Keen 5 shows between its games (Omni `GFXCHUNK.CK5`, chunk − 6
+## for a picture; files): pictures counted from the end of the range (the
+## title, the story's picture, the first of four credits, the Milky Way,
+## GAMEOVER), from the start (the help menu, its pointer, the end's arrows,
+## the frame's first piece), the texts (HELPMENU 0, CONTROLS 1, STORY 2,
+## ABOUTID 3, END 4, SECRETEND 5, ORDER 6) and the misc chunk of the
+## galaxy's stars.
+const TITLE_FROM_END := 11
+const STORY_FROM_END := 12
+const FIRST_CREDIT_FROM_END := 16
+const MILKY_WAY_FROM_END := 10
+const GAME_OVER_FROM_END := 1
+const HELP_MENU_PICTURE := 0
+const HELP_POINTER_PICTURE := 18
+const ARROW_DIM_PICTURE := 20
+const ARROW_BRIGHT_PICTURE := 21
+const PAGE_FRAME_PICTURE := 22
+const HELP_TOPIC_TEXTS: PackedInt32Array = [0, 1, 2, 6, 3]
+const END_TEXT := 4
+const SECRET_END_TEXT := 5
+const GALAXY_MISC := 4
+## The intro's words: red alone, light red over each other (Omni
+## ck_terminatorPalette1: 4 and 0x1C); the story picture's palette (Omni
+## ck_starWarsPalette as EGA colours: the text light cyan).
+const INTRO_WORD_COLORS: Array[Color] = [Color8(170, 0, 0), Color8(255, 85, 85)]
+const STORY_COLORS: PackedInt32Array = [0, 1, 8, 14, 15, 12, 6, 7, 11, 11, 11, 11, 11, 11, 11, 11]
+## The DEMO sign (Omni SPR_DEMOSIGN, chunk 107 − 102).
+const DEMO_SIGN_SPRITE := 5
+## The high scores (Omni `EPISODE.CK5`): map 15, demo 4; the table's
+## margins and colour; no extra column.
+const HIGH_SCORE_DEMO := 4
+const HIGH_SCORE_TOP := 0x23
+const HIGH_SCORE_LEFT := 0x28
+const HIGH_SCORE_RIGHT := 0x118
+const HIGH_SCORE_COLOR := 12
+const NO_TILE := -1
+## The songs (Omni): the story 17, the end 14, game over 18, the help 19.
+const STORY_SONG := 17
+const ENDING_SONG := 14
+const GAME_OVER_SONG := 18
+const HELP_SONG := 19
 const USER_FOLDER := "user://keen5"
 const NAME := "Keen 5"
 
@@ -205,7 +246,41 @@ static func game_rules() -> GalaxyGameRules:
 	rules.countdown_from_end = COUNTDOWN_FROM_END
 	rules.backdrop_folder = BACKDROP_FOLDER
 	rules.sky_tiles = SKY_TILES
+	rules.cheat_texts = CHEAT_TEXTS
+	_add_front_rules(rules)
 	return rules
+
+
+## The numbers of the screens between the games (milestone E7).
+static func _add_front_rules(rules: GalaxyGameRules) -> void:
+	rules.title_from_end = TITLE_FROM_END
+	rules.story_from_end = STORY_FROM_END
+	rules.first_credit_from_end = FIRST_CREDIT_FROM_END
+	rules.story_messages = STORY_MESSAGES
+	rules.intro_word_colors = INTRO_WORD_COLORS
+	rules.story_colors = STORY_COLORS
+	rules.demo_sign_sprite = DEMO_SIGN_SPRITE
+	rules.high_score_map = HIGH_SCORE_MAP
+	rules.high_score_demo = HIGH_SCORE_DEMO
+	rules.high_score_count = HIGH_SCORE_COUNT
+	rules.high_score_offsets = high_score_offsets()
+	rules.high_score_top = HIGH_SCORE_TOP
+	rules.high_score_left = HIGH_SCORE_LEFT
+	rules.high_score_right = HIGH_SCORE_RIGHT
+	rules.high_score_color = HIGH_SCORE_COLOR
+	rules.high_score_icon_tile = NO_TILE
+	rules.help_menu_picture = HELP_MENU_PICTURE
+	rules.help_pointer_picture = HELP_POINTER_PICTURE
+	rules.help_topic_texts = HELP_TOPIC_TEXTS
+	rules.page_frame_picture = PAGE_FRAME_PICTURE
+	rules.end_text = END_TEXT
+	rules.secret_end_text = SECRET_END_TEXT
+	rules.arrow_dim_picture = ARROW_DIM_PICTURE
+	rules.arrow_bright_picture = ARROW_BRIGHT_PICTURE
+	rules.story_song = STORY_SONG
+	rules.ending_song = ENDING_SONG
+	rules.game_over_song = GAME_OVER_SONG
+	rules.help_song = HELP_SONG
 
 
 ## Where the original's high-score table may be, in the known versions.

@@ -1,36 +1,44 @@
 class_name Keen5View
-extends GalaxyFlowScreen
-## The Keen 5 game screen that the start screen opens (milestones E3-E6):
-## the shared Galaxy game ([GalaxyFlowScreen], with Keen 5's numbers from
-## [method Keen5Episode.game_rules]) and what only Keen 5 does
-## (docs/keen5/gameplay.md, "The flow of a game"):
+extends GalaxyFrontScreen
+## The Keen 5 game screen that the start screen opens (milestones E3-E7):
+## the shared Galaxy game ([GalaxyFrontScreen] on [GalaxyFlowScreen], with
+## Keen 5's numbers from [method Keen5Episode.game_rules]) and what only
+## Keen 5 does (docs/keen5/gameplay.md, "The flow of a game", "The title
+## loop", "The end"):
+##   - it starts with the title loop (the intro, demo 0, the story, demo 1,
+##     the high scores on map 15, demo 2, demo 3); a key starts a new game
+##     (the control panel comes in E9), Escape goes back to the start
+##     screen; [code]-- --game=5 --level=N[/code] opens map N at once (0 the
+##     world map, 1-13 the levels, 15 the high-score map; 14 does not
+##     exist);
 ##   - a new game starts on the world map, the Omegamatic
 ##     ([Keen5MapSession]: teleporters, elevators, the shafts), behind its
-##     "Keen enters ..." box; [code]-- --game=5 --level=N[/code] opens map N
-##     at once (0 the world map, 1-13 the levels, 15 the high-score map;
-##     14 does not exist);
+##     "Keen enters ..." box;
 ##   - a level entered from the map: "One moment", its box with the
 ##     count-down, the level; done by a door, its fuse or the door to
 ##     Korath III it counts 1 or 14 ([Keen5Progress]); after a fuse the
 ##     fuse message ([Keen5Messages]); then back on the map, behind the
 ##     map's box, at the place he entered, or after the door to Korath III
 ##     on Korath III with the box "Keen steps out onto Korath III";
-##   - the QED destroyed (map 12): the start screen for now (the end pages
-##     come in E7);
+##   - the QED destroyed (map 12) or E+N+D: the end pages (the secret end
+##     when the Korath III fuse was broken), then the name typed in on the
+##     high-score table, the high scores and the title loop again;
 ##   - a death: one life less and the box with Try Again and Exit to
-##     Armageddon; with no life left the start screen (the galaxy
-##     explodes in E7);
+##     Armageddon; with no life left the galaxy explodes
+##     ([Keen5GalaxyExplosion]), then the high scores;
 ##   - Enter: the status window with the keycard ([Keen5StatusWindow]); on
-##     Korath III it names Korath III's base.
-## The title, the menus, sound and the rest come later
-## (docs/keen5/roadmap.md).
+##     Korath III it names Korath III's base; F1 the help; B+A+T the gems,
+##     99 charges, a life and the keycard.
+## Sound and the menus come later (docs/keen5/roadmap.md).
 ##
 ## Keys: the shared ones (arrows, jump, pogo, fire); Enter the status
-## window; Escape the start screen; Shift+N / Shift+P the next or previous
-## map; Shift+G god mode and Shift+I all four gems, the keycard and 99
-## charges (Keen 1-4's testing cheats); F1 the help line; F2-F6 as in Keen
-## 1-4 (widescreen, pixel shape, full screen, graphics: original or xBRZ,
-## smooth motion).
+## window; F1 the help; Escape the start screen; Shift+N / Shift+P the
+## next or previous map; Shift+G god mode and Shift+I all four gems, the
+## keycard and 99 charges (Keen 1-4's testing cheats); Shift+F1 the help
+## line; F2-F6 as in Keen 1-4 (widescreen, pixel shape, full screen,
+## graphics: original or xBRZ, smooth motion). [code]--random-seed=N[/code]
+## makes the random start of every map repeatable (the regression
+## pictures).
 
 ## The testing cheats' messages, worded as in Keen 1-4.
 const GOD_MODE_MESSAGE := "Cheat: god mode %s"
@@ -40,6 +48,7 @@ const CHEAT_SHOTS := 99
 ## Keen's place on the world map below this row is Korath III (Omni
 ## CK_LoadLevel: his box's top tile beyond row 100).
 const KORATH_ROW := Keen5MapSession.KORATH_ROW
+const RANDOM_SEED_OPTION := "--random-seed="
 
 var _messages: Keen5Messages
 
@@ -58,23 +67,45 @@ func _ready() -> void:
 	_messages = Keen5Messages.create(_data)
 	_set_up_play()
 	_set_up_flow()
-	var requested := requested_map(OS.get_cmdline_user_args())
+	_set_up_front()
+	var arguments := OS.get_cmdline_user_args()
+	var random_seed := requested_seed(arguments)
+	if random_seed >= 0:
+		seed(random_seed)
+	var requested := requested_map(arguments)
 	if requested >= 0:
 		_show_level(requested)
 	else:
-		_enter(rules.world_map, false)
+		_start_title_loop()
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	if _handle_display_keys(event):
+	if _is_help_key(event):
+		if not _box_waits():
+			get_viewport().set_input_as_handled()
+			_open_help()
+			return
+	elif _handle_display_keys(event):
 		get_viewport().set_input_as_handled()
-	elif _data != null and _flow_input(event):
 		return
+	if _data == null:
+		return
+	if _front_input(event) or _flow_input(event):
+		get_viewport().set_input_as_handled()
 	elif event.is_action_pressed("ui_cancel"):
 		get_viewport().set_input_as_handled()
 		_leave()
 	elif _handle_map_keys(event):
 		get_viewport().set_input_as_handled()
+
+
+## The seed of the random starts that [param arguments] ask for with
+## --random-seed=N, or -1.
+static func requested_seed(arguments: PackedStringArray) -> int:
+	for argument in arguments:
+		if argument.begins_with(RANDOM_SEED_OPTION):
+			return argument.trim_prefix(RANDOM_SEED_OPTION).to_int()
+	return -1
 
 
 ## The map that [param arguments] ask for with --level=N, or -1.
@@ -136,21 +167,48 @@ func _done_value(finished: GalaxyLevelSession) -> int:
 	return (finished as Keen5LevelSession).result()
 
 
-## After a level (Omni CK_GameLoop): the QED's end is the start screen for
-## now (E7: the end pages); a fuse shows its message first; the door to
-## Korath III puts Keen there; then the exit sound and the map.
+## After a level (Omni CK_GameLoop): the QED's end shows the end pages;
+## a fuse shows its message first; the door to Korath III puts Keen there;
+## then the exit sound and the map.
 func _after_level_done(finished: GalaxyLevelSession) -> void:
 	var session := finished as Keen5LevelSession
 	match session.result():
 		Keen5LevelSession.DONE_BY_QED:
 			_game_progress.mark_done(_map_number, 0)
-			_game_ended()
+			_start_ending(end_text())
 		Keen5LevelSession.DONE_BY_FUSE:
 			_play_sound(&"level_exit")
 			_show_fuse_message(_back_to_map)
 		_:
 			(_game_progress as Keen5Progress).korath_arrival = session.left_for_korath()
 			_exit_to_map()
+
+
+## The end's text (Omni help_endgame): the secret end when Korath III's
+## level was done by its fuse.
+func end_text() -> int:
+	if (_game_progress as Keen5Progress).korath_fuse_broken():
+		return rules.secret_end_text
+	return rules.end_text
+
+
+## No life left (Omni CK_GameLoop): the galaxy explodes, then the high
+## scores.
+func _game_over() -> void:
+	_start_scene(Keen5GalaxyExplosion.from_data(_data), _game_ended)
+
+
+## E+N+D (Omni CK_PlayLoop): the QED counts as destroyed, the end follows
+## at once.
+func _cheat_end() -> void:
+	_queue.clear()
+	_start_ending(end_text())
+
+
+## B+A+T: Keen 5 adds the keycard (Omni CK_ItemCheat).
+func _give_items() -> void:
+	(_inventory as Keen5Inventory).keycard = true
+	super()
 
 
 ## The two screens after a fuse, each 30 tics before a key counts (Omni
