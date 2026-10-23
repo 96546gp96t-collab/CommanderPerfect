@@ -279,7 +279,7 @@ ligt wordt een gat (`docs/graphics.md`, onderzoek §8).
 ## Mijlpaal E7: wat er nu is
 
 Keen 5 is van titel tot highscores uit te spelen (zonder geluid), op
-`milestone-e7-einde-titel` (22-10, 23:04 - 23-10, 00:55 UTC). De regels staan
+`milestone-e7-einde-titel` (22-10, 23:04 - 23-10, 00:38 UTC). De regels staan
 in `docs/keen5/gameplay.md` ("The title loop", "Help", "The end", "Game
 over", "The high scores", "The cheats"), de klassen en afwijkingen in
 `docs/keen5/architecture.md` ("The Galaxy game", "Keen 5's front (from
