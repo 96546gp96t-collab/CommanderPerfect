@@ -1094,7 +1094,12 @@ What E13 changed, and why (developer, E13):
    scores), a game (new game, the map, level 1, the status window, the
    help, a save, a death and Try Again, a load, E+N+D with the council's
    boxes and the end pages, the name typed in, the high scores) for 7,500
-   frames, and 4:3 with xBRZ and smooth motion over maps 0, 19, 18, 17
-   (swimming) and 1. All the same; the frames that differed between the
-   builds differed as much between two runs of E12 (the replay of a
-   loaded level and the xBRZ preparation run on the wall clock).
+   frames, 4:3 with smooth motion (and once with xBRZ) over maps 0, 19,
+   18, 17 (swimming) and 1, the world map with "I can't swim!", the
+   status window and a save and load there, and a level saved by E12's
+   build loaded and played on. All the same; the frames that differed
+   between the builds differed as much between two runs of E12 (the
+   replay of a loaded level and the xBRZ preparation run on the wall
+   clock: E12 took one or two frames to replay the loaded level in five
+   runs, and with as many frames all 1,000 frames of that session are the
+   same).

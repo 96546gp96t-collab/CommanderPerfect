@@ -279,7 +279,7 @@ ligt wordt een gat (`docs/graphics.md`, onderzoek §8).
 ## Mijlpaal E13: wat er nu is
 
 Keen 4 op het gedeelde Galaxy-spel, op `milestone-e13-keen4` (23-10, 05:28 -
-07:40 UTC), op verzoek van de gebruiker (23-10-2026: `src/keen4/` mocht
+07:25 UTC), op verzoek van de gebruiker (23-10-2026: `src/keen4/` mocht
 alleen voor deze mijlpaal veranderen). De afwijkingen staan in
 `docs/keen5/architecture.md` ("Keen 4 on the Galaxy game (E13)",
 "Deviations in E13").
@@ -334,7 +334,9 @@ alleen voor deze mijlpaal veranderen). De afwijkingen staan in
   E12-build geladen en verder gespeeld: alles gelijk (de enkele beelden
   die verschilden, verschilden net zo tussen twee runs van E12 zelf: het
   naspelen van een geladen level en het xBRZ-voorbereiden lopen op de
-  klok van de computer).
+  klok van de computer; het geladen level: E12 deed er in vijf runs één of
+  twee beelden over, en met evenveel beelden zijn alle 1.000 beelden
+  gelijk).
 - [x] Niets veranderd in Keen 1-3, `src/game/` of `src/galaxy/` buiten
   `game/`; `git diff origin/main` op Keen 1-3: alleen de goedgekeurde
   regels van eerder.
