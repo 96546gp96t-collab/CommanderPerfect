@@ -121,16 +121,15 @@ bestanden in [docs/keen5/file-formats.md](docs/keen5/file-formats.md).
 | E9 | Menu's en opslaan | ✅ Klaar (branch `milestone-e9-menus`) |
 | E10 | Mooier maken (plaatjes achter de levels, builds) | ✅ Klaar (branch `milestone-e10-extras`) |
 | E11 | Co-op lokaal en online | ✅ Klaar (branch `milestone-e11-coop`) |
-| E12 | Naast het origineel; alle opties uit = het origineel | ⬜ |
+| E12 | Naast het origineel; alle opties uit = het origineel | ✅ Klaar (branch `milestone-e12-origineel`) |
 | E13 | (Optioneel) Keen 4 op het gedeelde Galaxy-spel | ⬜ |
 
-**Volgende stap:** E12 (`milestone-e12-origineel`, vanaf
-`milestone-e11-coop`): wat nog `# estimate` of onzeker is in js-dos
-nakijken, en een test die elke optie van Keen 5 uitzet en nakijkt dat er
-geen extra meer te zien is (roadmap E12). Op de Mac: de apps bouwen
-(`tools/build_macos.sh`, `tools/build_windows.sh`), de plaatjes in
-breedbeeld bekijken (vraag bij E10) en Keen 5 met twee spelers en online
-proberen (twee computers, of de host headless; Steam alleen daar).
+**Volgende stap:** Keen 5 is af (E1-E12). Beslissen of E13 (Keen 4 op het
+gedeelde Galaxy-spel) gebeurt (roadmap E13, vraag 6 van E1). Op de Mac:
+de apps bouwen (`tools/build_macos.sh`, `tools/build_windows.sh`), de
+plaatjes in breedbeeld bekijken (vraag bij E10) en Keen 5 met twee
+spelers en online proberen (twee computers, of de host headless; Steam
+alleen daar).
 
 ## Achtergronden Keen 1 en 2: mijlpalen AB
 
@@ -274,6 +273,89 @@ ligt wordt een gat (`docs/graphics.md`, onderzoek §8).
   in `Keen2GuardRobot`; nu kijkt hij de kant op waar hij heen zweeft en
   schiet. Alleen namen/plaatjes gecontroleerd (js-dos overgeslagen op
   verzoek). Test `test_guard_robot_faces_the_way_it_floats_and_fires`.
+
+## Mijlpaal E12: wat er nu is
+
+Keen 5 naast het origineel, op `milestone-e12-origineel` (23-10, 03:20 -
+04:58 UTC, met een herstart van de container halverwege). De metingen
+staan in `docs/keen5/research.md` ("Watched in E12"), de regels in
+`docs/keen5/gameplay.md`, de afwijkingen in `docs/keen5/architecture.md`
+("Deviations in E12").
+
+- [x] **Alle wezens die E4 niet zag, in js-dos (v1.4) bekeken** met twee
+  kladkopieën van `GAMEMAPS.CK5` (Keen naast elk wezen) en onze engine op
+  dezelfde bestanden; de sprites in elk beeld gevonden op al hun pixels:
+  **Spirogrip** (150 tics vast, 64 tics los, draaien op dezelfde plek:
+  vraag 5 van §12 beantwoord), **Volteface**, de **rechte en schuine
+  Slicestars**, **Spindred**, **Shockshund** (4 s lang dezelfde keuzes),
+  de **lasers** (elke 120 tics), de **mijn** (het pad van zijn oog op de
+  pixel gelijk, ontploffing op dezelfde plek, 4 × 10 tics pulseren), de
+  **Little Ampton** (keerpunt op de pixel gelijk: E4's ~93 px was de
+  meetmethode). Alles gelijk, behalve:
+- [x] **De Shikadi Master gerepareerd**: in het origineel bleef hij 4, 4,
+  8, 8, 3, 1 en 8 rondes staan (Omnispeak: bijna altijd na één ronde
+  handelen) en twee van drie teleports eindigden op zijn eigen plek. Nu:
+  hij handelt alleen onder 64 van 256, en een plek met een muur in zijn
+  5 × 5 tegels wordt opnieuw geprobeerd (Omnispeak's controle kijkt naar
+  geen enkele tegel). Twee nieuwe tests.
+- [x] **Lift (E6)**: het beeld na de rit stond in js-dos 8 pixels lager:
+  dat komt door js-dos's beelden van 3-4 tics (onze rit met 3-tic-beelden
+  geeft precies 8 pixels lager). Machinesnelheid, geen regel: niet
+  veranderd. Hetzelfde voor een halve stap van de Volteface (de lengte
+  van het eerste beeld na het laden).
+- [x] **Op de pixel**: het doodsvak (Try Again / Exit to Armageddon) 0
+  pixels anders, het bericht van Korath III's zekering (beide beelden) 0,
+  **het geheime einde: alle 9 pagina's 0** (geen fade ervoor: zwart tijdens
+  het laden), game over beeld voor beeld (64 van 65 opgenomen beelden
+  gelijk, één half getekend).
+- [x] **`estimate`/`uncertain`/`guess`/`TODO`** in `src/keen5` en
+  `src/galaxy/game`: geen enkele meer.
+- [x] **Alle opties uit = het origineel**: 4:3, Backgrounds uit, xBRZ uit,
+  vloeiend uit: de **vijf demo's opnieuw beeld voor beeld** tegen E7's
+  opnamen: demo 0 819/820 (de ander de fade), demo 1 990/991, demo 2
+  1343/1343, demo 3 1247/1275 (27 half getekend, 1 fade), demo 4 687/754
+  (66 half getekend, 1 fade): elk beeld van ons dat de opname ving is
+  gelijk. Statusvenster 0 pixels, paneelkaarten 0 (Configure en Quit
+  verschillen door eerdere besluiten). Nieuwe test
+  **`test_keen5_original_mode`**: alle opties uit op de wereldkaart en
+  levels 1, 4, 11, 12, 13: 320 × 200 op het beeld van het origineel, geen
+  plaatje, geen weggehaalde kleur, niets eroverheen geschilderd, geen
+  xBRZ, elke sprite op de pixel van het origineel, het scorevak 4 pixels
+  binnen; ook met de QED kapot en na het uitzetten tijdens het spelen.
+  Keen 4: zijn demo-suite en regressiebeelden ongewijzigd (bevroren).
+- [x] **Open punt van E10 opgelost**: een tegel die tijdens het spelen
+  verandert houdt de luchtkleur in zijn hele vak (alleen breedbeeld met
+  plaatjes), dus de kapotte QED toont geen plaatje meer in zijn raam.
+- [x] **Lessen voor Keen 6** in `docs/new-episode-guide.md` (E3-E12) en
+  een stuk "Keen 6 on the Galaxy game": de velden van `GalaxyGameRules` en
+  de haken die een nieuw deel invult.
+- [x] **Tests**: nieuw `test_keen5_original_mode`; `test_keen5_creatures_more`
+  (de Master: handelt alleen onder 64, blijft staan zonder vrije plek) en
+  `test_keen5_backgrounds` (de kapotte QED blijft zwart, niets in 4:3)
+  uitgebreid. **167 suites groen, 1 overgeslagen (Keen 4 v1.4), 0 FAIL, 0
+  SCRIPT ERROR.** `gdformat` en `gdlint` schoon.
+- [x] **Regressies**: Keen 1 alleen `launcher.png` anders t.o.v. de
+  referentie van vóór E2 (gelijk aan E11's: het vijfde icoon), Keen 2 (4)
+  en Keen 4 (11) alles gelijk; Keen 5 alle 17 gelijk aan E11.
+  `git diff origin/main` op `src/keen2-4`, hun tests, `src/actors`,
+  `src/map`, `src/game`: alleen de drie regels met het aantal spellen en
+  de ene goedgekeurde regel in `test_keen4_online.gd`; niets veranderd in
+  `src/galaxy/` buiten `game/`.
+- **Wat nog anders is dan het origineel (bewust)**: de laadpauzes van
+  js-dos (zwart voor het einde en de melkweg) niet nagedaan; Configure
+  (Keen 4's toetsenkaart, Two Players, Online) en REALLY QUIT? (de regel
+  van de gebruiker); de willekeurige volgorde van de fizzle in de titel
+  (de onze vast); het gele vlak van de wereldkaart is ook in 4:3 zwart
+  (het beeld van het origineel komt er nooit); de stukken van een mijn en
+  de keuzes van wezens hangen af van de plek in de toevalstabel (in het
+  origineel bij het starten willekeurig); niet gezien (blijven
+  Omnispeak's): de bal van de Master en het schot van de Shockshund die
+  Keen raken, de Spirogrip die naar Keen vliegt, een verdoofde Volteface.
+- **Open punten:** de apps zijn hier niet gebouwd (de gebruiker bouwt op
+  de Mac).
+- **Om te proberen:** `godot --path . -- --game=5 --level=12` (de Master
+  wacht nu langer; Shift+G god mode), F2 voor 4:3 en Options voor de
+  rest uit.
 
 ## Mijlpaal E11: wat er nu is
 
