@@ -94,6 +94,9 @@ func test_every_level_is_entered_from_the_map_and_left_back_to_it() -> void:
 func test_a_broken_fuse_shows_its_message_then_the_map() -> void:
 	_create_view()
 	_run_queue()
+	# Without sound the message comes at once (E8: it waits for the exit
+	# sound; test_keen5_music).
+	_view.audio().set_mode(GalaxySoundPlayer.Mode.OFF)
 	_view._show_level(4)
 	_view.session().world.complete(Keen5LevelEnd.FUSE_ENDING)
 	_frames(2)

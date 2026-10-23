@@ -151,6 +151,8 @@ const SUITES: Array[Script] = [
 	preload("res://tests/test_keen5_status.gd"),
 	preload("res://tests/test_keen5_galaxy_explosion.gd"),
 	preload("res://tests/test_keen5_demo_sync.gd"),
+	preload("res://tests/test_keen5_sound.gd"),
+	preload("res://tests/test_galaxy_game_audio.gd"),
 ]
 const TREE_SUITES: Array[Script] = [
 	preload("res://tests/test_keen4_d11_screen.gd"),
@@ -164,6 +166,7 @@ const TREE_SUITES: Array[Script] = [
 	preload("res://tests/test_keen5_view.gd"),
 	preload("res://tests/test_galaxy_game_front.gd"),
 	preload("res://tests/test_keen5_front.gd"),
+	preload("res://tests/test_keen5_music.gd"),
 ]
 
 var _failure_count := 0
