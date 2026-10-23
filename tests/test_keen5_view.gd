@@ -1,16 +1,16 @@
 extends "res://tests/test_case.gd"
 ## Checks Keen 5's game screen ([Keen5View], milestones E3-E6) with the
-## player's files: a new game starts on the world map behind its box; a
-## level entered from the map is played and leads back to the map at the
-## place he entered, marked done (every level, 1-13); a broken fuse shows
-## its message first and counts 14; the door to Korath III puts him there
-## behind its own box; a death shows Try Again and Exit to Armageddon and
-## takes the keycard and gems; the status window shows the keycard;
-## Shift+N / Shift+P step over the missing map 14; Shift+G and Shift+I as
-## in Keen 1-4. The screen must be in a running scene tree (its _ready
-## loads the files), so the suite runs in the first frame; settings go to a
-## folder of their own in the user folder, removed afterwards. Skipped
-## without the files.
+## player's files: a new game (since E7 after the title loop) starts on the
+## world map behind its box; a level entered from the map is played and
+## leads back to the map at the place he entered, marked done (every level,
+## 1-13); a broken fuse shows its message first and counts 14; the door to
+## Korath III puts him there behind its own box; a death shows Try Again
+## and Exit to Armageddon and takes the keycard and gems; the status window
+## shows the keycard; Shift+N / Shift+P step over the missing map 14;
+## Shift+G and Shift+I as in Keen 1-4. The screen must be in a running
+## scene tree (its _ready loads the files), so the suite runs in the first
+## frame; settings go to a folder of their own in the user folder, removed
+## afterwards. Skipped without the files.
 
 const VIEW_SCENE := "res://src/keen5/keen5_view.tscn"
 const TEST_DIRECTORY := "user://test_keen5_view"
@@ -245,6 +245,8 @@ func _create_view() -> void:
 	_view._user_settings.path = TEST_DIRECTORY.path_join("settings.cfg")
 	_view._settings.aspect = DisplaySettings.Aspect.ORIGINAL
 	_view._apply_display_settings()
+	# The title loop runs first (E7); a key starts a new game.
+	_view._new_game()
 
 
 func _free_view() -> void:
