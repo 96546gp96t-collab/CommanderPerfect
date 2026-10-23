@@ -577,8 +577,13 @@ Asked as a menu (AskUserQuestion) at the end of E1; the answers go below.
    `tests/test_keen4_online.gd:26` (E11), and additive changes in
    `src/galaxy/` that keep Keen 4's behaviour by their defaults.
 5. Pictures behind the levels: yes (part of answer 2), in E10.
-6. Not asked yet: moving Keen 4 onto the Galaxy game (E13) is decided
-   after E12.
+6. Asked after E12 (23-10-2026): **E13 goes ahead now**: Keen 4 moves
+   onto the shared Galaxy game, proven by its demos and screenshots.
+7. After E12 (23-10-2026): the pictures in the station's windows and
+   behind the world map's star field **stay as built** (widescreen with
+   Backgrounds on only).
+8. After E12 (23-10-2026): Keen 5 goes to `main` only after the user has
+   tested it on the Mac (no pull request yet).
 
 ## Checked in E3
 
