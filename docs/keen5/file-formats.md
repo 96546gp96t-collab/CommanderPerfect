@@ -265,3 +265,22 @@ The world map (map 0, 52 × 114 tiles) in the user's v1.4:
   score, a 16-bit number), then the sound and music modes (Omni
   US_LoadConfig). We keep our own table in `user://keen5/high_scores.json`
   and never read or write the player's CONFIG.CK5.
+
+## Checked in E8
+
+- **AUDIO.CK5's sounds**: 64 PC speaker sounds and 64 AdLib sounds, each
+  pair with the same priority (files); the digitised slots 128-191 are
+  empty. The longest sounds are the death (23, 2.0 s), the galaxy (53, 54:
+  2.2 s), the extra life (17, PC 2.0 s, AdLib 1.2 s); the exit (13) lasts
+  1.48 s.
+- **The songs**, chunks 192-205: 1105-4277 commands each, one round 19.7
+  s (the Fanfare) to 81.9 s (song 3); no song writes the rhythm mode
+  (register 0xBD always 0). Rendered by our OPL2 into
+  `user://keen5/cache/` (never shipped): 85 MB for 64 AdLib sounds and 14
+  songs.
+- **CONFIG.CK5's sound bytes** (Omni US_LoadConfig): the sound mode at
+  518 (0 off, 1 PC speaker, 2 AdLib), the music at 520 (0 off, 1 AdLib),
+  the input device at 522, ten key codes at 524, then 16-bit flags: the
+  score box (534), SVGA (536), quiet AdLib (538), "had an AdLib" (540; the
+  saved modes count only when it matches the hardware). The user's file
+  has sound and music off and no AdLib. We never read it.

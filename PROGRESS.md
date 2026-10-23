@@ -117,21 +117,21 @@ bestanden in [docs/keen5/file-formats.md](docs/keen5/file-formats.md).
 | E5 | Platforms op pijlen, zekeringen en de QED | ✅ Klaar (branch `milestone-e5-mechaniek`) |
 | E6 | De wereldkaart (teleporters, liften, Korath III, statusvenster) | ✅ Klaar (branch `milestone-e6-kaart`) |
 | E7 | Einde, game over (de melkweg ontploft), titel en demo's | ✅ Klaar (branch `milestone-e7-einde-titel`) |
-| E8 | Geluid en muziek | ⬜ |
+| E8 | Geluid en muziek | ✅ Klaar (branch `milestone-e8-geluid`) |
 | E9 | Menu's en opslaan | ⬜ |
 | E10 | Mooier maken (plaatjes achter de levels, builds) | ⬜ |
 | E11 | Co-op lokaal en online | ⬜ |
 | E12 | Naast het origineel; alle opties uit = het origineel | ⬜ |
 | E13 | (Optioneel) Keen 4 op het gedeelde Galaxy-spel | ⬜ |
 
-**Volgende stap:** E8 (`milestone-e8-geluid`, vanaf `milestone-e7-einde-titel`):
-`Keen5Sounds` (64 geluiden, 14 liedjes) en de haken `_play_sound`,
-`_play_map_song`, `_play_song` en `_stop_music` van `GalaxyPlayScreen` /
-`GalaxyFrontScreen` vullen (nu stil); de melkweg vraagt geluid 54 en 53 en
-lied 18 (nog niet bij naam: `Keen5GalaxyExplosion` krijgt dan een haakje per
-fase), het einde lied 14, het verhaal 17, help 19. Ook de wachttijd na het
-uitgangsgeluid vóór het zekeringbericht (E5). De gebruiker uploadt Keen 2-5
-weer naar de sessie.
+**Volgende stap:** E9 (`milestone-e9-menus`, vanaf `milestone-e8-geluid`):
+`GalaxyMenuScreen` en `GalaxySavedGame` uit Keen 4's, het controlepaneel
+van Keen 5 met zijn kaartplaatjes, opslaan in `user://keen5/saves`, Paddle
+War (geluiden 46-50 staan al in `Keen5Sounds`); de kaarten Sound en Music
+zetten dezelfde instellingen als Shift+S/Shift+M, QUIET ADLIB en de
+scorebox komen in `GalaxySettings` (`user://keen5/settings.cfg`, nu alleen
+gelezen). Een test dat Keen 5 nooit in de mappen van Keen 4 schrijft. De
+gebruiker uploadt Keen 2-5 weer naar de sessie.
 
 ## Achtergronden Keen 1 en 2: mijlpalen AB
 
@@ -275,6 +275,76 @@ ligt wordt een gat (`docs/graphics.md`, onderzoek §8).
   in `Keen2GuardRobot`; nu kijkt hij de kant op waar hij heen zweeft en
   schiet. Alleen namen/plaatjes gecontroleerd (js-dos overgeslagen op
   verzoek). Test `test_guard_robot_faces_the_way_it_floats_and_fires`.
+
+## Mijlpaal E8: wat er nu is
+
+Keen 5 heeft al zijn geluiden en liedjes, op `milestone-e8-geluid` (23-10,
+00:38 - 01:15 UTC). De regels staan in `docs/keen5/gameplay.md` ("Sound and
+music"), de klassen en afwijkingen in `docs/keen5/architecture.md` ("Keen
+5's sound (from E8)", "Deviations in E8"), de metingen in
+`docs/keen5/research.md` ("Watched in E8"), de bestanden in
+`docs/keen5/file-formats.md` ("Checked in E8").
+
+- [x] **Het gedeelde spel**: `GalaxyAudio` (uit `Keen4Audio`, algemeen:
+  namen, aantallen en het lied per map uit de regels, de cache in de map
+  van het deel), `GalaxySettings` (uit `Keen4Settings`: stille AdLib en
+  scorebox in `user://keen5/settings.cfg`); `GalaxyPlayScreen` speelt nu
+  echt (`_play_sound`, `_play_map_song`, `_stop_music`), de muziek stopt
+  zodra het spelen van een map ophoudt (Omni CK_PlayLoop: de vakken tussen
+  de maps zijn stil), help, verhaal, einde en game over spelen het lied van
+  de map die de regels noemen; een `GalaxyScene` vraagt geluid en lied bij
+  naam. Vier nieuwe velden in `GalaxyGameRules`.
+- [x] **Keen 5**: `Keen5Sounds` met de **64 geluiden** (Omnispeak, CG-namen
+  waar Omnispeak UNKNOWN zegt; Keen 5's eigen nummers: de edelsteendeur is
+  60, 18 is de beveiligingsdeur) en de **14 liedjes** (elke map zijn eigen,
+  verhaal map 17, einde 14, game over 18, help 19 — Keen 5 heeft muziek in
+  help); de **melkweg** speelt 54 bij het flitsen, 53 bij de sterren en
+  lied 0 bij GAMEOVER; het **zekeringbericht wacht** tot het
+  uitgangsgeluid uit is (1,48 s; met geluid uit meteen); Shift+S (AdLib,
+  pc-speaker, uit) en Shift+M (muziek) zoals Keen 4, bewaard in de gedeelde
+  instellingen. De voorlopige geluidstabellen uit E4-E6 zijn weg.
+- [x] **Renderen op de achtergrond** in `user://keen5/cache/` (nooit die
+  van Keen 4): eerst het lied van de wereldkaart, dan demo 0 (map 1) en het
+  verhaal (`GalaxySoundLibrary.start` kreeg een optionele volgorde; Keen 4
+  ongewijzigd). Gemeten (4 kernen, lege cache): AdLib-geluiden 1,2 s, het
+  kaartlied 9,7 s, alles 112 s, 85 MB; uit de cache 0,4 s.
+- [x] **Naast het origineel (js-dos, v1.4, geluid opgenomen)**: het lied van
+  level 1 aan het begin van demo 0 (zelfde deeltonen 62/98/392/990 Hz,
+  spectra lopen gelijk op tijdsfactor 1,12 = de bekende js-dos-drift van
+  D9), het kaartlied (dezelfde zes deeltonen), de **sleutelkaart** (7
+  pulsen, 277/332/550/1002 Hz), de **zekering** (hoge toon 3968-5573 Hz,
+  verloop correlatie 0,94), het **uitgangsgeluid** (correlatie 0,90; het
+  bericht komt als het is uitgespeeld; E5's "2,3 s" was wandklok-tijd), en
+  **stilte tussen de maps** (het kaartlied stopt bij de warp, het laadvak
+  is stil, het levellied begint met het level).
+- [x] **Tests**: nieuw `test_keen5_sound` (tabel, elk nummer één keer,
+  Omnispeak/CG-nummers, **een scan van `src/galaxy` en `src/keen5`: elke
+  gespeelde naam heeft een nummer**, lied per map en scherm, cache en
+  instellingen in `user://keen5`, 206 brokken, liedjes 192-205, lengtes),
+  `test_galaxy_game_audio` (fixtures: tabellen uit de regels, eigen cache,
+  resterende tics, Shift+S/M, `GalaxySettings`), `test_keen5_music`
+  (boomsuite: lied per map, stilte tussen maps, dood en Try Again,
+  **wachten op het uitgangsgeluid** en zonder geluid niet, help, titellus,
+  einde, naam intikken, game over, Shift+S/M); `test_keen5_view` zet in
+  de zekeringtest het geluid uit. **158 suites groen, 1 overgeslagen (Keen
+  4 v1.4), 0 FAIL, 0 SCRIPT ERROR.** `gdformat` en `gdlint` schoon.
+- [x] **Controle Keen 1-4**: regressies tegen de nulmeting: Keen 1 alleen
+  `launcher.png` anders (gelijk aan E7's: het vijfde icoon), Keen 2 (4) en
+  Keen 4 (11 beelden) alles gelijk; Keen 4's demo's, geluid en
+  echte-datatests groen. `git diff origin/main` op `src/keen2-4`, hun
+  tests, `src/actors`, `src/map`, `src/game`: alleen de twee regels met het
+  aantal spellen. Eén naad in de engine: `GalaxySoundLibrary.start(...,
+  next_songs)` met standaard geen.
+- **Niet gedaan:** de apps zijn hier niet gebouwd (de gebruiker bouwt op de
+  Mac). Het verhaal-, help-, eind- en game-over-lied niet in js-dos
+  opgenomen (hun plaats is Omnispeak's). Het menu voor stille AdLib en de
+  scorebox komt in E9. Geluiden delen geen kanaal met de muziek (als Keen
+  4, D9). Het origineel wacht vóór elk level ook op het geluid (meestal al
+  klaar na het laadvak); niet nagedaan.
+- **Om te proberen:** `godot --path . -- --game=5` (titellus: stil intro,
+  dan het lied van demo 0; F1 help met eigen muziek), in het spel Shift+S en
+  Shift+M; een zekering kapot (level 4): het uitgangsgeluid, dan het
+  bericht. De eerste start rendert de liedjes (~2 min op de achtergrond).
 
 ## Mijlpaal E7: wat er nu is
 

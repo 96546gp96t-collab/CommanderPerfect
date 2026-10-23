@@ -773,3 +773,46 @@ GAMEOVER at (32, 80) equal; after 24 s the name entry.
 pages, each equal to ours to the pixel, the arrow dim and bright every
 1000 ms (70 tics); the help (menu, second topic, pages 1 and 2) and the
 name entry with its cursor at the left margin − 1 equal too.
+
+## Watched in E8
+
+Headless js-dos as in D9 (docs/keen4/research.md, "Watched in D9"): the
+bundle's `dosbox.conf` with `[mixer] rate=44100` and `[sblaster]
+oplmode=opl2`, a scratch copy of CONFIG.CK5 with AdLib sound and music
+(bytes 518 and 520) and "had an AdLib" (540) set; the page gave js-dos's
+AudioWorkletNode a MessageChannel of its own and kept a copy of every
+sample on its way (44.1 kHz, mono). A scratch `GAMEMAPS.CK5` put a
+keycard (info 70) one tile left of Keen's start in level 1 and Keen's
+start of level 8 on its fuse (as E5). Ours: the songs and sounds rendered
+by our OPL2 (`GalaxyMusic.render`, `GalaxyAdlibSound.render_samples`),
+laid on the recording by 0.1 s log spectra (0-3 kHz) with a time factor
+searched from 0.85 to 1.25, and the strongest partials.
+
+| What | The original (v1.4, DOSBox's OPL) | Ours (E8) |
+|---|---|---|
+| Level 1's song (5) at demo 0's start (48.1 s into the title loop; the intro is silent) | partials 62, 98, 392, 490, 986, 1002 Hz in the first 0.5 s; the spectra follow ours at a time factor of **1.120** (D9's 11.8 % js-dos drift), 15 s correlate 0.54 overall (0.75 the first second; Keen's sounds on top) | 62, 96, 392, 970, 988, 1006 Hz |
+| The world map's song (11) after the fuse message | 40, 82, 124, 164, 206, 588 Hz, factor 1.125 | **the same six partials** |
+| The keycard (55) | 7 pulses about 0.1 s apart over the song; partials 274, 333, 552, 601, 666, 999 Hz | 7 pulses 0.09 s apart; 277, 332, 550, 655, 1002 Hz |
+| A fuse breaking (52) | its high tone: peaks 3968, 4090, 4157, 4642, 4844, 5573 Hz; the share above 2 kHz follows ours with correlation **0.94** at factor 1.12 | 3989, 4105, 4178, 4644, 4853, 5589 Hz |
+| The level's exit (13) after the fuse | the music stops when the game stands still; the exit sound alone, envelope correlation **0.90** with ours at factor 1.12 (1.68 s = 1.48 × 1.12); partials 85, 156, 172, 343, 477, 504, 519 Hz; the fuse message comes when it has played out, the audio silent from there | 88, 155, 170, 351, 478, 503, 519 Hz; the message after 104 tics (1.48 s) |
+| Between the maps | the map's song stops at the warp, the loading box is silent (3 s), level 1's song starts with the level; after the fuse message the screens and the map's box are silent and the map's song starts with the map | the same (the music stops whenever a map's play ends) |
+| Loudness | 0.4-0.9 of ours (RMS: the map's song 0.44, level 1's with Keen's sounds 0.92, the keycard about 0.4; D9 found a third) | as Keen 4's, against the PC speaker |
+
+So the songs, the sounds' pitch and rhythm, the silence between the maps
+and the wait before the fuse message are confirmed. E5's "about 2.3 s"
+before the message was js-dos's wall clock; in the recording's own audio
+time it is the exit sound's 1.48 s stretched by the drift. The fuse
+breaking 1.0 s (audio) before the level ends is 60 tics stretched by the
+same factor (`Keen5LevelEnd`). Not recorded: the story's song (the run
+stopped 25 s into demo 0), the help's, the end's and game over's (their
+places are Omnispeak's: `ck_text.c` StartMusic(19) and
+CK_EndingMusicLevel 14, `ck5_misc.c` StartMusic(18), `ck_inter.c`
+CK_StarWarsMusicLevel 17).
+
+The sound table: every number from Omnispeak's EPISODE.CK5; where it says
+UNKNOWN, Commander Genius's names fit what the code plays there (12 the
+map's level entry, 41 the teleporters and the Korath lightning, 52 the
+fuse, 63 the elevator door; 43/44 the thrown flag and 56 the elevator's
+ride are never played by Keen 5). The Paddle War sounds are Omni's 46-50
+(all priority 50, CG lists them one off). The digitised slots 128-191 are
+empty; no song uses the rhythm mode (register 0xBD is only written 0).

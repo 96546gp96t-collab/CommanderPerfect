@@ -308,7 +308,9 @@ Keen 4 onto these).
 | `GalaxyEnding` (E7) | `Keen4Ending` | The end pages of a given text, the blinking arrow | 110 |
 | `GalaxyHighScoreBoard` (E7) | `Keen4HighScoreBoard`, `Keen4FrontScreen.default_high_scores` | The table XORed over the map by the rules' margins and colour, the extra column only with a tile; typing a name; the program's default table | 235 |
 | `GalaxyCheats` (E7) | `Keen4Cheats` | E+N+D and B+A+T (the episode adds its gifts) | 56 |
-| `GalaxyScene` (E7) | — | A full-screen scene on the clock: advance, press, screen, fade level | 33 |
+| `GalaxyScene` (E7) | — | A full-screen scene on the clock: advance, press, screen, fade level; since E8 its sounds and songs through two Callables | 54 |
+| `GalaxyAudio` (E8) | `Keen4Audio` | The sounds and music on `GalaxySoundPlayer`: names, counts and the song per map from the rules, the cache in the episode's folder, the settings, Shift+S / Shift+M, `remaining_tics()` (SD_WaitSoundDone) | 97 |
+| `GalaxySettings` (E8) | `Keen4Settings` | The episode's own settings (quiet AdLib, score box) in `settings_path()` | 46 |
 
 The chain is `GameScreen` → `GalaxyLevelScreen` → `GalaxyPlayScreen` →
 `GalaxyFlowScreen` (E6) → `GalaxyFrontScreen` (E7) → the episode's view
@@ -345,7 +347,9 @@ up.
 | `high_score_top`, `_left`, `_right`, `_color`, `_icon_tile` (E7) | 0x23, 0x28, 0x118, 12, −1 | The table's margins, XOR colour and extra column (Keen 4: 0x33, 0x18, 0x128, 15, tile 71) |
 | `help_menu_picture`, `help_pointer_picture`, `help_topic_texts`, `page_frame_picture` (E7) | 0, 18, [0,1,2,6,3], 22 | The help (Keen 4: 0, 39, [0,2,1,6,3], 74) |
 | `end_text`, `secret_end_text`, `arrow_dim_picture`, `arrow_bright_picture` (E7) | 4, 5, 20, 21 | The end pages (Keen 4: 4, none, 41, 42) |
-| `story_song`, `ending_song`, `game_over_song`, `help_song` (E7) | 17, 14, 18, 19 | Songs for E8 (Keen 4: 12, 7, none, none) |
+| `story_song`, `ending_song`, `game_over_song`, `help_song` (E7) | 17, 14, 18, 19 | The **maps** whose songs the story, the end, game over and the help play (Omni StartMusic takes a map; Keen 4: 12, 7, none, none) |
+| `sound_count`, `song_count`, `sound_names`, `map_songs` (E8) | 64, 14, `Keen5Sounds.NUMBERS`, `Keen5Sounds.MAP_SONGS` | The audio file's layout, the sounds by name, the song of maps 0-19 (Keen 4: 52, 6) |
+| `sound_cache_folder()`, `settings_path()` (E8) | `user://keen5/cache`, `user://keen5/settings.cfg` | From `user_folder`: never Keen 4's |
 
 ### The hooks (virtual methods that do nothing or Keen 4's thing by default)
 
@@ -356,7 +360,7 @@ up.
 | | `_place_info(info, cell)` | nothing | creatures and platforms from E4/E5 |
 | `GalaxyPlayScreen` | `_new_inventory()` | a `GalaxyInventory` with the rules' numbers | `Keen5Inventory` |
 | | `_new_session(map, number, random_start)` | a `GalaxyLevelSession` | `Keen5LevelSession` |
-| | `_play_sound(name, interrupt)`, `_play_map_song(map)` | silent | E8 |
+| | `_play_sound(name, interrupt)`, `_play_map_song(map)`, `_stop_music()` (E8) | `GalaxyAudio` (E8; silent before) | — |
 | | `_after_frame()`, `_waiting(tics)`, `_frame_input(tics)`, `_partner_input()`, `_wide_view_changed(width)`, `_partner_view_width(width)` | as Keen 4's | `Keen5View._after_frame`: the next level, a death |
 | `GalaxyKeenBody` (engine, additive) | `_action_rows()`, `_item_rows()`, `item_sounds` | Keen 4's rows and twelve sounds | Keen 5's rows without the moon and with `enter_security_door`, `entered_door`; four splash pictures; the keycard's sound |
 | | `_touch_other_tile(cell, kind)` | nothing | — (no Keen 5 tile acts on touch) |
@@ -372,7 +376,7 @@ up.
 | | `_place_extras(progress)`, `_runs_own_frame(tics, tic)`, `_after_world_frame()` | nothing | the shafts and the filler; the rides |
 | `GalaxyProgress` (E6) | `map_shown()`, `_extra_to_dictionary()`, `_extra_from_dictionary(saved)` | the level just finished is used up; nothing | the Korath arrival is used up |
 | `GalaxyStatusWindow` (E6) | `_draw_middle(...)`, `_draw_bottom(...)`, `key_tiles_at` | nothing; Keen 4's (160, 140) | KEYCARD; (120, 140) |
-| `GalaxyFrontScreen` (E7) | `_play_song(song)`, `_stop_music()` | silent | E8 |
+| `GalaxyFrontScreen` (E7) | the screens' songs (E8: through the play screen's `_play_map_song` with the rules' maps; E7's `_play_song` is gone) | — | — |
 | | `_high_score_count()` | 0 | — (Keen 4 would give the rescued members) |
 | | `_cheat_end()`, `_give_items()` | nothing; gems, 99 charges, a life | the end pages; the keycard too |
 | | `_game_ended()` (overrides the flow's) | the name on the table or the high scores, then the title loop | — |
@@ -673,3 +677,81 @@ What E7 built differently from the plan above, and why (developer, E7):
    galaxy, 2.5 s before the end pages in js-dos, machine dependent), the
    original's random fizzle order of the title (ours is fixed, as Keen
    4's), sound (E8).
+
+## Keen 5's sound (from E8)
+
+| Class | What | Lines |
+|---|---|---|
+| `Keen5Sounds` | The 64 sound names with Keen 5's numbers (Omni `EPISODE.CK5`, CG's names where Omni says UNKNOWN), the 14 songs, the song of maps 0-19 (Omni CK_LevelMusic) and the maps of the screens' songs (14, 17, 18, 19) | 114 |
+
+`GalaxyPlayScreen` owns a `GalaxyAudio` (as `Keen4PlayScreen` its
+`Keen4Audio`): `_play_sound` plays by name, `_play_map_song(map)` starts a
+map's song, `_stop_music()` stops it. Which song plays where
+(gameplay.md, "Sound and music"):
+
+| Where | Song (map) | Code |
+|---|---|---|
+| A map played (levels, the world map, demos, the high-score demo) | its own | `GalaxyPlayScreen._start_playing` |
+| The play of a map ends (a level done, a death, an entrance taken, a demo over) | none (Omni CK_PlayLoop ends with StopMusic) | `GalaxyFlowScreen._finish_level`, `_lose_level`, `_after_map_frame`, `GalaxyFrontScreen._end_demo` |
+| A map only looked at; the name typed in on map 15 | none | `GalaxyPlayScreen._look_at`, `GalaxyFrontScreen._begin_name_entry` |
+| The story / the end pages / the help | 17 / 14 / 19, the help stops it on leaving and a game's map starts its own again | `GalaxyFrontScreen` |
+| Game over | 54 at the flashing, 53 at the stars, map 18's song with GAMEOVER, stopped at its end | `Keen5GalaxyExplosion._stage_began` |
+| The fuse message | waits for the exit sound (`remaining_tics()`) | `Keen5View._show_fuse_message` |
+
+## Deviations in E8
+
+What E8 built differently from the plan above, and why (developer, E8):
+
+1. **The audio lives in `GalaxyPlayScreen`**, not behind silent hooks the
+   view fills: `GalaxyAudio` is generic (everything episode-specific comes
+   from the rules), so the hooks `_play_sound`, `_play_map_song` and the
+   new `_stop_music` call it directly; `GalaxyFrontScreen._play_song` (E7)
+   was removed, the screens name a map by the rules. An episode can still
+   override the hooks.
+2. **The rules' screen songs are maps, not songs**: Omni StartMusic takes
+   a map and looks its song up in CK_LevelMusic, whose entries 14 and
+   16-19 name no map but the end, an unused song, the story, game over and
+   the help. research.md §9's "the song is the map number" means exactly
+   that; its "Song" column is the song (chunk 192 + song).
+3. **The music stops whenever the play of a map ends**, so the boxes
+   between the maps (One moment, Keen enters, the death box, the fuse
+   message) are silent and the next map starts its song from the start:
+   Omni CK_PlayLoop ends with StopMusic, and js-dos shows it (the map's
+   song stops at the warp, the loading box is silent, level 1's song
+   starts with the level; after the fuse message the map's box is silent).
+   Keen 4 (D9) keeps the old song through the box; Keen 4 is frozen, so it
+   stays so there.
+4. **The name entry is silent**: the original only loads map 15 for the
+   table (CK_SubmitHighScore: CK_LoadLevel, no play loop); ours plays the
+   map for its tiles and stops the song at once. The high-score demo plays
+   map 15's song (Skating O'er the Ice) as every demo plays its map's.
+5. **The fuse message waits as long as the sound playing still lasts**
+   (`GalaxyAudio.remaining_tics()`, wall-clock as the player's own
+   priority rule, rounded up to tics): a step of the queue that shows the
+   frozen game and takes no key. With the sound off there is no wait, as
+   SD_WaitSoundDone returns at once. E5's "about 2.3 s" was js-dos's wall
+   clock; the exit sound is 1.48 s (104 tics) and in the recording it ends
+   exactly where the original goes silent and shows the message.
+6. **Settings as Keen 4's**: the sound device and the music are the shared
+   `UserSettings` (`sound/device`, `sound/music`, one choice for Keen 4
+   and 5, as the user's player expects of one program); the quiet AdLib
+   sounds and the score box are the episode's own `GalaxySettings` in
+   `user://keen5/settings.cfg` (Keen 4: `Keen4Settings` in
+   `user://keen4/settings.cfg`). Only quiet AdLib is read now; E9's
+   control panel sets both. The player's CONFIG.CK5 is never read.
+7. **One engine change, additive**: `GalaxySoundLibrary.start` got an
+   optional `next_songs` (default none: Keen 4's order is unchanged), so
+   Keen 5 renders the world map's song, then the first demo's (map 1) and
+   the story's before the rest. Measured on 4 cores into an empty cache:
+   all AdLib sounds 1.2 s, the map's song 9.7 s, every song 112 s (one at
+   a time; 85 MB); from the cache 0.4 s. Without the order, demo 0's song
+   would have come after 54 s, past the 38 s intro.
+8. **The provisional sound tables of E4-E6** (`Keen5Creatures.SOUNDS`,
+   `Keen5Fuses.SOUNDS`, `Keen5MapSession.SOUNDS`) were removed:
+   `Keen5Sounds.NUMBERS` is the one table, and `test_keen5_sound` scans
+   the sources of `src/galaxy` and `src/keen5` so every name played has a
+   number.
+9. **`GalaxyScene` got two Callables** (`sound_player`, `song_player`)
+   that the front screen sets, so a scene asks for its sounds by name like
+   a world does.
+

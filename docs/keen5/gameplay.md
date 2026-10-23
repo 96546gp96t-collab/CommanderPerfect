@@ -370,6 +370,61 @@ box "Cheat Option! ..." until a key, then all four gems, 99 charges, a life
 and the keycard. Ours from Keen 1-4: Shift+G god mode, Shift+I the gems,
 the keycard and 99 charges.
 
+## Sound and music (E8)
+
+`GalaxyAudio` with `Keen5Sounds` (Omni `EPISODE.CK5`, `id_sd.c`; the
+player and the OPL2 are Keen 4's, docs/keen4/gameplay.md "Sound and
+music"): AdLib with music unless the player chose otherwise; Shift+S
+switches AdLib → PC speaker → off and Shift+M the music, stored at once in
+the shared settings (Keen 4's choice too). One sound at a time by
+priority (64 sounds, the PC and AdLib versions of each with one priority:
+20 for a step, 50 the jump, 99 the exit, the death, the extra life, the
+status window, the flags, the fuse breaking, the galaxy exploding; 0 the
+elevator's door), one song at a time, looping.
+
+| Song (chunk − 192) | Name (Omni) | Plays | One round |
+|---|---|---|---|
+| 0 | This Is Where I Came In! | game over (map 18) | 24.4 s |
+| 1 | Having Tea With Little Ampton | the story (map 17) | 56.3 s |
+| 2 | Skating O'er the Ice | the high scores' demo (map 15) | 32.8 s |
+| 3 | Just Snoopin' Around | level 11 | 81.9 s |
+| 4 | Playing Bagpipes Nearly Kilt Me! | level 13 (Korath III) | 40.7 s |
+| 5 | Wednesday at the Beach | level 1 (and demo 0) | 55.6 s |
+| 6 | Rock Me, But Don't Stone Me! | nothing (map 16) | 61.2 s |
+| 7 | Almost Out of Breath | level 2 | 50.0 s |
+| 8 | A Shikadi Aire | the help (map 19) | 48.7 s |
+| 9 | Be Very Sphereful With My Diamonds | levels 3, 5, 7, 9 | 62.9 s |
+| 10 | Spiro Grip Me Tighter | levels 4, 6, 8, 10 (the fuses) | 58.4 s |
+| 11 | Robo Red Rock | the world map | 63.2 s |
+| 12 | Commander Keen's Fanfare | the end pages (map 14) | 19.7 s |
+| 13 | Mars, the Bringer of War | level 12 (the QED) | 61.9 s |
+
+- **Every map plays its song from its start** while it is played (also a
+  demo, also after Try Again); when its play ends the music stops (Omni
+  CK_PlayLoop): the boxes between the maps, the death box and the fuse
+  message are silent. The name typed in on map 15 is silent (the map is
+  only loaded).
+- **The help** (F1) plays its own song (unlike Keen 4) and stops it on
+  leaving; in a game the map's song starts again from its start.
+- **The story** plays song 1 and stops it at its end; the intro is silent.
+- **The end pages** play the Fanfare; it stops after them.
+- **Game over**: galaxy_explode_pre (54) when the galaxy starts to flash,
+  galaxy_explode (53) when the stars fly, then song 0 with GAMEOVER,
+  stopped after it.
+- **A level done**: the exit sound (13); after a fuse the game stands still
+  until it has played out (1.48 s), then the fuse message (Omni
+  CK5_FuseMessage: SD_WaitSoundDone); with the sound off at once.
+
+| Event | Sound (number) | Where |
+|---|---|---|
+| Keen's own: steps, jump, land, pogo, ceiling, fall, death, shot, no charges / a switch, the shot hits | keen_walk_1/2 (0, 1), keen_jump (2), keen_land (3), keen_pogo (7), keen_hit_ceiling (15), keen_fall (20), keen_die (23), keen_shoot (4), keen_out_of_ammo (21), shot_hit (25) | the Galaxy engine (Keen 4's places) |
+| Points / stunner / Vitalin / gem / extra life / keycard | got_item (8), got_stunner (9), got_drop (10), got_gem (19), got_extra_life (17), got_keycard (55) | `GalaxyKeenBody`, `Keen5Keen` |
+| Gem in its holder; a security door opens / no keycard | open_gem_door (**60**, Keen 4's 18), open_security_door (18), need_keycard (14) | `GalaxyKeen`, `Keen5Keen` |
+| A fuse: landing on it, breaking it; the lightning at the Korath door | keen_land_on_fuse (57), fuse_break (52), teleport (41) | `Keen5Fuses`, `Keen5Flash` |
+| Map: entering a level, a teleporter, an elevator's door | enter_level (12), teleport (41), elevator_door (63) | `GalaxyMapKeen`, `Keen5MapRide` |
+| Status window down / up; a level done | status_down (34), status_up (35), level_exit (13) | `GalaxyFlowScreen` |
+| The creatures | mine_explode (5), slice_bump (6), spindred_fly_up / down / slam (16, 37, 28), spiro_slam / fly (27, 61), enemy_shoot / shot_hit (29, 30), ampton_walk_1/2 / stun (31-33), shelley_explode (36), master_shot / teleport (38, 39), pole_zap (40), shockshund_bark / bark_shot_die (42, 45), sparky_prepare_charge (58), sphereful_ceiling (59) | `src/keen5/actors/` |
+
 ## Watched in E7 (js-dos, the user's v1.4)
 
 The title loop recorded whole and each demo frame by frame (details in
