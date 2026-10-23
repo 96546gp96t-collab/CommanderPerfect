@@ -14,8 +14,9 @@ extends GameScreen
 ##     widescreen, with what lies beyond the area between the scroll
 ##     blocks covered ([GalaxyViewCover]);
 ##   - the picture behind the level, in widescreen, when the option is on
-##     and the level has sky ([GalaxyBackdropPictures]); sky shut in by
-##     the level's drawing (glass) keeps its colour ([GalaxySkyPockets]).
+##     and the level has sky ([GalaxyGameBackdrops]); sky shut in by
+##     the level's drawing (glass) keeps its colour ([GalaxySkyPockets];
+##     the episode decides both, E10).
 ## The episode's numbers are its [member rules] ([GalaxyGameRules]). The
 ## node layout is [code]level_view.tscn[/code]'s, as Keen 2-4 copy it
 ## ([GameScreen] finds its nodes by name); Keen 1-3's nodes (LevelMap,
@@ -32,7 +33,7 @@ var _data: GalaxyData
 var _map: GalaxyMap
 var _galaxy_camera: GalaxyCamera
 var _scaled: GalaxyScaledGraphics
-var _backdrops: GalaxyBackdropPictures
+var _backdrops: GalaxyGameBackdrops
 ## The colour of the sky that the picture behind the level replaces;
 ## transparent while no picture is shown.
 var _sky_color := Color.TRANSPARENT
@@ -105,9 +106,10 @@ func _load_data() -> bool:
 		_show_error(rules.unreadable_message(files.directory))
 		return false
 	_scaled = GalaxyScaledGraphics.create(_data.graphics)
-	_backdrops = GalaxyBackdropPictures.for_episode(
-		files, rules.backdrop_folder, rules.sky_tiles, rules.first_level, rules.last_level
-	)
+	if rules.make_backdrops.is_valid():
+		_backdrops = rules.make_backdrops.call(files, rules)
+	else:
+		_backdrops = GalaxyGameBackdrops.for_rules(files, rules)
 	_objects.use_graphics(_data.graphics)
 	return true
 
@@ -180,7 +182,7 @@ func _update_sky_patch() -> void:
 			return _cleared(tile, image) if image != null else null
 		var walkable := func(tile: int) -> bool:
 			return _data.tile_info.fore(GalaxyTileInfo.Fore.TOP, tile) != 0
-		_sky_pockets[key] = GalaxySkyPockets.find(
+		_sky_pockets[key] = _backdrops.kept_sky(
 			_map, back_image, _data.graphics.fore_tile, walkable
 		)
 	var rows: Array[Rect2i] = []
@@ -330,5 +332,5 @@ func _cleared(tile: int, image: Image) -> Image:
 		_cleared_tiles.clear()
 		_cleared_color = _sky_color
 	if not _cleared_tiles.has(tile):
-		_cleared_tiles[tile] = GalaxyBackdropPictures.cleared(image, _sky_color)
+		_cleared_tiles[tile] = _backdrops.clear_tile(image, _sky_color)
 	return _cleared_tiles[tile]

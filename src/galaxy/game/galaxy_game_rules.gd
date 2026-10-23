@@ -195,6 +195,10 @@ var save_slot_count := GalaxySaveSlots.SLOT_COUNT
 ## level ever shows a picture.
 var backdrop_folder := ""
 var sky_tiles := PackedInt32Array()
+## Makes the pictures from [GameFiles] and these rules (E10): an episode's
+## own [GalaxyGameBackdrops] (such as [method Keen5Episode.make_backdrops]),
+## or Keen 4's rule when not set.
+var make_backdrops: Callable
 
 
 ## Where the episode's high scores are kept (its own user folder).
