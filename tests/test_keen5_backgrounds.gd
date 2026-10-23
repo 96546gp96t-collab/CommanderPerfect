@@ -12,7 +12,8 @@ extends "res://tests/test_case.gd"
 ## and Keen 5's screen: a door keeps its black and a window shows the
 ## picture in level 4, nothing behind the 4:3 picture and nothing with the
 ## option off, the world map's space beyond the station's star field shows
-## the picture (black with the option off). The screen tests need a running
+## the picture (black with the option off), and since E12 the broken QED's
+## tiles keep their black. The screen tests need a running
 ## scene tree; settings go to a folder of their own, removed afterwards.
 
 ## The maps with open space or sky (docs/keen5/gameplay.md, "Pictures
@@ -35,6 +36,8 @@ const WINDOW_CELL := Vector2i(40, 25)
 ## field (back tile 850 in the file, black since E6).
 const FILLER_CELL := Vector2i(3, 3)
 const FILLER_TILE := 850
+## The level of the QED (E12: its broken tiles keep their black).
+const QED_LEVEL := 12
 ## Made-up tiles for the maps without files: plain black space, a star
 ## tile, a door frame (foreground, all solid).
 const SPACE := 0
@@ -239,6 +242,33 @@ func test_nothing_with_the_option_off() -> void:
 	_view._show_level(1)
 	_run_queue()
 	_assert_no_picture("Backgrounds off")
+
+
+func test_the_broken_qed_keeps_its_black() -> void:
+	if not _can_show():
+		return
+	for aspect: DisplaySettings.Aspect in [
+		DisplaySettings.Aspect.WIDESCREEN, DisplaySettings.Aspect.ORIGINAL
+	]:
+		_create_view(aspect)
+		_view._show_level(QED_LEVEL)
+		_run_queue()
+		var world := _view._played.world
+		var qed: Keen5Qed = null
+		for object in world.objects:
+			if object is Keen5Qed:
+				qed = object
+		assert_true(qed != null, "the QED is in level 12")
+		qed.hit_by_piece(null)
+		var rows: Array[Rect2i] = _view._sky_patch.rows()
+		var wide: bool = aspect == DisplaySettings.Aspect.WIDESCREEN
+		for y in Keen5Qed.BLOCK_SIZE.y * 2:
+			for x in Keen5Qed.BLOCK_SIZE.x:
+				var cell := Keen5Qed.UPPER_TO + Vector2i(x, y)
+				if wide:
+					assert_true(_covers(rows, cell), "the broken QED's cell %s stays black" % cell)
+		if not wide:
+			_assert_no_picture("4:3, the QED broken")
 
 
 func test_the_world_maps_space_shows_the_picture() -> void:

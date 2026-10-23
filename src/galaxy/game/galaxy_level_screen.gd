@@ -190,6 +190,24 @@ func _update_sky_patch() -> void:
 	_sky_patch.show_rows(rows, _sky_color)
 
 
+## A tile placed while the map is played (the QED breaking, a bridge, a
+## door) keeps the sky's colour in its whole cell, so that what the
+## original shows black there stays black and the picture never shows
+## through a change the open-sky rule has not looked at (milestone E12:
+## the broken QED showed the picture in its window). Only with the
+## picture shown; in 4:3 or without pictures nothing is painted.
+func _keep_sky_in(cell: Vector2i) -> void:
+	if _sky_color.a == 0.0:
+		return
+	var rows: Array[Rect2i] = []
+	rows.assign(_sky_patch.rows())
+	var size := GalaxyGraphics.TILE16_SIZE
+	var rect := Rect2i(cell * size, Vector2i(size, size))
+	if not rows.has(rect):
+		rows.append(rect)
+		_sky_patch.show_rows(rows, _sky_color)
+
+
 func _apply_display_settings() -> void:
 	super()
 	_frame_view()

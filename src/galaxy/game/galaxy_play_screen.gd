@@ -286,8 +286,10 @@ func _start_playing(map: GalaxyMap, camera: GalaxyCamera, world: GalaxyWorld) ->
 	_show_map(map, rules.level_sprites())
 	world.tile_writer = func(cell: Vector2i, tile: int) -> void:
 		_galaxy_map.set_tile(GalaxyMap.Layer.FOREGROUND, cell, tile)
+		_keep_sky_in(cell)
 	world.back_tile_writer = func(cell: Vector2i, tile: int) -> void:
 		_galaxy_map.set_tile(GalaxyMap.Layer.BACKGROUND, cell, tile)
+		_keep_sky_in(cell)
 	world.sound_player = _play_sound
 	_play_map_song(_map_number)
 	_objects.show_objects(world.objects)
