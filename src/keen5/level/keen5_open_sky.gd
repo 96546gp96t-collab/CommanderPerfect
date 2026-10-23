@@ -17,7 +17,12 @@ extends RefCounted
 ##     door's black inside, a dark slot or a closed box has no stars and
 ##     keeps its colour ([method closed]), as do the light cyan corners of
 ##     the platforms in Korath III's base; a window with stars shows the
-##     picture.
+##     picture;
+##   - Korath III's clouds (E12.1) are drawn on its sky in their own
+##     colours only ([constant CLOUD_COLORS]): such a tile is the sky with
+##     a cloud on it, so all of its sky shows the picture, also what lies
+##     in a cloud's curl or between the dots of its edge, and it counts as
+##     open sky itself. The cloud's drawing (its dark cyan edge too) stays.
 
 const TILE := GalaxyGraphics.TILE16_SIZE
 ## The map's border, which the view never shows, and the cells along it:
@@ -28,6 +33,12 @@ const WIDE := 4
 ## A tile with at least this many pixels of the sky's colour is mostly sky.
 const MOSTLY := TILE * TILE / 2
 const SIDES: Array[Vector2i] = [Vector2i.LEFT, Vector2i.RIGHT, Vector2i.UP, Vector2i.DOWN]
+## The colours Korath III's clouds are drawn in (files, E12.1: tiles
+## 721-768 hold nothing else but the sky): EGA dark cyan (their edge),
+## magenta and light magenta.
+const CLOUD_COLORS: Array[Color] = [
+	Color(0.0, 2.0 / 3.0, 2.0 / 3.0), Color(2.0 / 3.0, 0.0, 2.0 / 3.0), Color(1.0, 1.0 / 3.0, 1.0)
+]
 
 
 ## [param image] (a background tile) with the sky of [param color] made
@@ -36,6 +47,8 @@ const SIDES: Array[Vector2i] = [Vector2i.LEFT, Vector2i.RIGHT, Vector2i.UP, Vect
 ## tile only the parts that touch the edge and hold a [constant WIDE]-pixel
 ## square.
 static func cleared(image: Image, color: Color) -> Image:
+	if is_clouds(image, color):
+		return _without(image, color)
 	if _share_of(image, color) >= MOSTLY:
 		return GalaxyBackdropPictures.cleared(image, color)
 	var result := image.duplicate() as Image
@@ -55,15 +68,81 @@ static func cleared(image: Image, color: Color) -> Image:
 ## sky, as one-pixel-high rows in level pixels: they keep the sky's colour.
 ## [param back_image] gives a background tile cleared for the picture,
 ## [param fore_image] a foreground tile (null: none), [param open_tiles]
-## the background tiles that are open sky.
+## the background tiles that are open sky, [param plain_tiles] those of
+## them that are plain sky (Korath III's): they are open only with nothing
+## in front; the others (space with stars) also behind a pole
+## ([param is_pole] says which foreground tiles are poles), where the
+## see-through part reaches the cell's edge (E12.1: a pole in front of a
+## window shut the strip beside it off). Any other drawing in front (an
+## item, the QED's glass, a door's arch) keeps what it shuts in.
 static func closed(
-	map: GalaxyMap, back_image: Callable, fore_image: Callable, open_tiles: PackedInt32Array
+	map: GalaxyMap,
+	back_image: Callable,
+	fore_image: Callable,
+	open_tiles: PackedInt32Array,
+	plain_tiles := PackedInt32Array(),
+	is_pole := Callable()
 ) -> Array[Rect2i]:
 	var parts := Parts.new()
 	parts.find(map, back_image, fore_image)
 	parts.join_neighbours(map)
-	var open := parts.open_roots(map, open_tiles)
+	var open := parts.open_roots(map, open_tiles, plain_tiles, back_image, is_pole)
 	return parts.rows_not_in(map, open)
+
+
+## Whether [param image] is the sky of [param color] with a cloud drawn on
+## it: nothing but that colour and [constant CLOUD_COLORS], both there.
+static func is_clouds(image: Image, color: Color) -> bool:
+	var sky := false
+	var cloud := false
+	for y in image.get_height():
+		for x in image.get_width():
+			var pixel := image.get_pixel(x, y)
+			if pixel.is_equal_approx(color):
+				sky = true
+			elif _is_cloud_color(pixel):
+				cloud = true
+			else:
+				return false
+	return sky and cloud
+
+
+## Whether [param image] (a background tile, its sky cleared) is a cloud
+## on the sky: nothing but see-through pixels and [constant CLOUD_COLORS],
+## both there.
+static func is_cleared_clouds(image: Image) -> bool:
+	if image == null:
+		return false
+	var sky := false
+	var cloud := false
+	for y in image.get_height():
+		for x in image.get_width():
+			var pixel := image.get_pixel(x, y)
+			if pixel.a == 0.0:
+				sky = true
+			elif _is_cloud_color(pixel):
+				cloud = true
+			else:
+				return false
+	return sky and cloud
+
+
+static func _is_cloud_color(pixel: Color) -> bool:
+	for cloud in CLOUD_COLORS:
+		if pixel.is_equal_approx(cloud):
+			return true
+	return false
+
+
+## [param image] with every pixel of [param color] see-through.
+static func _without(image: Image, color: Color) -> Image:
+	var result := image.duplicate() as Image
+	result.convert(Image.FORMAT_RGBA8)
+	for y in result.get_height():
+		for x in result.get_width():
+			if result.get_pixel(x, y).is_equal_approx(color):
+				result.set_pixel(x, y, Color.TRANSPARENT)
+	return result
 
 
 ## The parts of see-through pixels in every cell of a map, joined across
@@ -113,21 +192,60 @@ class Parts:
 					_join_side(cell, cell + map.width, (TILE - 1) * TILE, 0, 1)
 
 	## The roots of the parts joined to a cell of open sky: one of
-	## [param open_tiles] with nothing in front, or a cell
-	## of the map's border or along it (beyond it is the outside).
-	func open_roots(map: GalaxyMap, open_tiles: PackedInt32Array) -> Dictionary[int, bool]:
+	## [param open_tiles] or a cloud on the sky ([param back_image] gives
+	## the tile cleared) with nothing in front, the parts reaching the edge
+	## of a cell of an open-sky tile not in [param plain_tiles] (stars) with
+	## a pole in front ([param is_pole]; none when not valid), or a cell of
+	## the map's border or along it (beyond it is the outside).
+	func open_roots(
+		map: GalaxyMap,
+		open_tiles: PackedInt32Array,
+		plain_tiles: PackedInt32Array,
+		back_image: Callable,
+		is_pole: Callable
+	) -> Dictionary[int, bool]:
 		var roots: Dictionary[int, bool] = {}
 		var inside := Keen5OpenSky.inside(map)
+		var clouds: Dictionary[int, bool] = {}
 		for y in map.height:
 			for x in map.width:
 				var back := map.tile(GalaxyMap.Layer.BACKGROUND, x, y)
-				var open := map.tile(GalaxyMap.Layer.FOREGROUND, x, y) == 0 and open_tiles.has(back)
-				if not open and inside.has_point(Vector2i(x, y)):
-					continue
+				if not clouds.has(back):
+					clouds[back] = Keen5OpenSky.is_cleared_clouds(back_image.call(back))
+				var fore := map.tile(GalaxyMap.Layer.FOREGROUND, x, y)
+				var open := fore == 0 and (open_tiles.has(back) or clouds[back])
 				var cell := y * map.width + x
-				for part in _counts[_keys[cell]]:
-					roots[_root(_first[cell] + part)] = true
+				if open or not inside.has_point(Vector2i(x, y)):
+					for part in _counts[_keys[cell]]:
+						roots[_root(_first[cell] + part)] = true
+				elif _is_stars_behind_pole(back, fore, open_tiles, plain_tiles, is_pole):
+					for part in _edge_parts(_keys[cell]):
+						roots[_root(_first[cell] + part)] = true
 		return roots
+
+	static func _is_stars_behind_pole(
+		back: int,
+		fore: int,
+		open_tiles: PackedInt32Array,
+		plain_tiles: PackedInt32Array,
+		is_pole: Callable
+	) -> bool:
+		if fore == 0 or not is_pole.is_valid() or plain_tiles.has(back):
+			return false
+		return open_tiles.has(back) and is_pole.call(fore)
+
+	## The parts (from 0) of the cells with the pair of tiles [param key]
+	## that reach the cell's edge: space with stars beside what is drawn in
+	## front, not a pocket inside its drawing (an item's dark inside).
+	func _edge_parts(key: int) -> PackedInt32Array:
+		var labels := _labels[key]
+		var found := PackedInt32Array()
+		for i in TILE:
+			for index: int in [i, (TILE - 1) * TILE + i, i * TILE, i * TILE + TILE - 1]:
+				var part := labels[index] - 1
+				if part >= 0 and not found.has(part):
+					found.append(part)
+		return found
 
 	## The pixels of the parts whose root is not in [param open], as rows.
 	func rows_not_in(map: GalaxyMap, open: Dictionary[int, bool]) -> Array[Rect2i]:

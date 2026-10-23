@@ -152,8 +152,10 @@ def _station(c, cx, cy, size, colour, light):
 def level00(c):
     """The world map: deep space around the station, a far spiral galaxy,
     a faint blue nebula and a small moon. The map has the planet's
-    ground of its own at the bottom."""
-    _space(c, 0x05040E, 0x0A0A1E, stars=220)
+    ground of its own at the bottom. No stars (E12.1): the map's own star
+    field lies over the picture, and stars in the picture slid against
+    them while Keen walked (the picture moves slower than the map)."""
+    _space(c, 0x05040E, 0x0A0A1E, stars=0)
     _nebula(c, [0x141A3A, 0x1E2C5A], 0.55, band=(0.45, 0.45, -0.15))
     _galaxy(c, c.w * 0.72, c.h * 0.3, 34)
     c.disc(c.w * 0.2, c.h * 0.22, 6, 0xA8A8B8, shade=0x3A3A48)

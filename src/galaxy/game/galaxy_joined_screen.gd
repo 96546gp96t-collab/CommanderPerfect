@@ -167,7 +167,7 @@ func _remote_tile_arrived(scene_id: int, layer: int, cell: Vector2i, tile: int) 
 		if _map != null and cell.x < _map.width and cell.y < _map.height:
 			_map.planes[layer][cell.y * _map.width + cell.x] = tile
 		return
-	_galaxy_map.set_tile(layer as GalaxyMap.Layer, cell, tile)
+	_place_tile(layer as GalaxyMap.Layer, cell, tile)
 
 
 func _remote_snapshot_arrived(snapshot: GalaxySnapshot) -> void:

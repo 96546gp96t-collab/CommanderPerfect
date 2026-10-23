@@ -266,6 +266,13 @@ level without a wall texture keeps its own background.
     per level, about 0.1 s): the grey shading under the snow platforms
     (384-386), the glass of the ice blocks, the "ID" panel of level 1, the
     black specks along a sand platform.
+  - Keen 1, our ship level (outside, level 100; 23-10, E12.1): the ship
+    and the ground shut in the grey under the ship, so the rule above kept
+    it grey. In that level only (an exception the user chose, so no level
+    of the original changes) the grey reached from the ship's bottom edge,
+    pixel by pixel across its cells, is the sky
+    (`ShipLevels.open_sky_under_ship`, called by `GameScreen` for Keen 1);
+    the ship's own grey shading stays.
   - Keen 1, black is wall only where it is 2x2 thick
     (`BackdropHoles.thick_wall`): outlines of platforms, blocks and
     mushrooms stay black.

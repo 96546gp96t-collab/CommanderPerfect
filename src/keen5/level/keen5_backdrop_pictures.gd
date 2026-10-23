@@ -67,10 +67,16 @@ func clear_tile(image: Image, color: Color) -> Image:
 ## The holes in a floor (Keen 4's rule) and everything see-through that is
 ## not joined to the open sky keep the sky's colour.
 func kept_sky(
-	map: GalaxyMap, back_image: Callable, fore_image: Callable, walkable: Callable
+	map: GalaxyMap,
+	back_image: Callable,
+	fore_image: Callable,
+	walkable: Callable,
+	is_pole := Callable()
 ) -> Array[Rect2i]:
-	var rows := super(map, back_image, fore_image, walkable)
-	rows.append_array(Keen5OpenSky.closed(map, back_image, fore_image, _open_tiles))
+	var rows := super(map, back_image, fore_image, walkable, is_pole)
+	rows.append_array(
+		Keen5OpenSky.closed(map, back_image, fore_image, _open_tiles, _sky_tiles, is_pole)
+	)
 	return rows
 
 

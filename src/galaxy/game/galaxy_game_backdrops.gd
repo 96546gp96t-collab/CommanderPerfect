@@ -35,8 +35,13 @@ func clear_tile(image: Image, color: Color) -> Image:
 
 ## The see-through pixels of [param map] that keep the sky's colour, as
 ## one-pixel-high rows in level pixels ([method GalaxySkyPockets.find]
-## explains the arguments).
+## explains the arguments; [param _is_pole] says whether a foreground tile
+## is a pole, for an episode's own rule: Keen 5's, E12.1).
 func kept_sky(
-	map: GalaxyMap, back_image: Callable, fore_image: Callable, walkable: Callable
+	map: GalaxyMap,
+	back_image: Callable,
+	fore_image: Callable,
+	walkable: Callable,
+	_is_pole := Callable()
 ) -> Array[Rect2i]:
 	return GalaxySkyPockets.find(map, back_image, fore_image, walkable)
