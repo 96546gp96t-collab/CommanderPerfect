@@ -155,14 +155,19 @@ and it has messages of its own, appended at the end of
 `OnlineProtocol.Message` (`GALAXY_SCENE`, `GALAXY_TILE`,
 `GALAXY_SNAPSHOT`: the three planes' changed tiles, the sprites, the
 boxes by name, Keen 4's inventory); Keen 1-3's messages stay byte for
-byte the same.
+byte the same. Keen 5 (milestone E11, [keen5/gameplay.md](keen5/gameplay.md),
+"Online") uses the same Galaxy messages through the shared Galaxy screens
+(`GalaxyOnlineScreen`), with its own numbers in the snapshot
+(`Keen5OnlineState`: also the keycard, the fuses and Korath III) and its
+fuse message named for the joiner; no new message kind.
 
 ## Joining another game
 
 A player can join a host who plays another Keen: his game switches over.
 Since C10 this goes for all three (`OnlineProtocol.GAME_IDS`): a Keen 1 or
 Keen 2 player who joins a Keen 3 host switches to Keen 3, and the other
-way round; since D12 for Keen 4 too.
+way round; since D12 for Keen 4 too, and since E11 for Keen 5 (its id the
+last of `GAME_IDS`).
 
 - **By IP:** the host's challenge names his game. When it is another of
   ours, the player's game remembers the address and password

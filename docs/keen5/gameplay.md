@@ -574,6 +574,80 @@ elevator's door), one song at a time, looping.
 | Status window down / up; a level done | status_down (34), status_up (35), level_exit (13) | `GalaxyFlowScreen` |
 | The creatures | mine_explode (5), slice_bump (6), spindred_fly_up / down / slam (16, 37, 28), spiro_slam / fly (27, 61), enemy_shoot / shot_hit (29, 30), ampton_walk_1/2 / stun (31-33), shelley_explode (36), master_shot / teleport (38, 39), pole_zap (40), shockshund_bark / bark_shot_die (42, 45), sparky_prepare_charge (58), sphereful_ceiling (59) | `src/keen5/actors/` |
 
+## Two players (E11)
+
+Ours, not the original's: the same rules as Keen 4's two players
+([../keen4/gameplay.md](../keen4/gameplay.md), "Two players"), from the
+shared Galaxy screens (`GalaxyCoopScreen`; architecture.md, "Keen 5's
+co-op and online (from E11)").
+
+- **Joining**: F7, or Configure > Two Players > Add Player 2 in the
+  control panel, in a game (not in the title loop, a demo, the end or a
+  scene). In a level player 2's Keen appears where player 1's is, in his
+  own colours (a blue helmet); on the world map he comes in the next
+  level. F7 again (or Remove Player 2) and he leaves.
+- **Keys**: each his own set (Configure > Two Players > Player 1 / 2 Keys,
+  with up and down); the screen splits as in Keen 1-4 when the Keens are
+  apart, each half with its own look up and down, the straight line in a
+  small area (Keen 4's D13.2).
+- **A level**: player 2 is Keen 5's Keen (`Keen5Keen`) with the **shared
+  inventory**: score, lives, charges, Vitalin, gems and the **keycard**.
+  The keycard either takes opens a security door for either; using it
+  uses it up for both; without it the door plays "need keycard" to
+  whoever stands there. Either Keen through the exit door (0xB1B1), either
+  breaking the last fuse, or either through the door to Korath III ends
+  the level for both, as one Keen would (1, 14, Korath III). Either death
+  ends the attempt and costs one life; the Try Again box takes the keys of
+  both. The creatures go after the nearer Keen that is not dying
+  (`GalaxyWorld.nearest_player`, Keen 4's rule); the sneak platform
+  watches both (E5); what wakes up is what either view shows.
+- **The world map**: one Keen, steered by the keys of both (and of playing
+  alone), as Keen 4's. **What he rides, he rides for both**: the
+  teleporter on Korath III, the elevators and their doors are the one map
+  Keen's (`Keen5MapRide`); there is no second map Keen to wait for or to
+  take along (the simplest rule that is the original's ride unchanged).
+  The control panel waits while he rides, as alone (E9).
+- **The end**: the QED, E+N+D, game over and the high scores are the
+  game's, as alone.
+- **Saving**: player 2 is not saved (Keen 4's rule); a level he played in
+  is saved as it began, a world map save is the same as alone.
+
+## Online (E11)
+
+As Keen 4 online ([../keen4/gameplay.md](../keen4/gameplay.md), "Online";
+[../online.md](../online.md)), from the shared Galaxy screens
+(`GalaxyJoinedScreen`, `GalaxyOnlineScreen`):
+
+- **The id** `commanderperfect-keen5` (`OnlineProtocol.GAME_ID_KEEN_5`,
+  `Keen5Files.GAME_ID`) is the last of `OnlineProtocol.GAME_IDS`: a player
+  of Keen 1-4 who joins a Keen 5 host switches to Keen 5, and a Keen 5
+  player who joins a Keen 1-4 host switches to that game, by IP or from
+  Steam's list. The fingerprint is Keen 5's GAMEMAPS with its headers
+  (`GalaxyFingerprint`).
+- **The joined player** is player 2 in the host's levels (no split
+  screen: each his own screen and view; the host's camera on him), only
+  the host walks on the world map (and rides), the host's boxes, panel and
+  status window stop the game for both, each reads the end pages at his
+  own pace, the high scores are the host's.
+- **On the wire**: no new message kind. The scene, tile and snapshot
+  messages are Keen 4's (`GALAXY_SCENE`, `GALAXY_TILE`,
+  `GALAXY_SNAPSHOT`); a snapshot's numbers are `Keen5OnlineState`: score,
+  lives, charges, Vitalin, gems, next extra life, the levels done, the
+  difficulty, then Keen 5's keycard, the fuses still to break, the levels
+  done by their fuse (14) and the arrival on Korath III. With them the
+  joiner's end pages are the secret ones when the host broke Korath III's
+  fuse. The world map's scene carries the filler drawn as space (1,732
+  tiles, 27,760 bytes).
+- **The boxes by name** (`GalaxyBoxNames`, `Keen5BoxNames`): One moment,
+  the "Keen enters ..." box, DEMO, PAUSED, Try Again with its blinking
+  choice, the loading box with a text of the game run (Keen 5's "Keen
+  steps out onto Korath III") and Keen 5's fuse message (its map and
+  page); the joiner draws each from his own files.
+- **Not compared with anything**: the original has no two players. Tried
+  with two windows over ENet on one computer (127.0.0.1; xvfb): the
+  joiner in the host's level 1, both walking, the Try Again box on both
+  screens; level 4's fuse message on both screens.
+
 ## Watched in E9 (js-dos, the user's v1.4)
 
 The control panel opened from the title picture and in a game, each card

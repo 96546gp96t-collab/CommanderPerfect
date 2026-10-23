@@ -120,17 +120,17 @@ bestanden in [docs/keen5/file-formats.md](docs/keen5/file-formats.md).
 | E8 | Geluid en muziek | ✅ Klaar (branch `milestone-e8-geluid`) |
 | E9 | Menu's en opslaan | ✅ Klaar (branch `milestone-e9-menus`) |
 | E10 | Mooier maken (plaatjes achter de levels, builds) | ✅ Klaar (branch `milestone-e10-extras`) |
-| E11 | Co-op lokaal en online | ⬜ |
+| E11 | Co-op lokaal en online | ✅ Klaar (branch `milestone-e11-coop`) |
 | E12 | Naast het origineel; alle opties uit = het origineel | ⬜ |
 | E13 | (Optioneel) Keen 4 op het gedeelde Galaxy-spel | ⬜ |
 
-**Volgende stap:** E11 (`milestone-e11-coop`, vanaf `milestone-e10-extras`):
-co-op op één toetsenbord en online, de algemene co-op- en onlineketen uit
-Keen 4 (`GalaxyCoopScreen`, `GalaxyJoinedScreen`, `GalaxyOnlineScreen`,
-`GalaxyOnlineState`, `GalaxyBoxNames`), `GAME_ID_KEEN_5` achteraan
-`OnlineProtocol.GAME_IDS` (uitzondering `tests/test_keen4_online.gd:26`).
-Op de Mac: de apps bouwen (`tools/build_macos.sh`, `tools/build_windows.sh`)
-en de plaatjes in breedbeeld bekijken (vraag hieronder).
+**Volgende stap:** E12 (`milestone-e12-origineel`, vanaf
+`milestone-e11-coop`): wat nog `# estimate` of onzeker is in js-dos
+nakijken, en een test die elke optie van Keen 5 uitzet en nakijkt dat er
+geen extra meer te zien is (roadmap E12). Op de Mac: de apps bouwen
+(`tools/build_macos.sh`, `tools/build_windows.sh`), de plaatjes in
+breedbeeld bekijken (vraag bij E10) en Keen 5 met twee spelers en online
+proberen (twee computers, of de host headless; Steam alleen daar).
 
 ## Achtergronden Keen 1 en 2: mijlpalen AB
 
@@ -274,6 +274,81 @@ ligt wordt een gat (`docs/graphics.md`, onderzoek §8).
   in `Keen2GuardRobot`; nu kijkt hij de kant op waar hij heen zweeft en
   schiet. Alleen namen/plaatjes gecontroleerd (js-dos overgeslagen op
   verzoek). Test `test_guard_robot_faces_the_way_it_floats_and_fires`.
+
+## Mijlpaal E11: wat er nu is
+
+Keen 5 speelt met twee spelers op één toetsenbord en online, op
+`milestone-e11-coop` (23-10, 02:50 - 03:25 UTC). De regels staan in
+`docs/keen5/gameplay.md` ("Two players", "Online"), de klassen en
+afwijkingen in `docs/keen5/architecture.md` ("Keen 5's co-op and online
+(from E11)", "Deviations in E11").
+
+- [x] **Algemene keten uit Keen 4** (D12) in `src/galaxy/game/`:
+  `GalaxyCoopScreen`, `GalaxyJoinedScreen`, `GalaxyOnlineScreen` tussen
+  `GalaxyMenuScreen` en `Keen5View` (de volgorde van Keen 4), met
+  `GalaxyOnlineState` (de gedeelde getallen + haken voor die van een deel),
+  `GalaxyBoxNames`/`GalaxyNamedBoxes` (gedeelde soorten vakjes + vanaf 32
+  die van een deel). Het paneel is nu `GalaxyCoopMenuController` (via
+  `_new_panel()`). Privénamen van Keen 4 behouden. `src/keen4/` en
+  `src/galaxy/` buiten `game/` niet aangeraakt.
+- [x] **Twee spelers op één toetsenbord**: F7 of Configure > Two Players,
+  split-screen met de gedeelde toetsen (ook omhoog/omlaag), speler 2 is
+  `Keen5Keen` in zijn eigen kleuren, de inventaris gedeeld: **de
+  sleutelkaart** die de een pakt opent de beveiligingsdeur voor de ander
+  (en is dan voor beiden op), zonder kaart zegt de deur nee tegen elk;
+  **zekeringen** breekt ieder (level 4: elk één, het level telt 14); de
+  uitgang, de deur naar Korath III en de laatste zekering door wie dan
+  ook beëindigen het level; elke dood kost één leven; wezens gaan op de
+  dichtstbijzijnde Keen af; het sluipplatform let op beiden (E5).
+- [x] **De kaart en de ritten**: één Keen op de kaart, gestuurd met de
+  toetsen van beiden (Keen 4's regel); **wat hij berijdt (teleporter,
+  liften) berijdt hij voor beiden** — er is geen tweede kaart-Keen, dus
+  de rit van het origineel blijft precies zo (opgeschreven in
+  gameplay.md). Het paneel wacht tijdens een rit, als alleen.
+- [x] **Online**: `OnlineProtocol.GAME_ID_KEEN_5` (= `Keen5Files.GAME_ID`)
+  **achteraan** `GAME_IDS`; wie bij een host van een ander deel aanklopt
+  schakelt over (Keen 1-4 ↔ 5, ook via ENet getest). Geen nieuwe
+  berichtsoort: Keen 4's Galaxy-berichten met `Keen5OnlineState` (ook
+  sleutelkaart, resterende zekeringen, levels met 14, aankomst op Korath
+  III); het zekeringbericht en het Korath III-vak gaan bij naam en de
+  meespeler tekent ze uit zijn eigen bestanden; zijn eindpagina's zijn de
+  geheime als de host Korath III's zekering brak. Keen 1-4's berichten
+  byte voor byte gelijk.
+- [x] **Live geprobeerd**: twee vensters (xvfb) via ENet op 127.0.0.1:
+  host Keen 5 level 1, de meespeler erin als speler 2, beiden lopen, het
+  Try Again-vak op beide schermen; level 4: het zekeringbericht op beide
+  schermen gelijk. Split-screen op één toetsenbord in level 2 bekeken
+  (schuine lijn, speler 2 met blauwe helm).
+- [x] **Tests**: nieuw `test_keen5_online` (volgorde van de ids, wisselen
+  tussen Keen 4- en Keen 5-hosts ook via ENet, Steam-lobby's, de getallen
+  heen en terug, foute getallen genegeerd, de bytes van een Keen
+  5-snapshot vast), `test_keen5_coop` (echte data: sleutelkaart en
+  beveiligingsdeur, twee zekeringen, uitgang, Korath-deur, dood, wezens),
+  en de boomsuites `test_keen5_coop_screen` (F7, paneel, split-screen,
+  kaart met lift voor beiden, Try Again met speler 2's toetsen,
+  zekeringbericht, opslaan) en `test_keen5_online_play` (twee echte
+  schermen via ENet: speler 2, inventaris met kaart, tegels,
+  zekeringbericht, Korath-vak, alleen de host loopt op de kaart, geheim
+  einde, weggaan en stoppen). Goedgekeurde uitzondering:
+  `tests/test_keen4_online.gd:26` zegt nu "Keen 4 is de vierde".
+  **166 suites groen, 1 overgeslagen (Keen 4 v1.4), 0 FAIL, 0 SCRIPT
+  ERROR.** `gdformat` en `gdlint` schoon.
+- [x] **Regressies**: Keen 1 alleen `launcher.png` anders t.o.v. de
+  referentie van vóór E2 (gelijk aan E9's en E10's: het vijfde icoon),
+  Keen 2 (4) en Keen 4 (11) alles gelijk; Keen 5 alle 17 gelijk aan E10.
+  `git diff origin/main` op `src/keen2-4`, hun tests, `src/actors`,
+  `src/map`, `src/game`: alleen de drie regels met het aantal spellen en
+  de ene goedgekeurde regel in `test_keen4_online.gd`.
+- **Open punten:** Steam niet te testen in de cloud. `test_keen5_online_play`
+  gebruikt (als Keen 4's) de echte poort 24800. Eén keer viel
+  `test_keen4_coop_screen` ("the screen splits") toen er tegelijk andere
+  Godot-processen draaiden; alleen en in de volle run daarna groen (niet
+  door E11: Keen 4 is niet veranderd). De apps zijn hier niet gebouwd (de
+  gebruiker bouwt op de Mac). In `docs/keen5/roadmap.md` staat de
+  voortgangsregel van E10 in de tabel "Inschatting" (niet verplaatst).
+- **Om te proberen:** `godot --path . -- --game=5 --level=1`, F7 voor
+  speler 2 (zijn toetsen onder Configure > Two Players); online via
+  Configure > Online Game.
 
 ## Mijlpaal E10: wat er nu is
 

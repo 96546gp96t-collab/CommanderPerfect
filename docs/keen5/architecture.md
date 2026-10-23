@@ -313,11 +313,17 @@ Keen 4 onto these).
 | `GalaxySettings` (E8) | `Keen4Settings` | The episode's own settings (quiet AdLib, score box) in `settings_path()` | 46 |
 | `GalaxyMenuScreen` (E9) | `Keen4MenuScreen`, `GalaxyFrontScreen`'s help and new game | The control panel between the front screen and the view: the cards and their choices, new game on a difficulty, load, save, End Game, Paddle War on its own tics, Sound/Music/score box settings, F1 over a card, the frames of a level kept for a save, a loaded level played again | 513 |
 | `GalaxySavedGame` (E9) | `Keen4SavedGame` | A saved game: difficulty, inventory, progress, map; in a level the random start and the frames (keys, tics, events); the replay; the episode's inventory, progress and gifts as hooks | 299 |
+| `GalaxyCoopScreen` (E11) | `Keen4CoopScreen` | Two players on one keyboard: F7 and the panel's Two Players card (`GalaxyCoopMenuController` through `_new_panel()`), player 2's Keen in his colours, the split screen and its covers, the keys of both on the world map and in the choice after a death, player 2 not saved | 333 |
+| `GalaxyJoinedScreen` (E11) | `Keen4JoinedScreen` | What the joined player sees: the host's maps with their changed tiles, the snapshots (view, mirrored sprites, sounds, song, box by name, brightness, the episode's numbers), the arrow to the host, the end pages at his own pace | 280 |
+| `GalaxyOnlineScreen` (E11) | `Keen4OnlineScreen` | Hosting and joining through the shared `OnlinePlay` with the rules' `game_id`; the scene, tiles, sounds and a snapshot every frame to the joiner; the joiner as player 2 | 293 |
+| `GalaxyOnlineState` (E11) | `Keen4OnlineState` | The numbers in a snapshot: score, lives, charges, drops, gems, next life, levels done, difficulty; the episode's own after them (hooks) | 123 |
+| `GalaxyBoxNames`, `GalaxyNamedBoxes` (E11) | `Keen4BoxNames`, `Keen4NamedBoxes` | The boxes named for the joiner (One moment, entering, DEMO, PAUSED, Try Again, Game Over, a loading box with a game text) and drawn again from his own files; an episode's kinds from 32 on (hooks) | 128, 44 |
 
 The chain is `GameScreen` → `GalaxyLevelScreen` → `GalaxyPlayScreen` →
 `GalaxyFlowScreen` (E6) → `GalaxyFrontScreen` (E7) → `GalaxyMenuScreen`
-(E9) → the episode's view (`Keen5View`). When the co-op and online
-screens are lifted (E11), they go between `GalaxyMenuScreen` and the view (Keen 4's chain
+(E9) → `GalaxyCoopScreen` → `GalaxyJoinedScreen` → `GalaxyOnlineScreen`
+(E11) → the episode's view (`Keen5View`). The co-op and online screens
+(E11) went between `GalaxyMenuScreen` and the view (Keen 4's chain
 has the flow in its view; here it comes first, so the front screen
 overrides its hooks such as `_game_ended`), and the view's parent moves
 up.
@@ -354,6 +360,7 @@ up.
 | `sound_cache_folder()`, `settings_path()` (E8) | `user://keen5/cache`, `user://keen5/settings.cfg` | From `user_folder`: never Keen 4's |
 | `menu_cards_from_end`, `watch_from_end`, `paddle_war_from_end`, `menu_cards(count)` (E9) | MAIN 32, NEW GAME 31, LOAD 30, SAVE 29, CONFIGURE 28, SOUND 27, MUSIC 26, BUTTON SETUP 23, OPTIONS 21; 17; 20 | The control panel's pictures (Keen 4's by default: one more each) |
 | `save_slot_count`, `saves_folder()` (E9) | 6, `user://keen5/saves` | The saved games, never in Keen 4's folder (`GalaxySaveSlots`' default) |
+| `game_id` (E11) | `commanderperfect-keen5` (`Keen5Files.GAME_ID`) | The id online (`OnlineProtocol.GAME_IDS`) |
 
 ### The hooks (virtual methods that do nothing or Keen 4's thing by default)
 
@@ -390,6 +397,9 @@ up.
 | `GalaxyFlowScreen` (E9) | `_level_began(number, random_start)` | nothing | — (`GalaxyMenuScreen` starts keeping the level's frames) |
 | `GalaxyFrontScreen` (E9) | `_title_loop_key(event)` | Escape: the start screen | — (`GalaxyMenuScreen`: any key opens the panel) |
 | `GalaxyMenuScreen` (E9) | `_new_panel()`, `_new_saved_game()`, `_panel_waits()` | a `GalaxyMenuController`; a `GalaxySavedGame`; never | —; `Keen5SavedGame`; a ride on the world map |
+| `GalaxyJoinedScreen` (E11) | `_new_box_names()`, `_new_online_state()`, `_remote_end_text()` | `GalaxyBoxNames`; `GalaxyOnlineState`; the rules' `end_text` | `Keen5BoxNames` (the fuse message), `Keen5OnlineState`; the secret end by the host's progress |
+| `GalaxyOnlineState` (E11) | `_extra_size()`, `_pack_extra(...)`, `_is_extra_sane(extra)`, `_unpack_extra(...)` | none | the keycard, the fuses still to break, the levels done by a fuse, the Korath III arrival |
+| `GalaxyBoxNames` (E11) | `_argument_count(kind)`, `_episode_pages(kind, description)` | the shared kinds | `Keen5BoxNames.FUSE` [map, page] |
 | `GalaxySavedGame` (E9) | `_new_inventory()`, `_new_progress()`, `_extra_inventory_to_dictionary(carried)`, `_extra_inventory_from_dictionary(carried, saved)`, `give_items(carried)`, `give_everything(carried)` | the rules' inventory; `GalaxyProgress`; nothing; B+A+T's and Shift+I's gifts | `Keen5Inventory` (keycard, fuses), `Keen5Progress` (Korath arrival), the keycard with each gift |
 
 What an episode adds beyond these (Keen 5's keycard, its door targets)
@@ -892,3 +902,56 @@ What E10 built differently from the plan above, and why (developer, E10):
 8. **The regression set grew** by level 13 and the world map played
    directly (`--level=0`), each in widescreen and 4:3; the map of a new
    game is behind the control panel since E9.
+
+## Keen 5's co-op and online (from E11)
+
+| Class | What | Lines |
+|---|---|---|
+| `Keen5OnlineState` (`src/keen5/online/`) | `GalaxyOnlineState` with the keycard, the fuses still to break, the levels done by their fuse (14) and the arrival on Korath III | 55 |
+| `Keen5BoxNames` | `GalaxyBoxNames` with the fuse message (`FUSE` = 32: map, page), drawn by the joiner's own `Keen5Messages` | 25 |
+| `Keen5NamedMessages` | `Keen5Messages` whose two screens are named for the joiner | 18 |
+
+`Keen5View` now extends `GalaxyOnlineScreen`: `_set_up_coop()` and
+`_set_up_online()` after the panel, its messages named
+(`Keen5NamedMessages`), the Korath III box through
+`GalaxyGameBoxes.loading_game_text`, the three hooks of the joined screen.
+`OnlineProtocol.GAME_ID_KEEN_5` is appended to `GAME_IDS`;
+`GameCatalog` already knew Keen 5's id (E2). The rules are in
+[gameplay.md](gameplay.md), "Two players" and "Online".
+
+## Deviations in E11
+
+What E11 built differently from the plan above, and why (developer, E11):
+
+1. **Five classes, not three, in `src/galaxy/game/`** beside the screens:
+   `GalaxyOnlineState`, `GalaxyBoxNames` and `GalaxyNamedBoxes` (Keen 4's
+   named messages are Keen 4 content, so Keen 5 names its own fuse
+   message in `Keen5NamedMessages`). Keen 4's state and box names are
+   static; the Galaxy ones are objects with hooks, made by the joined
+   screen's `_new_online_state()` and `_new_box_names()`.
+2. **The Korath III box is a shared kind, not Keen 5's**: `LOADING` with
+   the index of a text of the game run (`GalaxyGameBoxes.loading_game_text`),
+   since any episode can show a loading box with one of its game texts
+   (Keen 6 may too). The fuse message is Keen 5's own kind (32).
+3. **`_box_names` moved up a class**, from the online screen (Keen 4) to
+   the joined screen, which draws the joiner's boxes with it; Keen 4's
+   joined screen used a static function instead. The name is kept.
+4. **The joiner's end pages are chosen by the host's progress**
+   (`_remote_end_text()`, Keen 5: the secret end after Korath III's fuse):
+   the levels done with 14 come in every snapshot, so no message kind was
+   added. No other new message or scene kind was needed; Keen 1-4's bytes
+   are unchanged (`test_keen4_online_bytes`).
+5. **Three small changes in `src/galaxy/game/`** (free during the E
+   milestones): `GalaxyGameBoxes.create` and `Keen5Messages.create` take
+   an optional object to fill (the named subclasses), `GalaxyGameRules`
+   has `game_id`. Nothing changed in `src/galaxy/` outside `game/`, in
+   `src/keen4/` or `src/game/`; in the shared files only
+   `OnlineProtocol` (the id appended) and comments in `GameCatalog` and
+   `Keen5Files`.
+6. **The rides on the world map**: there is one map Keen (Keen 4's rule),
+   so a teleporter or an elevator carries "both"; nothing was built for
+   it. Written down in gameplay.md, "Two players".
+7. **Approved test change**: `tests/test_keen4_online.gd:26` now checks
+   that Keen 4 is the fourth id after Keen 1-3 (the slice of the first
+   four), as exception 2 allows; `test_keen5_files` checks that Keen 5 is
+   last.
