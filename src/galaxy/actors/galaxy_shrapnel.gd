@@ -7,8 +7,9 @@ extends GalaxyCreature
 ## at half its speed, a ceiling down at half its speed; a floor or slope
 ## bounces it off at the angle the slope gives, with half the energy it
 ## had. Once its energy is below [constant SPENT] it goes on with its next
-## action, or is gone without one. The episode gives the rows: think
-## [code]fall[/code], react [code]shrapnel[/code], and its own contact.
+## action, or, without one, is drawn once more and gone the next frame.
+## The episode gives the rows: think [code]fall[/code], react
+## [code]shrapnel[/code], and its own contact.
 
 ## How it moves on after a bounce (Omni bouncearray): a row per slope value
 ## of the floor (0-7: nothing, flat, gentle and steep slopes), a column per
@@ -134,7 +135,11 @@ func _react_shrapnel() -> void:
 		if action.next != null:
 			set_action(action.next)
 		else:
-			world.remove(self)
+			# Without a next action the original starts none: the piece is
+			# still drawn where it is now and is gone the next frame (seen in
+			# Keen 5's high-score demo, E7). The world removes an object
+			# without an action when it would run.
+			action = null
 
 
 ## Its new speed after a bounce: one of 16 ways ([constant LEAVE_BY]) with

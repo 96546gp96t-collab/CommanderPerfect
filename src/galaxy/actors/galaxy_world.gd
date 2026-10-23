@@ -74,6 +74,16 @@ var sleep_margin := SLEEP_MARGIN
 ## original keeps the step of that object in one shared place, which an
 ## action started on another object resets ([method GalaxyObject.start]).
 var acting: GalaxyObject = null
+## That shared step as it stands now: the last object's own after the
+## actions ran, Keen's on a platform, or what an action started or a push
+## left in it (Omni ck_nextX/Y). Only read when
+## [member shared_landing_step] is on.
+var shared_step := Vector2i.ZERO
+## Whether Keen landing on a platform also moves him across by the shared
+## step (Omni CK_PhysPushY sets only ck_nextY: seen in Keen 5's demo 2,
+## E7, where he lands 8 pixels further on with the Ampton's step). Off:
+## Keen 4's game as it was proven (its demos never show it).
+var shared_landing_step := false
 ## The first frame after a level starts puts everything far from the view
 ## to sleep at once (the original's screen is still faded in).
 var _starting := true
@@ -150,6 +160,7 @@ func run_frame(frame_tics: int, end_tic: int) -> void:
 		if not object.removed and _wake_or_sleep(object):
 			acting = object
 			_run_action(object)
+			shared_step = object.step
 			acting = null
 	_starting = false
 	var keens := players()

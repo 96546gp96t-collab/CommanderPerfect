@@ -80,6 +80,7 @@ func begin(
 	if not super(data, game_rules, level_map, carried, random_start, level, map_number):
 		return false
 	world.sleep_margin = SLEEP_MARGIN
+	world.shared_landing_step = true
 	return true
 
 

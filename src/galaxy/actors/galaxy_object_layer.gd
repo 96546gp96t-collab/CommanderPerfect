@@ -57,6 +57,13 @@ void fragment() {
 }
 """
 
+## Whether the order of the sprites of one priority follows the original
+## all the way (Keen 5, E7): an object that is not drawn (asleep, without a
+## sprite) loses its place, and one whose priority changes goes under the
+## others of its new priority, as the original's sprite list does (Omni
+## RF_RemoveSpriteDraw, RF_AddSpriteDraw). Off: Keen 4's layer as proven,
+## where such an object keeps its place.
+var original_order := false
 var _graphics: GalaxyGraphics
 var _scaled: GalaxyScaledGraphics
 var _items: Array[Item] = []
@@ -165,6 +172,10 @@ func show_objects(objects: Array[GalaxyObject]) -> void:
 			and not object.hidden
 		)
 		var item: Item = _shown.get(object)
+		if item != null and not shown and original_order:
+			remove(item)
+			_shown.erase(object)
+			item = null
 		if item == null:
 			if not shown:
 				continue
@@ -237,6 +248,8 @@ func _show(item: Item, shown: bool, sprite: int, position: Vector2i, priority: i
 	if item.priority != priority:
 		item.priority = priority
 		item.node.z_index = z_of(priority)
+		if original_order:
+			move_child(item.node, 0)
 	item.node.visible = shown
 	if shown:
 		move(item, sprite, position)

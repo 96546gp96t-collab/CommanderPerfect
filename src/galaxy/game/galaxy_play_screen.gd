@@ -43,6 +43,10 @@ var _game_stepped := true
 var _difficulty := GalaxyDifficulty.DEFAULT
 var _queue := GalaxyScreenQueue.new()
 var _window_sprite := Sprite2D.new()
+## Whether the next logic frame draws every sprite anew: the original
+## draws nothing before a map's first frame, so the sprites of one priority
+## take their order from that frame (seen in Keen 5's high-score demo, E7).
+var _fresh_sprites := false
 
 @onready var _score_box: GalaxyScoreBox = %ScoreBox
 
@@ -58,6 +62,7 @@ func _set_up_play() -> void:
 	_window_sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	_window_sprite.visible = false
 	_score_box.get_parent().add_child(_window_sprite)
+	_objects.original_order = true
 
 
 func _process(delta: float) -> void:
@@ -181,6 +186,9 @@ func _run_frame(tics: int) -> bool:
 		return false
 	_game_stepped = true
 	_galaxy_map.animate(tics)
+	if _fresh_sprites:
+		_fresh_sprites = false
+		_objects.clear()
 	_objects.show_objects(_played_world().objects)
 	_frame_view()
 	_view_motion.move_to(Vector2(_camera_anchor.position))
@@ -244,6 +252,7 @@ func _start_playing(map: GalaxyMap, camera: GalaxyCamera, world: GalaxyWorld) ->
 	world.sound_player = _play_sound
 	_play_map_song(_map_number)
 	_objects.show_objects(world.objects)
+	_fresh_sprites = true
 	_frame_view()
 	_view_motion.move_to(Vector2(_camera_anchor.position))
 	_view_motion.snap()

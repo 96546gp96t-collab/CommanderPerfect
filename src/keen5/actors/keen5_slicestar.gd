@@ -38,8 +38,16 @@ const START_DIVISOR := 0x40
 const UP := 0
 const RIGHT := 1
 
+## Turning sideways it stops on the tile's edge, as Keen 5's platforms
+## ([constant Keen5Platform.EDGE_BOUNCE]).
+const EDGE_BOUNCE := Keen5Platform.EDGE_BOUNCE
+
 ## Shots it can still take (Omni user4).
 var health := STRAIGHT_HEALTH
+
+
+func _init() -> void:
+	bounce = EDGE_BOUNCE
 
 
 ## A straight Slicestar at [param cell] going [param heading] (0 up for

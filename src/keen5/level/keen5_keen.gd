@@ -50,6 +50,9 @@ const ROWS: PackedStringArray = [
 ## A switch turns the path arrow at its target round: the arrow (0-7)
 ## each becomes (Omni CK_KeenPressSwitchThink).
 const TURNED_ARROWS: PackedInt32Array = [2, 3, 0, 1, 6, 7, 4, 5]
+## Pushed sideways while his action sticks to the ground, he goes this far
+## down less the push (Omni CK_PhysPushX: the steps of a slope).
+const SHOVE_LIFT := 16
 ## Keen 4's actions Keen 5 has no sprites for.
 const LEFT_OUT_PREFIX := "moon_"
 ## The items' actions (Omni CK_ACT_item, CK_ACT_itemNotify,
@@ -130,7 +133,16 @@ func knock_off_pole(_pusher: GalaxyObject) -> void:
 
 
 func _shove(distance: int) -> void:
-	step = Vector2i(distance, 0)
+	# The original changes only the shared step's x, and its y when his
+	# action sticks to the ground; otherwise he also moves by the y that
+	# the shared step still holds (the last object's: seen in the
+	# high-score demo, E7, where an Ampton's step lands his pogo a frame
+	# early).
+	var down := world.shared_step.y
+	if action.stick_to_ground:
+		down = SHOVE_LIFT - distance
+	step = Vector2i(distance, down)
+	world.shared_step = step
 	world.clip.update_normal(self)
 
 

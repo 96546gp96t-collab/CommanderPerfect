@@ -108,7 +108,8 @@ func test_a_red_platform_moves_12_a_tic_and_turns_at_b_blocks() -> void:
 	for frame in 80:
 		Fixtures.wait(world, 1)
 		rightmost = maxi(rightmost, platform.box.right)
-	assert_true(rightmost < (10 + 2) * TILE, "it turns before the B-block")
+	# Keen 5 stops on the tile's edge as it turns (E7, demo 2), no further.
+	assert_true(rightmost <= (10 + 2) * TILE, "it turns at the B-block's edge")
 	assert_true(rightmost >= (10 + 2) * TILE - FRAME_MOVE, "within a frame of it")
 
 

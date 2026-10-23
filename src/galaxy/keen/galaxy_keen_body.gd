@@ -367,7 +367,9 @@ func land_on(pusher: GalaxyObject) -> void:
 	if onto < 0 or onto > moved.y - pusher.moved.y:
 		return
 	platform = pusher
-	step = Vector2i(0, -onto)
+	# The original moves him across by what the shared step holds (Keen 5).
+	var across := world.shared_step.x if world.shared_landing_step else 0
+	step = Vector2i(across, -onto)
 	# Not pushed down onto the ground in this move (Omni).
 	var sticks := action.stick_to_ground
 	action.stick_to_ground = false
@@ -413,9 +415,11 @@ func _ride_platform() -> void:
 		platform = null
 		if carrier.moved.y < 0:
 			step = Vector2i(0, carrier.moved.y)
+			world.shared_step = step
 			world.clip.update_simple(self)
 		return
 	step = Vector2i(carrier.moved.x, carrier.box.top - box.bottom - RIDE_GAP)
+	world.shared_step = step
 	world.clip.update_simple(self)
 	position.x |= carrier.position.x & RIDE_X_BITS
 	if bottom_hit != 0:
@@ -426,5 +430,6 @@ func _ride_platform() -> void:
 
 func _pushed_sideways(distance: int) -> void:
 	step.x = distance
+	world.shared_step.x = distance
 	velocity.x = 0
 	world.clip.update_simple(self)

@@ -236,7 +236,7 @@ func test_a_straight_slicestar_turns_at_b_blocks_and_takes_20_shots() -> void:
 	assert_equal(star.position.x - x, 12 * 3, "12 units a tic (the first frame is 3 tics)")
 	var turned := Fixtures.run_until(world, func() -> bool: return star.direction.x == -1, 100)
 	assert_true(turned < 100, "it turns at the B-block")
-	assert_true(star.box.tile_right < 12, "before the B-block")
+	assert_true(star.box.tile_right <= 12, "on the B-block's edge, not into it (E7)")
 	assert_equal(star.health, 20, "20 hit points")
 	var keep := []
 	for shot in 19:

@@ -25,8 +25,16 @@ const PURPLE_OFFSET := 0x40
 ## box's left column for a B-block (Omni).
 const PURPLE_LOOK_COLUMN := 1
 
+## Turning sideways it stops on the tile's edge (Keen 5 v1.4, seen in demo
+## 2, E7; Keen 4's platforms bounce back off it).
+const EDGE_BOUNCE := 1
+
 ## A purple platform (info 84-87).
 var purple := false
+
+
+func _init() -> void:
+	bounce = EDGE_BOUNCE
 
 
 ## A red platform at [param cell] going [param heading] (0 up, 1 right,

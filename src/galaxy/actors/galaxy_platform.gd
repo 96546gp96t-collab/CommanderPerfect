@@ -37,6 +37,11 @@ const BOUNCE := 2
 const TILE := GalaxyUnits.PER_TILE
 const TILE_MASK := 0xFF
 
+## How many times the move past the edge counts when it turns sideways:
+## Keen 4's [constant BOUNCE]; Keen 5 v1.4 stops on the edge, 1 (seen in
+## its demo 2, E7; Omnispeak's rule).
+var bounce := BOUNCE
+
 
 ## A platform at [param cell] moving towards [param heading] (0 up,
 ## 1 right, 2 down, 3 left) with the actions of [param rows], starting
@@ -80,12 +85,12 @@ func _think_axis() -> void:
 		var edge := box.right + step.x
 		if _turn_point_entered(GalaxyUnits.to_tile(edge), box.tile_right, true):
 			direction.x = -1
-			step.x -= BOUNCE * (edge & TILE_MASK)
+			step.x -= bounce * (edge & TILE_MASK)
 	elif direction.x == -1:
 		var edge := box.left + step.x
 		if _turn_point_entered(GalaxyUnits.to_tile(edge), box.tile_left, true):
 			direction.x = 1
-			step.x += BOUNCE * ((TILE - edge) & TILE_MASK)
+			step.x += bounce * ((TILE - edge) & TILE_MASK)
 	elif direction.y == 1:
 		var edge := box.bottom + step.y
 		var row := GalaxyUnits.to_tile(edge)

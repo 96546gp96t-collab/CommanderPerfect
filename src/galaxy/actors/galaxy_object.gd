@@ -180,6 +180,7 @@ func _share_step() -> void:
 	var in_world := world
 	if in_world == null:
 		return
+	in_world.shared_step = step
 	var running := in_world.acting
 	if running != null and running != self:
 		running.step = step
