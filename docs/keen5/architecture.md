@@ -848,8 +848,13 @@ What E9 built differently from the plan above, and why (developer, E9):
 | `Keen5BackdropPictures` | Keen 5's rule: which maps show a picture (open sky anywhere, the world map too), the sky colour, the hooks | 78 |
 | `Keen5OpenSky` | Clearing only wide parts of the sky colour in a drawn tile; the see-through parts joined across the cells (union-find), those not joined to open sky kept | 289 |
 
+| `GalaxyRevealedSky` (`src/galaxy/game/`, E12.1) | What a cell shows once its item is taken: each revealed part shows the picture when joined to it, keeps the sky's colour when shut in; the level screen's `_place_tile` asks it | 94 |
+
 `Keen5Episode` names `SKY_TILES` (0, 105), `OPEN_SKY_TILES` (105 and the
-34 star tiles) and `make_backdrops`. The rules are in
+34 star tiles) and `make_backdrops`. Since E12.1 `Keen5OpenSky` also knows
+Korath III's clouds (`CLOUD_COLORS`) and poles in front of a window
+(`kept_sky` passes the level screen's `is_pole`, an optional argument
+whose default changes nothing). The rules are in
 [gameplay.md](gameplay.md), "Pictures behind the levels".
 
 ## Deviations in E10
@@ -1103,3 +1108,28 @@ What E13 changed, and why (developer, E13):
    clock: E12 took one or two frames to replay the loaded level in five
    runs, and with as many frames all 1,000 frames of that session are the
    same).
+
+## Deviations in E12.1
+
+What E12.1 (fixes after the user's test of the pictures) changed, and
+why (developer, E12.1):
+
+1. **A taken item no longer paints its whole cell** (E12's rule stays for
+   every other tile placed at run time, the QED among them): the revealed
+   parts are decided locally from the cell's pixels before and its
+   neighbours now (`GalaxyRevealedSky`); running the open-sky rule again
+   would cost 0.1-0.4 s per item. A revealed part joined only through
+   other changed cells is decided by what they show then. The cells
+   changed are kept per map and laid over the rows found at its start.
+   The joiner of an online game now also does this (`_place_tile`), as
+   the host does.
+2. **Clouds and poles** are Keen 5's rule (`Keen5OpenSky`); nothing
+   changed in `src/galaxy/` outside `game/` (Keen 4's regression: all 11
+   pictures equal). *Merged into E13 (23-10):* since E13 Keen 4 does use
+   `src/galaxy/game/`; its rules set `keeps_sky_in_placed_tiles` to false,
+   so `_keep_sky_in` returns at once for Keen 4 and the taken-item rule
+   never runs there.
+3. **The world map's picture** lost its stars only (seed 5000 kept: the
+   galaxy and the moon stand where they stood; the nebula's shape moved
+   with the random numbers).
+

@@ -122,9 +122,10 @@ bestanden in [docs/keen5/file-formats.md](docs/keen5/file-formats.md).
 | E10 | Mooier maken (plaatjes achter de levels, builds) | ✅ Klaar (branch `milestone-e10-extras`) |
 | E11 | Co-op lokaal en online | ✅ Klaar (branch `milestone-e11-coop`) |
 | E12 | Naast het origineel; alle opties uit = het origineel | ✅ Klaar (branch `milestone-e12-origineel`) |
+| E12.1 | Fixes plaatjes: sterren op de kaart, gepakte items, wolken, ramen (en het schip van Keen 1) | 🔶 Gebouwd, in test bij de gebruiker (branch `milestone-e12.1-fixes`) |
 | E13 | Keen 4 op het gedeelde Galaxy-spel | ✅ Klaar (branch `milestone-e13-keen4`) |
 
-**Volgende stap:** Keen 5 is af (E1-E12) en Keen 4 speelt sinds E13 op
+**Volgende stap:** E12.1 (de plaatjes) en E13 samen testen. Keen 5 is af (E1-E12) en Keen 4 speelt sinds E13 op
 hetzelfde gedeelde Galaxy-spel (`src/galaxy/game/`). Op de Mac: de apps
 bouwen (`tools/build_macos.sh`, `tools/build_windows.sh`) en Keen 4 even
 naspelen (titel, een level, opslaan en laden, het einde) om te zien dat
@@ -346,6 +347,85 @@ alleen voor deze mijlpaal veranderen). De afwijkingen staan in
   openen (naspelen geeft hetzelfde).
 - **Niet gedaan**: de builds voor macOS en Windows (de gebruiker bouwt op
   de Mac).
+
+## E12.1: fixes (23-10)
+
+Vier meldingen van de gebruiker over Keen 5 in breedbeeld met plaatjes,
+en één over Keen 1, op `milestone-e12.1-fixes` (23-10, 10:50 - 11:30).
+De regels staan in `docs/keen5/gameplay.md` ("Pictures behind the
+levels"), de afwijkingen in `docs/keen5/architecture.md` ("Deviations in
+E12.1"), het schip in `docs/graphics.md`.
+
+- [x] **Wereldkaart: geen sterren meer in het plaatje.** De sterren van
+  het plaatje schoven tegen de sterren van de kaart zelf in als Keen liep
+  (het plaatje beweegt trager). `tools/make_keen5_backgrounds.py` tekent
+  voor kaart 0 geen sterren meer; de melkweg en de maan staan op dezelfde
+  plek (zelfde seed), de vage nevel heeft een iets andere vorm. De
+  sterren van de kaart zelf blijven (het origineel). Alleen
+  `level00.webp` is veranderd.
+- [x] **Gepakte items lieten een vierkant achter** (level 13: een licht
+  blauw vierkant per flesje/snoepje boven de lucht; in de ramen zwarte
+  vakjes: level 6 het "dambord" van zes, level 11 en ook 1, 3, 4 en 12).
+  Oorzaak: sinds E12 kreeg élke tegel die tijdens het spelen verandert de
+  luchtkleur in zijn hele vak (voor de kapotte QED). Nu: een gepakt item
+  (voorgrondtegel weg, achtergrond onveranderd) laat zien wat eromheen
+  is: een vrijgekomen stukje toont het plaatje als het aansluit op wat
+  het plaatje al toonde (in het vak zelf of over de rand), anders de
+  luchtkleur (`GalaxyRevealedSky`). Elke andere verandering (QED, deuren)
+  houdt de E12-regel. Ook de meespeler online doet dit nu.
+- [x] **De paarse wolken van level 13** hadden licht blauwe blokjes in en
+  naast zich: lucht in de krul van een wolk en tussen de stippen van haar
+  rand bleef licht blauw, afgesneden op de rand van de tegel. Nu is een
+  tegel van alleen lucht- en wolkkleuren (721-768) lucht met een wolk:
+  al zijn lucht toont het plaatje, en zo'n vak telt als open lucht. De
+  tekening van de wolk (ook de donkerblauwe rand) blijft.
+- [x] **Ramen met zwarte vakken** (level 11 en het tweede voorbeeld):
+  dat waren de gepakte items hierboven. Alle ramen van alle levels
+  nagelopen (per level de ramen gezocht, origineel / start / na het
+  pakken van alle items naast elkaar): vóór de fix in levels 1, 3, 4, 6,
+  11, 12 en 13 vakken na het pakken; daarna nergens meer, behalve waar
+  het item over de zwarte binnenrand van het kozijn hing (die blijft
+  zwart, zoals de rest van die rand). Gevonden onderweg: **een paal vóór
+  een raam** sloot de strook tussen kozijn en paal af (zwart in levels 6
+  en 12, al bij de start); nu is sterrenlucht achter een paal open lucht
+  waar ze de rand van het vak raakt. Andere tekeningen ervoor (het donker
+  in een item, het glas van de QED, de boog van een deur) blijven zoals
+  ze waren.
+- [x] **Keen 1, het schip als level: grijs onder het schip.** De regel
+  van 22-10 (grijs dat door de tekening is ingesloten blijft grijs) zag
+  het grijs tussen romp, poten en grond als ingesloten. Op wens van de
+  gebruiker een uitzondering alleen voor dit eigen level
+  (`ShipLevels.open_sky_under_ship`): het grijs dat vanaf de onderrand van
+  het schip bereikbaar is, is lucht; de grijze schaduw van het schip zelf
+  blijft. De algemene Keen 1-regel is niet veranderd: de gatenkaarten van
+  levels 1-16 zijn byte voor byte gelijk.
+- [x] **Tests**: nieuw `test_keen5_picture_fixes` (zonder bestanden: een
+  vrijgekomen stuk sluit aan of blijft dicht, een wolk verliest al zijn
+  lucht en telt als open, een paal sluit de strook niet af, het donker
+  in een item blijft, geen sterren in het kaartplaatje; met bestanden op
+  het scherm: flesje in level 13, item in het raam van level 11, de
+  wolken, de strook naast de paal in level 12, niets in 4:3) en
+  `test_keen1_ship_sky`. De schermtests en de sterrentest falen op de oude
+  code (9 fouten). **169 suites groen, 1 overgeslagen (Keen 4 v1.4), 0
+  FAIL, 0 SCRIPT ERROR**; `gdformat` en `gdlint` schoon.
+- [x] **Regressies** tegen e69bccd: Keen 1 (5) en Keen 4 (11) gelijk;
+  Keen 2 gelijk (de eerste run van de basis verschilde door timing bij een
+  koude start, een tweede run is gelijk); Keen 5: alleen
+  `keen5_level13_wide` (de wolken) en `keen5_world_wide` (geen sterren in
+  het plaatje), alle 4:3-beelden gelijk. Niets veranderd in `src/galaxy/`
+  buiten `game/`, niets in `src/keen1-4`; Keen 4 gebruikt `src/galaxy/game/`
+  niet.
+- [x] **Schermafbeeldingen** (macOS, venster, 60 fps): de kaart tijdens
+  het lopen, level 13 met gepakte items en de wolken, het raam van level
+  6 en 11 met gepakte items, het raam met de paal in level 12, het schip
+  van Keen 1; voor en na bekeken.
+- [x] **Apps gebouwd** (Mac en Windows).
+- **Open punten:** een vrijgekomen stuk wordt beslist met wat de vakken
+  eromheen op dat moment tonen (geen nieuwe berekening van de hele map);
+  in alle levels gaf dat het goede beeld.
+- **Om te proberen:** `godot --path . -- --game=5 --level=13` (pak de
+  flesjes in de schacht), `--level=6` (het raam met zes flesjes),
+  `--level=0` (lopen op de kaart); Keen 1: `godot --path . -- --level=100`.
 
 ## Mijlpaal E12: wat er nu is
 

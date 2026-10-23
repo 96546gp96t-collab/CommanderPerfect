@@ -227,21 +227,45 @@ all of them. So:
   their black; the windows with stars show the picture (levels 3, 4, 6,
   10, 11, 12; level 1's black gem box with stars too), and so does the
   black strip above level 1's station (open to the map's edge).
+- **Korath III's clouds** (E12.1): tiles drawn in nothing but the sky's
+  light cyan and the clouds' colours (dark cyan edge, magenta, light
+  magenta: 721-768) are the sky with a cloud on it. All of their sky
+  shows the picture, also the pockets in a cloud's curl and between the
+  dots of its edge (before, those stayed light cyan, in blocks cut at the
+  cells' edges), and such a cell with nothing in front counts as open
+  sky. The cloud's own drawing, its dark cyan edge too, stays.
+- **A pole in front of a window** (E12.1): a cell of stars with a pole in
+  front (misc 1) is open sky where its see-through part reaches the
+  cell's edge, so the strip between a window's frame and a pole shows the
+  picture (levels 6 and 12; before it stayed black). Any other drawing in
+  front keeps what it shuts in: an item's dark inside, the QED's glass, a
+  door's arch.
 - **The world map**: E6 draws the yellow filler beyond the station's star
   field as space (tile 0). With the option on the picture shows there and
   behind the star field (whose stars stay, as every level's own stars do);
   with the option off it is black. Korath III's ground below row 100
-  stays.
+  stays. Its picture has no stars of its own (E12.1): they slid against
+  the map's stars while Keen walked (the picture moves slower).
 - Worked out once per map when it is shown (0.1-0.4 s), as Keen 4's holes.
   A tile changed while the map is played keeps the sky's colour in its
   whole cell (E12): the broken QED in level 12 stays black where the
   original is black (E10 showed the picture in about 70 pixels of its
   window there); the security doors and fuses of the levels with a
-  picture have no sky behind them (checked).
+  picture have no sky behind them (checked). **An item taken** (its
+  foreground tile gone, the cell's background its own) leaves what is
+  around it (E12.1, `GalaxyRevealedSky`): each revealed part shows the
+  picture when it touches a pixel of the cell that showed it before, or
+  one across the cell's side that shows it now, and keeps the sky's
+  colour otherwise. Before, the whole cell took the sky's colour: a light
+  cyan square over Korath III's sky (level 13's vials and candy) and
+  black squares in the windows (levels 1, 3, 4, 6, 11, 12: the user saw
+  a checker of six in level 6's window and others in level 11's). The
+  cells are kept when the option is switched, and start again with the
+  map.
 
 | Map | Scene (`tools/make_keen5_backgrounds.py`) |
 |-----|-----|
-| 0 World map | deep space with a far spiral galaxy, a faint blue nebula and a small moon (the map has the planet's ground of its own) |
+| 0 World map | deep space with a far spiral galaxy, a faint blue nebula and a small moon, no stars (E12.1; the map has the planet's ground and its star field of its own) |
 | 1 Ion Ventilation System | the desert planet far below the station, yellow with dark cracks and a thin rim of air, a small moon |
 | 3 Defense Tunnel Vlook | a long violet and blue nebula band with star clusters (wide: the tunnel is long) |
 | 4 Energy Flow Systems | a hot blue-white star with a wide glow and long rays |

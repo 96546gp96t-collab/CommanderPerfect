@@ -55,6 +55,12 @@ var _sky_patch := GalaxySkyPatch.new()
 ## The shut-in sky found per map and sky colour (a level played again is
 ## the same at its start; finding it takes a moment).
 var _sky_pockets: Dictionary[String, Array] = {}
+## The cells changed while the map is played, with the rows of each that
+## keep the sky's colour now (E12, E12.1); they replace what was found at
+## the start.
+var _changed_cells: Dictionary[Vector2i, Array] = {}
+## The cells whose background tile changed while the map is played.
+var _changed_backs: Dictionary[Vector2i, bool] = {}
 
 @onready var _galaxy_map: GalaxyLevelMap = %GalaxyMap
 @onready var _objects: GalaxyObjectLayer = %Objects
@@ -119,6 +125,8 @@ func _load_data() -> bool:
 func _show_map(map: GalaxyMap, sprites: PackedInt32Array) -> void:
 	_map = map
 	_sprites_shown = sprites
+	_changed_cells.clear()
+	_changed_backs.clear()
 	_sky_color = _wanted_sky_color()
 	_showing_scaled = _settings.graphics == DisplaySettings.Graphics.XBRZ and _scaled_ready()
 	_stand_ins = false
@@ -170,42 +178,119 @@ func _apply_backdrop() -> void:
 
 ## The holes in a floor keep the sky's colour (as where Keen 4's level 9
 ## has glass columns in the walkway): the picture shows everywhere else
-## (D13.2).
+## (D13.2). The cells changed since the map was shown keep what was
+## worked out for them then.
 func _update_sky_patch() -> void:
 	if _sky_color.a == 0.0 or _map == null:
 		_sky_patch.show_rows([], Color.TRANSPARENT)
 		return
 	var key := "%d %s" % [_map.number, _sky_color.to_html()]
 	if not _sky_pockets.has(key):
-		var back_image := func(tile: int) -> Image:
-			var image := _data.graphics.back_tile(tile)
-			return _cleared(tile, image) if image != null else null
 		var walkable := func(tile: int) -> bool:
 			return _data.tile_info.fore(GalaxyTileInfo.Fore.TOP, tile) != 0
+		var is_pole := func(tile: int) -> bool:
+			return _data.tile_info.misc_kind(tile) == GalaxyTileKinds.POLE
 		_sky_pockets[key] = _backdrops.kept_sky(
-			_map, back_image, _data.graphics.fore_tile, walkable
+			_map, _cleared_back, _data.graphics.fore_tile, walkable, is_pole
 		)
 	var rows: Array[Rect2i] = []
-	rows.assign(_sky_pockets[key])
+	for row: Rect2i in _sky_pockets[key]:
+		if not _changed_cells.has(row.position / GalaxyGraphics.TILE16_SIZE):
+			rows.append(row)
+	for cell in _changed_cells:
+		rows.append_array(_changed_cells[cell])
 	_sky_patch.show_rows(rows, _sky_color)
 
 
-## A tile placed while the map is played (the QED breaking, a bridge, a
-## door) keeps the sky's colour in its whole cell, so that what the
-## original shows black there stays black and the picture never shows
-## through a change the open-sky rule has not looked at (milestone E12:
-## the broken QED showed the picture in its window). Only with the
-## picture shown; in 4:3 or without pictures nothing is painted.
-func _keep_sky_in(cell: Vector2i) -> void:
-	if _sky_color.a == 0.0 or not rules.keeps_sky_in_placed_tiles:
+## Puts [param tile] in [param cell] of [param layer] while the map is
+## played, and works out what shows behind the cell then.
+func _place_tile(layer: GalaxyMap.Layer, cell: Vector2i, tile: int) -> void:
+	var before := _tiles_at(cell)
+	_galaxy_map.set_tile(layer, cell, tile)
+	if layer == GalaxyMap.Layer.BACKGROUND:
+		_changed_backs[cell] = true
+	_keep_sky_in(cell, before)
+
+
+## What shows behind [param cell] after a tile there changed (it held
+## the tiles [param before]: background, foreground). An item taken (its
+## foreground tile gone, the background the map's own) leaves what is
+## around it: a revealed part shows the picture when it is joined to the
+## picture ([GalaxyRevealedSky], E12.1: the cell kept the sky's colour as
+## a square before). Any other tile placed while the map is played (the
+## QED breaking, a bridge, a door) keeps the sky's colour in its whole
+## cell, so that what the original shows black there stays black and the
+## picture never shows through a change the open-sky rule has not looked
+## at (milestone E12: the broken QED showed the picture in its window).
+## Only with the picture shown; in 4:3 or without pictures nothing is
+## painted.
+func _keep_sky_in(cell: Vector2i, before: Vector2i) -> void:
+	if _sky_color.a == 0.0 or _map == null or not rules.keeps_sky_in_placed_tiles:
 		return
-	var rows: Array[Rect2i] = []
-	rows.assign(_sky_patch.rows())
 	var size := GalaxyGraphics.TILE16_SIZE
-	var rect := Rect2i(cell * size, Vector2i(size, size))
-	if not rows.has(rect):
-		rows.append(rect)
-		_sky_patch.show_rows(rows, _sky_color)
+	var rows: Array[Rect2i] = [Rect2i(cell * size, Vector2i(size, size))]
+	var fore := _map.tile(GalaxyMap.Layer.FOREGROUND, cell.x, cell.y)
+	if fore == GalaxyTileKinds.EMPTY_TILE and not _changed_backs.has(cell):
+		rows = _kept_after_taking(cell, before)
+	_changed_cells[cell] = rows
+	_update_sky_patch()
+
+
+## The rows of [param cell] that keep the sky's colour once the item drawn
+## there (the tiles [param before]) is gone.
+func _kept_after_taking(cell: Vector2i, before: Vector2i) -> Array[Rect2i]:
+	var size := GalaxyGraphics.TILE16_SIZE
+	var painted := _painted_around(cell)
+	var old := _mask_of(before.x, before.y)
+	var corner := cell * size
+	var showed := func(index: int) -> bool:
+		var pixel := corner + Vector2i(index % size, index / size)
+		return not old.is_empty() and old[index] == 1 and not painted.has(pixel)
+	var shows := func(pixel: Vector2i) -> bool:
+		var at := pixel / size
+		if pixel.x < 0 or pixel.y < 0 or at.x >= _map.width or at.y >= _map.height:
+			return false
+		var tiles := _tiles_at(at)
+		var mask := _mask_of(tiles.x, tiles.y)
+		var index := (pixel.y % size) * size + pixel.x % size
+		return not mask.is_empty() and mask[index] == 1 and not painted.has(pixel)
+	var now := _tiles_at(cell)
+	return GalaxyRevealedSky.kept_rows(cell, _mask_of(now.x, now.y), showed, shows)
+
+
+## The tiles in [param cell]: background (x) and foreground (y).
+func _tiles_at(cell: Vector2i) -> Vector2i:
+	return Vector2i(
+		_map.tile(GalaxyMap.Layer.BACKGROUND, cell.x, cell.y),
+		_map.tile(GalaxyMap.Layer.FOREGROUND, cell.x, cell.y)
+	)
+
+
+## The see-through pixels of a cell holding background [param back] and
+## foreground [param fore] ([method GalaxySkyPockets.see_through]).
+func _mask_of(back: int, fore: int) -> PackedByteArray:
+	var fore_image: Image = _data.graphics.fore_tile(fore) if fore != 0 else null
+	return GalaxySkyPockets.see_through(_cleared_back(back), fore_image)
+
+
+## The level pixels painted in the sky's colour now in [param cell] and
+## the cells around it.
+func _painted_around(cell: Vector2i) -> Dictionary[Vector2i, bool]:
+	var size := GalaxyGraphics.TILE16_SIZE
+	var area := Rect2i((cell - Vector2i.ONE) * size, Vector2i(size, size) * 3)
+	var painted: Dictionary[Vector2i, bool] = {}
+	for row in _sky_patch.rows():
+		var inside := row.intersection(area)
+		for x in range(inside.position.x, inside.end.x):
+			for y in range(inside.position.y, inside.end.y):
+				painted[Vector2i(x, y)] = true
+	return painted
+
+
+## Background tile [param tile] with its sky cleared, or null.
+func _cleared_back(tile: int) -> Image:
+	var image := _data.graphics.back_tile(tile)
+	return _cleared(tile, image) if image != null else null
 
 
 func _apply_display_settings() -> void:

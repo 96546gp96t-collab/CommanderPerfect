@@ -115,6 +115,73 @@ static func build(level_number: int, installed: Array[bool] = []) -> LevelData:
 	return null
 
 
+## Makes the grey under the ship the sky in [param holes] (the outside
+## level, [param tiles] the level's tiles): the light grey between its
+## hull, its landing legs and the ground is the sky of Mars seen under the
+## ship, so in widescreen it shows the picture as the sky around it does.
+## Keen 1's rule keeps grey that a level's drawing shuts in ([ColorGroups]:
+## the shading under the snow platforms), and the ship with the ground
+## shuts this grey in. An exception for this level of our own only (the
+## user's choice, 23-10, E12.1): no level of the original changes. The grey
+## reached from the ship's bottom edge, pixel by pixel across its cells,
+## is let through; the ship's own grey shading is not joined to it.
+static func open_sky_under_ship(holes: BackdropHoles, tiles: Array[Image]) -> void:
+	if holes == null or not holes.has_sky():
+		return
+	var size := EgaGraphics.TILE_SIZE
+	var cells := Vector2i(SHIP_TILES[0].size(), SHIP_TILES.size())
+	var area := cells * size
+	var reached := PackedByteArray()
+	reached.resize(area.x * area.y)
+	var pending: Array[Vector2i] = []
+	for x in area.x:
+		var start := Vector2i(x, area.y - 1)
+		if _is_sky_under_ship(tiles, holes.sky_color, start):
+			reached[start.y * area.x + start.x] = 1
+			pending.append(start)
+	while not pending.is_empty():
+		var pixel: Vector2i = pending.pop_back()
+		for side: Vector2i in [Vector2i.LEFT, Vector2i.RIGHT, Vector2i.UP, Vector2i.DOWN]:
+			var next := pixel + side
+			if not Rect2i(Vector2i.ZERO, area).has_point(next) or reached[next.y * area.x + next.x]:
+				continue
+			if _is_sky_under_ship(tiles, holes.sky_color, next):
+				reached[next.y * area.x + next.x] = 1
+				pending.append(next)
+	for i in reached.size():
+		if reached[i]:
+			_let_through(holes, _ship_tile(Vector2i(i % area.x, i / area.x) / size), i, area.x)
+
+
+## The tile of the ship at [param cell] of its block (the sky where it has
+## none).
+static func _ship_tile(cell: Vector2i) -> int:
+	var tile: int = SHIP_TILES[cell.y][cell.x]
+	return BACKGROUND_TILE if tile == KEEP else tile
+
+
+## Whether [param pixel] of the ship's block has the sky's [param color].
+static func _is_sky_under_ship(tiles: Array[Image], color: Color, pixel: Vector2i) -> bool:
+	var size := EgaGraphics.TILE_SIZE
+	var tile := _ship_tile(pixel / size)
+	return tile < tiles.size() and tiles[tile].get_pixelv(pixel % size) == color
+
+
+## Lets pixel [param index] of the ship's block ([param width] pixels wide)
+## through in its tile: it is no longer shut in.
+static func _let_through(holes: BackdropHoles, tile: int, index: int, width: int) -> void:
+	if not holes.shut_in.has(tile):
+		return
+	var size := EgaGraphics.TILE_SIZE
+	var pixel := Vector2i(index % width, index / width) % size
+	var pixels := holes.shut_in[tile].duplicate()
+	pixels[pixel.y * size + pixel.x] = 0
+	if pixels.has(1):
+		holes.shut_in[tile] = pixels
+	else:
+		holes.shut_in.erase(tile)
+
+
 ## The part whose place is marked by [param info], or -1.
 static func part_of_place(info: int) -> int:
 	var part := info - FIRST_PLACE_INFO
