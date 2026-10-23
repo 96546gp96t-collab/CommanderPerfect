@@ -302,7 +302,7 @@ Keen 4 onto these).
 | `GalaxyProgress` (E6) | `Keen4Progress` | Levels done with a value, the place on the map, the level just finished; a saved game's dictionary with the episode's extras | 89 |
 | `GalaxyGameBoxes` (E6) | `Keen4GameBoxes` | The loading box with the count-down (any text), "One moment", PAUSED, the death box with its blinking choice, "Game Over!" when the episode has the text | 181 |
 | `GalaxyStatusWindow` (E6) | `Keen4StatusWindow` | The status window: frame, labels, digit bars; the episode's own middle and bottom rows as hooks, the "press a key" tiles' place as a field | 280 |
-| `GalaxyFrontScreen` (E7) | `Keen4FrontScreen`, Keen4View's cheats and F1 | Between the flow and the view: the title loop, the demos (DEMO sign, 3 tics a frame, Normal, random table from 0), the help, the end pages, a scene over the whole screen, the name typed in on the high-score map, the two cheats, a new game | 625 |
+| `GalaxyFrontScreen` (E7) | `Keen4FrontScreen`, Keen4View's cheats | Between the flow and the view: the title loop, the demos (DEMO sign, 3 tics a frame, Normal, random table from 0), the end pages, a scene over the whole screen, the name typed in on the high-score map, the two cheats (E9: the help and a new game moved to `GalaxyMenuScreen`) | 535 |
 | `GalaxyTitleLoop` (E7) | `Keen4TitleLoop` | Intro, demo 0, story, demo 1, high scores, demo 2, demo 3 | 47 |
 | `GalaxyHelp` (E7) | `Keen4Help`, `Keen4Episode.page_layout` | The help menu and the topics' pages; the page layout with or without the frame | 139 |
 | `GalaxyEnding` (E7) | `Keen4Ending` | The end pages of a given text, the blinking arrow | 110 |
@@ -311,11 +311,13 @@ Keen 4 onto these).
 | `GalaxyScene` (E7) | — | A full-screen scene on the clock: advance, press, screen, fade level; since E8 its sounds and songs through two Callables | 54 |
 | `GalaxyAudio` (E8) | `Keen4Audio` | The sounds and music on `GalaxySoundPlayer`: names, counts and the song per map from the rules, the cache in the episode's folder, the settings, Shift+S / Shift+M, `remaining_tics()` (SD_WaitSoundDone) | 97 |
 | `GalaxySettings` (E8) | `Keen4Settings` | The episode's own settings (quiet AdLib, score box) in `settings_path()` | 46 |
+| `GalaxyMenuScreen` (E9) | `Keen4MenuScreen`, `GalaxyFrontScreen`'s help and new game | The control panel between the front screen and the view: the cards and their choices, new game on a difficulty, load, save, End Game, Paddle War on its own tics, Sound/Music/score box settings, F1 over a card, the frames of a level kept for a save, a loaded level played again | 513 |
+| `GalaxySavedGame` (E9) | `Keen4SavedGame` | A saved game: difficulty, inventory, progress, map; in a level the random start and the frames (keys, tics, events); the replay; the episode's inventory, progress and gifts as hooks | 299 |
 
 The chain is `GameScreen` → `GalaxyLevelScreen` → `GalaxyPlayScreen` →
-`GalaxyFlowScreen` (E6) → `GalaxyFrontScreen` (E7) → the episode's view
-(`Keen5View`). When the menu, co-op and online screens are lifted (E9,
-E11), they go between `GalaxyFrontScreen` and the view (Keen 4's chain
+`GalaxyFlowScreen` (E6) → `GalaxyFrontScreen` (E7) → `GalaxyMenuScreen`
+(E9) → the episode's view (`Keen5View`). When the co-op and online
+screens are lifted (E11), they go between `GalaxyMenuScreen` and the view (Keen 4's chain
 has the flow in its view; here it comes first, so the front screen
 overrides its hooks such as `_game_ended`), and the view's parent moves
 up.
@@ -350,6 +352,8 @@ up.
 | `story_song`, `ending_song`, `game_over_song`, `help_song` (E7) | 17, 14, 18, 19 | The **maps** whose songs the story, the end, game over and the help play (Omni StartMusic takes a map; Keen 4: 12, 7, none, none) |
 | `sound_count`, `song_count`, `sound_names`, `map_songs` (E8) | 64, 14, `Keen5Sounds.NUMBERS`, `Keen5Sounds.MAP_SONGS` | The audio file's layout, the sounds by name, the song of maps 0-19 (Keen 4: 52, 6) |
 | `sound_cache_folder()`, `settings_path()` (E8) | `user://keen5/cache`, `user://keen5/settings.cfg` | From `user_folder`: never Keen 4's |
+| `menu_cards_from_end`, `watch_from_end`, `paddle_war_from_end`, `menu_cards(count)` (E9) | MAIN 32, NEW GAME 31, LOAD 30, SAVE 29, CONFIGURE 28, SOUND 27, MUSIC 26, BUTTON SETUP 23, OPTIONS 21; 17; 20 | The control panel's pictures (Keen 4's by default: one more each) |
+| `save_slot_count`, `saves_folder()` (E9) | 6, `user://keen5/saves` | The saved games, never in Keen 4's folder (`GalaxySaveSlots`' default) |
 
 ### The hooks (virtual methods that do nothing or Keen 4's thing by default)
 
@@ -383,6 +387,10 @@ up.
 | `GalaxyFlowScreen` | `_game_over()` | "Game Over!" or `_game_ended` | the exploding galaxy (`Keen5GalaxyExplosion` as a `GalaxyScene`) |
 | `GalaxyMapFlag` (engine, additive, E6) | `wave_at(..., waving_only)` | false: all of Keen 4's actions | true: only the waving ones (Keen 5 has no flipping sprites) |
 | | `_is_door(kind)`, `_enter_door(kind)` | misc 2; the normal door | misc 32 too; the keycard and the door opener |
+| `GalaxyFlowScreen` (E9) | `_level_began(number, random_start)` | nothing | — (`GalaxyMenuScreen` starts keeping the level's frames) |
+| `GalaxyFrontScreen` (E9) | `_title_loop_key(event)` | Escape: the start screen | — (`GalaxyMenuScreen`: any key opens the panel) |
+| `GalaxyMenuScreen` (E9) | `_new_panel()`, `_new_saved_game()`, `_panel_waits()` | a `GalaxyMenuController`; a `GalaxySavedGame`; never | —; `Keen5SavedGame`; a ride on the world map |
+| `GalaxySavedGame` (E9) | `_new_inventory()`, `_new_progress()`, `_extra_inventory_to_dictionary(carried)`, `_extra_inventory_from_dictionary(carried, saved)`, `give_items(carried)`, `give_everything(carried)` | the rules' inventory; `GalaxyProgress`; nothing; B+A+T's and Shift+I's gifts | `Keen5Inventory` (keycard, fuses), `Keen5Progress` (Korath arrival), the keycard with each gift |
 
 What an episode adds beyond these (Keen 5's keycard, its door targets)
 lives in its own subclasses: `Keen5Keen` overrides `_think_enter_door`,
@@ -754,4 +762,63 @@ What E8 built differently from the plan above, and why (developer, E8):
 9. **`GalaxyScene` got two Callables** (`sound_player`, `song_player`)
    that the front screen sets, so a scene asks for its sounds by name like
    a world does.
+
+## Keen 5's control panel (from E9)
+
+| Class | What | Lines |
+|---|---|---|
+| `Keen5SavedGame` | `GalaxySavedGame` with Keen 5's inventory (the keycard, the fuses still to break) and progress (the Korath III arrival, via `Keen5Progress._extra_to_dictionary`), the keycard with B+A+T and Shift+I among the frames | 45 |
+
+`Keen5View` now extends `GalaxyMenuScreen`: `_set_up_panel()` in `_ready`,
+Escape opens the panel (`_escape()`), `_new_saved_game()` gives a
+`Keen5SavedGame`, `_panel_waits()` holds Escape during a ride on the
+world map, god mode and Shift+I are recorded among a level's frames.
+`Keen5Episode` has the cards' numbers (`MENU_CARDS_FROM_END`,
+`WATCH_FROM_END`, `PADDLE_WAR_FROM_END`). The rules are in
+[gameplay.md](gameplay.md), "The control panel", "Saving and loading".
+
+## Deviations in E9
+
+What E9 built differently from the plan above, and why (developer, E9):
+
+1. **The help and a new game moved into `GalaxyMenuScreen`** with the
+   panel (the original opens the help from its cards too, and New Game is
+   a card): `GalaxyFrontScreen` went from 625 to 535 lines, the menu screen
+   is 513. Both stay a little over ~500; what is left in the front screen
+   is one job (the title loop, the demos, the end, a scene, the name, the
+   cheats), so it was not split further. The front screen's title-loop key
+   became the hook `_title_loop_key` (Escape: the start screen); the menu
+   screen opens the panel there.
+2. **`GalaxySavedGame` is an object with hooks, not static functions**:
+   Keen 4's `inventory_to_dictionary` and the replay's `_apply` were
+   static on Keen 4's classes; the generic game needs the episode's
+   inventory, progress and gifts, so the saved game is made per episode
+   (`_new_saved_game()`) and the replay holds it. The format (keys, frame
+   bytes, event numbers) is Keen 4's, the folder Keen 5's.
+3. **A loaded level is played again silently and without the god mode of
+   now** (Keen 4 plays the frames with the world's sounds on and the
+   screen's god mode): the replay's sounds would all play at once, and a
+   god mode switched on since the save would change what the frames give.
+   After the replay god mode is what the frames left.
+4. **Escape waits while a ride holds the world map** (a teleporter, an
+   elevator's door, the unseen flight in the elevator; `_panel_waits()`):
+   a map save keeps only Keen's place, which in a ride is no place to
+   stand. The original's own ride loops take no key; during the flight the
+   original could save, ours cannot.
+5. **One new hook in the flow screen**, `_level_began(number,
+   random_start)` (Keen 4's view called it from its own `_show_level`).
+6. **No change in `src/galaxy/` outside `game/`**: `GalaxySaveSlots`
+   keeps its Keen 4 default; Keen 5 always passes `rules.saves_folder()` (`test_galaxy_game_saved` scans `src/keen5` and
+   `src/galaxy/game` for `user://keen4`, `test_keen5_menus` checks that
+   nothing in `user://keen4` changed while it saved, loaded and set).
+7. **The panel controller is the plain `GalaxyMenuController`**, not
+   Keen 4's `GalaxyCoopMenuController`: co-op and online come in E11
+   (`_new_panel()` is where E11 gives its own).
+8. **Configure is Keen 4's** (Sound, Music, Options, Keyboard, Reset
+   Keys), not the original's joystick and Gravis rows, and the quit
+   question has the Choose Game line: the two cards that differ from v1.4
+   in the js-dos comparison, both as decided for Keen 4.
+9. **A map save restarts the animated tiles** (the rocket's flame):
+   the place is kept, not the animation's phase (as Keen 4's D10); a level
+   save comes back to the pixel.
 

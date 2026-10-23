@@ -315,8 +315,79 @@ again (a round takes about 345 s). The demos play on Normal, 3 tics a
 frame, from the start of the random table, with the DEMO sign; each plays
 all its recorded input (842, 1024, 1381, 1267 and 703 frames).
 
-A key starts a new game on the world map (until E9's control panel),
-Escape goes back to the start screen, F1 opens the help.
+Any key opens the control panel (since E9; E7 started a new game
+directly), F1 opens the help.
+
+## The control panel (E9)
+
+The original's wrist-watch menu, the same engine code as Keen 4's
+(docs/keen4/gameplay.md, "The control panel"; Omni `id_us_2.c`,
+`ck_us_2.c`), with Keen 5's own pictures: a grey watch with two red
+buttons (picture 17 from the end of the 93) and the cards' title pictures
+one place nearer the end than Keen 4's (Omni `GFXCHUNK.CK5`, checked by
+eye): MAIN MENU 32, NEW GAME 31, LOAD 30, SAVE 29, CONFIGURE 28, SOUND
+EFFECTS 27, MUSIC 26, BUTTON SETUP 23 (our keys' card, as Keen 4's),
+OPTIONS 21, Paddle War's title 20. The watch's screen (masked picture 0),
+the font (1), the 8×8 icons (92-100), the colours (dark green 2, light
+green 10 on dark grey 8) and every place are Keen 4's. Seen in v1.4 and
+equal to ours to the pixel: the main card in the title loop and in a game,
+New Game, Load, Save with a name being typed and saved, Sound, Paddle
+War's start.
+
+- **Opening**: any key in the title loop (intro, story, demos, high
+  scores); Escape in a game (on the world map not while a ride holds the
+  game: a teleporter, an elevator's door or the flight in it; ours). The
+  game and the title loop stand still behind it, the music stops.
+- **Main card**: NEW GAME, LOAD GAME, SAVE GAME, CONFIGURE, RETURN TO GAME
+  (RETURN TO DEMO out of a game), END GAME, PADDLE WAR, QUIT; Save and End
+  only in a game; the cursor on Return to Game in a game, else on New
+  Game. Escape on it and Quit ask "REALLY QUIT?"; ours adds "PRESS C TO
+  CHOOSE GAME" (back to the start screen, as Keen 4's).
+- **New Game**: BEGIN EASY / NORMAL / HARD GAME, the cursor on Normal; in
+  a game "YOU'RE IN A GAME" first (unless saved since the panel opened).
+  The game starts on the world map behind its box; the difficulty is kept
+  in the game (and a saved game) and shown in the status window.
+- **Configure**: SOUND, MUSIC, OPTIONS, KEYBOARD, RESET KEYS (Keen 4's
+  choice; the original's USE KEYBOARD / JOYSTICK / GRAVIS rows are not
+  built). Sound and Music switch at once and are kept in the shared
+  settings (one choice for Keen 4 and 5); QUIET ADLIB and the SCORE BOX
+  are Keen 5's own (`user://keen5/settings.cfg`); Options also hold the
+  shared display settings.
+- **End Game**: "REALLY END CURRENT GAME?", then the high scores (map 15)
+  and the title loop; nothing goes in the table (seen in v1.4).
+- **Paddle War**: Keen 4's game (D11) with Keen 5's title picture and its
+  sounds 46-50.
+- **F1** on a card opens the help with its song; Escape out of the help
+  brings back the same card.
+
+## Saving and loading (E9)
+
+- **Six slots** with a name, as the original (Omni
+  US_MAX_NUM_OF_SAVED_GAMES), in `user://keen5/saves/slot1.json` …
+  `slot6.json`, never in Keen 4's folder.
+- **Anywhere in a game**: on the world map (Keen's place, the levels done
+  with their 1 or 14, the arrival on Korath III) or in a level (the level
+  as Keen entered it, the random table's start and every logic frame since
+  with god mode and the cheats; loading plays them again behind black,
+  silently), as Keen 4's (architecture.md, "Deviations in E9").
+- **Keen 5's own state** (Omni ck_gameState.ep.ck5): the keycard and the
+  fuses still to break are kept; the keycard is lost at every level's end
+  and death, so a map save never has it, and in a level the frames give it
+  back; the fuses are counted again when the level starts and the frames
+  break the same ones.
+- **Loading**: black, the game, the box "PAUSED" until a key (seen in
+  v1.4, the same box as Keen 4's). A level saved halfway comes back
+  exactly (the picture outside the box is the same to the pixel); on the
+  world map the animated tiles (the rocket's flame) start their cycle
+  anew.
+
+## Difficulty (E9)
+
+Chosen on the New Game card; demos and the high-score map are Normal.
+Easy: a stunner gives 8 charges instead of 5 (Omni CK_KeenGetItem, the
+same in Keen 5) and the jump's mid gravity as Keen 4's; the info plane
+places creatures and platforms by difficulty (E4, E5; the standing
+platforms the other way round).
 
 ## Help (E7)
 
@@ -424,6 +495,17 @@ elevator's door), one song at a time, looping.
 | Map: entering a level, a teleporter, an elevator's door | enter_level (12), teleport (41), elevator_door (63) | `GalaxyMapKeen`, `Keen5MapRide` |
 | Status window down / up; a level done | status_down (34), status_up (35), level_exit (13) | `GalaxyFlowScreen` |
 | The creatures | mine_explode (5), slice_bump (6), spindred_fly_up / down / slam (16, 37, 28), spiro_slam / fly (27, 61), enemy_shoot / shot_hit (29, 30), ampton_walk_1/2 / stun (31-33), shelley_explode (36), master_shot / teleport (38, 39), pole_zap (40), shockshund_bark / bark_shot_die (42, 45), sparky_prepare_charge (58), sphereful_ceiling (59) | `src/keen5/actors/` |
+
+## Watched in E9 (js-dos, the user's v1.4)
+
+The control panel opened from the title picture and in a game, each card
+snapped and laid over ours by EGA colour (details in
+[research.md](research.md), "Watched in E9"): the main card (title loop
+and in a game), New Game, Load, Save with "AB" typed and saved, Sound and
+Paddle War's start are equal to the pixel; Configure and the quit
+question differ only where ours is meant to (our rows; the Choose Game
+line). Saving and loading in a game, End Game and its question behave as
+Keen 4's.
 
 ## Watched in E7 (js-dos, the user's v1.4)
 

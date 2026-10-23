@@ -453,7 +453,8 @@ Shikadi Aire (help) (Omni). The death box: "You didn't make it past" /
   the card; no wetsuit, no rescued members (Omni `ck_play.c`).
 - **The control panel, Paddle War, the menus**: shared code; the menu
   card pictures are counted from the end of the picture range in Keen 4:
-  check Keen 5's in E9 (93 pictures).
+  check Keen 5's in E9 (93 pictures). **Answered in E9**: one less than
+  Keen 4's (MAIN MENU 32 … the wrist watch 17), "Watched in E9".
 - **Sounds** (Omni `EPISODE.CK5`, CG names where Omni says UNKNOWN): 5 mine
   explodes, 6 Slicestar bump, 11 item, 12 enter level, 13 level done, 14
   need keycard, 16 Spindred up, 18 security door, 21 no ammo / switch, 27
@@ -522,7 +523,8 @@ lesson: during each milestone, not only at the end):
    every recorded frame equals ours ("Watched in E7").
 7. The status window and the menu cards to the pixel (E7, E9). **The
    status window answered in E6**: equal to the pixel once its KEYCARD row
-   is a pixel lower than Omnispeak's numbers.
+   is a pixel lower than Omnispeak's numbers. **The menu cards answered in
+   E9**: equal to the pixel ("Watched in E9").
 8. Each creature's speed and frames, with Keen standing still or in god
    mode, as in D5 (E4).
 
@@ -816,3 +818,40 @@ fuse, 63 the elevator door; 43/44 the thrown flag and 56 the elevator's
 ride are never played by Keen 5). The Paddle War sounds are Omni's 46-50
 (all priority 50, CG lists them one off). The digitised slots 128-191 are
 empty; no song uses the rhythm mode (register 0xBD is only written 0).
+
+## Watched in E9
+
+The control panel of the user's v1.4 in js-dos (headless, the snapshots
+are 320 × 200 frames; a key on the title opens the main card, Escape in a
+game), compared with ours drawn by `GalaxyMenuView` by mapping both to
+the 16 EGA colours (D10's lesson):
+
+| Card | Pixels that differ |
+|---|---|
+| Main card, title loop (cursor icon lit) | 0 |
+| Main card in a game (RETURN TO GAME, cursor icon dark) | 0 |
+| New Game (BEGIN NORMAL GAME under the cursor) | 0 |
+| Load (six empty slots) | 0 |
+| Save, "AB" typed into slot 1 / saved | 0 / 0 |
+| Sound (ADLIB/SOUNDBLASTER checked) | 0 |
+| Paddle War's start (KEEN:0, the title, COMP: 0, both paddles) | 0 |
+| Configure | 1,559: the original has USE KEYBOARD, the joysticks, the Gravis pad and CONTROL: KEYBOARD; ours KEYBOARD and RESET KEYS (Keen 4's choice, D10) |
+| REALLY QUIT? | 1,779: ours has the line PRESS C TO CHOOSE GAME, so a larger box (the user's decision, 20-10-2026) |
+
+- The pictures (Omni `GFXCHUNK.CK5`, chunk − 6) are Keen 4's minus one
+  counted from the end: Keen 5's range ends with GAMEOVER after the
+  count-down. Checked by eye: 61 MAIN MENU … 74 QUIT, 75 the joystick, 76
+  the wrist watch (Keen 5's own: grey, two red buttons; Keen 4's is
+  another picture). Masked picture 0 is the watch's dotted screen, sprites
+  0-2 the paddle and the ball, font 1 the watch's font, as Keen 4's.
+- Six save slots (Omni US_MAX_NUM_OF_SAVED_GAMES; seen), the name typed
+  in the box, "Type name" / "Enter accepts" in the footer, the save card
+  staying with the name.
+- Loading: black, then the game with the box PAUSED (seen on the world
+  map, Keen under the box).
+- End Game in a game asks REALLY END CURRENT GAME? (also right after a
+  load: the question comes whenever the panel was opened in a game and
+  nothing was saved since), then the high scores on map 15, the title loop.
+- The cursor's icon blinks (lit and dark both seen), Return to Demo and
+  Return to Game as Keen 4's.
+

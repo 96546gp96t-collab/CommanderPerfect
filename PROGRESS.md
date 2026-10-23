@@ -118,20 +118,17 @@ bestanden in [docs/keen5/file-formats.md](docs/keen5/file-formats.md).
 | E6 | De wereldkaart (teleporters, liften, Korath III, statusvenster) | ✅ Klaar (branch `milestone-e6-kaart`) |
 | E7 | Einde, game over (de melkweg ontploft), titel en demo's | ✅ Klaar (branch `milestone-e7-einde-titel`) |
 | E8 | Geluid en muziek | ✅ Klaar (branch `milestone-e8-geluid`) |
-| E9 | Menu's en opslaan | ⬜ |
+| E9 | Menu's en opslaan | ✅ Klaar (branch `milestone-e9-menus`) |
 | E10 | Mooier maken (plaatjes achter de levels, builds) | ⬜ |
 | E11 | Co-op lokaal en online | ⬜ |
 | E12 | Naast het origineel; alle opties uit = het origineel | ⬜ |
 | E13 | (Optioneel) Keen 4 op het gedeelde Galaxy-spel | ⬜ |
 
-**Volgende stap:** E9 (`milestone-e9-menus`, vanaf `milestone-e8-geluid`):
-`GalaxyMenuScreen` en `GalaxySavedGame` uit Keen 4's, het controlepaneel
-van Keen 5 met zijn kaartplaatjes, opslaan in `user://keen5/saves`, Paddle
-War (geluiden 46-50 staan al in `Keen5Sounds`); de kaarten Sound en Music
-zetten dezelfde instellingen als Shift+S/Shift+M, QUIET ADLIB en de
-scorebox komen in `GalaxySettings` (`user://keen5/settings.cfg`, nu alleen
-gelezen). Een test dat Keen 5 nooit in de mappen van Keen 4 schrijft. De
-gebruiker uploadt Keen 2-5 weer naar de sessie.
+**Volgende stap:** E10 (`milestone-e10-extras`, vanaf `milestone-e9-menus`):
+vloeiende beweging en xBRZ voor Keen 5 nakijken (ook het controlepaneel en
+de vakken met xBRZ), eigen plaatjes achter de levels in
+`assets/backgrounds/keen5/`, de builds voor macOS en Windows (op de Mac).
+De gebruiker uploadt Keen 2-5 weer naar de sessie.
 
 ## Achtergronden Keen 1 en 2: mijlpalen AB
 
@@ -275,6 +272,71 @@ ligt wordt een gat (`docs/graphics.md`, onderzoek §8).
   in `Keen2GuardRobot`; nu kijkt hij de kant op waar hij heen zweeft en
   schiet. Alleen namen/plaatjes gecontroleerd (js-dos overgeslagen op
   verzoek). Test `test_guard_robot_faces_the_way_it_floats_and_fires`.
+
+## Mijlpaal E9: wat er nu is
+
+Keen 5 heeft zijn controlepaneel en kan opslaan, op `milestone-e9-menus`
+(23-10, 01:12 - 02:05 UTC). De regels staan in `docs/keen5/gameplay.md`
+("The control panel", "Saving and loading", "Difficulty"), de klassen en
+afwijkingen in `docs/keen5/architecture.md` ("Keen 5's control panel (from
+E9)", "Deviations in E9"), de vergelijking met het origineel in
+`docs/keen5/research.md` ("Watched in E9").
+
+- [x] **Het gedeelde spel**: `GalaxyMenuScreen` (uit `Keen4MenuScreen`,
+  tussen `GalaxyFrontScreen` en `Keen5View`: het paneel, nieuw spel per
+  moeilijkheid, laden, opslaan, End Game, Paddle War op eigen tics, Sound,
+  Music, stille AdLib en scorebox, F1 boven een kaart; de help en "nieuw
+  spel" verhuisden mee uit de voorkant, die nu 535 regels heeft, het
+  menuscherm 513) en `GalaxySavedGame` (uit `Keen4SavedGame`: op de kaart
+  de plek, in een level de start plus elk frame sindsdien, bij laden
+  opnieuw gespeeld; nu stil en zonder de god mode van nu). Nieuwe regels:
+  de kaartplaatjes vanaf het eind, zes slots, `saves_folder()`. Haak
+  `_level_began` in de flow.
+- [x] **Keen 5**: elke toets in de titellus en Escape in het spel openen
+  het paneel (E7 begon direct een spel); Keen 5's eigen horloge en
+  kaartplaatjes (één plek dichter bij het eind dan Keen 4's: MAIN MENU 32
+  … horloge 17, op het oog nagekeken); `Keen5SavedGame` bewaart sleutelkaart,
+  resterende zekeringen, levels met 1/14 en de aankomst op Korath III; Escape
+  wacht tijdens een rit op de kaart (teleporter, liftdeur, vlucht).
+  Opslaan in `user://keen5/saves`, instellingen in
+  `user://keen5/settings.cfg`, nooit in die van Keen 4.
+- [x] **Naast het origineel (js-dos, v1.4)**: hoofdkaart (titellus en in
+  het spel), New Game, Load, Save met getypte naam en opgeslagen, Sound en
+  het begin van Paddle War **0 pixels verschil**; Configure en REALLY QUIT?
+  verschillen alleen waar dat bedoeld is (onze rijen, de regel Choose
+  Game). Laden geeft PAUSED, End Game vraagt en toont de highscores, zoals
+  Keen 4.
+- [x] **Bewijs opslaan/laden**: in level 1 een schermafbeelding, opslaan,
+  verder spelen, laden: het beeld is buiten het PAUSED-vak pixel voor
+  pixel gelijk (1280×800). Op de kaart staat Keen op dezelfde plek; alleen
+  de vlam van de raket begint haar cyclus opnieuw (als Keen 4).
+- [x] **Tests**: nieuw `test_galaxy_game_saved` (fixtures: slot heen en
+  terug, kaart die niet bestaat, frames en gebeurtenissen, een level
+  opnieuw gespeeld, kaartplaatjes Keen 4/5, Keen 5's eigen staat, **elk pad
+  in `user://keen5` en geen `user://keen4` in de bronnen**),
+  `test_keen5_save_play` (echte data: levels 1, 4, 12, 13 op elke
+  moeilijkheid halverwege opgeslagen en terug, met god mode en B+A+T),
+  `test_keen5_menus` (boomsuite: paneel uit de titellus, **elke kaart met
+  Keen 5's plaatje**, nieuw spel per moeilijkheid met 8 ladingen op Easy,
+  opslaan/laden op de kaart en in een level, instellingen bewaard, Paddle
+  War, End Game, F1, rit, **niets veranderd in `user://keen4`**);
+  `test_keen5_front` opent nu het paneel. **161 suites groen, 1
+  overgeslagen (Keen 4 v1.4), 0 FAIL, 0 SCRIPT ERROR.** `gdformat` en
+  `gdlint` schoon.
+- [x] **Controle Keen 1-4**: regressies tegen de nulmeting: Keen 1 alleen
+  `launcher.png` anders (gelijk aan E7's en E8's: het vijfde icoon), Keen 2
+  (4) en Keen 4 (11 beelden) alles gelijk. `git diff origin/main` op
+  `src/keen2-4`, hun tests, `src/actors`, `src/map`, `src/game`: alleen de
+  twee regels met het aantal spellen. Niets veranderd in `src/galaxy/`
+  buiten `game/`.
+- **Niet gedaan:** de apps zijn hier niet gebouwd (de gebruiker bouwt op de
+  Mac). Co-op en online in het paneel komen in E11. De kaarten voor
+  joystick en Gravis-pad van het origineel zijn er niet (als Keen 4).
+  Opslaan tijdens de vlucht in de lift kan niet (Escape wacht).
+- **Om te proberen:** `godot --path . -- --game=5`, een toets: het
+  paneel; New Game op Easy, in een level Escape, Save Game, naam typen,
+  verder spelen, Escape, Load Game: hetzelfde moment terug onder PAUSED.
+  Configure, Options: SCORE BOX uit.
 
 ## Mijlpaal E8: wat er nu is
 
