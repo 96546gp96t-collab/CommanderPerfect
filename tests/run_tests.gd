@@ -173,6 +173,7 @@ const TREE_SUITES: Array[Script] = [
 	preload("res://tests/test_keen5_music.gd"),
 	preload("res://tests/test_keen5_menus.gd"),
 	preload("res://tests/test_keen5_backgrounds.gd"),
+	preload("res://tests/test_keen5_original_mode.gd"),
 	preload("res://tests/test_keen5_coop_screen.gd"),
 	preload("res://tests/test_keen5_online_play.gd"),
 ]
