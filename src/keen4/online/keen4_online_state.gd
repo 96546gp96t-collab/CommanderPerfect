@@ -89,3 +89,22 @@ static func unpack(
 	for level in Keen4Episode.LAST_MAP:
 		if numbers[Field.DONE_LEVELS] & (1 << level):
 			progress.mark_done(level)
+
+
+## Keen 4's numbers as the shared game asks for them ([GalaxyOnlineState],
+## milestone E13): Keen 4's own layout, so its snapshots stay as they were.
+class GameState:
+	extends GalaxyOnlineState
+
+	func pack(
+		inventory: GalaxyInventory, progress: GalaxyProgress, difficulty: int
+	) -> PackedInt32Array:
+		return Keen4OnlineState.pack(inventory, progress as Keen4Progress, difficulty)
+
+	func is_sane(numbers: PackedInt32Array) -> bool:
+		return Keen4OnlineState.is_sane(numbers)
+
+	func unpack(
+		numbers: PackedInt32Array, inventory: GalaxyInventory, progress: GalaxyProgress
+	) -> void:
+		Keen4OnlineState.unpack(numbers, inventory, progress as Keen4Progress)

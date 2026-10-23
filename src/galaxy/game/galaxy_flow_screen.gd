@@ -182,7 +182,7 @@ func _after_frame() -> bool:
 func _after_map_frame() -> void:
 	var level := _on_map.entered()
 	if level > 0:
-		_stop_music()
+		_stop_music_between_maps()
 		_game_progress.map_position = _on_map.keen.map_position
 		_enter(level, true)
 
@@ -199,7 +199,7 @@ func _after_level_frame() -> void:
 func _finish_level() -> void:
 	var finished := _played
 	_played = null
-	_stop_music()
+	_stop_music_between_maps()
 	_game_progress.mark_done(_map_number, _done_value(finished))
 	_game_progress.last_finished = _map_number
 	_after_level_done(finished)
@@ -230,7 +230,7 @@ func _back_to_map() -> void:
 ## or the game is over.
 func _lose_level() -> void:
 	_played = null
-	_stop_music()
+	_stop_music_between_maps()
 	_game_progress.last_finished = -1
 	_inventory.lives -= 1
 	if _inventory.lives < 0:

@@ -197,7 +197,7 @@ func _update_sky_patch() -> void:
 ## the broken QED showed the picture in its window). Only with the
 ## picture shown; in 4:3 or without pictures nothing is painted.
 func _keep_sky_in(cell: Vector2i) -> void:
-	if _sky_color.a == 0.0:
+	if _sky_color.a == 0.0 or not rules.keeps_sky_in_placed_tiles:
 		return
 	var rows: Array[Rect2i] = []
 	rows.assign(_sky_patch.rows())

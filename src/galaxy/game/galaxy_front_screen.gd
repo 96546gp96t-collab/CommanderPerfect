@@ -276,7 +276,7 @@ func _after_demo_frame() -> bool:
 func _end_demo() -> void:
 	var was_high_scores := _board_sprite.visible and _demo.map_number == rules.high_score_map
 	_played = null
-	_stop_music()
+	_stop_music_between_maps()
 	_stop_front()
 	if _after_game and was_high_scores:
 		_after_game = false
@@ -401,7 +401,7 @@ func _game_ended() -> void:
 	_on_map = null
 	_after_game = true
 	_stop_front()
-	_stop_music()
+	_stop_music_between_maps()
 	var place := _high_scores.place_for(_inventory.score, _high_score_count())
 	if place < 0:
 		_in_title_loop = true

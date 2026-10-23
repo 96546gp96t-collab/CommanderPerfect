@@ -226,8 +226,11 @@ var silent_replay := true
 ##     Keen 4 sends only the sounds of the world played, D12);
 var screen_sounds_online := true
 ##   - a map without Keen's start is looked at from its first cell (Keen 4
-##     from the last cell it searched, D3).
+##     from the last cell it searched, D3);
 var looks_from_first_cell := true
+##   - Return to Game in the control panel out of a game goes back to the
+##     title loop (E9; Keen 4 stays on the map it shows).
+var panel_out_of_game_resumes_title := true
 
 
 ## Where the episode's high scores are kept (its own user folder).

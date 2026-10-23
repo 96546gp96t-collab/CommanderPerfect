@@ -77,7 +77,7 @@ func _set_up_play() -> void:
 	_window_sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	_window_sprite.visible = false
 	_score_box.get_parent().add_child(_window_sprite)
-	_objects.original_order = true
+	_objects.original_order = rules.original_sprite_order
 
 
 func _process(delta: float) -> void:
@@ -187,6 +187,12 @@ func _play_sound(sound_name: StringName, interrupt := false) -> void:
 	_audio.play(sound_name, interrupt)
 
 
+## A sound the world played asks for (its objects, Keen): played as
+## [method _play_sound] (online it always goes to the joiner).
+func _play_world_sound(sound_name: StringName, interrupt := false) -> void:
+	_play_sound(sound_name, interrupt)
+
+
 ## A frame of [param _tics] tics that something over the game takes (the
 ## status window); returns whether it did, so the game and the boxes wait
 ## (none by default).
@@ -204,6 +210,14 @@ func _play_map_song(map: int) -> void:
 ## song).
 func _stop_music() -> void:
 	_audio.stop_music()
+
+
+## The play of a map ended (a level done, a death, a map only looked at, a
+## demo over): the music stops, unless the episode plays it on through the
+## boxes between the maps (Keen 4, [member GalaxyGameRules.music_stops_between_maps]).
+func _stop_music_between_maps() -> void:
+	if rules.music_stops_between_maps:
+		_stop_music()
 
 
 ## Where between the last two logic frames to draw now: the clock's blend
@@ -290,10 +304,10 @@ func _start_playing(map: GalaxyMap, camera: GalaxyCamera, world: GalaxyWorld) ->
 	world.back_tile_writer = func(cell: Vector2i, tile: int) -> void:
 		_galaxy_map.set_tile(GalaxyMap.Layer.BACKGROUND, cell, tile)
 		_keep_sky_in(cell)
-	world.sound_player = _play_sound
+	world.sound_player = _play_world_sound
 	_play_map_song(_map_number)
 	_objects.show_objects(world.objects)
-	_fresh_sprites = true
+	_fresh_sprites = rules.original_sprite_order
 	_frame_view()
 	_view_motion.move_to(Vector2(_camera_anchor.position))
 	_view_motion.snap()
@@ -346,7 +360,7 @@ func _apply_display_settings() -> void:
 func _look_at(map: GalaxyMap) -> void:
 	_played = null
 	_on_map = null
-	_stop_music()
+	_stop_music_between_maps()
 	_mode = Mode.LOOK
 	_clock.reset()
 	_galaxy_camera = GalaxyCamera.for_map(

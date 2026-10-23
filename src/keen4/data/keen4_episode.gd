@@ -244,6 +244,7 @@ static func _keep_keen4_ways(rules: GalaxyGameRules) -> void:
 	rules.silent_replay = false
 	rules.screen_sounds_online = false
 	rules.looks_from_first_cell = false
+	rules.panel_out_of_game_resumes_title = false
 
 
 ## Where the original's high-score table may be, in the known versions.

@@ -151,7 +151,7 @@ func _on_panel_closed() -> void:
 func _on_panel_chosen(id: StringName, value: int) -> void:
 	match id:
 		MenuController.CHOICE_RESUME:
-			if _in_title_loop or not in_game():
+			if _in_title_loop or (rules.panel_out_of_game_resumes_title and not in_game()):
 				_in_title_loop = true
 				_next_title_step()
 			else:
@@ -406,7 +406,7 @@ func _begin_game() -> void:
 	_on_map = null
 	_recording = null
 	_stop_front()
-	_stop_music()
+	_stop_music_between_maps()
 	_title_layer.clear()
 
 
@@ -437,8 +437,9 @@ func _resume(game: GalaxySavedGame) -> void:
 		return
 	_loaded = game
 	_played.set_wide_width(0)
-	_played.player.god_mode = false
-	_played.world.sound_player = Callable()
+	if rules.silent_replay:
+		_played.player.god_mode = false
+		_played.world.sound_player = Callable()
 	_replay = game.begin_replay(_played, game.frames, _galaxy_map.animate)
 
 
@@ -478,8 +479,9 @@ func _finish_replay() -> void:
 		_inventory = game.copy_inventory(game.inventory)
 		_show_level(game.map_number, game.random_start)
 		return
-	_played.world.sound_player = _play_sound
-	_god_mode = _played.player.god_mode
+	if rules.silent_replay:
+		_played.world.sound_player = _play_world_sound
+		_god_mode = _played.player.god_mode
 	_recording.frames = game.frames.duplicate()
 	_apply_wide_view()
 	_clock.resume_at(tic)

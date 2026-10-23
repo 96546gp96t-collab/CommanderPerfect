@@ -1,8 +1,12 @@
 class_name Keen4View
-extends Keen4OnlineScreen
-## The Keen 4 game screen that the start screen opens (milestones D3-D10):
-## the flow of a game on top of [Keen4MenuScreen] (docs/keen4/architecture.md,
-## "The flow of Keen 4"; Omni `ck_game.c:CK_GameLoop`, facts only):
+extends GalaxyOnlineScreen
+## The Keen 4 game screen that the start screen opens (milestones D3-D10;
+## since milestone E13 on the shared Galaxy game: [GalaxyOnlineScreen] on
+## [GalaxyJoinedScreen], [GalaxyCoopScreen], [GalaxyMenuScreen],
+## [GalaxyFrontScreen] and [GalaxyFlowScreen], with Keen 4's numbers from
+## [method Keen4Episode.game_rules]), and what only Keen 4 does
+## (docs/keen4/architecture.md, "The flow of Keen 4"; Omni
+## `ck_game.c:CK_GameLoop`, facts only):
 ##   - it starts with the title loop (intro, story, demos, high scores); a
 ##     key opens the control panel (new game on Easy, Normal or Hard on the
 ##     world map, with the box "Keen enters the Shadowlands"; load, save,
@@ -11,17 +15,21 @@ extends Keen4OnlineScreen
 ##     map, 1-17 the levels, 18 the Megarocket, 19 the high-score map);
 ##   - on the world map jump, pogo or fire on an entrance: "One moment",
 ##     then the level's "Keen enters ..." box with Keen counting down, a
-##     fade, and the level;
+##     fade, and the level; in water without the wetsuit "I can't swim!";
 ##   - walking out of a level, the Foot, a rescue or the wetsuit: the level
 ##     is done (rescue and wetsuit boxes first); back on the map with its
 ##     box, at the place he entered, the level's flag thrown (the Foot: he
-##     flies);
+##     flies); Lindsey and the janitor show their messages on the way;
 ##   - a death: one life less and the box "You didn't make it past …"
 ##     with Try Again (the level again) or Exit to Shadowlands (the map);
 ##     with no life left "Game Over!", then the high scores;
 ##   - after the eighth rescue (or the cheat E+N+D) the end pages, then the
 ##     name typed in on the high-score table, the high scores and the title
 ##     loop again; B+A+T gives the gems, 99 charges and a life.
+## Keen 4 keeps its own ways where the Galaxy game later went another
+## (the flags of [GalaxyGameRules] that its rules switch off: the music
+## plays on through the boxes, a loaded level is replayed with its sounds,
+## only the world's sounds go online, ...).
 ##
 ## Keys: the shared ones (arrows, jump, pogo, fire); Enter the status
 ## window; F1 the help; Escape the control panel; Shift+N / Shift+P
@@ -31,29 +39,25 @@ extends Keen4OnlineScreen
 ## Keen 1-3 (help line, widescreen, pixel shape, full screen, graphics:
 ## original or xBRZ, smooth motion).
 
-const NOT_A_MAP_MESSAGE := "Keen 4 has no map %d"
 ## The testing cheats' messages, worded as in Keen 1-3.
 const GOD_MODE_MESSAGE := "Cheat: god mode %s"
 const EVERYTHING_MESSAGE := "Cheat: all four gems and 99 stunner charges"
-## "One moment" when Keen leaves the world map (seen in the original, D7).
-const ONE_MOMENT_TICS := 28
-## "Game Over!" stays 4.76 seconds, or until a key: in the original (v1.0)
-## the box was up 4,758 ms before the fade (seen in the original, D13;
-## Omnispeak's CK_GameOver waits 4 seconds).
-const GAME_OVER_TICS := 333
 ## Taking the wetsuit, the game stands still until its sound ("foot
 ## appear", 1.05 seconds) has played, then shows Keen's box; the exit sound
 ## comes after the box (seen in the original, D13: 1.9 seconds with the
 ## pictures loading; Omni CK4_ShowWetsuitMessage, SD_WaitSoundDone).
 const WETSUIT_SOUND_TICS := 73
-## The choices after a death.
-const TRY_AGAIN := 0
-const EXIT_TO_MAP := 1
 
-## The choice after a death, while the box is up; -1 otherwise.
-var _choice := -1
-var _choice_tic := 0
-var _cheats := Keen4Cheats.new()
+## The messages of the council, Lindsey, the janitor and the wetsuit.
+var _messages: Keen4Messages
+## Keen 4's own settings (the score box, the quiet AdLib sounds).
+var _keen4_settings: GalaxySettings:
+	get:
+		return _galaxy_settings
+
+
+func _init() -> void:
+	rules = Keen4Episode.game_rules()
 
 
 func _ready() -> void:
@@ -65,10 +69,14 @@ func _ready() -> void:
 	if not _load_data():
 		return
 	_set_up_play()
+	_set_up_flow()
 	_set_up_front()
 	_set_up_panel()
 	_set_up_coop()
 	_set_up_online()
+	var names := _box_names as Keen4BoxNames.GameNames
+	_messages = Keen4NamedMessages.create_named(_data, names.keen_4)
+	names.messages = _messages
 	var requested := _requested_map()
 	if requested < 0:
 		_start_title_loop()
@@ -85,129 +93,103 @@ func _unhandled_input(event: InputEvent) -> void:
 	elif _handle_display_keys(event):
 		get_viewport().set_input_as_handled()
 		return
-	if _data != null and _front_input(event):
+	if _data == null:
+		return
+	if _front_input(event) or _flow_input(event):
 		get_viewport().set_input_as_handled()
-		return
-	if _status_drop != null:
-		if _is_new_press(event):
-			get_viewport().set_input_as_handled()
-			if _status_drop.stage == GalaxyStatusDrop.Stage.DOWN:
-				_audio.play(&"status_up")
-			_status_drop.release()
-		return
-	if _choice >= 0:
-		_choose(event)
-		return
-	if not _queue.is_empty():
-		if _is_new_press(event):
-			get_viewport().set_input_as_handled()
-			if _queue.press():
-				_show_step()
-		return
-	if event.is_action_pressed("ui_cancel"):
+	elif event.is_action_pressed("ui_cancel"):
 		get_viewport().set_input_as_handled()
-		_open_panel()
-	elif event.is_action_pressed("status") and (_played != null or _on_map != null):
-		get_viewport().set_input_as_handled()
-		_open_status()
+		_escape()
 	elif _handle_map_keys(event):
 		get_viewport().set_input_as_handled()
 
 
-## Shows map [param number] at once: played when Keen is in it, otherwise
-## with Keen standing still and the view on him.
-func _show_level(number: int, random_start := -1) -> void:
-	_map_number = number
-	# A fresh copy: playing changes the map's tiles.
-	var map := _data.maps.load_map(number) if _data.maps.has_map(number) else null
-	if map == null:
-		_show_message(NOT_A_MAP_MESSAGE % number)
-		return
-	_start = Keen4Start.find(map)
-	_objects.clear()
-	_keen_item = null
-	if random_start < 0:
-		random_start = randi() & GalaxyWorld.RANDOM_MASK
-	if _start.is_world_map():
-		var on_map := Keen4MapSession.start(_data, map, _game_progress, random_start)
-		_game_progress.foot_flight = false
-		_game_progress.last_finished = -1
-		if on_map != null:
-			_play_map(on_map)
-			return
-	var played := Keen4LevelSession.start(_data, map, _inventory, random_start, _difficulty, number)
-	if played != null:
-		_level_began(number, random_start)
-		_play(played, map)
-	else:
-		_look_at(map)
+## The rescued council members, the wetsuit, the levels done, the map.
+func progress() -> Keen4Progress:
+	return _game_progress as Keen4Progress
 
 
-## Map [param number] behind its "Keen enters ..." box, the count-down and
-## a fade (Omni CK_LoadLevel's cache box; seen in the original, D7);
-## [param from_map]: "One moment" first.
-func _enter(number: int, from_map: bool) -> void:
-	_queue.clear()
-	if from_map:
-		_queue.add(_boxes.one_moment(), ONE_MOMENT_TICS)
-	_queue_loading(_boxes.entering(number), _show_level.bind(number))
-	_after_queue(Callable())
+func _new_inventory() -> GalaxyInventory:
+	return Keen4Inventory.new_game()
 
 
-## After a frame: what the level or the map asks for, and how it ended.
-func _after_frame() -> bool:
-	if _after_demo_frame():
-		return not _queue.is_empty() or _played == null
-	if _check_cheats():
-		return true
-	if _on_map != null:
-		_after_map_frame()
-	else:
-		_after_level_frame()
-	return not _queue.is_empty() or (_played == null and _on_map == null)
+func _new_progress() -> GalaxyProgress:
+	return Keen4Progress.new()
 
 
+func _new_status_window() -> GalaxyStatusWindow:
+	return Keen4StatusWindow.create(_data, rules)
+
+
+func _new_session(map: GalaxyMap, number: int, random_start: int) -> GalaxyLevelSession:
+	return Keen4LevelSession.start_level(
+		_data, rules, map, _inventory, random_start, _difficulty, number
+	)
+
+
+func _new_map_session(map: GalaxyMap, random_start: int) -> GalaxyMapSession:
+	return Keen4MapSession.start_map(_data, rules, map, _game_progress, random_start)
+
+
+func _new_saved_game() -> GalaxySavedGame:
+	return Keen4SavedGame.new(rules)
+
+
+func _new_box_names() -> GalaxyBoxNames:
+	return Keen4BoxNames.GameNames.new()
+
+
+func _new_online_state() -> GalaxyOnlineState:
+	return Keen4OnlineState.GameState.new()
+
+
+## Keen 4's boxes ("I can't swim!" too) under Keen 4's names.
+func _new_named_boxes() -> GalaxyGameBoxes:
+	return Keen4NamedBoxes.create_named(_data, (_box_names as Keen4BoxNames.GameNames).keen_4)
+
+
+## Only the world map's song is rendered first (Keen 4's order, D9).
+func _first_song_maps() -> PackedInt32Array:
+	return PackedInt32Array([rules.world_map])
+
+
+## On the world map: "I can't swim!" in water without the wetsuit, then
+## an entrance taken.
 func _after_map_frame() -> void:
 	if _on_map.take_conversation() == Keen4MapKeen.CANT_SWIM:
-		_show_screens([_boxes.cant_swim()], Callable())
-	var level := _on_map.entered()
-	if level > 0:
-		_game_progress.map_position = _on_map.keen.map_position
-		_enter(level, true)
+		_show_screens([(_boxes as Keen4GameBoxes).cant_swim()], Callable())
+	super()
 
 
+## In a level: Lindsey's and the janitor's messages, then done or lost.
 func _after_level_frame() -> void:
 	var asked := _played.take_conversation()
 	if asked == Keen4Lindsey.MESSAGE:
 		# Her message stops the music; the map's song starts again after it
 		# (Omni CK4_ShowPrincessMessage).
-		_audio.stop_music()
-		_show_screens(_messages.lindsey(_map_number), _audio.play_map_song.bind(_map_number))
+		_stop_music()
+		_show_screens(_messages.lindsey(_map_number), _play_map_song.bind(_map_number))
 	elif asked == Keen4Council.JANITOR:
-		_audio.play_council_song()
-		_show_screens(_messages.janitor(), _audio.play_map_song.bind(_map_number))
-	if _played.is_done():
-		_finish_level()
-	elif _played.is_lost():
-		_lose_level()
+		_play_council_song()
+		_show_screens(_messages.janitor(), _play_map_song.bind(_map_number))
+	super()
 
 
-## The level is done (Omni CK_GameLoop): it is marked, its flag will be
-## thrown; a rescue or the wetsuit shows its boxes first; then the map.
-func _finish_level() -> void:
-	var ending := _played.ending()
-	_played = null
-	_game_progress.mark_done(_map_number)
-	_game_progress.last_finished = _map_number
-	_game_progress.foot_flight = ending == Keen4Inchworm.FOOT_ENDING
+## The level is done (Omni CK_GameLoop): its flag will be thrown (the
+## Foot: Keen flies); a rescue or the wetsuit shows its boxes first; then
+## the map.
+func _after_level_done(finished: GalaxyLevelSession) -> void:
+	var ending := finished.ending()
+	var keen_4 := progress()
+	keen_4.foot_flight = ending == Keen4Inchworm.FOOT_ENDING
 	match ending:
 		Keen4Council.RESCUED:
-			_audio.play(&"level_exit")
-			_audio.play_council_song()
-			var before := _game_progress.rescue()
+			_play_sound(&"level_exit")
+			_play_council_song()
+			var before := keen_4.rescue()
 			_show_screens(_messages.council(_map_number, before), _after_rescue)
 		Keen4Wetsuit.TAKEN:
-			_game_progress.wetsuit = true
+			keen_4.wetsuit = true
 			_queue.add(null, WETSUIT_SOUND_TICS)
 			_show_screens(_messages.wetsuit(), _exit_to_map)
 		_:
@@ -215,139 +197,72 @@ func _finish_level() -> void:
 
 
 func _after_rescue() -> void:
-	if _game_progress.all_rescued():
-		_start_ending()
+	if progress().all_rescued():
+		_start_end_pages()
 	else:
 		_back_to_map()
 
 
-## The exit sound, then the map.
-func _exit_to_map() -> void:
-	_audio.play(&"level_exit")
-	_back_to_map()
+## The end pages (after the eighth rescue).
+func _start_end_pages() -> void:
+	_start_ending(rules.end_text)
 
 
-func _back_to_map() -> void:
-	_enter(Keen4Episode.WORLD_MAP, false)
+## The council's (and the janitor's) song (Omni ck4_specialMusic).
+func _play_council_song() -> void:
+	_audio.start_song(Keen4Sounds.COUNCIL_SONG)
 
 
-## Keen died (Omni CK_TryAgainMenu, CK_GameOver): a life less; the box with
-## the choice, or "Game Over!" and the start screen.
-func _lose_level() -> void:
+## E+N+D (Omni CK_PlayLoop, CK_CheckKeys): the game ends as a rescue of the
+## eighth council member here.
+func _cheat_end() -> void:
+	var map := _map_number
 	_played = null
-	_game_progress.last_finished = -1
-	_inventory.lives -= 1
-	if _inventory.lives < 0:
-		_queue.add(_boxes.game_over(), GAME_OVER_TICS)
-		_after_queue(_game_ended)
-		return
-	_choice = TRY_AGAIN
-	_choice_tic = 0
-	_queue.add_box(_boxes.try_again(_map_number, _choice, _choice_tic))
-	_show_step()
+	_on_map = null
+	var keen_4 := progress()
+	keen_4.rescued = Keen4Progress.COUNCIL_COUNT - 1
+	if rules.is_level(map):
+		keen_4.mark_done(map)
+	var before := keen_4.rescue()
+	_play_council_song()
+	_show_screens(_messages.council(map, before), _start_end_pages)
 
 
-## The keys of the box after a death: up and down choose, jump, pogo,
-## Enter or Space take the choice, Escape goes to the map.
-func _choose(event: InputEvent) -> void:
-	if not _is_new_press(event):
-		return
-	get_viewport().set_input_as_handled()
-	var input := _choice_input()
-	if event.is_action_pressed("ui_cancel"):
-		_take_choice(EXIT_TO_MAP)
-	elif input.jump or input.pogo or event.is_action_pressed("ui_accept"):
-		_take_choice(_choice)
-	elif input.vertical != 0:
-		_choice = TRY_AGAIN if input.vertical < 0 else EXIT_TO_MAP
-		_redraw_choice()
+## The table keeps the council members rescued beside the score.
+func _high_score_count() -> int:
+	return progress().rescued
 
 
-func _take_choice(choice: int) -> void:
-	_choice = -1
-	_queue.clear()
-	_enter(_map_number if choice == TRY_AGAIN else Keen4Episode.WORLD_MAP, false)
+## A demo plays on Normal without changing the game's difficulty (as Keen
+## 4 did before milestone E13).
+func _begin_demo(high_scores_shown: bool) -> void:
+	var kept := _difficulty
+	_difficulty = GalaxyDifficulty.DEFAULT
+	super(high_scores_shown)
+	_difficulty = kept
 
 
-## The choice's frame blinks while the box waits.
-func _waiting(tics: int) -> void:
-	super(tics)
-	if _choice < 0:
-		return
-	var before := Keen4GameBoxes.blink_color(_choice_tic)
-	_choice_tic += tics
-	if Keen4GameBoxes.blink_color(_choice_tic) != before:
-		_redraw_choice()
-
-
-func _redraw_choice() -> void:
-	var step := _queue.current()
-	if step == null:
-		return
-	step.image = _boxes.try_again(_map_number, _choice, _choice_tic)
-	_show_step()
-
-
-## The cheats while Keen plays (Omni CK_PlayLoop, CK_CheckKeys): E+N+D
-## ends the game as a rescue of the eighth council member here; B+A+T
-## shows its box and gives the items. Returns whether one did something.
-func _check_cheats() -> bool:
-	match _cheats.check(Keen4Cheats.is_key_held):
-		Keen4Cheats.Cheat.END:
-			var map := _map_number
-			_played = null
-			_on_map = null
-			_game_progress.rescued = Keen4Progress.COUNCIL_COUNT - 1
-			if map >= Keen4Episode.FIRST_LEVEL and map <= Keen4Episode.LAST_LEVEL:
-				_game_progress.mark_done(map)
-			var before := _game_progress.rescue()
-			_audio.play_council_song()
-			_show_screens(_messages.council(map, before), _start_ending)
-			return true
-		Keen4Cheats.Cheat.ITEMS:
-			_record_event(Keen4SavedGame.Event.ITEMS_CHEAT)
-			_show_screens([Keen4Cheats.items_box(_data)], _give_items)
-			return true
-	return false
-
-
-func _give_items() -> void:
-	Keen4Cheats.give_items(_inventory)
-	_update_score_box()
-
-
-## F1 alone (Shift+F1 keeps Keen 1-3's help line); not over the end or
-## the name being typed.
-func _is_help_key(event: InputEvent) -> bool:
-	var key := event as InputEventKey
-	if key == null or not key.pressed or key.echo or key.shift_pressed:
-		return false
-	if _data == null or _front in [Front.HELP, Front.ENDING, Front.NAME_ENTRY]:
-		return false
-	if _panel.is_open() and not _panel.allows_help():
-		return false
-	return event.is_action_pressed("toggle_help")
-
-
-## Whether a box, the status window or the choice after a death waits in a
-## game: the original reads F1 only while Keen plays, so then F1 is just a
-## key for what waits (D13: the help opened under the "PAUSED" box after
-## loading a game).
-func _box_waits() -> bool:
-	if _panel.is_open() or _in_title_loop:
-		return false
-	return not _queue.is_empty() or _status_drop != null or _choice >= 0
-
-
-func _leave() -> void:
-	set_process(false)
-	get_tree().change_scene_to_file.call_deferred(GameLaunch.LAUNCHER_SCENE)
+## The name typed in on map 19 (as Keen 4 did before milestone E13: the
+## map is played with an inventory of its own; the song of the map last
+## shown plays on).
+func _begin_name_entry(place: int) -> void:
+	_title_layer.clear()
+	var map := _data.maps.load_map(rules.high_score_map)
+	var session := Keen4LevelSession.start_level(
+		_data, rules, map, Keen4Inventory.new_game(), 0, GalaxyDifficulty.DEFAULT, map.number
+	)
+	_play(session, map)
+	_score_box.visible = false
+	# The original draws only the map's tiles behind the table here (seen).
+	_objects.visible = false
+	_show_board(map)
+	_board.start_typing(place)
+	_front = Front.NAME_ENTRY
 
 
 ## Shift+N and Shift+P: the next or previous map; Shift+G and Shift+I:
 ## the testing cheats of Keen 1-3 ([method _handle_cheat_keys]); Shift+S
-## the sound (AdLib, PC speaker, off) and Shift+M the music (until the
-## menus of D10 have them).
+## the sound (AdLib, PC speaker, off) and Shift+M the music.
 func _handle_map_keys(event: InputEvent) -> bool:
 	var key := event as InputEventKey
 	if key == null or not key.pressed or key.echo or not key.shift_pressed:
@@ -370,9 +285,8 @@ func _handle_map_keys(event: InputEvent) -> bool:
 			return true
 		_:
 			return false
-	if _data != null:
-		var count := Keen4Episode.LAST_MAP + 1
-		_show_level(posmod(_map_number + step, count))
+	var count := rules.last_map + 1
+	_show_level(posmod(_map_number + step, count))
 	return true
 
 
@@ -386,7 +300,7 @@ func _handle_cheat_keys(event: InputEvent) -> bool:
 		_toggle_god_mode()
 	elif event.is_action_pressed("cheat_items") and (_played != null or _on_map != null):
 		Keen4Cheats.give_everything(_inventory)
-		_record_event(Keen4SavedGame.Event.EVERYTHING)
+		_record_event(GalaxySavedGame.Event.EVERYTHING)
 		_update_score_box()
 		_show_message(EVERYTHING_MESSAGE)
 	else:
@@ -401,7 +315,7 @@ func _toggle_god_mode() -> void:
 		if _played.partner != null:
 			_played.partner.god_mode = _god_mode
 		_record_event(
-			Keen4SavedGame.Event.GOD_MODE_ON if _god_mode else Keen4SavedGame.Event.GOD_MODE_OFF
+			GalaxySavedGame.Event.GOD_MODE_ON if _god_mode else GalaxySavedGame.Event.GOD_MODE_OFF
 		)
 	_show_message(GOD_MODE_MESSAGE % ("on" if _god_mode else "off"))
 

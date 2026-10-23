@@ -36,7 +36,7 @@ var _notice_text := ""
 func _set_up_online() -> void:
 	_box_names = _new_box_names()
 	_online_state = _new_online_state()
-	_boxes = GalaxyNamedBoxes.create_named(_data, rules, _box_names)
+	_boxes = _new_named_boxes()
 	_online.game_id = rules.game_id
 	_online.fingerprint = GalaxyFingerprint.of(_data.maps)
 	_online.attach(_panel, _user_settings)
@@ -51,6 +51,12 @@ func _set_up_online() -> void:
 ## The online game (tests).
 func online() -> OnlinePlay:
 	return _online
+
+
+## The boxes, each named in [member _box_names] for the joiner (an episode
+## with its own names gives its own: Keen 4's [Keen4NamedBoxes]).
+func _new_named_boxes() -> GalaxyGameBoxes:
+	return GalaxyNamedBoxes.create_named(_data, rules, _box_names)
 
 
 func _process(delta: float) -> void:
@@ -140,7 +146,7 @@ func _open_help() -> void:
 
 
 ## Every tile of a played map also goes to the joiner (its sounds go
-## through [method _play_sound]).
+## through [method _play_world_sound]).
 func _start_playing(map: GalaxyMap, camera: GalaxyCamera, world: GalaxyWorld) -> void:
 	super(map, camera, world)
 	var fore := world.tile_writer
@@ -153,8 +159,22 @@ func _start_playing(map: GalaxyMap, camera: GalaxyCamera, world: GalaxyWorld) ->
 		_send_tile(GalaxyMap.Layer.BACKGROUND, cell, tile)
 
 
+## Every sound also goes to the joiner (Keen 4: only the world's,
+## [member GalaxyGameRules.screen_sounds_online]).
 func _play_sound(sound_name: StringName, interrupt := false) -> void:
 	super(sound_name, interrupt)
+	if rules.screen_sounds_online:
+		_send_sound(sound_name, interrupt)
+
+
+## The world's sounds always go to the joiner.
+func _play_world_sound(sound_name: StringName, interrupt := false) -> void:
+	super(sound_name, interrupt)
+	if not rules.screen_sounds_online:
+		_send_sound(sound_name, interrupt)
+
+
+func _send_sound(sound_name: StringName, interrupt: bool) -> void:
 	var number: int = _audio.names.get(sound_name, -1)
 	if _online.has_partner() and number >= 0 and _frame_sounds.size() < GalaxySnapshot.MAX_SOUNDS:
 		_frame_sounds.append(number | (GalaxySnapshot.INTERRUPT if interrupt else 0))
