@@ -44,12 +44,6 @@ const CLOSED_DOOR := Vector2i(0, 0)
 ## (files: back tile 850 is all EGA yellow, tile 0 all black).
 const FILLER_TILE := 850
 const SPACE_TILE := 0
-## The sounds of the map with Omni's numbers, for milestone E8.
-const SOUNDS: Dictionary[StringName, int] = {
-	&"enter_level": 12,
-	&"teleport": 41,
-	&"elevator_door": 63,
-}
 
 ## The ride that holds the game, or null.
 var ride: Keen5MapRide

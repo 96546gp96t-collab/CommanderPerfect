@@ -29,11 +29,16 @@ extends GalaxyFrontScreen
 ##   - Enter: the status window with the keycard ([Keen5StatusWindow]); on
 ##     Korath III it names Korath III's base; F1 the help; B+A+T the gems,
 ##     99 charges, a life and the keycard.
-## Sound and the menus come later (docs/keen5/roadmap.md).
+## The sounds and songs are Keen 5's ([Keen5Sounds], milestone E8): every
+## map its own song, the story, the help, the end and game over theirs; the
+## fuse message waits for the level-exit sound to end. The menus come later
+## (docs/keen5/roadmap.md).
 ##
 ## Keys: the shared ones (arrows, jump, pogo, fire); Enter the status
 ## window; F1 the help; Escape the start screen; Shift+N / Shift+P the
-## next or previous map; Shift+G god mode and Shift+I all four gems, the
+## next or previous map; Shift+S the sound (AdLib, PC speaker, off) and
+## Shift+M the music, stored in the shared settings (as Keen 4's);
+## Shift+G god mode and Shift+I all four gems, the
 ## keycard and 99 charges (Keen 1-4's testing cheats); Shift+F1 the help
 ## line; F2-F6 as in Keen 1-4 (widescreen, pixel shape, full screen,
 ## graphics: original or xBRZ, smooth motion). [code]--random-seed=N[/code]
@@ -212,8 +217,12 @@ func _give_items() -> void:
 
 
 ## The two screens after a fuse, each 30 tics before a key counts (Omni
-## CK5_FuseMessage); then [param then].
+## CK5_FuseMessage); then [param then]. First the game stands still until
+## the sound playing (the level's exit) is over (Omni SD_WaitSoundDone).
 func _show_fuse_message(then: Callable) -> void:
+	var sound_left := _audio.remaining_tics()
+	if sound_left > 0:
+		_queue.add(null, sound_left)
 	for screen in _messages.fuse(_map_number):
 		_queue.add(screen, Keen5Messages.KEY_WAIT_TICS)
 		_queue.add_box(screen)
@@ -221,7 +230,8 @@ func _show_fuse_message(then: Callable) -> void:
 
 
 ## Shift+N and Shift+P: the next or previous map (over the missing one);
-## Shift+G and Shift+I: the testing cheats. Returns whether it was one.
+## Shift+S and Shift+M: the sound and the music; Shift+G and Shift+I: the
+## testing cheats. Returns whether it was one.
 func _handle_map_keys(event: InputEvent) -> bool:
 	var key := event as InputEventKey
 	if key == null or not key.pressed or key.echo or not key.shift_pressed:
@@ -231,6 +241,8 @@ func _handle_map_keys(event: InputEvent) -> bool:
 		return true
 	if event.is_action_pressed("cheat_items") and (_played != null or _on_map != null):
 		_give_everything()
+		return true
+	if _handle_sound_keys(key.keycode):
 		return true
 	var step := 0
 	match key.keycode:
@@ -242,6 +254,21 @@ func _handle_map_keys(event: InputEvent) -> bool:
 			return false
 	if _data != null:
 		_show_level(_next_map(_map_number, step))
+	return true
+
+
+## Shift+S: the next sound setting (AdLib, PC speaker, off); Shift+M: the
+## music on or off; each said and stored in the shared settings at once
+## (as Keen 4's before its menus). Returns whether [param keycode] was one.
+func _handle_sound_keys(keycode: Key) -> bool:
+	match keycode:
+		KEY_S:
+			_show_message(_audio.next_mode(_user_settings))
+		KEY_M:
+			_show_message(_audio.toggle_music(_user_settings))
+		_:
+			return false
+	_user_settings.save()
 	return true
 
 

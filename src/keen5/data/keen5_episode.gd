@@ -155,11 +155,6 @@ const HIGH_SCORE_LEFT := 0x28
 const HIGH_SCORE_RIGHT := 0x118
 const HIGH_SCORE_COLOR := 12
 const NO_TILE := -1
-## The songs (Omni): the story 17, the end 14, game over 18, the help 19.
-const STORY_SONG := 17
-const ENDING_SONG := 14
-const GAME_OVER_SONG := 18
-const HELP_SONG := 19
 const USER_FOLDER := "user://keen5"
 const NAME := "Keen 5"
 
@@ -251,7 +246,8 @@ static func game_rules() -> GalaxyGameRules:
 	return rules
 
 
-## The numbers of the screens between the games (milestone E7).
+## The numbers of the screens between the games (milestone E7) and the
+## sounds and songs (E8, [Keen5Sounds]).
 static func _add_front_rules(rules: GalaxyGameRules) -> void:
 	rules.title_from_end = TITLE_FROM_END
 	rules.story_from_end = STORY_FROM_END
@@ -277,10 +273,14 @@ static func _add_front_rules(rules: GalaxyGameRules) -> void:
 	rules.secret_end_text = SECRET_END_TEXT
 	rules.arrow_dim_picture = ARROW_DIM_PICTURE
 	rules.arrow_bright_picture = ARROW_BRIGHT_PICTURE
-	rules.story_song = STORY_SONG
-	rules.ending_song = ENDING_SONG
-	rules.game_over_song = GAME_OVER_SONG
-	rules.help_song = HELP_SONG
+	rules.story_song = Keen5Sounds.STORY_MAP
+	rules.ending_song = Keen5Sounds.ENDING_MAP
+	rules.game_over_song = Keen5Sounds.GAME_OVER_MAP
+	rules.help_song = Keen5Sounds.HELP_MAP
+	rules.sound_count = Keen5Sounds.SOUND_COUNT
+	rules.song_count = Keen5Sounds.SONG_COUNT
+	rules.sound_names = Keen5Sounds.NUMBERS
+	rules.map_songs = Keen5Sounds.MAP_SONGS
 
 
 ## Where the original's high-score table may be, in the known versions.

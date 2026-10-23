@@ -76,31 +76,6 @@ const GOPLAT_FIRSTS: PackedInt32Array = [36, 80]
 const GOPLAT_WAYS := 4
 ## Values that place nothing: the B-block, the path arrows, 125 (Omni).
 const READ_ONLY: PackedInt32Array = [31, 91, 92, 93, 94, 95, 96, 97, 98, 125]
-## The sound names the creatures play, with their numbers in Keen 5's
-## sound table (Omni EPISODE.CK5), for the sound milestone (E8).
-const SOUNDS: Dictionary[StringName, int] = {
-	&"keen_walk_1": 0,
-	&"mine_explode": 5,
-	&"slice_bump": 6,
-	&"spindred_fly_up": 16,
-	&"spiro_slam": 27,
-	&"spindred_slam": 28,
-	&"enemy_shoot": 29,
-	&"enemy_shot_hit": 30,
-	&"ampton_walk_1": 31,
-	&"ampton_walk_2": 32,
-	&"ampton_stun": 33,
-	&"shelley_explode": 36,
-	&"spindred_fly_down": 37,
-	&"master_shot": 38,
-	&"master_teleport": 39,
-	&"pole_zap": 40,
-	&"shockshund_bark": 42,
-	&"bark_shot_die": 45,
-	&"sparky_prepare_charge": 58,
-	&"sphereful_ceiling": 59,
-	&"spiro_fly": 61,
-}
 
 
 ## The kind info value [param info] places and the lowest difficulty it

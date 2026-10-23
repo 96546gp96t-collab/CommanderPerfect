@@ -25,14 +25,6 @@ const COUNTER_INFO := 41
 ## The rubble's tiles in the map's top left corner (Omni).
 const RUBBLE_TOP := Vector2i(0, 0)
 const RUBBLE_BOTTOM := Vector2i(0, 1)
-## The sounds of the fuses and the teleport lightning ([Keen5Flash]), with
-## their numbers in Keen 5's sound table (Omni EPISODE.CK5), for the
-## sound milestone (E8).
-const SOUNDS: Dictionary[StringName, int] = {
-	&"teleport": 41,
-	&"fuse_break": 52,
-	&"keen_land_on_fuse": 57,
-}
 ## The QED's map, where info 41 means four fuses and the QED (Omni).
 const QED_MAP := 12
 const QED_FUSES := 4

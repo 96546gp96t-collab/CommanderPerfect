@@ -18,6 +18,9 @@ extends GalaxyScene
 ##      original's screen memory goes on (seen);
 ##   4. the normal palette, the GAMEOVER picture at (32, 80) for 24 seconds
 ##      or until a key.
+## The sounds (E8): galaxy_explode_pre when the flashing starts,
+## galaxy_explode when the stars fly; the game-over song (map 18's) with
+## the GAMEOVER picture, stopped at the end.
 ## A key during the flashing or the stars goes straight to 4; a key during
 ## the fades counts for nothing (the original clears the keys first).
 ## Palette values are shown as the EGA's 200-line modes show them (bit 4
@@ -55,8 +58,11 @@ const SCREEN_SIZE := Vector2i(320, 200)
 const BRIGHT_BIT := 0x10
 const COLOR_BITS := 7
 const BRIGHT_INDEX := 8
+const NO_SONG := -1
 
 var stage := Stage.FADE_OUT
+## The map whose song plays with the GAMEOVER picture (Omni StartMusic(18)).
+var game_over_song := Keen5Sounds.GAME_OVER_MAP
 ## Tics into the stage.
 var elapsed := 0
 ## The star frame shown (0 before the first).
@@ -124,9 +130,11 @@ func press() -> bool:
 		Stage.FLASH, Stage.STARS:
 			stage = Stage.GAME_OVER
 			elapsed = 0
+			_stage_began()
 			return true
 		Stage.GAME_OVER:
 			stage = Stage.DONE
+			_stage_began()
 			return true
 	return false
 
@@ -214,6 +222,20 @@ func _next_stage() -> void:
 	if stage == Stage.STARS:
 		star_frame = 0
 		_move_stars_to(1)
+	_stage_began()
+
+
+## The sound or song a stage begins with (Omni CK5_ExplodeGalaxy).
+func _stage_began() -> void:
+	match stage:
+		Stage.FLASH:
+			_play_sound(&"galaxy_explode_pre")
+		Stage.STARS:
+			_play_sound(&"galaxy_explode")
+		Stage.GAME_OVER:
+			_play_map_song(game_over_song)
+		Stage.DONE:
+			_play_map_song(NO_SONG)
 
 
 ## Moves the stars until [param frame] frames are shown (at most 60).
