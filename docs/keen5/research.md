@@ -519,6 +519,8 @@ lesson: during each milestone, not only at the end):
 4. Do the purple platforms animate? (E5) **Answered in E5**: no, only
    PURPLEPLAT1 is ever shown.
 5. The Spirogrip's release distance (64 tics × 16 units = 4 tiles) (E4).
+   **Answered in E12**: 64 tics at 16 units, its spin starts where ours
+   does ("Watched in E12").
 6. The game-over galaxy scene, frame by frame (E8). **Answered in E7**:
    every recorded frame equals ours ("Watched in E7").
 7. The status window and the menu cards to the pixel (E7, E9). **The
@@ -526,7 +528,9 @@ lesson: during each milestone, not only at the end):
    is a pixel lower than Omnispeak's numbers. **The menu cards answered in
    E9**: equal to the pixel ("Watched in E9").
 8. Each creature's speed and frames, with Keen standing still or in god
-   mode, as in D5 (E4).
+   mode, as in D5 (E4). **Answered in E4 and E12**: every creature of
+   levels 1-13 watched; the Shikadi Master's stand chance and teleport
+   spot differed and were fixed ("Watched in E12").
 
 ## 13. Questions for the user
 
@@ -855,3 +859,69 @@ the 16 EGA colours (D10's lesson):
 - The cursor's icon blinks (lit and dark both seen), Return to Demo and
   Return to Game as Keen 4's.
 
+
+## Watched in E12
+
+The original v1.4 in headless js-dos (Normal, god mode F10+G, warp
+F10+W) with two scratch copies of `GAMEMAPS.CK5` (the E4 way: new info
+planes appended; scratchpad only). Copy A moved Keen's start in level 3
+to (31, 12) (a Spindred), 5 to (5, 7) (under a laser turret), 6 to
+(38, 23), 7 to (27, 7) (a Volteface and two straight Slicestars), 9 to
+(75, 9) (a diagonal Slicestar), 12 to (19, 17) (the Shikadi Master), 13
+onto Korath III's fuse at (23, 6); levels 8 (a Shockshund) and 11 (a
+Spirogrip) start as they are. Copy B: level 12's Keen at (60, 6) beside
+the mines, a Little Ampton (info 43) at (8, 12) in level 5 (as E4). Every
+changed frame recorded. Each sprite was found in each frame by its exact
+pixels (all of its opaque pixels, our decoded sprite), and our engine
+played the same scratch files headless with Keen standing in god mode,
+printing every sprite's screen pixel per frame (`GalaxyObjectLayer.pixel_of`).
+js-dos shows a frame every 2 tics (28 ms) with longer ones now and then.
+
+| What | Omnispeak | The original (v1.4) | Ours | |
+|---|---|---|---|---|
+| **Spirogrip** (level 11) | clings 150 tics, lets go 64 tics at 16 a tic, spins 8 × 8 | clings 150 tics (2,141 ms), slides up 1 px a tic from y 145 to 83, the first spin picture at (224, 81), then 8 tics a picture, several rounds | clings 148 tics after a 3-tic first frame, slides 145 → 82 in 64 tics, the first spin picture at (224, 81) | the same; **§12 question 5 answered: 64 tics × 16 units** |
+| **Volteface** (level 7) | the GoPlat rule at 32 a tic, 4 pictures of 6 tics | 4 px every 2 tics, along the arrows, pictures every 6 tics | the same places; at the first corner ours takes one 2-px step where the original takes 4: with an even first frame (2, 4 or 6 tics) ours follows the original to the pixel, with an odd one (3, as the original's own play loop sets) 2 px behind on the vertical leg | the same rule (the demos prove it to the frame); the phase is the first frame's length in js-dos (loading) |
+| **Straight Slicestar** (level 7) | 12 a tic, stops on the B-block's edge | 110, 107, 105, 104, … 90, 89, 89, 90, 92 … (y, every 2 tics) | 110, 108, 107, 105, 104, … 90, 89, 89, 90, 92 … | the same to the pixel after the first frame; the stop on the edge confirmed |
+| **Diagonal Slicestar** (level 9) | 24 / 24 a tic, box-clipped, bounces; starts left-up, right-down or left-down | 3 px every 2 tics both ways (4, 2, 4 …); started left-down, bounced off the floor, then the left wall at x 122 and the ceiling at y 18 | started left-up (random); 3 px every 2 tics; the left wall at x 122 and the ceiling at y 18 | the same limits and speed; the start direction is random |
+| **Spindred** (level 3) | vy ± 3 on odd tics (at most 70), bounces with ∓40, the third with ∓68 | bounces about 30 px high, a bottom every 52-56 tics, the third bounce turns it round | the same height (~30 px), a bottom every 56 tics, the third turns | the same; 1-3 px apart by the recording's uneven frames |
+| **Shockshund** (level 8) | runs +128 a step (8 tics), barks (2 × 8), shoots ±60, jumps ±40 / −40 | walk 237-240 every 8 tics 8 px, bark, shot 7-8 px every 2 tics, walk, bark, shot, walk, the jump left (4 / 6 px a frame) | **the same decisions in the same order** (the random table starts alike), the same pictures and places; the jump 1-2 px apart in y (frame lengths); later the dog went its own way (random) | the same |
+| **Laser turret** (level 5, firing down at Keen) | waits 120 tics, 64 a tic, LASERHIT 2 × 10 | a shot every 1,708-1,740 ms (120-122 tics), 8 px every 2 tics, hit pictures over Keen's head | every 120 tics, 8 px every 2 tics, the hit pictures where it meets Keen | the same |
+| **Shikadi mine** (level 12) | 10 a tic, a free way towards Keen at each tile, the eye first; explodes in its zone; 4 × 10 tics pulsing, six pieces | the eye's track **equal to ours to the pixel** for 265 tics (right, back, down, up, left); the mine began to pulse with its eye at (190, 63), 4 pictures of 10 tics, the blast at (176, 48); the pieces: the fixed ones as ours, the left-up one 1 px from ours, the random ones elsewhere | the same track, pulsing at the same place after 262 tics, the same blast | the same (path, eye, zone, pulses); the pieces' random speeds differ by the random table's place |
+| **Little Ampton** (level 5, E4's 96 / ~93 px) | — | turns at x 112 (its face picture there) and at x 0 after pushing Keen to the wall; a round trip of 3,652 ms (256 tics) | the same turn points and 256 tics; Keen pushed 16 → 8 → 0 as the original | **E4's ~93 px was the colour tracker; the turn is ours to the pixel** |
+| **Shikadi Master** (level 12) | stands 4 × 8; after a round with 192 in 256 it acts (throw, then teleport, by turns); the teleport tries 9 spots and takes the first inside the map's edges (its wall check never looks at a tile) | stood **4, 4, 8, 8, 3, 1 and 8 rounds** before acting (two throws, three teleports); a teleport: TELEPORT1 20 tics, TELEPORT2 20 tics, then **twice back on its own spot at once** (no fall, no 60-tic stand), once gone and later falling from above Keen (TELEPORT2 while falling, 60 tics after the landing) | was: acts after almost every round; always found a spot | **fixed**: it acts with 64 in 256 (the chance the other way round: 7 waits of 1-8 rounds are 10^10 times likelier so) and a spot whose 5 × 5 tiles hold a solid side or a tile drawn in front is tried again (only that explains staying in level 12, where every spot is inside the edges) |
+| **The death box** (level 10, E7's scratch file) | — | E7's frame of the box | ours over the same level: **0 pixels differ** in the box (the selection frame blinks; the blue phase compared); only the moving platform and the Shelley below differ | done |
+| **Korath III's fuse** (level 13) | — | "I wonder what that fuse was for...." and the second picture (thumb up) | both screens **0 pixels differ** (17,312 pixels of window each) | done |
+| **The secret end** (E+N+D on the map after Korath III's fuse) | TEXT_SECRETEND | no fade: the map's last frame, black (2.5 s, loading), then "Congratulations / ... But things are still in motion ...."; 9 pages | all **9 pages 0 pixels differ** (the arrow in its bright phase) | done; the loading pause not copied (E7) |
+| **Game over, frame by frame** (E7's recording, today's code) | — | 65 recorded frames of the galaxy part | **64 equal** to one of ours (our scene drawn tic by tic, faded by the EGA fade levels), 1 caught half drawn | done |
+
+**The elevator's 8 pixels (E6).** Omni CK5_MapKeenElevator moves Keen
+64 units a tic, and when he arrives the view follows his box one step
+beyond the target (CK_MapCamera, at most 255 units a frame). Our elevator
+ride with 2-tic frames (ours, and a machine that keeps up) ends on view
+y 1151 (the bottom elevator going up); with 3-tic frames 1159 (8 px
+lower), with 4-tic frames 1166. js-dos ran the flight at 3-4 tics a frame
+(its frames 43 and 57 ms apart), which is the 8 px. So the difference is
+machine speed, not a rule; ours stays on the 2-tic result.
+
+**The level's first frame.** Omni's play loop sets the first frame to 3
+tics (ours too); in js-dos the frames after the fade-in vary (one of 4-7
+tics). A creature that moves in fixed steps then shows a phase of half a
+step (the Volteface above, the Spindred's heights); the demos, where the
+original fixes the frames at 3 tics, are equal to the frame.
+
+**All options off = the original.** With 4:3, Backgrounds, xBRZ and
+smooth motion off (E12's `demo_frames` in the scratchpad), the five
+demos were played again in the real view and laid on E7's recordings:
+demo 0 819 of 820 recorded frames equal (the other the fade after the
+end), demo 1 990 of 991 (the fade), demo 2 1,343 of 1,343, demo 3 1,247
+of 1,275 (27 caught while the original drew, 1 fade), demo 4 (high
+scores) 687 of 754 (66 caught half drawn, 1 fade): every frame of ours
+the recorder caught is equal, as in E7. The status window (map 0 and
+Korath III) 0 pixels, the control panel's cards (main, in game, New
+Game, Load, Save typing and saved, Sound, Paddle War) 0 pixels (Configure
+and Quit differ by Keen 4's and the user's decisions, E9/E11), the death
+box 0, the secret end 0, the fuse messages 0.
+
+What was not seen: the Master's ball and the Shockshund's shot hitting
+Keen (god mode hides the hit), the Spirogrip flying at Keen (random,
+not in 25 s), the Volteface stunned. Their rules stay Omnispeak's.

@@ -955,3 +955,45 @@ What E11 built differently from the plan above, and why (developer, E11):
    that Keen 4 is the fourth id after Keen 1-3 (the slice of the first
    four), as exception 2 allows; `test_keen5_files` checks that Keen 5 is
    last.
+
+## Deviations in E12
+
+What E12 (side by side with the original) changed, and why (developer,
+E12):
+
+1. **Two facts of the original over Omnispeak's code**, both in
+   `Keen5Master` and marked as seen: the Master acts after a round only
+   when the random number is below 64 (Omnispeak: stands on below 64),
+   and its teleport spot is tried again when one of its 5 × 5 tiles has a
+   solid side or is drawn in front (Omnispeak's loop over the tiles never
+   runs). Seen in js-dos: 4, 4, 8, 8, 3, 1 and 8 rounds of standing, and
+   two of three teleports ending on the spot it stood on.
+2. **A tile written at run time keeps the sky's colour in its cell**
+   (`GalaxyLevelScreen._keep_sky_in`, called by the play screen's tile
+   writers; E10's open point). The open-sky rule (`Keen5OpenSky`) is
+   worked out once per map; running it again for the changed tiles would
+   cost 0.1-0.4 s at the QED's break, and the original shows black there
+   anyway. It acts only when a picture is shown (widescreen with
+   Backgrounds on); Keen 4 does not use `src/galaxy/game/`, so nothing
+   changes for it. Nothing changed in `src/galaxy/` outside `game/`.
+3. **Not changed, explained**: the view after an elevator ride (E6: 8 px
+   lower in js-dos) and the Volteface's 2-px phase in one recording come
+   from js-dos's frame lengths (3-4 tics a frame in the flight, a long
+   frame after the fade-in); with the 2-tic frames of a machine that keeps
+   up, and in the demos, ours is the original's. The first frame stays 3
+   tics (Omni CK_PlayLoop).
+4. **No `# estimate` was left** in `src/keen5` and `src/galaxy/game`
+   (grep for estimate, uncertain, guess, TODO: none); the open questions
+   were the creatures E4 had not watched, now all watched.
+5. **The proof of "all options off"** is in two parts: the pixels against
+   the original's recordings in the scratchpad (the demos frame for frame,
+   screens and boxes), and a suite (`test_keen5_original_mode`) that keeps
+   the switches honest without the original: a 320 × 200 viewport on the
+   original's view, no picture or cleared tiles or painted cells, no xBRZ
+   texture, every sprite on the original's pixel. Pixels cannot be read
+   headless, so the suite checks the nodes that draw them.
+6. **Kept as decided before**: Configure's cards (Keen 4's keyboard
+   card, E9; Two Players and Online, E11) and REALLY QUIT? (the user's
+   line) differ from the original's; the loading pauses of js-dos are not
+   copied (E7); the yellow filler of the world map is black space also in
+   4:3, where the original's view never comes (E6).

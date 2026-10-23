@@ -233,10 +233,11 @@ all of them. So:
   with the option off it is black. Korath III's ground below row 100
   stays.
 - Worked out once per map when it is shown (0.1-0.4 s), as Keen 4's holes.
-  Tiles changed later keep what was found: the security doors and fuses
-  of the levels with a picture have no sky behind them (checked); when the
-  QED breaks (level 12) about 70 pixels of its window's frame show the
-  picture for the moment before the level ends.
+  A tile changed while the map is played keeps the sky's colour in its
+  whole cell (E12): the broken QED in level 12 stays black where the
+  original is black (E10 showed the picture in about 70 pixels of its
+  window there); the security doors and fuses of the levels with a
+  picture have no sky behind them (checked).
 
 | Map | Scene (`tools/make_keen5_backgrounds.py`) |
 |-----|-----|
@@ -281,7 +282,7 @@ tic (16 units a pixel); every number is Omnispeak's (Omni) unless marked
 | Robo Red (13/14/15) | 64 a step of 6 tics; with x bit 0x40 clear, Keen beside it and 16 in 256: faces him and fires 10 shots (40 tics, then 4 + 6 tics a shot; 60 sideways, 8 up/down by turns, recoil 64; `enemy_shoot`) | Deadly, and its shots | Absorbed, and it fires at once |
 | Spirogrip (16/17/18) | Clings 150 tics, lets go (64 tics at 16), spins 8 × 8 tics; at a straight picture 21 in 256 flies that way at 48 (`spiro_fly`) to the next wall (`spiro_slam`) | Deadly | Absorbed |
 | Spindred (77/78/79) | Its own gravity 3 on odd tics, at most 70; slams back at 40 (`spindred_slam`), every third time across at 68, falling the other way (`spindred_fly_up/_down`) | Deadly | Absorbed |
-| Shikadi Master (88/89/90) | Stands 4 × 8 tics; then (192 in 256) throws a ball (48, −16, gravity mid, bouncing off walls; on a floor two sparks at ±48) or, by turns, teleports: 2 × 20 tics, two sparks, a spot up to 16 tiles round Keen (the first inside the map's edges: the original's wall check does nothing), falls, stands 60 tics | Deadly; ball and sparks too | Absorbed; it throws at once, facing right unless Keen's x is its own (kept bug) |
+| Shikadi Master (88/89/90) | Stands 4 × 8 tics; after each round, with 64 in 256 (seen in E12), it throws a ball (48, −16, gravity mid, bouncing off walls; on a floor two sparks at ±48) or, by turns, teleports: 2 × 20 tics, two sparks, a spot up to 16 tiles round Keen inside the map's edges whose 5 × 5 tiles are free of solid sides and tiles drawn in front (seen in E12), falls, stands 60 tics; with no such spot in nine tries it stays and stands at once | Deadly; ball and sparks too | Absorbed; it throws at once, facing right unless Keen's x is its own (kept bug) |
 | Shikadi (99/100/101) | Stands 4 × 8, walks 16 a tic; with Keen holding on or at its height it goes after him and zaps the pole ahead under him; otherwise rests (16 in 256) or zaps a pole ahead on the screen. Zap: 2 × 20 tics, a spark along the pole towards Keen at 48 a **frame** (`pole_zap`) | Deadly; the spark too | 4 hit points: 3 white flashes, the 4th stuns |
 | Shockshund (102/103/104) | Runs 16 a tic; every 32 tics faces Keen: 16 in 256 sits 256 tics; Keen at another height → jumps (±40, −40) — but 128 in 256 barks instead (wins, kept); bark shot 60 sideways (`shockshund_bark`), stopped by a stunner shot. At a ledge it jumps when facing Keen | Deadly; its shot too | 2 hit points: a flash, then stunned |
 | Sphereful (105/106/107) | 2 × 2 tile box; every 16th tic speed +1 down (≤ 8) and ±1 towards Keen (≤ 8); walls and ceilings bounce it (`sphereful_ceiling`), floors up at 4-12 (`spindred_fly_up`); four diamonds circle it, drawn only, two in front and two behind by turns | Deadly | Absorbed |
@@ -647,6 +648,26 @@ As Keen 4 online ([../keen4/gameplay.md](../keen4/gameplay.md), "Online";
   with two windows over ENet on one computer (127.0.0.1; xvfb): the
   joiner in the host's level 1, both walking, the Try Again box on both
   screens; level 4's fuse message on both screens.
+
+## Watched in E12 (js-dos, the user's v1.4)
+
+Details in research.md, "Watched in E12". Seen equal to ours: the
+Spirogrip (clings 150 tics, lets go 64 tics, spins where ours does), the
+Volteface (the GoPlat rule, 32 a tic), the straight and diagonal
+Slicestars (the stop on the edge, the bounce limits), the Spindred (its
+bounces and the turn on the third), the Shockshund (the same decisions
+in the same order for 4 s), the laser turrets (every 120 tics, 64 a tic),
+the Shikadi mine (its eye's path to the pixel, the zone, 4 × 10 tics of
+pulsing, the blast), the Little Ampton's turn points (E4's 3 px were the
+measurement), the death box, Korath III's fuse message, the 9 pages of
+the secret end (no fade before them: black while loading), game over
+frame by frame. **Fixed**: the Shikadi Master stands on unless the random
+number is below 64, and its teleport spot must be free of walls (twice
+it stayed where it stood). With every option off the five demos are
+equal to the original frame for frame (as in E7) and
+`test_keen5_original_mode` keeps it so. The view after an elevator ride
+is 8 pixels lower in js-dos because its frames were 3-4 tics long (ours
+2, a machine that keeps up): not a rule.
 
 ## Watched in E9 (js-dos, the user's v1.4)
 
