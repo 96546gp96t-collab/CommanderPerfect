@@ -302,13 +302,21 @@ Keen 4 onto these).
 | `GalaxyProgress` (E6) | `Keen4Progress` | Levels done with a value, the place on the map, the level just finished; a saved game's dictionary with the episode's extras | 89 |
 | `GalaxyGameBoxes` (E6) | `Keen4GameBoxes` | The loading box with the count-down (any text), "One moment", PAUSED, the death box with its blinking choice, "Game Over!" when the episode has the text | 181 |
 | `GalaxyStatusWindow` (E6) | `Keen4StatusWindow` | The status window: frame, labels, digit bars; the episode's own middle and bottom rows as hooks, the "press a key" tiles' place as a field | 280 |
+| `GalaxyFrontScreen` (E7) | `Keen4FrontScreen`, Keen4View's cheats and F1 | Between the flow and the view: the title loop, the demos (DEMO sign, 3 tics a frame, Normal, random table from 0), the help, the end pages, a scene over the whole screen, the name typed in on the high-score map, the two cheats, a new game | 625 |
+| `GalaxyTitleLoop` (E7) | `Keen4TitleLoop` | Intro, demo 0, story, demo 1, high scores, demo 2, demo 3 | 47 |
+| `GalaxyHelp` (E7) | `Keen4Help`, `Keen4Episode.page_layout` | The help menu and the topics' pages; the page layout with or without the frame | 139 |
+| `GalaxyEnding` (E7) | `Keen4Ending` | The end pages of a given text, the blinking arrow | 110 |
+| `GalaxyHighScoreBoard` (E7) | `Keen4HighScoreBoard`, `Keen4FrontScreen.default_high_scores` | The table XORed over the map by the rules' margins and colour, the extra column only with a tile; typing a name; the program's default table | 235 |
+| `GalaxyCheats` (E7) | `Keen4Cheats` | E+N+D and B+A+T (the episode adds its gifts) | 56 |
+| `GalaxyScene` (E7) | — | A full-screen scene on the clock: advance, press, screen, fade level | 33 |
 
 The chain is `GameScreen` → `GalaxyLevelScreen` → `GalaxyPlayScreen` →
-`GalaxyFlowScreen` (E6) → the episode's view (`Keen5View`). When the
-front, menu, co-op and online screens are lifted (E7, E9, E11), they go
-between `GalaxyFlowScreen` and the view (Keen 4's chain has the flow in
-its view; here it comes first, so the front screen overrides its hooks
-such as `_game_ended`), and the view's parent moves up.
+`GalaxyFlowScreen` (E6) → `GalaxyFrontScreen` (E7) → the episode's view
+(`Keen5View`). When the menu, co-op and online screens are lifted (E9,
+E11), they go between `GalaxyFrontScreen` and the view (Keen 4's chain
+has the flow in its view; here it comes first, so the front screen
+overrides its hooks such as `_game_ended`), and the view's parent moves
+up.
 
 ### `GalaxyGameRules`
 
@@ -329,6 +337,15 @@ such as `_game_ended`), and the view's parent moves up.
 | `menu_font`, `status_texts`, `game_texts` (E6) | 0, "status", "game" | The windows' font and the runs of texts the boxes and the status window read |
 | `game_over_text`, `demo_text`, `try_again_intro_text`, `try_again_text`, `exit_text`, `one_moment_text` (E6) | −1 (none), 1, 6, 7, 8, 11 | Which text of the game run is which (Keen 4: 0, 3, 7, 8, 9, 12) |
 | `countdown_from_end` (E6) | 7 | Keen counting down, from the end of the picture range (Keen 4: 6) |
+| `cheat_texts` (E7) | "cheat" | The run whose first text is B+A+T's box |
+| `title_from_end`, `story_from_end`, `first_credit_from_end`, `credit_count`, `left_word_misc`, `right_word_misc`, `story_font`, `story_messages` (E7) | 11, 12, 16, 4, 1, 2, 2, "story" | The title loop's pictures and texts (Keen 4: 12, 13, 17) |
+| `intro_word_colors`, `story_colors` (E7) | red / light red; [0,1,8,14,15,12,6,7, 11 × 8] | The intro's words alone and over each other, the story picture's palette (empty: Keen 4's grey words and palette) |
+| `demo_sign_sprite` (E7) | 5 | The DEMO sign |
+| `high_score_map`, `high_score_demo`, `high_score_count`, `high_score_offsets` (E7) | 15, 4, 8, [0x33D56] | The high scores and the program's default table |
+| `high_score_top`, `_left`, `_right`, `_color`, `_icon_tile` (E7) | 0x23, 0x28, 0x118, 12, −1 | The table's margins, XOR colour and extra column (Keen 4: 0x33, 0x18, 0x128, 15, tile 71) |
+| `help_menu_picture`, `help_pointer_picture`, `help_topic_texts`, `page_frame_picture` (E7) | 0, 18, [0,1,2,6,3], 22 | The help (Keen 4: 0, 39, [0,2,1,6,3], 74) |
+| `end_text`, `secret_end_text`, `arrow_dim_picture`, `arrow_bright_picture` (E7) | 4, 5, 20, 21 | The end pages (Keen 4: 4, none, 41, 42) |
+| `story_song`, `ending_song`, `game_over_song`, `help_song` (E7) | 17, 14, 18, 19 | Songs for E8 (Keen 4: 12, 7, none, none) |
 
 ### The hooks (virtual methods that do nothing or Keen 4's thing by default)
 
@@ -355,6 +372,11 @@ such as `_game_ended`), and the view's parent moves up.
 | | `_place_extras(progress)`, `_runs_own_frame(tics, tic)`, `_after_world_frame()` | nothing | the shafts and the filler; the rides |
 | `GalaxyProgress` (E6) | `map_shown()`, `_extra_to_dictionary()`, `_extra_from_dictionary(saved)` | the level just finished is used up; nothing | the Korath arrival is used up |
 | `GalaxyStatusWindow` (E6) | `_draw_middle(...)`, `_draw_bottom(...)`, `key_tiles_at` | nothing; Keen 4's (160, 140) | KEYCARD; (120, 140) |
+| `GalaxyFrontScreen` (E7) | `_play_song(song)`, `_stop_music()` | silent | E8 |
+| | `_high_score_count()` | 0 | — (Keen 4 would give the rescued members) |
+| | `_cheat_end()`, `_give_items()` | nothing; gems, 99 charges, a life | the end pages; the keycard too |
+| | `_game_ended()` (overrides the flow's) | the name on the table or the high scores, then the title loop | — |
+| `GalaxyFlowScreen` | `_game_over()` | "Game Over!" or `_game_ended` | the exploding galaxy (`Keen5GalaxyExplosion` as a `GalaxyScene`) |
 | `GalaxyMapFlag` (engine, additive, E6) | `wave_at(..., waving_only)` | false: all of Keen 4's actions | true: only the waving ones (Keen 5 has no flipping sprites) |
 | | `_is_door(kind)`, `_enter_door(kind)` | misc 2; the normal door | misc 32 too; the keycard and the door opener |
 
@@ -599,3 +621,55 @@ What E6 built differently from the plan above, and why (developer, E6):
    for. Keen 4's demo suite, real-data suites and 11 regression pictures
    are unchanged.
 
+## Keen 5's front (from E7)
+
+| Class | What | Lines |
+|---|---|---|
+| `Keen5View` | Now on `GalaxyFrontScreen`: starts with the title loop, the QED's end and E+N+D lead to the end pages (`end_text()`: the secret end after Korath III's fuse), game over to the exploding galaxy, B+A+T adds the keycard, `--random-seed=N` | 274 |
+| `Keen5GalaxyExplosion` | Game over (`GalaxyScene`): the fades by the EGA palettes, the Milky Way flashing its entries 7 and 8, 60 frames of 4000 stars from the misc chunk GALAXY, GAMEOVER 24 s or a key | 287 |
+| `GalaxyEgaFade` (`src/galaxy/ui/`, new) | The original's four fade palettes as a shader over the picture | 72 |
+
+## Deviations in E7
+
+What E7 built differently from the plan above, and why (developer, E7):
+
+1. **`GalaxyFrontScreen` is 625 lines** (Keen 4's front screen 502): it
+   also holds what Keen 4 has in its view (the cheats, F1 and the boxes
+   that hold it) and the scenes. It is one job (what is shown between
+   the games); E9's menu screen takes the menu part, so it was left whole.
+2. **A scene class of its own (`GalaxyScene`)** for game over instead of
+   Keen 4's "Game Over!" box: the front screen runs it on the clock like
+   the end pages, so Keen 6's end and any later scene plug in the same way.
+3. **The fades of the scene are the EGA palettes**, not a brightness: the
+   original's fade levels make the dark colours black first and the bright
+   ones their dark twins (seen to the pixel in the galaxy's fade-in).
+   `GalaxyEgaFade` is a shader on a rectangle over the picture; the flow's
+   other fades (the loading box) keep their brightness steps from D7.
+4. **Five engine seams, all neutral for Keen 4** (its demo suite,
+   real-data suites and 11 regression pictures are unchanged), found by
+   laying the original's demo frames on ours: `GalaxyWorld.shared_step`
+   (the original's one step variable, written by every action, a ride, a
+   push or a started action) and `shared_landing_step` (Keen 5 on: landing
+   on a platform also moves Keen across by it, Omni CK_PhysPushY sets only
+   ck_nextY); `GalaxyPlatform.bounce` (Keen 5's axis platforms and
+   Slicestars stop on the tile's edge, as Omnispeak; Keen 4 v1.0 was seen
+   to bounce back in D13); `GalaxyObjectLayer.original_order` (an asleep
+   or hidden object loses its place among the sprites of its priority, a
+   changed priority goes under; the Galaxy play screen also draws all
+   sprites anew at a map's first frame); `GalaxyShrapnel` keeps a spent
+   piece one frame (only Keen 5 uses it). `Keen5Keen._shove` (pushed by an
+   Ampton or a Korath) takes the shared step's y, as Omni CK_PhysPushX.
+5. **Two facts differ from Omnispeak**: the flash gives entry 7 the
+   table's second row and entry 8 its first (Omnispeak both the first),
+   and a star exactly on the right edge shows at the left of the next row.
+   Palette value 0x0F shows light grey (the 200-line EGA ignores bit 3).
+6. **A key in the title loop starts a new game** (Keen 4 before D10); the
+   original opens the control panel, which E9 brings. F1 opens the help in
+   the title loop and in a game, Shift+F1 the help line.
+7. **The regression pictures are repeatable**: `Keen5View` seeds Godot's
+   random numbers from `--random-seed=N`; the shared random table of the
+   demos already starts at 0.
+8. **Not done**: the original's loading pauses (1.5 s black before the
+   galaxy, 2.5 s before the end pages in js-dos, machine dependent), the
+   original's random fizzle order of the title (ours is fixed, as Keen
+   4's), sound (E8).

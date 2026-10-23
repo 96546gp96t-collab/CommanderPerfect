@@ -298,9 +298,88 @@ does not) destroys it: four fuse explosions at its tile and the tiles
 right of and below it (four sounds), the 4 × 2 blocks at (16, 11) and
 (16, 13) become the map's blocks at (0, 0) and (4, 0) in all three
 planes (the broken machine), and 60 tics later the level ends as the
-QED's (for now the next level; E7 shows the end). The sound names of the
+QED's (since E7 the end pages follow). The sound names of the
 fuses and the lightning are listed with their numbers in
 `Keen5Fuses.SOUNDS` for E8.
+
+## The title loop (E7)
+
+Without `--level` Keen 5 starts with its title loop, the same order as
+Keen 4's (Omni CK_DemoLoop; seen in the user's v1.4, a whole round
+recorded): the intro credits (the two words in red, light red where they
+overlap; the four credit pictures; the zoom; the title fizzling in, 420
+tics), the "DEMO" box and demo 0 (map 1), the story (the Star Wars crawl
+in light cyan over its picture), demo 1 (map 3), the high scores (demo 4 on
+map 15 behind the table), demo 2 (map 10), demo 3 (map 11), and round
+again (a round takes about 345 s). The demos play on Normal, 3 tics a
+frame, from the start of the random table, with the DEMO sign; each plays
+all its recorded input (842, 1024, 1381, 1267 and 703 frames).
+
+A key starts a new game on the world map (until E9's control panel),
+Escape goes back to the start screen, F1 opens the help.
+
+## Help (E7)
+
+F1, in the title loop or in a game (a game waits under it): the menu
+(picture 0 at (96, 8)) in the red frame (pictures 22-26), the pointing hand
+(picture 18) at (48, 48 + 24 × topic); five topics: ComputerWrist (13
+pages), The Game (21), The Story (4), Order Info (15), About Id (2). Up and
+down choose, Enter, jump or pogo open, the arrows and page keys turn the
+pages ("pg 1 of 13" in the frame's bar), Escape goes back to the menu and
+leaves the help. To the pixel as the original (seen).
+
+## The end (E7)
+
+The QED destroyed (map 12) or E, N and D held while Keen plays (Omni
+LS_DestroyedQED): the end pages, TEXT_END, or **TEXT_SECRETEND** when level
+13 was done by breaking Korath III's fuse (its value 14); 9 pages each,
+laid out as help pages in the frame without the bar; a page waits with the
+arrow (pictures 20 and 21 at (296, 184)) dim and bright for 70 tics each;
+a key goes on. After the last page the score is put on the table. All 9
+pages of the normal end equal the original's to the pixel (seen).
+
+## Game over (E7)
+
+No life left (Omni CK5_ExplodeGalaxy; seen frame by frame): the game fades
+to black and the Milky Way (picture 83) fades in, both by the EGA fade
+palettes (6 tics a step: level 2 makes the dark colours black, level 1
+also the bright ones their dark twins); 18 steps of 10 tics in which
+palette entries 7 and 8 flash (entry 7 by the second row of the table,
+entry 8 by the first; values 0x08 and 0x00 black, 0x07 and 0x0F light
+grey); the screen goes black and 4000 stars fly out, 60 frames of 4 tics,
+each star one step a frame until it would pass the right or bottom edge;
+then GAMEOVER (picture 92) at (32, 80) for 24 s or a key. A key during the
+flashing or the stars goes straight to GAMEOVER. Then the high scores.
+
+## The high scores (E7)
+
+Map 15 ("The Keenest"), the original's table from the program (Id Software
+- '91, an empty name, Jason Blochowiak, Adrian Carmack, John Carmack, Tom
+Hall, John Romero, an empty name; all 10,000), printed from (0x28, 0x23),
+16 pixels a row, the score right-aligned at 0x118, XOR colour 12, no extra
+column. A score that makes the table: the map's tiles behind the table,
+the name typed in at its row with the blinking cursor (to the pixel as the
+original, seen), kept in `user://keen5/high_scores.json` (never Keen 4's
+file); then the high scores (demo 4), the title picture and the title
+loop.
+
+## The cheats (E7)
+
+As the original's (Omni CK_PlayLoop, CK_ItemCheat): E+N+D the end; B+A+T a
+box "Cheat Option! ..." until a key, then all four gems, 99 charges, a life
+and the keycard. Ours from Keen 1-4: Shift+G god mode, Shift+I the gems,
+the keycard and 99 charges.
+
+## Watched in E7 (js-dos, the user's v1.4)
+
+The title loop recorded whole and each demo frame by frame (details in
+[research.md](research.md), "Watched in E7"): every frame of ours that the
+recorder caught equals the original's in all five demos, once four causes
+were found (the shared step on landing on a platform and when an Ampton
+pushes Keen, platforms stopping on the tile's edge, a spent mine piece
+drawn once more, the sprites' order); the intro's scroll, the story, the
+DEMO box, the help, the 9 end pages, the name entry and the whole game
+over (fade-in, flashes, stars, GAMEOVER) to the pixel.
 
 ## Watched in E6 (js-dos, the user's v1.4)
 

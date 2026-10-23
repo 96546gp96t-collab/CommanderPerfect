@@ -518,7 +518,8 @@ lesson: during each milestone, not only at the end):
 4. Do the purple platforms animate? (E5) **Answered in E5**: no, only
    PURPLEPLAT1 is ever shown.
 5. The Spirogrip's release distance (64 tics × 16 units = 4 tiles) (E4).
-6. The game-over galaxy scene, frame by frame (E8).
+6. The game-over galaxy scene, frame by frame (E8). **Answered in E7**:
+   every recorded frame equals ours ("Watched in E7").
 7. The status window and the menu cards to the pixel (E7, E9). **The
    status window answered in E6**: equal to the pixel once its KEYCARD row
    is a pixel lower than Omnispeak's numbers.
@@ -699,3 +700,76 @@ scratch files (`--data-dir-keen5=`, 4:3, the World viewport saved):
 - Walking on the map (Keen 4's map Keen) was seen on the way and not
   measured again.
 
+
+## Watched in E7
+
+The original v1.4 in headless js-dos (no CONFIG.CK5, so the default
+high-score table). A whole round of the title loop was recorded every
+400 ms (order and timing), then each demo at every changed frame in runs
+of their own; the end, the help and the name entry with a CONFIG.CK5
+whose last score is −1 (so a score of 0 makes the table); game over with a
+scratch copy of `GAMEMAPS.CK5` where level 10's Keen starts over the force
+field (warp F10+W 10, then Try Again until no life is left). Our frames
+were made in the real view (4:3, xvfb), one per logic frame, and laid on
+the recorded ones: the first exact match sets the alignment, then each
+recorded frame is compared with our frames from the last match on.
+
+**The title loop** (seen): intro (about 38 s), the DEMO box, demo 0,
+story (about 70 s), demo 1, the high scores, demo 2, demo 3; a round is
+about 345 s. The intro's words are red, light red where they overlap
+(Omni ck_terminatorPalette1: 4, 0x1C), the zoom red, the fizzle white;
+the story picture by ck_starWarsPalette, the text light cyan. Every
+recorded scroll frame of the intro equals ours (65 of 65, ours stepped 2
+tics a frame as the game runs it; with 1-tic steps the credits run 2-4
+tics ahead), the story 147 of 156 (the others caught half drawn), the
+fizzle frames differ only by its random order.
+
+**The demos** (before E7 Keen died in demo 2 at frame 193 and in demo 3
+at 1064):
+
+| Demo | Map | Frames | Recorded frames equal to ours | Others |
+|---|---|---|---|---|
+| 0 | 1 | 842 | 819 | 1 (the fade after the end) |
+| 1 | 3 | 1024 | 990 | 1 (the fade) |
+| 2 | 10 | 1381 | 1343 (100 %) | — |
+| 3 | 11 | 1267 | 1247 | 27 caught while the original drew (tiles of the next frame already drawn), 1 fade |
+| 4 (high scores) | 15 | 703 | 677 | 66 caught half drawn (a sprite cut by a line; the table's screen redraws in place) |
+
+Every frame of ours that the recorder caught is equal; all five play to
+their end. The causes found (each fixed; the sync suite fails without
+any one of 1-4):
+
+1. **Landing on a platform takes the shared step's x** (demo 2 frame 107:
+   the original's Keen lands 8 pixels further left). Omni CK_PhysPushY sets
+   only ck_nextY; ck_nextX still holds the last object's step (here an
+   Ampton's −128).
+2. **Axis platforms stop on the tile's edge when they turn** (demo 2: a
+   platform 2-4 pixels behind ours from frame 718 on, after many turns),
+   as Omni CK_AxisPlatform; Keen 4 v1.0 was seen to bounce back (D13).
+3. **A spent mine piece is drawn once more** at its new place and is gone
+   the next frame (demo 4 frame 71).
+4. **Pushed sideways by an Ampton, Keen also moves by the shared step's
+   y** (Omni CK_PhysPushX sets ck_nextY only when the action sticks to the
+   ground): his pogo touched the floor a frame earlier (demo 4 frame 246).
+5. **The order of sprites of one priority**: the original draws nothing
+   before a map's first frame, so the first frame's order rules (demo 4
+   frame 87: the Slicestar over the Volteface); an object that sleeps
+   loses its place.
+
+**Game over** (`CK5_ExplodeGalaxy`), every recorded frame equal to ours:
+the fade-out and fade-in by the EGA fade palettes (level 1: 0-8 black,
+9-15 their dark twins; level 2: 0-7 black), 6 tics a step; then 18 flash
+steps of 10 tics (143 ms): **entry 7 follows the second row of
+endsplosion_pal_change and entry 8 the first** (Omnispeak gives both the
+first row; the observed sequence of (7, 8) grey/black, grey/grey,
+grey/black, black/black, black/grey, grey/grey, grey/black, black/black
+fits only this); value 0x0F shows light grey, 0x08 black; then 60 star
+frames of 4 tics (57 ms each), the last 13 nearly empty; a star exactly at
+x 320 appears at the left of the next row. In js-dos the screen stayed
+black 1.5 s between the fade-out and the fade-in (loading; not copied).
+GAMEOVER at (32, 80) equal; after 24 s the name entry.
+
+**The end**: E+N+D on the map, then about 2.5 s black (loading), then 9
+pages, each equal to ours to the pixel, the arrow dim and bright every
+1000 ms (70 tics); the help (menu, second topic, pages 1 and 2) and the
+name entry with its cursor at the left margin − 1 equal too.

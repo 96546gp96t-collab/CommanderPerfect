@@ -116,7 +116,7 @@ bestanden in [docs/keen5/file-formats.md](docs/keen5/file-formats.md).
 | E4 | Wezens (alle 15 soorten van levels 1-13, elk een eigen klasse) | ✅ Klaar (branch `milestone-e4-wezens`) |
 | E5 | Platforms op pijlen, zekeringen en de QED | ✅ Klaar (branch `milestone-e5-mechaniek`) |
 | E6 | De wereldkaart (teleporters, liften, Korath III, statusvenster) | ✅ Klaar (branch `milestone-e6-kaart`) |
-| E7 | Einde, game over (de melkweg ontploft), titel en demo's | ⬜ |
+| E7 | Einde, game over (de melkweg ontploft), titel en demo's | ✅ Klaar (branch `milestone-e7-einde-titel`) |
 | E8 | Geluid en muziek | ⬜ |
 | E9 | Menu's en opslaan | ⬜ |
 | E10 | Mooier maken (plaatjes achter de levels, builds) | ⬜ |
@@ -124,13 +124,14 @@ bestanden in [docs/keen5/file-formats.md](docs/keen5/file-formats.md).
 | E12 | Naast het origineel; alle opties uit = het origineel | ⬜ |
 | E13 | (Optioneel) Keen 4 op het gedeelde Galaxy-spel | ⬜ |
 
-**Volgende stap:** E7 (`milestone-e7-einde-titel`, vanaf `milestone-e6-kaart`):
-de algemene voorkant (titel, verhaal, demo's, high scores uit Keen 4's
-`Keen4FrontScreen`, tussen `GalaxyFlowScreen` en `Keen5View`), game over als
-scène (de melkweg ontploft; nu gaat game over naar het startscherm via
-`GalaxyFlowScreen._game_ended`), de eindpagina's na de QED (nu het
-startscherm; `Keen5Progress.korath_fuse_broken()` kiest het geheime einde).
-De gebruiker uploadt Keen 2-5 weer naar de sessie.
+**Volgende stap:** E8 (`milestone-e8-geluid`, vanaf `milestone-e7-einde-titel`):
+`Keen5Sounds` (64 geluiden, 14 liedjes) en de haken `_play_sound`,
+`_play_map_song`, `_play_song` en `_stop_music` van `GalaxyPlayScreen` /
+`GalaxyFrontScreen` vullen (nu stil); de melkweg vraagt geluid 54 en 53 en
+lied 18 (nog niet bij naam: `Keen5GalaxyExplosion` krijgt dan een haakje per
+fase), het einde lied 14, het verhaal 17, help 19. Ook de wachttijd na het
+uitgangsgeluid vóór het zekeringbericht (E5). De gebruiker uploadt Keen 2-5
+weer naar de sessie.
 
 ## Achtergronden Keen 1 en 2: mijlpalen AB
 
@@ -274,6 +275,96 @@ ligt wordt een gat (`docs/graphics.md`, onderzoek §8).
   in `Keen2GuardRobot`; nu kijkt hij de kant op waar hij heen zweeft en
   schiet. Alleen namen/plaatjes gecontroleerd (js-dos overgeslagen op
   verzoek). Test `test_guard_robot_faces_the_way_it_floats_and_fires`.
+
+## Mijlpaal E7: wat er nu is
+
+Keen 5 is van titel tot highscores uit te spelen (zonder geluid), op
+`milestone-e7-einde-titel` (22-10, 23:04 - 23-10, 00:55 UTC). De regels staan
+in `docs/keen5/gameplay.md` ("The title loop", "Help", "The end", "Game
+over", "The high scores", "The cheats"), de klassen en afwijkingen in
+`docs/keen5/architecture.md` ("The Galaxy game", "Keen 5's front (from
+E7)", "Deviations in E7"), de metingen in `docs/keen5/research.md`
+("Watched in E7").
+
+- [x] **Het gedeelde spel** (`src/galaxy/game/`, uit Keen 4's D8-klassen,
+  Keen 4 onaangeraakt): `GalaxyFrontScreen` (nieuwe schakel tussen
+  `GalaxyFlowScreen` en `Keen5View`: titellus, demo's met DEMO-bord, help,
+  eindpagina's, naam intikken, cheats, scènes), `GalaxyTitleLoop`,
+  `GalaxyHelp` (ook de opmaak van help- en eindpagina's met of zonder
+  kader), `GalaxyEnding` (tekst als parameter), `GalaxyHighScoreBoard`
+  (marges, kleur en de extra kolom uit de regels; Keen 5 zonder kolom),
+  `GalaxyCheats`, `GalaxyScene` (een scène over het hele scherm) en
+  `GalaxyEgaFade` (de echte EGA-paletten van het in- en uitfaden, als
+  shader). Ruim 40 nieuwe velden in `GalaxyGameRules` (plaatjes, teksten,
+  liedjes, highscore-marges, kleuren van intro en verhaal).
+- [x] **Keen 5**: begint met de **titellus** (intro met rode woorden, demo
+  0, verhaal in lichtcyaan, demo 1, highscores op map 15, demo 2, demo 3;
+  zelfde volgorde als Keen 4, nagekeken in de opname); een toets start een
+  nieuw spel (het controlepaneel komt in E9), Escape het startscherm;
+  **help** (F1) met vijf onderwerpen in het rode kader; **einde** na de QED
+  of E+N+D: 9 eindpagina's, het **geheime einde** als de zekering van
+  Korath III kapot is, knipperende pijl; **game over = de melkweg
+  ontploft** (`Keen5GalaxyExplosion`: fade, Melkweg, 18 flitsen, 60
+  beelden met 4000 sterren, GAMEOVER 24 s of een toets); daarna de naam
+  op de highscores van map 15, bewaard in `user://keen5/high_scores.json`;
+  B+A+T geeft ook de sleutelkaart; `--random-seed=N` voor herhaalbare
+  beelden.
+- [x] **De demo's beeld voor beeld** (js-dos, de titellus van v1.4
+  opgenomen, elk beeld op het onze gelegd): vóór E7 stierf Keen in demo 2
+  op beeld 193 en in demo 3 op 1064. Vier oorzaken gevonden en opgelost,
+  alle vier met een vlag zodat Keen 4 blijft zoals bewezen: het **gedeelde
+  stapgeheugen** (ck_nextX/Y) bij landen op een platform en bij opzij
+  geduwd worden door een Ampton, **platforms die op de tegelrand stoppen**
+  bij keren (Keen 4 v1.0 kaatst terug), een **opgebruikt mijnstuk dat nog
+  één beeld getekend wordt**, en de **tekenvolgorde** van sprites met
+  dezelfde prioriteit. Nu: demo 0 819/819, demo 1 990/990, demo 2
+  1343/1343, demo 3 1247 gelijk + 27 halfgetekende vangsten, demo 4
+  (highscores) 677 gelijk + 66 halfgetekende vangsten; **elk beeld van ons
+  dat de recorder ving is pixel-gelijk**, alle vijf spelen tot hun eind.
+- [x] **Naast het origineel (js-dos, v1.4)**: help-menu, menu met tweede
+  onderwerp, pagina 1 en 2 **pixel-gelijk**; alle **9 eindpagina's**
+  pixel-gelijk (pijl dof en fel, elke 70 tics); **naam intikken** op map
+  15 pixel-gelijk (met cursor); **game over**: de fade-in (twee
+  tussenstappen), alle flitsen, alle 47 sterrenbeelden die de recorder
+  ving en GAMEOVER pixel-gelijk (58 van 58); intro-scroll 65 van 65
+  gelijk, verhaal 147 van 156 (de rest halfgetekend), DEMO-vak gelijk.
+  Twee dingen anders dan Omnispeak: ingang 7 flitst met de **tweede** rij
+  van de tabel (Omnispeak geeft beide de eerste), en 0x0F is lichtgrijs.
+  Het geheime einde zelf niet in js-dos bekeken (tekst en opmaak gelijk
+  aan het gewone einde, dat pixel-gelijk is).
+- [x] **Tests**: nieuw `test_galaxy_game_front` (titellus, cheats,
+  eindpagina's, help, tabel met marges en kolom, scène, naam en bestand,
+  met de fixtures), `test_keen5_front` (volgorde, kleuren, DEMO-bord,
+  tekenvolgorde, nieuw spel, help-pagina's 13/21/4/15/2, einde en geheim
+  einde, naam op map 15, game over, B+A+T), `test_keen5_galaxy_explosion`
+  (tics 2148, fades, flitsrijen, sterren en randen, toetsen),
+  `test_keen5_demo_sync` (169 sprites op 27 beelden van de vijf demo's,
+  gevonden in beelden die pixel-gelijk zijn aan het origineel; faalt
+  zonder elk van de vier oorzaken). **155 suites groen, 1 overgeslagen
+  (Keen 4 v1.4), 0 FAIL, 0 SCRIPT ERROR.** `gdformat` en `gdlint` schoon.
+- [x] **Controle Keen 1-4**: regressies tegen de nulmeting: Keen 1 alleen
+  `launcher.png` anders (gelijk aan E6's: het vijfde icoon), Keen 2 (4)
+  en Keen 4 (11 beelden) alles gelijk; Keen 4's demo's en
+  echte-datatests groen. `git diff origin/main` op `src/keen2-4`, hun
+  tests, `src/actors`, `src/map`, `src/game`: alleen de twee regels met
+  het aantal spellen. Naden in de engine, alle met de oude werking als
+  standaard: `GalaxyWorld.shared_step`/`shared_landing_step`,
+  `GalaxyPlatform.bounce`, `GalaxyObjectLayer.original_order`, optionele
+  kleuren in intro, verhaal en titellaag; `GalaxyShrapnel` (alleen Keen 5
+  gebruikt het) tekent een opgebruikt stuk nog één beeld.
+  `tools/keen5_regression.sh` is herhaalbaar (`--random-seed=1`, twee
+  runs gelijk) en kreeg intro (breed, 4:3), help-menu, help-pagina,
+  eerste eindpagina en de highscores.
+- **Niet gedaan:** de apps zijn hier niet gebouwd (de gebruiker bouwt op
+  de Mac). Geen geluid (E8). De laadtijd van het origineel (1,5 s zwart
+  vóór de Melkweg, 2,5 s vóór de eindpagina's in js-dos) doen we niet na.
+  De fizzle van de titel volgt een eigen willekeurige volgorde (als Keen
+  4). Het uitfaden van het spel vóór de Melkweg gebruikt dezelfde
+  EGA-paletten maar is niet beeld voor beeld vergeleken.
+- **Om te proberen:** `godot --path . -- --game=5` (titellus; F1 help; een
+  toets: nieuw spel), in het spel E+N+D samen (het einde) of B+A+T; voor
+  game over vier keer doodgaan (de melkweg ontploft, daarna de
+  highscores).
 
 ## Mijlpaal E6: wat er nu is
 

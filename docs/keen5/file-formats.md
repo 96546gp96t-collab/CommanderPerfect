@@ -245,3 +245,23 @@ The world map (map 0, 52 × 114 tiles) in the user's v1.4:
   III; level 13 uses it as its sky. Background tile 0 is all black.
 - Korath III's arrival is info 26 at (37,107); the map Keen's info 3 at
   (28,95).
+
+## Checked in E7
+
+- **The misc chunk GALAXY** (the fifth, 32,000 bytes): four arrays of
+  4000 16-bit words, x, dx, y and dy of the game-over stars, in 1/128
+  pixel; x and y unsigned, the steps signed (Omni CK5_GalExplode).
+- **The demo chunks**: five; a 16-bit map, a 16-bit length, then (frames,
+  input) pairs as Keen 4's: maps 1, 3, 10, 11, 15 with 842, 1024, 1381,
+  1267 and 703 frames.
+- **The texts**: HELPMENU (13 pages), CONTROLS (21), STORY (4), ABOUTID
+  (2), END (9), SECRETEND (9), ORDER (15).
+- **The pictures** of the screens between the games, from the start of
+  the range: the help menu 0, the pointer 18, the arrows 20 and 21, the
+  frame 22-26; counted from the end: the first credit 16, the story 12,
+  the title 11, the Milky Way 10, GAMEOVER 1.
+- **CONFIG.CK5** begins with "CK5", a zero, the version 4 (16 bits), then
+  the high-score table as 8 records of 64 bytes (a 58-byte name, a 32-bit
+  score, a 16-bit number), then the sound and music modes (Omni
+  US_LoadConfig). We keep our own table in `user://keen5/high_scores.json`
+  and never read or write the player's CONFIG.CK5.
