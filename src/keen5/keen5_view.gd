@@ -1,7 +1,8 @@
 class_name Keen5View
-extends GalaxyMenuScreen
-## The Keen 5 game screen that the start screen opens (milestones E3-E9):
-## the shared Galaxy game ([GalaxyMenuScreen] on [GalaxyFrontScreen] and
+extends GalaxyOnlineScreen
+## The Keen 5 game screen that the start screen opens (milestones E3-E11):
+## the shared Galaxy game ([GalaxyOnlineScreen] on [GalaxyJoinedScreen],
+## [GalaxyCoopScreen], [GalaxyMenuScreen], [GalaxyFrontScreen] and
 ## [GalaxyFlowScreen], with Keen 5's numbers from
 ## [method Keen5Episode.game_rules]) and what only Keen 5 does
 ## (docs/keen5/gameplay.md, "The flow of a game", "The title loop", "The
@@ -31,13 +32,20 @@ extends GalaxyMenuScreen
 ##     ([Keen5GalaxyExplosion]), then the high scores;
 ##   - Enter: the status window with the keycard ([Keen5StatusWindow]); on
 ##     Korath III it names Korath III's base; F1 the help; B+A+T the gems,
-##     99 charges, a life and the keycard.
+##     99 charges, a life and the keycard;
+##   - two players (milestone E11; docs/keen5/gameplay.md, "Two players",
+##     "Online"): F7 or the panel's Two Players card on one keyboard, split
+##     screen, the keycard, the fuses and the lives shared, on the world
+##     map one Keen that both steer and that rides the teleporters and
+##     elevators for both; online with Keen 5's id, the fuse message and
+##     the Korath III box named for the joiner ([Keen5BoxNames]), Keen 5's
+##     numbers in every snapshot ([Keen5OnlineState]).
 ## The sounds and songs are Keen 5's ([Keen5Sounds], milestone E8): every
 ## map its own song, the story, the help, the end and game over theirs; the
 ## fuse message waits for the level-exit sound to end.
 ##
 ## Keys: the shared ones (arrows, jump, pogo, fire); Enter the status
-## window; F1 the help; Escape the control panel (not while a ride on the
+## window; F1 the help; F7 player 2; Escape the control panel (not while a ride on the
 ## world map holds the game); Shift+N / Shift+P the
 ## next or previous map; Shift+S the sound (AdLib, PC speaker, off) and
 ## Shift+M the music, stored in the shared settings (as Keen 4's);
@@ -73,11 +81,14 @@ func _ready() -> void:
 	_set_up_screen()
 	if not _load_data():
 		return
-	_messages = Keen5Messages.create(_data)
 	_set_up_play()
 	_set_up_flow()
 	_set_up_front()
 	_set_up_panel()
+	_set_up_coop()
+	_set_up_online()
+	_messages = Keen5NamedMessages.create_named(_data, _box_names)
+	(_box_names as Keen5BoxNames).messages = _messages
 	var arguments := OS.get_cmdline_user_args()
 	var random_seed := requested_seed(arguments)
 	if random_seed >= 0:
@@ -152,6 +163,20 @@ func _new_saved_game() -> GalaxySavedGame:
 	return Keen5SavedGame.new(rules)
 
 
+func _new_box_names() -> GalaxyBoxNames:
+	return Keen5BoxNames.new()
+
+
+func _new_online_state() -> GalaxyOnlineState:
+	return Keen5OnlineState.new()
+
+
+## The joiner reads the secret end when the host broke Korath III's fuse
+## (the levels done come with every snapshot).
+func _remote_end_text() -> int:
+	return end_text()
+
+
 ## A ride on the world map (a teleporter, an elevator's door, the flight
 ## in it) holds the game: a save could not put Keen back into it, so the
 ## panel waits until it is over (the original's own loops take no key).
@@ -166,7 +191,7 @@ func _panel_waits() -> bool:
 ## will stand there (Omni CK_LoadLevel).
 func _loading_box(number: int) -> Array[Image]:
 	if number == rules.world_map and _steps_onto_korath():
-		return _boxes.loading(_boxes.game_text(Keen5Episode.KORATH_TEXT))
+		return _boxes.loading_game_text(Keen5Episode.KORATH_TEXT)
 	return super(number)
 
 

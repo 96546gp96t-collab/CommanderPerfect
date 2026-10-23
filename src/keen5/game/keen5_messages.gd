@@ -31,9 +31,10 @@ var _fuse := PackedStringArray()
 var _picture_count := 0
 
 
-## The boxes with the texts and pictures of [param data].
-static func create(data: GalaxyData) -> Keen5Messages:
-	var messages := Keen5Messages.new()
+## The boxes with the texts and pictures of [param data]; into
+## [param into] when given (a subclass: [Keen5NamedMessages]).
+static func create(data: GalaxyData, into: Keen5Messages = null) -> Keen5Messages:
+	var messages := into if into != null else Keen5Messages.new()
 	messages._graphics = data.graphics
 	messages._fuse = data.executable.texts(Keen5Episode.FUSE_TEXTS)
 	messages._picture_count = data.graphics.ranges.picture_count

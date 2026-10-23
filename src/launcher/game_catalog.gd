@@ -57,8 +57,8 @@ static func games() -> Array[Game]:
 	return [keen_1, keen_2, keen_3, keen_4, _keen_5()]
 
 
-## Keen 5: its own picture and font on the icon, as Keen 4. Its online id
-## is not yet in [constant OnlineProtocol.GAME_IDS] (milestone E11).
+## Keen 5: its own picture and font on the icon, as Keen 4; online since
+## milestone E11 (its id last in [constant OnlineProtocol.GAME_IDS]).
 static func _keen_5() -> Game:
 	var keen_5 := Game.new()
 	keen_5.title = "Keen 5"

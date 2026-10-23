@@ -273,6 +273,7 @@ static func game_rules() -> GalaxyGameRules:
 	rules.data_folder = Keen5Files.SUBFOLDER
 	rules.data_dir_option = Keen5Files.DATA_DIR_OPTION
 	rules.user_folder = USER_FOLDER
+	rules.game_id = Keen5Files.GAME_ID
 	rules.world_map = WORLD_MAP
 	rules.first_level = FIRST_LEVEL
 	rules.last_level = LAST_LEVEL

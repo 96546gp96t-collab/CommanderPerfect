@@ -16,8 +16,8 @@ const SUBFOLDER := "game_data/keen5"
 const EXTENSION := "CK5"
 const EXECUTABLES: PackedStringArray = ["KEEN5E.EXE", "KEEN5.EXE"]
 const REQUIRED_FILES: PackedStringArray = ["EGAGRAPH.CK5", "GAMEMAPS.CK5", "AUDIO.CK5"]
-## Keen 5's id online. Not yet in [constant OnlineProtocol.GAME_IDS]: Keen 5
-## goes online in milestone E11.
+## Keen 5's id online, last in [constant OnlineProtocol.GAME_IDS] since
+## milestone E11.
 const GAME_ID := "commanderperfect-keen5"
 
 

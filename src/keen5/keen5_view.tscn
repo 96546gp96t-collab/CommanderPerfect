@@ -219,4 +219,4 @@ layout_mode = 2
 autowrap_mode = 3
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 4
-text = "F1: help    Esc: back to the start screen    Shift+N / P: next / previous map    Shift+G: god mode    Shift+I: gems, keycard, charges    F2: widescreen    F3: pixels    F4: full screen    F5: graphics    F6: smooth motion    Shift+F1: show / hide this line"
+text = "F1: help    Esc: back to the start screen    F7: player 2    Shift+N / P: next / previous map    Shift+G: god mode    Shift+I: gems, keycard, charges    F2: widescreen    F3: pixels    F4: full screen    F5: graphics    F6: smooth motion    Shift+F1: show / hide this line"
