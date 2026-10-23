@@ -169,6 +169,27 @@ var song_count := 6
 var sound_names: Dictionary[StringName, int] = {}
 var map_songs := PackedInt32Array()
 
+## The control panel (milestone E9; Omni `GFXCHUNK.CK*`, US_Card): the
+## title picture of each card by the menu's kind ([member Menu.kind]), the
+## wrist watch and Paddle War's title, all counted from the end of the
+## picture range (Keen 4's numbers by default; Keen 5's are one less: its
+## pictures end with GAMEOVER after the count-down); the number of save
+## slots (Omni US_MAX_NUM_OF_SAVED_GAMES).
+var menu_cards_from_end: Dictionary[StringName, int] = {
+	MenuController.MAIN: 33,
+	GalaxyMenuController.NEW_GAME: 32,
+	MenuController.SLOTS_LOAD: 31,
+	MenuController.SLOTS_SAVE: 30,
+	GalaxyMenuController.CONFIGURE: 29,
+	GalaxyMenuController.SOUND_CARD: 28,
+	GalaxyMenuController.MUSIC_CARD: 27,
+	MenuController.KEY_SET: 24,
+	MenuController.OPTIONS: 22,
+}
+var watch_from_end := 18
+var paddle_war_from_end := 21
+var save_slot_count := GalaxySaveSlots.SLOT_COUNT
+
 ## The pictures behind the levels: the episode's own folder (such as
 ## res://assets/backgrounds/keen5) and its plain sky tiles; none means no
 ## level ever shows a picture.
@@ -185,6 +206,22 @@ func high_scores_path() -> String:
 ## user folder, never another episode's).
 func sound_cache_folder() -> String:
 	return user_folder.path_join("cache")
+
+
+## Where the episode's saved games are kept (its own user folder, never
+## another episode's: [GalaxySaveSlots] has Keen 4's folder by default).
+func saves_folder() -> String:
+	return user_folder.path_join("saves")
+
+
+## The control panel's pictures among [param picture_count] pictures.
+func menu_cards(picture_count: int) -> GalaxyMenuCards:
+	var pictures: Dictionary[StringName, int] = {}
+	for kind in menu_cards_from_end:
+		pictures[kind] = picture_count - menu_cards_from_end[kind]
+	var cards := GalaxyMenuCards.create(picture_count - watch_from_end, pictures)
+	cards.paddle_war_picture = picture_count - paddle_war_from_end
+	return cards
 
 
 ## Where the episode's own settings are kept (the quiet AdLib sounds, the

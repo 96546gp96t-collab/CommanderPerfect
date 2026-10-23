@@ -124,9 +124,16 @@ func _show_level(number: int, random_start := -1) -> void:
 			return
 	var played := _new_session(map, number, random_start)
 	if played != null:
+		_level_began(number, random_start)
 		_play(played, map)
 	else:
 		_look_at(map)
+
+
+## Level [param _number] begins with its random table at
+## [param _random_start] (the menu screen keeps its frames for a save).
+func _level_began(_number: int, _random_start: int) -> void:
+	pass
 
 
 ## Map [param number] behind its loading box, the count-down and a fade

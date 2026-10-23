@@ -4,8 +4,8 @@ extends GalaxyFlowScreen
 ## [GalaxyFlowScreen] (made from Keen 4's [Keen4FrontScreen], milestone E7;
 ## docs/keen4/gameplay.md, "The title loop"; docs/keen5/gameplay.md, "The
 ## title loop"): the title loop ([GalaxyTitleLoop]: the intro credits and
-## the title picture, the story, the demos, the high scores), the help
-## (F1, [GalaxyHelp]), the end pages ([GalaxyEnding]), a scene of the
+## the title picture, the story, the demos, the high scores), the end
+## pages ([GalaxyEnding]), a scene of the
 ## episode's own over the whole screen ([GalaxyScene]: Keen 5's exploding
 ## galaxy), the high-score table with the name typed in
 ## ([GalaxyHighScoreBoard]) and the original's two cheats ([GalaxyCheats]).
@@ -18,7 +18,8 @@ extends GalaxyFlowScreen
 ## CK_PlayDemo; `ck_play.c`: CK_PlayLoop; `id_rf.c`: RFL_CalcTics).
 ## The episode's view calls [method _set_up_front] after
 ## [method GalaxyFlowScreen._set_up_flow] and passes its input through
-## [method _front_input].
+## [method _front_input]. The control panel, the help and a new game are
+## [GalaxyMenuScreen]'s (milestone E9), on top of this one.
 
 enum Front { NONE, INTRO, STORY, DEMO, HELP, ENDING, NAME_ENTRY, SCENE }
 
@@ -37,7 +38,6 @@ var _story_tics := 0
 var _demo: GalaxyDemo
 var _demo_frame := 0
 var _firing := GalaxyTwoButtonFiring.new()
-var _help: GalaxyHelp
 var _end_pages: GalaxyEnding
 var _scene: GalaxyScene
 ## What follows the scene.
@@ -382,30 +382,6 @@ func _end_scene() -> void:
 		then.call()
 
 
-## F1: the help, over the title loop or the game (which waits).
-func _open_help() -> void:
-	if _help == null:
-		_help = GalaxyHelp.create(_data.graphics, rules)
-	if _in_title_loop:
-		_queue.clear()
-		_played = null
-		_stop_front()
-	_front = Front.HELP
-	_title_layer.show_picture(_help.screen())
-	_stop_music()
-	_play_map_song(rules.help_song)
-
-
-func _close_help() -> void:
-	_stop_music()
-	if _in_title_loop:
-		_next_title_step()
-	else:
-		_title_layer.clear()
-		_front = Front.NONE
-		_play_map_song(_map_number)
-
-
 ## The end pages of text [param text].
 func _start_ending(text: int) -> void:
 	_played = null
@@ -503,10 +479,6 @@ func _give_items() -> void:
 func _front_input(event: InputEvent) -> bool:
 	var key := event as InputEventKey
 	match _front:
-		Front.HELP:
-			if _is_new_press(event):
-				_help_key(event)
-			return true
 		Front.ENDING:
 			if _is_new_press(event) and _end_pages.press():
 				if _end_pages.is_done():
@@ -525,34 +497,15 @@ func _front_input(event: InputEvent) -> bool:
 	if not _in_title_loop:
 		return false
 	if _is_new_press(event):
-		if event.is_action_pressed("ui_cancel"):
-			_leave()
-		else:
-			_new_game()
+		_title_loop_key(event)
 	return true
 
 
-func _help_key(event: InputEvent) -> void:
-	var input := KeenInput.from_actions()
-	var action := -1
+## A key in the title loop: Escape goes back to the start screen (the
+## menu screen opens the control panel on any key, as the original).
+func _title_loop_key(event: InputEvent) -> void:
 	if event.is_action_pressed("ui_cancel"):
-		action = GalaxyHelp.Action.ESCAPE
-	elif event.is_action_pressed("ui_accept") or input.jump or input.pogo:
-		action = GalaxyHelp.Action.OPEN
-	elif event.is_action_pressed("ui_up") or event.is_action_pressed("ui_page_up"):
-		action = GalaxyHelp.Action.UP
-	elif event.is_action_pressed("ui_down") or event.is_action_pressed("ui_page_down"):
-		action = GalaxyHelp.Action.DOWN
-	elif event.is_action_pressed("ui_left"):
-		action = GalaxyHelp.Action.BACK_PAGE
-	elif event.is_action_pressed("ui_right"):
-		action = GalaxyHelp.Action.NEXT_PAGE
-	if action < 0:
-		return
-	if _help.act(action):
-		_title_layer.show_picture(_help.screen())
-	else:
-		_close_help()
+		_leave()
 
 
 func _name_key(key: InputEventKey) -> void:
@@ -571,26 +524,6 @@ func _name_key(key: InputEventKey) -> void:
 	_redraw_board()
 
 
-## F1 alone (Shift+F1 keeps Keen 1-3's help line); not over the end, a
-## scene or the name being typed.
-func _is_help_key(event: InputEvent) -> bool:
-	var key := event as InputEventKey
-	if key == null or not key.pressed or key.echo or key.shift_pressed:
-		return false
-	if _data == null or _front in [Front.HELP, Front.ENDING, Front.NAME_ENTRY, Front.SCENE]:
-		return false
-	return event.is_action_pressed("toggle_help")
-
-
-## Whether a box, the status window or the choice after a death waits in a
-## game: the original reads F1 only while Keen plays, so then F1 is just a
-## key for what waits (Keen 4, D13).
-func _box_waits() -> bool:
-	if _in_title_loop:
-		return false
-	return not _queue.is_empty() or _status_drop != null or _choice >= 0
-
-
 ## The title layer and the DEMO sign follow the picture's width.
 func _place_overlays() -> void:
 	super()
@@ -600,20 +533,3 @@ func _place_overlays() -> void:
 	_demo_sign.position = (
 		Vector2((game_size.x - GalaxyWindow.SCREEN_SIZE.x) / 2.0, 0) + DEMO_SIGN_AT
 	)
-
-
-## A new game on [param level]: the world map behind its box (the title
-## loop stops).
-func _new_game(level := GalaxyDifficulty.DEFAULT) -> void:
-	_in_title_loop = false
-	_after_game = false
-	_queue.clear()
-	_played = null
-	_on_map = null
-	_stop_front()
-	_stop_music()
-	_title_layer.clear()
-	_difficulty = level
-	_inventory = _new_inventory()
-	_game_progress = _new_progress()
-	_enter(rules.world_map, false)
