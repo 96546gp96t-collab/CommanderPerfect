@@ -22,6 +22,7 @@ uniform sampler2D outside : filter_nearest;
 uniform sampler2D inside : filter_nearest;
 uniform float distance;
 uniform float strip_height;
+uniform vec4 text_color = vec4(1.0);
 const float MIDDLE = 160.0;
 const float UNIT = 2048.0;
 
@@ -37,11 +38,40 @@ void fragment() {
 		}
 		float strip_x = floor((pixel.x - start) * row.b / UNIT);
 		vec4 text = texelFetch(strip, ivec2(int(strip_x), int(strip_row)), 0);
-		COLOR = text.r > 0.5 ? vec4(1.0) : texelFetch(inside, ivec2(pixel), 0);
+		COLOR = text.r > 0.5 ? text_color : texelFetch(inside, ivec2(pixel), 0);
 	}
 }
 """
+## The intro's words drawn in a palette of their own (Keen 5): one word
+## alone, both over each other (the words are masks, see-through elsewhere).
+const WORDS_SHADER := """
+shader_type canvas_item;
+uniform sampler2D left_word : filter_nearest;
+uniform sampler2D right_word : filter_nearest;
+uniform float left_x;
+uniform float right_x;
+uniform vec4 alone;
+uniform vec4 both;
 
+float word_at(sampler2D word, float x, vec2 pixel) {
+	ivec2 size = textureSize(word, 0);
+	ivec2 at = ivec2(int(pixel.x - x), int(pixel.y));
+	if (at.x < 0 || at.x >= size.x || at.y < 0 || at.y >= size.y) {
+		return 0.0;
+	}
+	return texelFetch(word, at, 0).a > 0.5 ? 1.0 : 0.0;
+}
+
+void fragment() {
+	vec2 pixel = floor(UV * vec2(320.0, 200.0));
+	float count = word_at(left_word, left_x, pixel) + word_at(right_word, right_x, pixel);
+	COLOR = count > 1.5 ? both : (count > 0.5 ? alone : vec4(0.0));
+}
+"""
+
+## The words' colours, alone and over each other; empty: Keen 4's way (two
+## dark grey sprites added together).
+var word_colors: Array[Color] = []
 var _black := ColorRect.new()
 var _screen := Control.new()
 var _picture := Sprite2D.new()
@@ -50,6 +80,8 @@ var _left_word := Sprite2D.new()
 var _credit := Sprite2D.new()
 var _story := ColorRect.new()
 var _story_material := ShaderMaterial.new()
+var _words := ColorRect.new()
+var _words_material := ShaderMaterial.new()
 ## The credit whose picture [member _credit] holds.
 var _credit_shown := -1
 
@@ -80,6 +112,14 @@ func _init() -> void:
 	_story.size = Vector2(SCREEN_SIZE)
 	_story.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_screen.add_child(_story)
+	var words_shader := Shader.new()
+	words_shader.code = WORDS_SHADER
+	_words_material.shader = words_shader
+	_words.material = _words_material
+	_words.size = Vector2(SCREEN_SIZE)
+	_words.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_screen.add_child(_words)
+	_screen.move_child(_words, _credit.get_index())
 	clear()
 
 
@@ -93,7 +133,7 @@ func fit(game_size: Vector2i) -> void:
 ## Nothing shown (the game is seen).
 func clear() -> void:
 	visible = false
-	for item: CanvasItem in [_picture, _right_word, _left_word, _credit, _story]:
+	for item: CanvasItem in [_picture, _right_word, _left_word, _credit, _story, _words]:
 		item.visible = false
 
 
@@ -113,6 +153,19 @@ func show_picture(image: Image) -> void:
 ## The two words of the intro and its credit for this frame.
 func show_scroll(intro: GalaxyIntroCredits) -> void:
 	show_black()
+	if not word_colors.is_empty():
+		_show_coloured_words(intro)
+	else:
+		_show_added_words(intro)
+	if intro.credit >= 0:
+		if intro.credit != _credit_shown:
+			_credit_shown = intro.credit
+			_credit.texture = ImageTexture.create_from_image(intro.credits[intro.credit])
+		_credit.position = Vector2(intro.credit_corner())
+		_credit.visible = true
+
+
+func _show_added_words(intro: GalaxyIntroCredits) -> void:
 	if _left_word.texture == null:
 		_left_word.texture = ImageTexture.create_from_image(
 			intro.left_word.image(GalaxyIntroCredits.ONE_WORD, true)
@@ -124,12 +177,21 @@ func show_scroll(intro: GalaxyIntroCredits) -> void:
 	_right_word.position = Vector2(intro.right_word_x(), 0)
 	_left_word.visible = true
 	_right_word.visible = true
-	if intro.credit >= 0:
-		if intro.credit != _credit_shown:
-			_credit_shown = intro.credit
-			_credit.texture = ImageTexture.create_from_image(intro.credits[intro.credit])
-		_credit.position = Vector2(intro.credit_corner())
-		_credit.visible = true
+
+
+func _show_coloured_words(intro: GalaxyIntroCredits) -> void:
+	if _left_word.texture == null:
+		_left_word.texture = ImageTexture.create_from_image(
+			intro.left_word.image(Color.WHITE, true)
+		)
+		_right_word.texture = ImageTexture.create_from_image(intro.right_word.image(Color.WHITE))
+		_words_material.set_shader_parameter("left_word", _left_word.texture)
+		_words_material.set_shader_parameter("right_word", _right_word.texture)
+		_words_material.set_shader_parameter("alone", word_colors[0])
+		_words_material.set_shader_parameter("both", word_colors[-1])
+	_words_material.set_shader_parameter("left_x", float(intro.left_word_x()))
+	_words_material.set_shader_parameter("right_x", float(intro.right_word_x()))
+	_words.visible = true
 
 
 ## The story at [param distance] rows of its strip.
@@ -149,5 +211,6 @@ func show_story(scroller: GalaxyStoryScroller, distance: int) -> void:
 			"inside", ImageTexture.create_from_image(scroller.inside)
 		)
 		_story_material.set_shader_parameter("strip_height", float(scroller.strip_height))
+		_story_material.set_shader_parameter("text_color", scroller.text_color)
 		_story.visible = true
 	_story_material.set_shader_parameter("distance", float(distance))

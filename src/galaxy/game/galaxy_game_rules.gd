@@ -91,6 +91,8 @@ var map_flag_throw_offset := Vector2i(0x60, -0x260)
 var menu_font := 0
 var status_texts := "status"
 var game_texts := "game"
+## The run of texts whose first is the B+A+T cheat's box (E7).
+var cheat_texts := "cheat"
 var game_over_text := 0
 var demo_text := 3
 var try_again_intro_text := 7
@@ -102,11 +104,70 @@ var one_moment_text := 12
 ## GAMEOVER picture comes after the count-down).
 var countdown_from_end := 6
 
+## What the episode shows between its games (milestone E7; Keen 4's
+## numbers by default, Omni `ck_inter.c`, `ck_text.c`, `GFXCHUNK.CK*`):
+## the pictures counted from the end of the picture range (the title, the
+## story's picture, the first of the credits), the misc chunks of the
+## intro's two words, the story's font and run of messages.
+var title_from_end := 12
+var story_from_end := 13
+var first_credit_from_end := 17
+var credit_count := 4
+var left_word_misc := 1
+var right_word_misc := 2
+var story_font := 2
+var story_messages := "story"
+## The intro's words: alone and overlapping (an empty array: Keen 4's dark
+## and light grey, drawn by adding); the story picture's palette (EGA
+## numbers per colour of the picture; empty: Keen 4's).
+var intro_word_colors: Array[Color] = []
+var story_colors := PackedInt32Array()
+## The DEMO sign (a sprite) at the top middle of the view.
+var demo_sign_sprite := 5
+## The high scores: the map behind the table and the demo played on it,
+## the number of places, where the original's table lies in the known
+## programs, the table's margins and colour (the print colour XORed over
+## the map), and the tile shown per counted thing (Keen 4's council
+## members; -1: no extra column).
+var high_score_map := 19
+var high_score_demo := 4
+var high_score_count := 8
+var high_score_offsets := PackedInt32Array()
+var high_score_top := 0x33
+var high_score_left := 0x18
+var high_score_right := 0x128
+var high_score_color := 15
+var high_score_icon_tile := 71
+## The help (F1) and the end pages: the menu picture and the pointer
+## (counted from the start of the picture range), the text of each topic in
+## the menu's order, the first of the frame's five pictures (later
+## releases), the end texts (the secret end: -1 when the episode has none)
+## and the blinking arrow's two pictures.
+var help_menu_picture := 0
+var help_pointer_picture := 39
+var help_topic_texts := PackedInt32Array([0, 2, 1, 6, 3])
+var page_frame_picture := 74
+var end_text := 4
+var secret_end_text := -1
+var arrow_dim_picture := 41
+var arrow_bright_picture := 42
+## The songs of the screens between the games (-1: none): the story, the
+## end, game over, the help (Keen 5 plays one, Keen 4 stops the music).
+var story_song := 12
+var ending_song := 7
+var game_over_song := -1
+var help_song := -1
+
 ## The pictures behind the levels: the episode's own folder (such as
 ## res://assets/backgrounds/keen5) and its plain sky tiles; none means no
 ## level ever shows a picture.
 var backdrop_folder := ""
 var sky_tiles := PackedInt32Array()
+
+
+## Where the episode's high scores are kept (its own user folder).
+func high_scores_path() -> String:
+	return user_folder.path_join("high_scores.json")
 
 
 ## The message when the files are not found.
