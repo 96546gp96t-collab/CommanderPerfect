@@ -23,7 +23,7 @@ const POLL_DELTA := 0.005
 func test_keen_4_is_one_of_our_games() -> void:
 	assert_equal(KEEN_4, "commanderperfect-keen4", "its id")
 	assert_equal(Keen4Files.GAME_ID, KEEN_4, "the same as Keen4Files'")
-	assert_equal(OnlineProtocol.GAME_IDS, OTHERS + [KEEN_4], "last of the four")
+	assert_equal(OnlineProtocol.GAME_IDS.slice(0, 4), OTHERS + [KEEN_4], "fourth, after Keen 1-3")
 	var game := GameCatalog.for_game_id(KEEN_4)
 	assert_true(game != null, "the catalog knows it")
 	assert_equal(game.scene, GameLaunch.KEEN_4_SCENE, "its scene")

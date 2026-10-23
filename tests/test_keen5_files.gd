@@ -4,7 +4,7 @@ extends "res://tests/test_case.gd"
 ## Keen 5 needs (the number of background tiles given, the texts before
 ## the misc chunks) and that Keen 4's files read as before without them;
 ## finding the files; the --game=5 option; the fifth icon; the online id
-## that waits for E11; and the map the game screen is asked for (since
+## (last of our games since E11); and the map the game screen is asked for (since
 ## E3 the game itself: test_keen5_view.gd).
 
 const Fixtures := preload("res://tests/galaxy_fixtures.gd")
@@ -161,9 +161,9 @@ func test_icon_without_files_is_empty() -> void:
 	assert_true(Keen5Icon.title(null, "Keen 5") == null, "no title without files")
 
 
-func test_online_id_waits_for_e11() -> void:
+func test_online_id_is_the_last_one() -> void:
 	assert_equal(Keen5Files.GAME_ID, "commanderperfect-keen5", "its id")
-	assert_true(not OnlineProtocol.GAME_IDS.has(Keen5Files.GAME_ID), "not online before E11")
+	assert_equal(OnlineProtocol.GAME_IDS[-1], Keen5Files.GAME_ID, "online since E11, last")
 	assert_equal(GameCatalog.games()[4].game_id, Keen5Files.GAME_ID, "on the icon")
 
 
