@@ -174,11 +174,89 @@ Keen 4's: the episode's own score box sprite (Keen 5: sprite 133) with
 the digits in it, top left of the view, in 4:3 and widescreen; hidden on
 a map that is only looked at.
 
-## Pictures behind the levels (E3)
+## Pictures behind the levels (E3, E10)
 
-The machinery is Keen 4's (widescreen only, on by default), but Keen 5
-names **no sky tiles yet**, so no level shows a picture and every level
-looks as in the original (E10 makes Keen 5's own pictures).
+An extra, widescreen only, on by default (the shared Backgrounds option),
+never in 4:3; with the option off every map looks as in the original.
+Keen 5's own pictures are in `assets/backgrounds/keen5/` (nine, painted
+from code, below), the player's own in `game_data/keen5/backgrounds/levelNN.png`
+(they win, as for Keen 4). The machinery is Keen 4's (`GalaxyLevelScreen`,
+`LevelBackdrop`, the cover beyond the scroll area shows the picture);
+Keen 5's rule is its own (`Keen5BackdropPictures`, `Keen5OpenSky`).
+
+**Where Keen 5 has plain background (all 14 maps looked at, E10).** Keen 5
+plays inside the Omegamatic. The green, red and hazard-striped walls and
+floors are **foreground** tiles; the back walls of the rooms are patterns
+(grey bricks, blue lines, purple stripes, cyan scales), never one colour.
+The only plain backgrounds are outside:
+
+- **black space**, tile 0 (the only all-black tile) and 34 star tiles
+  (1-3, 139, 664-665, 698-701, 716-719, 734, 737, 755, 771-773, 789-791,
+  807-809, 825-826, 845, 863, 1100-1101, 1103, 1120: at least 224 of their
+  256 pixels black, the rest white, grey or blue stars): around the
+  station in level 1 and on the world map, and in the station's windows;
+- **Korath III's light cyan sky**, tile 105: level 13 (the base on the
+  planet) is outdoors, its purple clouds also between the buildings.
+
+But tile 0 is also the black inside of every door, and black is in the
+station's drawing everywhere (the stripes of the hazard walls, the lines
+of the blue walls, vents, computers, the pole holes). Keen 4's rule (the
+sky's colour wherever it touches a tile's edge) would put the picture in
+all of them. So:
+
+- **A map shows a picture** (levels 1-13 and the world map) when it has
+  open sky: a sky tile (0 or 105) with nothing in front in the cells along
+  the edge the view shows (the outside), or an open-sky tile (a star tile
+  or 105) with nothing in front anywhere (a window). The sky colour is
+  that of the plain sky tile the map uses most (black when it has none).
+  That gives **the world map and levels 1, 3, 4, 6, 10, 11, 12 and 13**.
+  Levels 2, 5, 7, 8 and 9 have no space or sky at all (only doors).
+- **A tile loses its sky colour** where that touches its edge: all of it
+  in a tile that is at least half sky (space with stars, a window's
+  inside: Keen 4's rule); in any other tile only the parts that hold a
+  square of 4 × 4 pixels of it (a pipe end's space), never a stripe or a
+  line (`Keen5OpenSky.cleared`).
+- **Only what is joined to the open sky shows the picture**: the
+  see-through pixels are joined pixel by pixel across the cells; a part
+  joined to a cell of an open-sky tile with nothing in front, or to the
+  cells along the map's edge (the outside), shows the picture; any other
+  part keeps its colour, painted behind the tiles (`Keen5OpenSky.closed`,
+  with Keen 4's holes in a floor, `GalaxySkyPockets`). So a door's black
+  inside (level 4's two doors at the bottom left, every door of 6 and 10),
+  a closed black box, the pole holes and level 1's escape-pod room keep
+  their black; the windows with stars show the picture (levels 3, 4, 6,
+  10, 11, 12; level 1's black gem box with stars too), and so does the
+  black strip above level 1's station (open to the map's edge).
+- **The world map**: E6 draws the yellow filler beyond the station's star
+  field as space (tile 0). With the option on the picture shows there and
+  behind the star field (whose stars stay, as every level's own stars do);
+  with the option off it is black. Korath III's ground below row 100
+  stays.
+- Worked out once per map when it is shown (0.1-0.4 s), as Keen 4's holes.
+  Tiles changed later keep what was found: the security doors and fuses
+  of the levels with a picture have no sky behind them (checked); when the
+  QED breaks (level 12) about 70 pixels of its window's frame show the
+  picture for the moment before the level ends.
+
+| Map | Scene (`tools/make_keen5_backgrounds.py`) |
+|-----|-----|
+| 0 World map | deep space with a far spiral galaxy, a faint blue nebula and a small moon (the map has the planet's ground of its own) |
+| 1 Ion Ventilation System | the desert planet far below the station, yellow with dark cracks and a thin rim of air, a small moon |
+| 3 Defense Tunnel Vlook | a long violet and blue nebula band with star clusters (wide: the tunnel is long) |
+| 4 Energy Flow Systems | a hot blue-white star with a wide glow and long rays |
+| 6 Regulation Control Center | a ringed giant with soft bands and two moons |
+| 10 Brownian Motion Inducer | rocks of all sizes drifting through a dusty brown haze |
+| 11 Gravitational Damping Hub | a black hole with its glowing disk |
+| 12 Quantum Explosion Dynamo | a star blowing up in red and orange shells, its shards flying |
+| 13 Korath III Base | a clear day sky, deep blue to pale, two suns, a pale moon, thin high clouds and the station far up as a silhouette; no land (the level is tall and has its own desert) |
+
+Painted as Keen 3's and Keen 4's: from code only (nothing from the game
+files), in chunky pixels (216 rows blown up 5 times, lossless WebP, fixed
+seeds 5000 + map), on the shared canvas (`tools/background_painter.py`);
+level 3 3840 × 1080, the others 1920 × 1080. The space scenes are dark
+and calm so the level's own stars sit on them. **To paint them again**:
+`python3 tools/make_keen5_backgrounds.py`, then `godot --headless --path .
+--import`.
 
 ## The creatures (E4)
 

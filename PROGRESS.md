@@ -119,16 +119,18 @@ bestanden in [docs/keen5/file-formats.md](docs/keen5/file-formats.md).
 | E7 | Einde, game over (de melkweg ontploft), titel en demo's | ✅ Klaar (branch `milestone-e7-einde-titel`) |
 | E8 | Geluid en muziek | ✅ Klaar (branch `milestone-e8-geluid`) |
 | E9 | Menu's en opslaan | ✅ Klaar (branch `milestone-e9-menus`) |
-| E10 | Mooier maken (plaatjes achter de levels, builds) | ⬜ |
+| E10 | Mooier maken (plaatjes achter de levels, builds) | ✅ Klaar (branch `milestone-e10-extras`) |
 | E11 | Co-op lokaal en online | ⬜ |
 | E12 | Naast het origineel; alle opties uit = het origineel | ⬜ |
 | E13 | (Optioneel) Keen 4 op het gedeelde Galaxy-spel | ⬜ |
 
-**Volgende stap:** E10 (`milestone-e10-extras`, vanaf `milestone-e9-menus`):
-vloeiende beweging en xBRZ voor Keen 5 nakijken (ook het controlepaneel en
-de vakken met xBRZ), eigen plaatjes achter de levels in
-`assets/backgrounds/keen5/`, de builds voor macOS en Windows (op de Mac).
-De gebruiker uploadt Keen 2-5 weer naar de sessie.
+**Volgende stap:** E11 (`milestone-e11-coop`, vanaf `milestone-e10-extras`):
+co-op op één toetsenbord en online, de algemene co-op- en onlineketen uit
+Keen 4 (`GalaxyCoopScreen`, `GalaxyJoinedScreen`, `GalaxyOnlineScreen`,
+`GalaxyOnlineState`, `GalaxyBoxNames`), `GAME_ID_KEEN_5` achteraan
+`OnlineProtocol.GAME_IDS` (uitzondering `tests/test_keen4_online.gd:26`).
+Op de Mac: de apps bouwen (`tools/build_macos.sh`, `tools/build_windows.sh`)
+en de plaatjes in breedbeeld bekijken (vraag hieronder).
 
 ## Achtergronden Keen 1 en 2: mijlpalen AB
 
@@ -272,6 +274,85 @@ ligt wordt een gat (`docs/graphics.md`, onderzoek §8).
   in `Keen2GuardRobot`; nu kijkt hij de kant op waar hij heen zweeft en
   schiet. Alleen namen/plaatjes gecontroleerd (js-dos overgeslagen op
   verzoek). Test `test_guard_robot_faces_the_way_it_floats_and_fires`.
+
+## Mijlpaal E10: wat er nu is
+
+Keen 5 heeft zijn eigen plaatjes achter de levels, op
+`milestone-e10-extras` (23-10, 02:07 - 02:57 UTC). De regels staan in
+`docs/keen5/gameplay.md` ("Pictures behind the levels"), de klassen en
+afwijkingen in `docs/keen5/architecture.md` ("Keen 5's pictures behind
+the levels (from E10)", "Deviations in E10").
+
+- [x] **Alle 14 maps bekeken** (breedbeeld, met de dekking): Keen 5's
+  muren en vloeren zijn voorgrondtegels, de achterwanden patronen. Effen
+  achtergrond is er alleen buiten: **zwarte ruimte** (tegel 0 en 34
+  sterrentegels; rond het station in level 1 en op de kaart, in de ramen)
+  en **de lichtblauwe lucht van Korath III** (tegel 105, level 13). Maar
+  tegel 0 is ook de binnenkant van elke deur, en zwart zit overal in de
+  tekening (strepen, lijnen, roosters).
+- [x] **Eigen regel** (`Keen5BackdropPictures`, `Keen5OpenSky`): een tegel
+  verliest de luchtkleur aan de rand helemaal als hij grotendeels lucht
+  is, anders alleen brede stukken (4×4), nooit een streep of lijn; en
+  alleen wat pixel voor pixel verbonden is met open lucht (sterrentegels,
+  Korath's lucht, de rand van de map) toont het plaatje, de rest wordt in
+  zijn kleur teruggeschilderd. Deuren, dichte zwarte vakken, paalgaten en
+  de ontsnappingscapsules in level 1 blijven zwart; ramen met sterren
+  tonen het plaatje. Een map krijgt er een als hij ergens open lucht
+  heeft: **de wereldkaart en levels 1, 3, 4, 6, 10, 11, 12 en 13**; 2, 5,
+  7, 8 en 9 hebben geen ruimte of lucht.
+- [x] **Negen plaatjes uit code** (`tools/make_keen5_backgrounds.py`,
+  vaste seeds 5000 + map, grove pixels, op het canvas van Keen 3/4): de
+  planeet onder het station (1), een nevelband (3, breed), een
+  blauwwitte ster (4), een geringde reus (6), zwevende rotsen (10), een
+  zwart gat (11), een ontploffende ster (12), een daglucht met twee zonnen
+  en het station hoog in de lucht (13), diepe ruimte met een melkweg
+  (wereldkaart). Het eigen plaatje van de speler in
+  `game_data/keen5/backgrounds/levelNN` wint.
+- [x] **De wereldkaart**: met Backgrounds aan toont de ruimte buiten het
+  sterrenveld (E6: zwart) en het sterrenveld zelf het plaatje (de sterren
+  van de kaart blijven); uit: zwart. 4:3 onveranderd.
+- [x] **Vloeiende beweging en xBRZ nagekeken**: niets te repareren. Alle
+  sprites die Keen 5 tekent (ook de diamanten van de Sphereful en het oog
+  van de mijn) worden door xBRZ geschaald; overlays bewegen vloeiend mee;
+  wit oplichten is een shader. Bekeken: levels 1, 6, 13, de kaart, de
+  Sphereful, een mijn en een GoPlat met Keen, origineel en xBRZ+vloeiend;
+  het controlepaneel blijft met xBRZ scherp in de originele pixels (als
+  Keen 4).
+- [x] **Builds**: niets nodig; beide scripts kopiëren `game_data/keen5`,
+  de export neemt `assets/backgrounds/keen5` mee (zoals Keen 4).
+- [x] **Gedeelde code**: alleen `src/galaxy/game/` (nieuw
+  `GalaxyGameBackdrops` met twee haken, `rules.make_backdrops`); de
+  standaard is precies het oude gedrag. Niets veranderd in `src/galaxy/`
+  buiten `game/`.
+- [x] **Tests**: nieuw `test_keen5_backgrounds` (zonder bestanden: de
+  map met precies deze negen plaatjes, 16:9 of breder, het eigen plaatje
+  van de speler wint, regels op zelfgemaakte tegels en maps: deur zwart,
+  raam met sterren en de rand open, welke maps; met bestanden: de echte
+  maps met een plaatje, de sterrentegels, en op het scherm: level 4's deur
+  zwart en raam met plaatje, **niets in 4:3, niets met de optie uit**, de
+  ruimte van de wereldkaart met plaatje en zwart met de optie uit);
+  `test_keen5_keen` kent de luchttegels. **162 suites groen, 1 overgeslagen
+  (Keen 4 v1.4), 0 FAIL, 0 SCRIPT ERROR.**
+  `gdformat` en `gdlint` schoon.
+- [x] **Regressies**: Keen 5 tegen E9: alleen `keen5_level1_wide` en
+  `keen5_level11_wide` anders (het plaatje naast het station en in het
+  raam), de rest gelijk; nieuw: level 13 en de kaart direct gespeeld, in
+  beide beeldverhoudingen. Keen 1 alleen `launcher.png` anders (gelijk aan
+  E9's: het vijfde icoon), Keen 2 (4) en Keen 4 (11) alles gelijk.
+  `git diff origin/main` op `src/keen2-4`, hun tests, `src/actors`,
+  `src/map`, `src/game`: alleen de twee regels met het aantal spellen.
+- **Open punten:** als de QED breekt (level 12) tonen ~70 pixels in het
+  raam even het plaatje tot het level eindigt (de map wordt niet opnieuw
+  doorgerekend). Naast de spuitmonden op de romp van level 1 blijven
+  smalle zwarte randjes. Real-ESRGAN niet (besluit). De apps zijn hier
+  niet gebouwd (de gebruiker bouwt op de Mac).
+- **Vraag voor de gebruiker (advies gebouwd):** de wereldkaart toont het
+  plaatje ook achter het sterrenveld (één ruimte, geen harde rand); de
+  ramen van het station tonen het plaatje ook. Alternatieven: alleen
+  buiten het sterrenveld, of niet in de ramen.
+- **Om te proberen:** `godot --path . -- --game=5 --level=1` (breedbeeld,
+  F2 wisselt naar 4:3), `--level=13`, `--level=0`; Options:
+  Backgrounds uit geeft het origineel.
 
 ## Mijlpaal E9: wat er nu is
 

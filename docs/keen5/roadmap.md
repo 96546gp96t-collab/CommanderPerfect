@@ -287,6 +287,7 @@ Keen 4-tests slagen (hun namen van privéleden blijven bestaan).
 | E7 Einde, titel | ~1,25 u | De algemene voorkant, game over als scène, demo's |
 | E8 Geluid | ~30 min | Alleen tabellen |
 | E9 Menu's | ~45 min | Algemene menuketen, opslaan |
+| E10 Mooier maken | 23-10-2026 | Klaar (branch `milestone-e10-extras`); eigen plaatjes achter de wereldkaart en levels 1, 3, 4, 6, 10, 11, 12, 13 (ruimte rond het station en in de ramen, de lucht van Korath III) met Keen 5's eigen regel (`Keen5BackdropPictures`, `Keen5OpenSky`): deuren en zwart in de tekening blijven zwart; vloeiende beweging en xBRZ nagekeken (niets te doen), builds nemen alles mee |
 | E10 Extra's | ~45 min | Plaatjes, builds |
 | E11 Co-op | ~1 u | Algemene co-op- en online-keten |
 | E12 Origineel | ~1 u | |

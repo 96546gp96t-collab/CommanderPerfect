@@ -336,7 +336,7 @@ up.
 | `keen_stand_right_sprite`, `keen_stand_left_sprite`, `map_keen_sprite` | 6, 14, 142 | Keen standing still, on the map |
 | `sprites` | `Keen5Sprites.all()` | Every sprite by name (Keen, items, shot, splash, SCOREBOX); `level_sprites()` for xBRZ |
 | `start_lives`, `start_shots`, `first_extra_life`, `stunner_charges`, `easy_stunner_charges` | 3, 5, 20000, 5, 8 | A new game, `charges_for(level)` |
-| `backdrop_folder`, `sky_tiles` | `res://assets/backgrounds/keen5`, none | The pictures behind the levels (none until E10) |
+| `backdrop_folder`, `sky_tiles`, `make_backdrops` (E10) | `res://assets/backgrounds/keen5`, 0 and 105, `Keen5Episode.make_backdrops` | The pictures behind the levels (none until E10; Keen 5's own rule since E10) |
 | `map_flag_offset`, `throws_map_flag`, `map_flag_throw_offset` (E6) | (−0x50, −0x1E0), false, — | The done levels' flags on the world map (Keen 4: (0x60, −0x1E0), thrown to (0x60, −0x260)) |
 | `menu_font`, `status_texts`, `game_texts` (E6) | 0, "status", "game" | The windows' font and the runs of texts the boxes and the status window read |
 | `game_over_text`, `demo_text`, `try_again_intro_text`, `try_again_text`, `exit_text`, `one_moment_text` (E6) | −1 (none), 1, 6, 7, 8, 11 | Which text of the game run is which (Keen 4: 0, 3, 7, 8, 9, 12) |
@@ -822,3 +822,73 @@ What E9 built differently from the plan above, and why (developer, E9):
    the place is kept, not the animation's phase (as Keen 4's D10); a level
    save comes back to the pixel.
 
+
+## Keen 5's pictures behind the levels (from E10)
+
+| Class | What | Lines |
+|---|---|---|
+| `GalaxyGameBackdrops` (`src/galaxy/game/`) | `GalaxyBackdropPictures` with two hooks the level screen asks: `clear_tile(image, color)` (Keen 4's rule by default) and `kept_sky(map, ...)` (Keen 4's holes in a floor by default); made from the rules (`for_rules`) or by the episode's `rules.make_backdrops` | 42 |
+| `Keen5BackdropPictures` | Keen 5's rule: which maps show a picture (open sky anywhere, the world map too), the sky colour, the hooks | 78 |
+| `Keen5OpenSky` | Clearing only wide parts of the sky colour in a drawn tile; the see-through parts joined across the cells (union-find), those not joined to open sky kept | 289 |
+
+`Keen5Episode` names `SKY_TILES` (0, 105), `OPEN_SKY_TILES` (105 and the
+34 star tiles) and `make_backdrops`. The rules are in
+[gameplay.md](gameplay.md), "Pictures behind the levels".
+
+## Deviations in E10
+
+What E10 built differently from the plan above, and why (developer, E10):
+
+1. **Not Keen 4's rule, a rule of Keen 5's own.** The plan was Keen 4's
+   (`sky_tiles` and the top row). Looking at every map showed that Keen
+   5's walls are foreground tiles and its back walls patterns: the only
+   plain backgrounds are black space and Korath III's sky, and black is
+   also the inside of doors and part of the station's drawing everywhere
+   (Keen 4's rule put the picture in the hazard stripes, the blue walls'
+   lines and every door). So a tile loses only wide parts of the colour
+   unless it is mostly sky, and only parts joined to open sky (star
+   tiles, Korath's sky, the map's edge) show the picture; the rest is
+   painted back in its colour with Keen 4's sky patch. A map shows a
+   picture when it has open sky anywhere, so the station's windows to
+   space show it too (Keen 4: only a top row of sky).
+2. **No "machine halls"**: the brief's idea of pictures for machine
+   rooms has no place to show: there is no plain wall colour behind the
+   rooms (the green, red and striped areas are solid foreground). Levels
+   2, 5, 7, 8 and 9 have no picture.
+3. **The world map shows its picture behind the station's star field
+   too**, not only beyond it: the star field's black and the filler's
+   black (E6) are one space, and a picture only where the filler was
+   would draw a hard edge around the star field. Its stars stay on the
+   picture, as every level's own stars do. With the option off the filler
+   is black as in E6.
+4. **Two hooks in the level screen, no change in the engine.** The
+   pictures object is a `GalaxyGameBackdrops` (in `src/galaxy/game/`),
+   made by `rules.make_backdrops` when set; `GalaxyLevelScreen` asks it to
+   clear a tile and for the kept sky. Its default is exactly what the
+   screen did before. Nothing changed in `src/galaxy/` outside `game/`;
+   Keen 4 (its own frozen screens) does not use these classes.
+5. **Worked out once per map**, as Keen 4's holes: tiles changed later
+   keep what was found. Checked that no security door or fuse of a level
+   with a picture has sky behind it; the QED's break in level 12 leaves
+   about 70 pixels of its window showing the picture for the moment
+   before the level ends (open point, too small and short to recompute
+   the map for, 0.15 s).
+6. **Smooth motion and xBRZ needed no change for Keen 5.** Every sprite a
+   Keen 5 level draws (also the Sphereful's diamonds and the mine's eye)
+   is among the rules' level sprites, so xBRZ scales them; the 23 sprites
+   that are not (Paddle War, the flags that flip and fall, shooting stars,
+   the map's teleport sparks, the exploding stars, the mini platform, the
+   stunned Keen) are drawn by no Keen 5 code. Overlays are items of the
+   object layer, so smooth motion moves them with their creature; the
+   white flash is a shader on whatever texture is shown. Looked at in
+   screenshots: levels 1, 6, 13 and the world map with xBRZ and smooth
+   motion, the Sphereful (11), a mine (6) and a GoPlat with Keen (1) in
+   both graphics.
+7. **Builds**: nothing to add. Both build scripts copy
+   `game_data/keen5` (E2), and the export presets take all resources but
+   `tests`, `tools`, `docs`, `build`, `exported` and `game_data`, so the
+   imported pictures of `assets/backgrounds/keen5` go into the app as
+   Keen 4's do.
+8. **The regression set grew** by level 13 and the world map played
+   directly (`--level=0`), each in widescreen and 4:3; the map of a new
+   game is behind the control panel since E9.

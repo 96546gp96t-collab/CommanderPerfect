@@ -189,7 +189,12 @@ stays as it was). A level without a picture looks as in the original.
   through the sky, never the dark gray of a base (levels 1-11, 13, 14 and
   15; `docs/keen3/gameplay.md`, "Extras (C9)"), Keen 4 where the top row
   of the level is sky, and then only through the sky colour (levels 5, 7-14
-  and 16; `docs/keen4/gameplay.md`, "Pictures behind the levels"). Keen 2
+  and 16; `docs/keen4/gameplay.md`, "Pictures behind the levels"), Keen 5
+  (`assets/backgrounds/keen5/`, `tools/make_keen5_backgrounds.py`, the
+  player's `game_data/keen5/backgrounds/`) where open space or Korath
+  III's sky shows, and then only through the parts joined to it (the
+  world map and levels 1, 3, 4, 6, 10-13: around the station and in its
+  windows; `docs/keen5/gameplay.md`, "Pictures behind the levels"). Keen 2
   has no gliding pictures since AB2 (its rooms have no sky): it has walls,
   below. The painters are `tools/make_keen3_backgrounds.py` and
   `tools/make_keen4_backgrounds.py`, with their shared canvas in
