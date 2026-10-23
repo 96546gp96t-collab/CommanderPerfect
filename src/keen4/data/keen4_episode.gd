@@ -136,11 +136,8 @@ const PADDLE_WAR_FROM_END := 21
 ## The text pages (help, end; D8, D13): v1.0 lays them out on light grey
 ## in dark grey; v1.4 on red in yellow, inside a frame of five pictures
 ## that start at picture 74 (Omni PIC_BORDERTOP, chunk 80; seen in v1.4).
-## v1.0 has other pictures there, so the frame is found by its sizes.
-const PAGE_BACKGROUND := 7
-const PAGE_TEXT_COLOR := 8
-const FRAMED_PAGE_BACKGROUND := 4
-const FRAMED_PAGE_TEXT_COLOR := 14
+## v1.0 has other pictures there, so the frame is found by its sizes
+## ([method GalaxyHelp.page_layout]).
 const PAGE_FRAME_PICTURE := 74
 
 
@@ -252,25 +249,10 @@ static func high_score_offsets() -> PackedInt32Array:
 	return PackedInt32Array([HIGH_SCORES_V1_0, HIGH_SCORES_V1_4])
 
 
-## The control panel's pictures in a picture range of [param picture_count].
+## The control panel's pictures in a picture range of [param picture_count]
+## ([method GalaxyGameRules.menu_cards] by Keen 4's rules).
 static func menu_cards(picture_count: int) -> GalaxyMenuCards:
-	var pictures: Dictionary[StringName, int] = {}
-	for kind in MENU_CARDS_FROM_END:
-		pictures[kind] = picture_count - MENU_CARDS_FROM_END[kind]
-	var cards := GalaxyMenuCards.create(picture_count - WATCH_FROM_END, pictures)
-	cards.paddle_war_picture = picture_count - PADDLE_WAR_FROM_END
-	return cards
-
-
-## A layout for the text pages of [param graphics] in the menu font, in
-## the colours and with the frame of its version.
-static func page_layout(graphics: GalaxyGraphics) -> GalaxyPageLayout:
-	var layout := GalaxyPageLayout.create(graphics, MENU_FONT)
-	layout.frame = GalaxyPageFrame.find(graphics, PAGE_FRAME_PICTURE)
-	var framed := layout.frame != null
-	layout.background = FRAMED_PAGE_BACKGROUND if framed else PAGE_BACKGROUND
-	layout.default_color = FRAMED_PAGE_TEXT_COLOR if framed else PAGE_TEXT_COLOR
-	return layout
+	return game_rules().menu_cards(picture_count)
 
 
 ## All of Keen 4 in [param files]; null when something is missing.

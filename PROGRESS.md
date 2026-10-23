@@ -101,8 +101,8 @@ bestanden in [docs/keen4/file-formats.md](docs/keen4/file-formats.md).
 Het vijfde deel ("The Armageddon Machine") is **dezelfde engine** als Keen
 4 (Galaxy). Het spel rond de engine (schermen, sessies, opslaan, titel)
 wordt één keer algemeen gemaakt in `src/galaxy/game/`, uit de Keen
-4-klassen; Keen 4 zelf blijft bevroren (besluit van de gebruiker,
-22-10-2026). Keen 5 komt in `src/keen5/`. Wat elke mijlpaal inhoudt staat
+4-klassen; Keen 4 zelf bleef bevroren (besluit van de gebruiker,
+22-10-2026) tot E13 het op het gedeelde spel zette (besluit van 23-10-2026). Keen 5 komt in `src/keen5/`. Wat elke mijlpaal inhoudt staat
 in [docs/keen5/roadmap.md](docs/keen5/roadmap.md), de opzet in
 [docs/keen5/architecture.md](docs/keen5/architecture.md), wat er over Keen
 5 bekend is in [docs/keen5/research.md](docs/keen5/research.md) en de
@@ -122,14 +122,16 @@ bestanden in [docs/keen5/file-formats.md](docs/keen5/file-formats.md).
 | E10 | Mooier maken (plaatjes achter de levels, builds) | ✅ Klaar (branch `milestone-e10-extras`) |
 | E11 | Co-op lokaal en online | ✅ Klaar (branch `milestone-e11-coop`) |
 | E12 | Naast het origineel; alle opties uit = het origineel | ✅ Klaar (branch `milestone-e12-origineel`) |
-| E13 | (Optioneel) Keen 4 op het gedeelde Galaxy-spel | ⬜ |
+| E13 | Keen 4 op het gedeelde Galaxy-spel | ✅ Klaar (branch `milestone-e13-keen4`) |
 
-**Volgende stap:** Keen 5 is af (E1-E12). Beslissen of E13 (Keen 4 op het
-gedeelde Galaxy-spel) gebeurt (roadmap E13, vraag 6 van E1). Op de Mac:
-de apps bouwen (`tools/build_macos.sh`, `tools/build_windows.sh`), de
-plaatjes in breedbeeld bekijken (vraag bij E10) en Keen 5 met twee
-spelers en online proberen (twee computers, of de host headless; Steam
-alleen daar).
+**Volgende stap:** Keen 5 is af (E1-E12) en Keen 4 speelt sinds E13 op
+hetzelfde gedeelde Galaxy-spel (`src/galaxy/game/`). Op de Mac: de apps
+bouwen (`tools/build_macos.sh`, `tools/build_windows.sh`) en Keen 4 even
+naspelen (titel, een level, opslaan en laden, het einde) om te zien dat
+alles is zoals het was; de plaatjes in breedbeeld bekijken (vraag bij E10)
+en Keen 5 met twee spelers en online proberen (twee computers, of de host
+headless; Steam alleen daar). Daarna kan Keen 6 op het gedeelde spel
+(docs/new-episode-guide.md, "Keen 6 on the Galaxy game").
 
 ## Achtergronden Keen 1 en 2: mijlpalen AB
 
@@ -273,6 +275,75 @@ ligt wordt een gat (`docs/graphics.md`, onderzoek §8).
   in `Keen2GuardRobot`; nu kijkt hij de kant op waar hij heen zweeft en
   schiet. Alleen namen/plaatjes gecontroleerd (js-dos overgeslagen op
   verzoek). Test `test_guard_robot_faces_the_way_it_floats_and_fires`.
+
+## Mijlpaal E13: wat er nu is
+
+Keen 4 op het gedeelde Galaxy-spel, op `milestone-e13-keen4` (23-10, 05:28 -
+07:40 UTC), op verzoek van de gebruiker (23-10-2026: `src/keen4/` mocht
+alleen voor deze mijlpaal veranderen). De afwijkingen staan in
+`docs/keen5/architecture.md` ("Keen 4 on the Galaxy game (E13)",
+"Deviations in E13").
+
+- [x] **`Keen4View` op `GalaxyOnlineScreen`**, net als `Keen5View`: de zeven
+  Keen 4-schermen (level, spelen, voorkant, menu, co-op, meespeler, online)
+  zijn weg. In de view zit alleen nog wat Keen 4 alleen doet: de raad,
+  Lindsey, de conciërge, het duikpak, "I can't swim!", de vlucht op de
+  Voet, E+N+D als achtste redding, de geredde leden in de highscores, de
+  testcheats, en de naam en de demo's zoals Keen 4 ze deed.
+- [x] **De spelklassen dun gemaakt**: `Keen4LevelSession`,
+  `Keen4MapSession`, `Keen4Start`, `Keen4Progress`, `Keen4StatusWindow`,
+  `Keen4GameBoxes`, `Keen4Help`, `Keen4Ending`, `Keen4Cheats`,
+  `Keen4TitleLoop`, `Keen4Audio`, `Keen4Settings`, `Keen4SavedGame` zijn
+  subklassen van de Galaxy-klassen met de regels van Keen 4
+  (`Keen4Episode.game_rules()`) en alleen Keen 4's eigen inhoud (zwemmen
+  in level 17, Miragia, het duikpak, RESCUED, het opslagformaat);
+  `Keen4FrontScreen` en `Keen4HighScoreBoard` bewaren alleen namen voor de
+  tests. Keen 4's eigen nummering van de vakjes en de getallen online
+  blijven (`Keen4BoxNames`, `Keen4OnlineState`, met twee kleine adapters).
+  `src/keen4/`: 4.410 regels eruit, 574 erbij; `src/galaxy/game/`: 184
+  erbij, 70 eruit.
+- [x] **Keen 4 doet alles zoals vroeger** door zeven vlaggen in
+  `GalaxyGameRules` (standaard aan, dus Keen 5 verandert niet; Keen 4 zet
+  ze uit): de tekenvolgorde van het origineel, de lucht in geplaatste
+  tegels, de muziek die stopt tussen de maps (Keen 4's liedje speelt door),
+  het stille naspelen van een geladen level, de geluiden van het scherm
+  online, de eerste cel van een map zonder Keen, en Return to Game buiten
+  een spel.
+- [x] **Geen enkele Keen 4-test veranderd.** Zeven Galaxy-functies kregen
+  een andere naam (GDScript weigert een statische functie in een subklasse
+  met andere parameters, en Keen 4's tests roepen Keen 4's functies aan):
+  `start_level`, `start_map`, `begin_replay`, `replay_all`,
+  `save_inventory`, `load_inventory`; daardoor riepen drie andere
+  testbestanden de nieuwe namen aan (alleen de namen:
+  `test_galaxy_game_session`, `test_galaxy_game_saved`,
+  `test_keen5_save_play`). Nieuw: `test_keen4_framed_pages` (de rode
+  helppagina's van v1.4 in het kader, zonder de bestanden: dezelfde code
+  als Keen 5's kader; `test_keen4_v14` slaat over zonder een 1.4-kopie).
+- [x] **Bewijs**: **168 suites groen, 1 overgeslagen (Keen 4 v1.4), 0
+  FAIL, 0 SCRIPT ERROR**; `gdformat`/`gdlint` schoon. Regressies: Keen 4
+  alle 11 gelijk aan de referentie van vóór E2, Keen 5 alle 17 gelijk aan
+  E12's, Keen 2 alles gelijk, Keen 1 gelijk aan E12's (alleen het
+  startscherm van vóór E2 anders: het vijfde icoon). De demo-suite (alle
+  vijf demo's) gelijk. En **naast de E12-build** (een `git worktree`), elk
+  beeld van het venster vergeleken: de titellus 15.000 beelden (intro,
+  demo's 0-4, verhaal, highscores), een spel van 7.500 beelden (nieuw
+  spel, kaart, level 1, statusvenster, help, opslaan, dood en Try Again,
+  laden, E+N+D met de raad en de eindpagina's, naam, highscores), 4:3 met
+  vloeiend over maps 0, 19, 18, 17 (zwemmen) en 1, de kaart met "I can't
+  swim!" en opslaan/laden op de kaart, en een opgeslagen level van de
+  E12-build geladen en verder gespeeld: alles gelijk (de enkele beelden
+  die verschilden, verschilden net zo tussen twee runs van E12 zelf: het
+  naspelen van een geladen level en het xBRZ-voorbereiden lopen op de
+  klok van de computer).
+- [x] Niets veranderd in Keen 1-3, `src/game/` of `src/galaxy/` buiten
+  `game/`; `git diff origin/main` op Keen 1-3: alleen de goedgekeurde
+  regels van eerder.
+- **Twee verschillen die je niet ziet**: zonder de Keen 4-bestanden opent
+  Escape geen leeg bedieningspaneel meer; B+A+T komt in de beelden van een
+  opgeslagen level bij het sluiten van het vak in plaats van bij het
+  openen (naspelen geeft hetzelfde).
+- **Niet gedaan**: de builds voor macOS en Windows (de gebruiker bouwt op
+  de Mac).
 
 ## Mijlpaal E12: wat er nu is
 

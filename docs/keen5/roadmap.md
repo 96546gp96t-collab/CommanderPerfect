@@ -267,7 +267,7 @@ Klaar als: je vanaf de kaart alle levels kunt spelen, ook Korath III.
 - Het statusvenster, de menu's, de highscores, het einde en game over op
   de pixel nameten; de demo's frame voor frame.
 
-## E13 (optioneel). Keen 4 op het gedeelde Galaxy-spel (`milestone-e13-keen4`)
+## E13. Keen 4 op het gedeelde Galaxy-spel (`milestone-e13-keen4`)
 
 Alleen als de gebruiker dat wil (vraag 6 in research.md §13): Keen 4's
 schermketen en sessies vervangen door de algemene klassen, zodat er één
@@ -309,3 +309,4 @@ Keen 4-tests slagen (hun namen van privéleden blijven bestaan).
 | E10 Mooier maken | 23-10-2026 | Klaar (branch `milestone-e10-extras`); eigen plaatjes achter de wereldkaart en levels 1, 3, 4, 6, 10, 11, 12, 13 (ruimte rond het station en in de ramen, de lucht van Korath III) met Keen 5's eigen regel (`Keen5BackdropPictures`, `Keen5OpenSky`): deuren en zwart in de tekening blijven zwart; vloeiende beweging en xBRZ nagekeken (niets te doen), builds nemen alles mee |
 | E11 Co-op | 23-10-2026 | Klaar (branch `milestone-e11-coop`); `GalaxyCoopScreen`, `GalaxyJoinedScreen`, `GalaxyOnlineScreen`, `GalaxyOnlineState`, `GalaxyBoxNames` uit Keen 4; twee spelers op één toetsenbord met split-screen (sleutelkaart gedeeld, zekeringen door ieder, één Keen op de kaart die de ritten voor beiden maakt); online met `GAME_ID_KEEN_5` achteraan, overschakelen tussen de delen, het zekeringbericht en het Korath-vak bij naam; live via ENet met twee vensters |
 | E12 Naast het origineel | 23-10-2026 | Klaar (branch `milestone-e12-origineel`); alle wezens die E4 niet zag in js-dos bekeken (gelijk; de Shikadi Master gerepareerd: langer staan, geen teleport in een muur), lift en eerste beeld verklaard (js-dos-beeldlengtes), doodsvak, Korath-bericht, geheim einde en game over op de pixel; alle opties uit: de vijf demo's beeld voor beeld gelijk, `test_keen5_original_mode`; de kapotte QED toont geen plaatje meer; lessen en Keen 6 in de gids |
+| E13 Keen 4 op het gedeelde spel | 23-10-2026 | Klaar (branch `milestone-e13-keen4`); `Keen4View` op `GalaxyOnlineScreen`, de zeven Keen 4-schermen weg, de spelklassen dunne subklassen met Keen 4's regels; zeven vlaggen houden Keen 4's eigen manier (standaard aan voor Keen 5); geen Keen 4-test veranderd; demo's, 11 regressiebeelden en vijf gescripte sessies beeld voor beeld gelijk aan de E12-build |

@@ -252,7 +252,14 @@ Add one line per lesson, with the milestone where it was learned.
 
 ## Keen 6 on the Galaxy game
 
-Build Keen 6 on `src/galaxy/game/` (E3-E12), not on `src/keen4/`:
+Build Keen 6 on `src/galaxy/game/` (E3-E12), not on `src/keen4/`. Since
+E13 **both Keen 4 and Keen 5 play on it** (`Keen4View` and `Keen5View`
+extend `GalaxyOnlineScreen`), so there are two working examples: Keen 5
+for an episode written on the shared game from the start, Keen 4 for one
+that keeps older ways through the rules' flags (`original_sprite_order`,
+`music_stops_between_maps`, ... all true by default: a new episode leaves
+them alone). A fix in the shared game now reaches both episodes; run both
+episodes' suites, demo suites and regression pictures after one.
 `Keen6View extends GalaxyOnlineScreen` gets the whole chain (level and
 map sessions, flow, front with title loop, help, end and high scores,
 control panel and saves, co-op and online) and fills in:
@@ -283,3 +290,12 @@ control panel and saves, co-op and online) and fills in:
 - What is Keen 6's own (its creatures, Keen's extras such as the hook and
   the ropes, the map's rides) goes in `src/keen6/`, one class per
   creature, as Keen 5's `src/keen5/actors/`.
+- **Lessons of E13** (Keen 4 moved onto the shared game): GDScript refuses
+  a static function in a subclass whose parameters differ from the
+  parent's, so give an episode's own constructors their own names
+  (`start_level`, `create_keen5`) or keep the parent's parameters and add
+  defaults; a subclass cannot redeclare a member, an enum or a constant of
+  its parent, so take care with names that an episode's tests may want;
+  and compare a move like this one frame by frame with a scripted session
+  on the old build (a `git worktree`), not only with the tests: a hash of
+  the window every frame finds what the suites do not reach.

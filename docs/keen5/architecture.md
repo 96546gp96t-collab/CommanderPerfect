@@ -285,8 +285,10 @@ What E2 built differently from the plan above, and why (developer, E2):
 ## The Galaxy game (from E3)
 
 How the shared game around the Galaxy engine is built (way 3). Later
-milestones follow it; Keen 4's own classes stay as they are (E13 may move
-Keen 4 onto these).
+milestones follow it. **Since E13 Keen 4 and Keen 5 both play on it**
+(`Keen4View` and `Keen5View` extend `GalaxyOnlineScreen`); Keen 4 keeps
+its old behaviour through the flags at the end of `GalaxyGameRules`
+("Deviations in E13").
 
 ### The classes in `src/galaxy/game/` (E3)
 
@@ -361,6 +363,8 @@ up.
 | `menu_cards_from_end`, `watch_from_end`, `paddle_war_from_end`, `menu_cards(count)` (E9) | MAIN 32, NEW GAME 31, LOAD 30, SAVE 29, CONFIGURE 28, SOUND 27, MUSIC 26, BUTTON SETUP 23, OPTIONS 21; 17; 20 | The control panel's pictures (Keen 4's by default: one more each) |
 | `save_slot_count`, `saves_folder()` (E9) | 6, `user://keen5/saves` | The saved games, never in Keen 4's folder (`GalaxySaveSlots`' default) |
 | `game_id` (E11) | `commanderperfect-keen5` (`Keen5Files.GAME_ID`) | The id online (`OnlineProtocol.GAME_IDS`) |
+| `swimming_keen_info`, `swimming_keen_sprite` (E13) | −1, −1 | Keen swimming at a map's start (Keen 4: info 42, sprite 187, level 17) |
+| `original_sprite_order`, `keeps_sky_in_placed_tiles`, `music_stops_between_maps`, `silent_replay`, `screen_sounds_online`, `looks_from_first_cell`, `panel_out_of_game_resumes_title` (E13) | all true | What the Galaxy game does that Keen 4 did not; Keen 4's rules switch each off ("Deviations in E13") |
 
 ### The hooks (virtual methods that do nothing or Keen 4's thing by default)
 
@@ -401,6 +405,9 @@ up.
 | `GalaxyOnlineState` (E11) | `_extra_size()`, `_pack_extra(...)`, `_is_extra_sane(extra)`, `_unpack_extra(...)` | none | the keycard, the fuses still to break, the levels done by a fuse, the Korath III arrival |
 | `GalaxyBoxNames` (E11) | `_argument_count(kind)`, `_episode_pages(kind, description)` | the shared kinds | `Keen5BoxNames.FUSE` [map, page] |
 | `GalaxySavedGame` (E9) | `_new_inventory()`, `_new_progress()`, `_extra_inventory_to_dictionary(carried)`, `_extra_inventory_from_dictionary(carried, saved)`, `give_items(carried)`, `give_everything(carried)` | the rules' inventory; `GalaxyProgress`; nothing; B+A+T's and Shift+I's gifts | `Keen5Inventory` (keycard, fuses), `Keen5Progress` (Korath arrival), the keycard with each gift |
+| `GalaxyLevelSession` (E13) | `_can_start(start)`, `_spawn_player(start)`, `_player_body()`, `_spawn_partner(cell, first)` | standing; a walking Keen; `keen`; a Keen of the episode's kind | — (Keen 4: the swimmer in level 17, player 2 with player 1's jumps and moon) |
+| `GalaxyPlayScreen` (E13) | `_play_world_sound(name, interrupt)`, `_first_song_maps()` | `_play_sound`; the world map's, the first demo's and the story's songs first | — (Keen 4: only the world map's song first) |
+| `GalaxyOnlineScreen` (E13) | `_new_named_boxes()` | `GalaxyNamedBoxes` | — (Keen 4: `Keen4NamedBoxes` with its own kind numbers) |
 
 What an episode adds beyond these (Keen 5's keycard, its door targets)
 lives in its own subclasses: `Keen5Keen` overrides `_think_enter_door`,
@@ -997,3 +1004,97 @@ E12):
    line) differ from the original's; the loading pauses of js-dos are not
    copied (E7); the yellow filler of the world map is black space also in
    4:3, where the original's view never comes (E6).
+
+## Keen 4 on the Galaxy game (E13)
+
+Keen 4 moved onto `src/galaxy/game/` (way 3's "later move", decided by the
+user on 23-10-2026). `Keen4View` extends `GalaxyOnlineScreen` like
+`Keen5View`; Keen 4's seven screens (level, play, front, menu, co-op,
+joined, online) are gone, and its game classes are thin subclasses of the
+Galaxy ones with Keen 4's rules (`Keen4Episode.game_rules()`) and only
+Keen 4's content:
+
+| Class | On | What stays Keen 4's |
+|---|---|---|
+| `Keen4View` | `GalaxyOnlineScreen` | The council, Lindsey, the janitor, the wetsuit and "I can't swim!" boxes, the Foot's flight, E+N+D as the eighth rescue, the rescued members in the table, the testing cheats (also player 2's god mode), the name entry and a demo's difficulty as before, `_keen4_settings` (the Galaxy settings by their old name) |
+| `Keen4LevelSession` | `GalaxyLevelSession` | The swimmer in level 17 (start, view, player 2), the moon, `Keen4Creatures`; `start(data, map, ...)` with Keen 4's rules |
+| `Keen4MapSession` | `GalaxyMapSession` | Miragia, the wetsuit, the Foot; `start`/`create` as before |
+| `Keen4Start` | `GalaxyStart` | Nothing but its name (the swimming start is a rules field) |
+| `Keen4Progress` | `GalaxyProgress` | The rescues, the wetsuit, the Foot, its saved-game format (the levels done as a list) |
+| `Keen4StatusWindow`, `Keen4GameBoxes` | the Galaxy ones | RESCUED and the wetsuit's row; "I can't swim!" |
+| `Keen4Help`, `Keen4Ending`, `Keen4Cheats`, `Keen4TitleLoop`, `Keen4Audio`, `Keen4Settings`, `Keen4SavedGame` | the Galaxy ones | Their old static functions and constants for Keen 4's tests (the council song in `Keen4Audio`, Shift+I's gifts in `Keen4Cheats`, the static replay in `Keen4SavedGame`) |
+| `Keen4FrontScreen`, `Keen4HighScoreBoard` | — (`RefCounted`) | Only names for Keen 4's tests: the front's kinds, the intro's words, the original table, the board by Keen 4's rules |
+| `Keen4BoxNames`, `Keen4NamedBoxes`, `Keen4NamedMessages`, `Keen4OnlineState` | as before | Keen 4's own online numbering and snapshot layout; `Keen4BoxNames.GameNames` and `Keen4OnlineState.GameState` hand them to the Galaxy chain |
+
+`src/keen4/` lost 4,410 lines and gained 574 (E13's two code steps);
+`src/galaxy/game/` gained 184 and lost 70.
+
+## Deviations in E13
+
+What E13 changed, and why (developer, E13):
+
+1. **Seven Galaxy functions were renamed**, because GDScript refuses a
+   static function in a subclass whose parameters differ from the
+   parent's, and Keen 4's tests call Keen 4's static functions with Keen
+   4's parameters: `GalaxyLevelSession.start` → `start_level` (Keen 5's
+   `start_level` now overrides it), `GalaxyMapSession.start` →
+   `start_map` (the same for Keen 5's), and `GalaxySavedGame.replay_on` →
+   `begin_replay`, `replay` → `replay_all`, `inventory_to_dictionary` →
+   `save_inventory`, `inventory_from_dictionary` → `load_inventory`
+   (Keen 4's static functions of those names are on `Keen4SavedGame`).
+   Three non-Keen-4 test files call the new names (only the names:
+   `test_galaxy_game_session` 5 calls, `test_galaxy_game_saved` 2,
+   `test_keen5_save_play` 3). Where only a parameter was added, Keen 4's
+   function keeps the parent's parameters with a default (`create(data,
+   game_rules = null)` gives Keen 4's rules), which GDScript accepts.
+2. **No Keen 4 test file changed.** Every name the tests use still exists:
+   the private members inherited from the Galaxy chain (lifted with the
+   same names), `_keen4_settings` as a property on `_galaxy_settings`,
+   `Keen4View.progress()` returning a `Keen4Progress`, and the thin
+   classes above. `Keen4FrontScreen.Front` is a constant naming the Galaxy
+   enum (one `# gdlint: ignore=constant-name`, the enum's casing).
+3. **Seven flags keep Keen 4's ways** (`GalaxyGameRules`, all true by
+   default, so Keen 5 is unchanged; Keen 4's rules set them false):
+   `original_sprite_order` (E7), `keeps_sky_in_placed_tiles` (E12),
+   `music_stops_between_maps` (E8: Keen 4's song plays on through the
+   boxes, the end of a demo, a game over and a new game),
+   `silent_replay` (E9), `screen_sounds_online` (E11: Keen 4 sends only
+   the sounds of the world to the joiner, so its snapshots are as before),
+   `looks_from_first_cell` (a map without Keen looked at from the last
+   cell searched, as Keen 4's D3; no Keen 4 map has none) and
+   `panel_out_of_game_resumes_title` (E9: Return to Game outside a game
+   stays on the map shown). Also kept as Keen 4 did in its view: a demo
+   leaves the game's difficulty alone, the name entry plays map 19 with
+   an inventory of its own while the song of the map shown last plays on,
+   and only the world map's song is rendered first.
+4. **New hooks and helpers in `src/galaxy/game/`** (no change for Keen 5):
+   `GalaxyStart` knows the swimming start (`Kind.SWIMMING` appended, the
+   rules' `swimming_keen_info`/`_sprite`, `find(..., into)`);
+   `GalaxyLevelSession` `_can_start`, `_spawn_player`, `_player_body` (the
+   `player` property asks it), `_spawn_partner`; `GalaxyPlayScreen`
+   `_play_world_sound` (the world's sounds), `_stop_music_between_maps`;
+   `GalaxyOnlineScreen` `_new_named_boxes`, `_send_sound`;
+   `GalaxyHelp.set_up`, `GalaxyEnding.set_up`, `GalaxySettings.read`
+   (for subclasses made with their own `new()`). Nothing changed in
+   `src/galaxy/` outside `game/`, in Keen 1-3 or in `src/game/`.
+5. **Two differences that cannot be seen in play**: without the Keen 4
+   files Escape no longer opens an empty control panel over the error
+   message (the Galaxy view returns at once, as Keen 5's); and B+A+T is
+   written among a saved level's frames when its box closes, not when it
+   opens (the Galaxy menu screen's order). Nothing runs between the two
+   (the box holds the game), so a replay gives the same; only if F2 was
+   pressed while the box stood do the two events change places in the
+   bytes, which a replay applies in the same frame either way.
+6. **The proof**: all 65 Keen 4 and Galaxy suites, the demo suite (all
+   five demos), the 11 regression pictures against the pre-E2 reference,
+   and three scripted sessions laid frame by frame on E12's build
+   (`git worktree` of `milestone-e12-origineel`; a hash of the window's
+   picture, the map, the front, the song and the inventory every frame):
+   the title loop for 15,000 frames (intro, demos 0-4, story, high
+   scores), a game (new game, the map, level 1, the status window, the
+   help, a save, a death and Try Again, a load, E+N+D with the council's
+   boxes and the end pages, the name typed in, the high scores) for 7,500
+   frames, and 4:3 with xBRZ and smooth motion over maps 0, 19, 18, 17
+   (swimming) and 1. All the same; the frames that differed between the
+   builds differed as much between two runs of E12 (the replay of a
+   loaded level and the xBRZ preparation run on the wall clock).
