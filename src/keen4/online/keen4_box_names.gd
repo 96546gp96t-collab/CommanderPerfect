@@ -124,3 +124,27 @@ static func _pages(
 		Kind.WETSUIT:
 			return messages.wetsuit()
 	return single
+
+
+## Keen 4's names as the shared game asks for them ([GalaxyBoxNames],
+## milestone E13): the names and the pictures are Keen 4's (its own kind
+## numbers travel online), drawn with the joiner's own boxes and
+## [member messages].
+class GameNames:
+	extends GalaxyBoxNames
+	## The names Keen 4's boxes and messages are given.
+	var keen_4 := Keen4BoxNames.new()
+	## Keen 4's messages, for the council, Lindsey, the janitor, the wetsuit.
+	var messages: Keen4Messages
+
+	func name(image: Image, description: Array) -> Image:
+		return keen_4.name(image, description)
+
+	func name_all(images: Array[Image], description: Array) -> Array[Image]:
+		return keen_4.name_all(images, description)
+
+	func description_of(image: Image) -> PackedInt32Array:
+		return keen_4.description_of(image)
+
+	func image_for(description: PackedInt32Array, boxes: GalaxyGameBoxes) -> Image:
+		return Keen4BoxNames.image_for(description, boxes as Keen4GameBoxes, messages)

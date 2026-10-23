@@ -2,7 +2,7 @@
 
 CommanderPerfect does not contain the game itself: you need the files of the
 original episodes you want to play. Each episode has a folder of its own
-here: `keen1`, `keen2`, `keen3` and `keen4`. You only need the episodes you
+here: `keen1`, `keen2`, `keen3`, `keen4` and `keen5`. You only need the episodes you
 have; picking an episode without its files on the start screen names
 the folder to put them in.
 
@@ -17,6 +17,7 @@ versions that were not tested should work as well.
 | Keen 2 | `keen2` | 1.31 | 1.00 |
 | Keen 3 | `keen3` | 1.00 | 1.31 (Steam/GOG) |
 | Keen 4 | `keen4` | 1.0, 1.4 (shareware; Steam/GOG sell 1.4) | other 1.x |
+| Keen 5 | `keen5` | 1.4 (Steam/GOG sell 1.4) | 1.0 |
 
 The game looks like the version you have (Keen 4's 1.4, for example, has
 red help pages); how it plays is the same.
@@ -97,3 +98,17 @@ data viewer (`-- --game=4`) shows everything that is read.
 For the developers' tests a second copy in `keen4-v14` (or the folder in
 the environment variable `KEEN4_V14_DIR`) is checked as v1.4 by
 `tests/test_keen4_v14.gd`, next to the copy in `keen4`.
+
+## Keen 5
+
+Keen 5 (episode 5) uses the same engine and the same kind of files as
+Keen 4. It was never shareware, so you need your own copy. Put its files
+in a folder called `keen5` next to `keen1`: `EGAGRAPH.CK5`, `GAMEMAPS.CK5`,
+`AUDIO.CK5` and the program, `KEEN5E.EXE` (or `KEEN5.EXE`). As with Keen 4
+the headers of the other files are found inside the program by their
+content, and header files next to the game win. Version 1.4 is tested (its
+program prints no version; it is known by its size); 1.0 should work as
+well. `CONFIG.CK5`, `KEEN5.VIF` and the original's saved games are not
+read. You can also start with `-- --game=5 --data-dir-keen5=/path/to/keen5`.
+The data viewer (`-- --game=5`) shows everything that is read. Keen 5 is
+being built: for now its icon starts level 1, played without creatures.

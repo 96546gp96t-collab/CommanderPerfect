@@ -4,7 +4,8 @@ extends Control
 ## decoded correctly before the game itself is built on top of it.
 ## With [code]-- --game=2[/code] on the command line it shows Keen 2's
 ## files instead of Keen 1's, with [code]-- --game=3[/code] Keen 3's, with
-## [code]-- --game=4[/code] Keen 4's on a page of its own ([GalaxyViewerPage]).
+## [code]-- --game=4[/code] Keen 4's on a page of its own ([GalaxyViewerPage]),
+## with [code]-- --game=5[/code] Keen 5's on the same kind of page.
 
 const TILE_ATLAS_COLUMNS := 16
 const FONT_ATLAS_COLUMNS := 32
@@ -23,6 +24,10 @@ const KEEN_3_MISSING_DATA_MESSAGE := (
 const KEEN_4_MISSING_DATA_MESSAGE := (
 	"Keen 4 data not found. Put the files in game_data/keen4 "
 	+ "(see game_data/README.md) or start with: -- --game=4 --data-dir-keen4=PATH"
+)
+const KEEN_5_MISSING_DATA_MESSAGE := (
+	"Keen 5 data not found. Put the files in game_data/keen5 "
+	+ "(see game_data/README.md) or start with: -- --game=5 --data-dir-keen5=PATH"
 )
 
 var _files: GameFiles
@@ -48,6 +53,9 @@ func _ready() -> void:
 	var game := GameLaunch.game_number(OS.get_cmdline_user_args())
 	if game == 4:
 		_show_keen_4()
+		return
+	if game == 5:
+		_show_keen_5()
 		return
 	var keen_2 := game == 2
 	var keen_3 := game == 3
@@ -104,6 +112,22 @@ func _show_keen_4() -> void:
 	_tabs.get_parent().add_child(page)
 	_status_label.text = (
 		"Loaded game data from %s. %s" % [files.directory, page.show_data(data, _zoom_spin_box)]
+	)
+
+
+## Keen 5 is a Galaxy game too: the same page, with Keen 5's files.
+func _show_keen_5() -> void:
+	var files := Keen5Files.locate()
+	var data := Keen5Episode.load_data(files) if files != null else null
+	if data == null:
+		_show_error(KEEN_5_MISSING_DATA_MESSAGE)
+		return
+	_tabs.visible = false
+	var page := GalaxyViewerPage.new()
+	_tabs.get_parent().add_child(page)
+	_status_label.text = (
+		"Loaded game data from %s. %s"
+		% [files.directory, page.show_data(data, _zoom_spin_box, "Keen 5")]
 	)
 
 

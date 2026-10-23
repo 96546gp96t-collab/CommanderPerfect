@@ -7,19 +7,21 @@ extends SceneTree
 ##
 ## Usage:
 ##   godot --headless --path . --script res://tools/export_graphics.gd --
-##       [--out=PATH] [--game=2|3|4]
+##       [--out=PATH] [--game=2|3|4|5]
 ##
 ## Without --out the files are written to the exported/ folder of the project
 ## (exported/keen2/ for Keen 2, chosen with --game=2; exported/keen3/ for
 ## Keen 3, chosen with --game=3; exported/keen4/ for Keen 4, chosen with
-## --game=4, which has files of another kind: see [method _export_galaxy]).
+## --game=4, which has files of another kind: see [method _export_galaxy];
+## exported/keen5/ for Keen 5, chosen with --game=5, of the same kind).
 
 const OUT_OPTION := "--out="
 const DEFAULT_OUT := "res://exported"
 const KEEN_2_DEFAULT_OUT := "res://exported/keen2"
 const KEEN_3_DEFAULT_OUT := "res://exported/keen3"
 const KEEN_4_DEFAULT_OUT := "res://exported/keen4"
-## Keen 4's tile sets are laid out as wide as TED5 shows them.
+const KEEN_5_DEFAULT_OUT := "res://exported/keen5"
+## Keen 4's (and Keen 5's) tile sets are laid out as wide as TED5 shows them.
 const GALAXY_ATLAS_COLUMNS := 18
 const TILE_ATLAS_COLUMNS := 16
 const FONT_ATLAS_COLUMNS := 32
@@ -34,6 +36,10 @@ func _export() -> bool:
 	var game := GameLaunch.game_number(OS.get_cmdline_user_args())
 	if game == 4:
 		return _export_galaxy()
+	if game == 5:
+		return _export_galaxy(
+			Keen5Files.locate(), Keen5Episode.create(), KEEN_5_DEFAULT_OUT, "Keen 5"
+		)
 	var keen_2 := game == 2
 	var keen_3 := game == 3
 	var files: GameFiles
@@ -78,18 +84,27 @@ func _export() -> bool:
 	return true
 
 
-## Keen 4: both tile sets, every sprite, picture and masked picture, the
-## fonts, and every map with its three planes.
-func _export_galaxy() -> bool:
-	var files := Keen4Files.locate()
+## A Galaxy episode: both tile sets, every sprite, picture and masked
+## picture, the fonts, and every map with its three planes. Without an
+## [param episode] Keen 4's files and episode; [param title] names the game
+## in the error when [param files] were not found.
+func _export_galaxy(
+	files: GameFiles = null,
+	episode: GalaxyEpisode = null,
+	default_out := KEEN_4_DEFAULT_OUT,
+	title := "Keen 4"
+) -> bool:
+	if episode == null:
+		files = Keen4Files.locate()
+		episode = Keen4Episode.create()
 	if files == null:
-		push_error("No Keen 4 game data found. See game_data/README.md.")
+		push_error("No %s game data found. See game_data/README.md." % title)
 		return false
-	var data := Keen4Episode.load_data(files)
+	var data := GalaxyData.load_from(files, episode)
 	if data == null:
 		return false
 	var graphics := data.graphics
-	var out := _output_directory(KEEN_4_DEFAULT_OUT)
+	var out := _output_directory(default_out)
 	for folder in ["sprites", "pictures", "maps", "fonts"]:
 		DirAccess.make_dir_recursive_absolute(out.path_join(folder))
 	graphics.tile_atlas(false, GALAXY_ATLAS_COLUMNS).save_png(out.path_join("tiles_back.png"))

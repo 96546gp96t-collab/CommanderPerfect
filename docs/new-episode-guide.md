@@ -34,6 +34,15 @@ Galaxy engine goes into `src/galaxy/` (for episodes 4-6) and the episode
 into `src/keen4/`; the user's copy is v1.0 (sources know 1.4); Omnispeak is
 the reference for numbers.
 
+Episode 5 was researched in milestone E1: see `docs/keen5/research.md`,
+`architecture.md` and `roadmap.md`. The short version: the Galaxy
+readers of Keen 4 read it almost unchanged (two additive fields); the
+game around the engine (screens, sessions, saves, title) had stayed in
+`src/keen4/`, so E3-E11 lift it into a generic `src/galaxy/game/`, made
+from Keen 4's classes while Keen 4 stays frozen (the user's choice). Keen
+6 should build on `src/galaxy/game/`, not on `src/keen4/`. The user's copy
+is v1.4, as Omnispeak; milestones `milestone-e<n>-<topic>`.
+
 Episode 3 was researched in milestone C1: see `docs/keen3/research.md`.
 The short version: the same family as 1 and 2; sounds and texts in the EXE
 (text order help, end, previews, story); 624 tiles with a tile table that is
@@ -191,3 +200,102 @@ Add one line per lesson, with the milestone where it was learned.
   became brittle).
 - C11: the original runs in js-dos in the cloud's headless Chromium
   (`tools/original/headless.js`); no browser pane needed.
+- E1: run the existing readers over a new episode's files first, before
+  reading any source: for Keen 5 they found every header by content in
+  minutes and showed exactly the two places where Keen 4's assumptions do
+  not hold (the tile border when the last background tiles are empty; the
+  texts before the misc chunks). Check a derived count against a second
+  table (TILEINFO's left/right tables hold only 0 and 1).
+- E1: Keen 5 has no version text in its EXE; name the version by the
+  program size (CG knows the unpacked sizes).
+- E1: D1's split (engine in `src/galaxy/`, episode in `src/keen4/`) kept
+  the engine clean, but the game around it (the screen chain, sessions,
+  saves) went into the episode folder. For a next engine: put the
+  episode-neutral game in the engine folder from the start, with the
+  episode's numbers in a parameter object and its content behind hooks.
+- E1: the user wants every episode to be playable exactly as the
+  original with all options off; plan the proof (demos frame for frame
+  in 4:3) for every Galaxy episode.
+- E3: lift the game around the engine into generic classes made from the
+  frozen episode (a rules object with its numbers, hooks for its
+  content); the old episode stays untouched and keeps its proof.
+- E4: one class per creature, each tested in a hand-made mini level; check
+  every left/right sprite pair by eye on a sheet before trusting names.
+- E5: a scratch `GAMEMAPS` with new info planes appended (the map header
+  pointing at them) puts Keen or a creature anywhere in js-dos; the
+  original reads it.
+- E6: compare boxes and windows by EGA colour index; Omnispeak's
+  coordinates can be a pixel off (Keen 5's KEYCARD row).
+- E7: lay the original's demo frames on ours (one of ours per logic frame,
+  4:3) from the start: the shared step variable, the platform's stop on a
+  tile edge and the sprite order were found only that way.
+- E8: js-dos audio runs about 12 % slow; compare spectra with a time
+  factor, not by the clock.
+- E10: an episode drawn with black (space, stripes, doors) needs its own
+  open-sky rule (flood from the star tiles and the map edge), not the
+  sky-colour-at-the-edge rule.
+- E11: a new online game id goes at the end of `GAME_IDS` and boxes go by
+  name, so the older episodes' bytes stay the same.
+- E12: Omnispeak is a transcription; where its code cannot do what the
+  original is seen to do (a tile loop that never runs, a chance read the
+  other way round), the original wins. Watch every creature once.
+- E12: js-dos runs 2-4 tics a frame; before changing a rule for a few
+  pixels, play ours with those frame lengths (the elevator's 8 px, a
+  creature's half-step phase were the frames, not the rules).
+- E12: find sprites in recorded frames by all their opaque pixels (numpy,
+  a dozen sample pixels first): seconds per recording, and exact, where
+  colour tracking was off by 3 px (E4's Ampton).
+- E12: prove "all options off" twice: the pixels against the original's
+  recordings, and a suite that switches every option off and checks the
+  nodes (viewport size, no picture, no cleared tiles, no scaled textures,
+  sprites on the original's pixels), since headless tests see no pixels.
+
+## Keen 6 on the Galaxy game
+
+Build Keen 6 on `src/galaxy/game/` (E3-E12), not on `src/keen4/`. Since
+E13 **both Keen 4 and Keen 5 play on it** (`Keen4View` and `Keen5View`
+extend `GalaxyOnlineScreen`), so there are two working examples: Keen 5
+for an episode written on the shared game from the start, Keen 4 for one
+that keeps older ways through the rules' flags (`original_sprite_order`,
+`music_stops_between_maps`, ... all true by default: a new episode leaves
+them alone). A fix in the shared game now reaches both episodes; run both
+episodes' suites, demo suites and regression pictures after one.
+`Keen6View extends GalaxyOnlineScreen` gets the whole chain (level and
+map sessions, flow, front with title loop, help, end and high scores,
+control panel and saves, co-op and online) and fills in:
+
+- **`GalaxyGameRules`** (a `Keen6Episode.game_rules()`): names and
+  folders (`name`, `data_folder`, `data_dir_option`, `user_folder`,
+  `game_id`), file readers (`locate_files`, `load_data`), maps
+  (`world_map`, `first_level`, `last_level`, `last_map`, `missing_maps`),
+  info values (Keen's starts, scroll blocks: Keen 6 has column blocks,
+  items), sprites (`sprites`, Keen standing, map Keen, `demo_sign_sprite`),
+  a new game's numbers, the pictures behind the levels (`backdrop_folder`,
+  `sky_tiles`, `make_backdrops`), the map flags, the texts and pictures
+  counted from the end (boxes, countdown, title, story, credits, help,
+  end and secret end, menu cards, watch, Paddle War), the high scores,
+  the songs of the story, end, game over and help, the sound table
+  (`sound_count`, `song_count`, `sound_names`, `map_songs`), save slots.
+  Every field and Keen 5's value is in `docs/keen5/architecture.md`,
+  "`GalaxyGameRules`".
+- **The hooks** (same file, "The hooks"): `_new_session`,
+  `_new_map_session`, `_new_inventory`, `_new_progress`,
+  `_new_status_window`, `_new_saved_game`, `_new_box_names`,
+  `_new_online_state`; in the sessions `_new_keen`, `_place_info` (the
+  creatures), `_place_extras`, `_runs_own_frame`; in the flow
+  `_done_value`, `_after_level_done`, `_loading_box`, `_game_over` (a
+  `GalaxyScene`), `_status_map`; in the front `_cheat_end`, `_give_items`,
+  `_high_score_count`; the status window's `_draw_middle` and
+  `_draw_bottom`.
+- What is Keen 6's own (its creatures, Keen's extras such as the hook and
+  the ropes, the map's rides) goes in `src/keen6/`, one class per
+  creature, as Keen 5's `src/keen5/actors/`.
+- **Lessons of E13** (Keen 4 moved onto the shared game): GDScript refuses
+  a static function in a subclass whose parameters differ from the
+  parent's, so give an episode's own constructors their own names
+  (`start_level`, `create_keen5`) or keep the parent's parameters and add
+  defaults; a subclass cannot redeclare a member, an enum or a constant of
+  its parent, so take care with names that an episode's tests may want;
+  and compare a move like this one frame by frame with a scripted session
+  on the old build (a `git worktree`), not only with the tests: a hash of
+  the window every frame finds what the suites do not reach.

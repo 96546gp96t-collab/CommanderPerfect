@@ -1,5 +1,17 @@
 # Keen 4: architecture
 
+> **Since milestone E13 (23-10-2026) Keen 4 is built on the shared Galaxy
+> game in `src/galaxy/game/`**, as Keen 5 is: `Keen4View` extends
+> `GalaxyOnlineScreen`, and `src/keen4/` keeps only Keen 4's own content
+> (its creatures, the council, Lindsey, the janitor, the wetsuit, swimming
+> and level 17, Miragia, the Foot, its tables, its episode with
+> `game_rules()`, and thin subclasses that keep the old names). The screen
+> chain and the game classes this page describes (`Keen4PlayScreen`,
+> `Keen4MenuScreen`, ...) are the Galaxy ones now; Keen 4's own ways are
+> flags of `GalaxyGameRules`. See [../keen5/architecture.md](../keen5/architecture.md),
+> "The Galaxy game", "Keen 4 on the Galaxy game (E13)" and "Deviations in
+> E13". The rest of this page is the history of D1-D13.
+
 How Keen 4 ("Secret of the Oracle") is added beside Keen 1, 2 and 3.
 Written in milestone D1 by the architect, with a code survey by the
 developer; the developer follows it in D2 and later and updates it when a

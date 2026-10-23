@@ -7,6 +7,10 @@ extends RefCounted
 ## (files; D13 checked CG's v1.4 places in them). See
 ## docs/keen4/research.md §0-§1.
 
+## The episode's name in messages, and its own folder in the user folder
+## (settings, saves, high scores, the sound cache).
+const NAME := "Keen 4"
+const USER_FOLDER := "user://keen4"
 ## The size of the program file per version: v1.0 is packed with LZEXE,
 ## CG's v1.4 is not (the shareware v1.4 is packed too: 105,108 bytes; its
 ## sign-on gives its version, so the size is not needed).
@@ -83,6 +87,10 @@ const MENU_FONT := 0
 ## SPR_KEENSTANDL, sprites 6 and 14 in v1.0 and v1.4).
 const KEEN_STAND_RIGHT_SPRITE := 6
 const KEEN_STAND_LEFT_SPRITE := 14
+## Keen on the world map (Omni SPR_MAPKEEN_STAND_W) and swimming to the
+## right (SPR_KEENSWIMR1), as sprite indices (Omni chunk − 124 in v1.4).
+const MAP_KEEN_SPRITE := 132
+const SWIMMING_KEEN_SPRITE := 187
 ## The world map, the levels and the last map (the high scores).
 const WORLD_MAP := 0
 const FIRST_LEVEL := 1
@@ -128,11 +136,8 @@ const PADDLE_WAR_FROM_END := 21
 ## The text pages (help, end; D8, D13): v1.0 lays them out on light grey
 ## in dark grey; v1.4 on red in yellow, inside a frame of five pictures
 ## that start at picture 74 (Omni PIC_BORDERTOP, chunk 80; seen in v1.4).
-## v1.0 has other pictures there, so the frame is found by its sizes.
-const PAGE_BACKGROUND := 7
-const PAGE_TEXT_COLOR := 8
-const FRAMED_PAGE_BACKGROUND := 4
-const FRAMED_PAGE_TEXT_COLOR := 14
+## v1.0 has other pictures there, so the frame is found by its sizes
+## ([method GalaxyHelp.page_layout]).
 const PAGE_FRAME_PICTURE := 74
 
 
@@ -176,30 +181,78 @@ static func create() -> GalaxyEpisode:
 	return episode
 
 
+## Keen 4's numbers for the shared Galaxy game ([GalaxyGameRules],
+## milestone E13), with every flag set to what Keen 4 did before it moved
+## onto that game (docs/keen5/architecture.md, "Deviations in E13").
+static func game_rules() -> GalaxyGameRules:
+	var rules := GalaxyGameRules.new()
+	rules.name = NAME
+	rules.locate_files = Keen4Files.locate
+	rules.load_data = load_data
+	rules.data_folder = Keen4Files.SUBFOLDER
+	rules.data_dir_option = Keen4Files.DATA_DIR_OPTION
+	rules.user_folder = USER_FOLDER
+	rules.game_id = Keen4Files.GAME_ID
+	rules.world_map = WORLD_MAP
+	rules.first_level = FIRST_LEVEL
+	rules.last_level = LAST_LEVEL
+	rules.last_map = LAST_MAP
+	rules.keen_right_info = KEEN_RIGHT_INFO
+	rules.keen_left_info = KEEN_LEFT_INFO
+	rules.map_keen_info = MAP_KEEN_INFO
+	rules.swimming_keen_info = SWIMMING_KEEN_INFO
+	rules.row_block_info = ROW_BLOCK_INFO
+	rules.column_block_info = COLUMN_BLOCK_INFO
+	rules.keen_stand_right_sprite = KEEN_STAND_RIGHT_SPRITE
+	rules.keen_stand_left_sprite = KEEN_STAND_LEFT_SPRITE
+	rules.map_keen_sprite = MAP_KEEN_SPRITE
+	rules.swimming_keen_sprite = SWIMMING_KEEN_SPRITE
+	rules.sprites = Keen4Sprites.all()
+	rules.backdrop_folder = BACKDROP_FOLDER
+	rules.sky_tiles = SKY_TILES
+	rules.menu_font = MENU_FONT
+	rules.status_texts = STATUS_TEXTS
+	rules.game_texts = GAME_TEXTS
+	rules.cheat_texts = CHEAT_TEXTS
+	rules.story_messages = STORY_MESSAGES
+	rules.high_score_map = HIGH_SCORE_MAP
+	rules.high_score_count = HIGH_SCORE_COUNT
+	rules.high_score_offsets = high_score_offsets()
+	rules.page_frame_picture = PAGE_FRAME_PICTURE
+	rules.story_song = Keen4Sounds.STORY_MAP
+	rules.ending_song = Keen4Sounds.ENDING_MAP
+	rules.sound_count = Keen4Sounds.SOUND_COUNT
+	rules.song_count = Keen4Sounds.SONG_COUNT
+	rules.sound_names = Keen4Sounds.NUMBERS
+	rules.map_songs = Keen4Sounds.MAP_SONGS
+	rules.menu_cards_from_end = MENU_CARDS_FROM_END
+	rules.watch_from_end = WATCH_FROM_END
+	rules.paddle_war_from_end = PADDLE_WAR_FROM_END
+	_keep_keen4_ways(rules)
+	return rules
+
+
+## What Keen 4 did before it moved onto the Galaxy game (milestone E13):
+## every flag of the Galaxy game's later ways off.
+static func _keep_keen4_ways(rules: GalaxyGameRules) -> void:
+	rules.original_sprite_order = false
+	rules.keeps_sky_in_placed_tiles = false
+	rules.music_stops_between_maps = false
+	rules.silent_replay = false
+	rules.screen_sounds_online = false
+	rules.looks_from_first_cell = false
+	rules.panel_out_of_game_resumes_title = false
+
+
 ## Where the original's high-score table may be, in the known versions.
 static func high_score_offsets() -> PackedInt32Array:
 	return PackedInt32Array([HIGH_SCORES_V1_0, HIGH_SCORES_V1_4])
 
 
-## The control panel's pictures in a picture range of [param picture_count].
+## The control panel's pictures in a picture range of [param picture_count]
+## ([method GalaxyGameRules.menu_cards] by Keen 4's rules).
 static func menu_cards(picture_count: int) -> GalaxyMenuCards:
-	var pictures: Dictionary[StringName, int] = {}
-	for kind in MENU_CARDS_FROM_END:
-		pictures[kind] = picture_count - MENU_CARDS_FROM_END[kind]
-	var cards := GalaxyMenuCards.create(picture_count - WATCH_FROM_END, pictures)
-	cards.paddle_war_picture = picture_count - PADDLE_WAR_FROM_END
-	return cards
-
-
-## A layout for the text pages of [param graphics] in the menu font, in
-## the colours and with the frame of its version.
-static func page_layout(graphics: GalaxyGraphics) -> GalaxyPageLayout:
-	var layout := GalaxyPageLayout.create(graphics, MENU_FONT)
-	layout.frame = GalaxyPageFrame.find(graphics, PAGE_FRAME_PICTURE)
-	var framed := layout.frame != null
-	layout.background = FRAMED_PAGE_BACKGROUND if framed else PAGE_BACKGROUND
-	layout.default_color = FRAMED_PAGE_TEXT_COLOR if framed else PAGE_TEXT_COLOR
-	return layout
+	return game_rules().menu_cards(picture_count)
 
 
 ## All of Keen 4 in [param files]; null when something is missing.

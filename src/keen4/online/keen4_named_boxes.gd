@@ -8,7 +8,7 @@ var names := Keen4BoxNames.new()
 
 static func create_named(data: GalaxyData, box_names: Keen4BoxNames) -> Keen4NamedBoxes:
 	var boxes := Keen4NamedBoxes.new()
-	Keen4GameBoxes.create(data, boxes)
+	Keen4GameBoxes.create(data, null, boxes)
 	boxes.names = box_names
 	return boxes
 

@@ -66,10 +66,24 @@ var back_tile_writer: Callable
 ## Called as (name, interrupt) to play a sound ([GalaxySoundPlayer.play]);
 ## the episode gives the names their numbers. Unset: silent (tests).
 var sound_player: Callable
+## Awake objects fall asleep (and those that only live on the screen are
+## removed) beyond this many tiles of the view: Keen 4's
+## [constant SLEEP_MARGIN]; Keen 5 sets 6 (Omni CK_activeLimit, EPISODE.CK5).
+var sleep_margin := SLEEP_MARGIN
 ## The object whose action runs now ([method _run_action]), or null. The
 ## original keeps the step of that object in one shared place, which an
 ## action started on another object resets ([method GalaxyObject.start]).
 var acting: GalaxyObject = null
+## That shared step as it stands now: the last object's own after the
+## actions ran, Keen's on a platform, or what an action started or a push
+## left in it (Omni ck_nextX/Y). Only read when
+## [member shared_landing_step] is on.
+var shared_step := Vector2i.ZERO
+## Whether Keen landing on a platform also moves him across by the shared
+## step (Omni CK_PhysPushY sets only ck_nextY: seen in Keen 5's demo 2,
+## E7, where he lands 8 pixels further on with the Ampton's step). Off:
+## Keen 4's game as it was proven (its demos never show it).
+var shared_landing_step := false
 ## The first frame after a level starts puts everything far from the view
 ## to sleep at once (the original's screen is still faded in).
 var _starting := true
@@ -146,6 +160,7 @@ func run_frame(frame_tics: int, end_tic: int) -> void:
 		if not object.removed and _wake_or_sleep(object):
 			acting = object
 			_run_action(object)
+			shared_step = object.step
 			acting = null
 	_starting = false
 	var keens := players()
@@ -238,7 +253,7 @@ func _wake_or_sleep(object: GalaxyObject) -> bool:
 			return false
 		object.activity = GalaxyObject.Activity.ACTIVE
 		object.needs_react = true
-	if _far_from_all(object.box, views):
+	if _far_from_all(object.box, views, sleep_margin):
 		match object.activity:
 			GalaxyObject.Activity.ON_SCREEN_ONLY:
 				remove(object)
@@ -257,9 +272,11 @@ static func _near_any(box: GalaxyObject.Box, views: Array[Rect2i]) -> bool:
 	return false
 
 
-static func _far_from_all(box: GalaxyObject.Box, views: Array[Rect2i]) -> bool:
+static func _far_from_all(
+	box: GalaxyObject.Box, views: Array[Rect2i], margin := SLEEP_MARGIN
+) -> bool:
 	for view in views:
-		if not _is_far(box, view):
+		if not _is_far(box, view, margin):
 			return false
 	return true
 
@@ -273,12 +290,12 @@ static func _is_near(box: GalaxyObject.Box, view: Rect2i) -> bool:
 	)
 
 
-static func _is_far(box: GalaxyObject.Box, view: Rect2i) -> bool:
+static func _is_far(box: GalaxyObject.Box, view: Rect2i, margin := SLEEP_MARGIN) -> bool:
 	return (
-		box.tile_right < maxi(view.position.x - SLEEP_MARGIN, 0)
-		or box.tile_left > view.end.x + SLEEP_MARGIN
-		or box.tile_top > view.end.y + SLEEP_MARGIN
-		or box.tile_bottom < maxi(view.position.y - SLEEP_MARGIN, 0)
+		box.tile_right < maxi(view.position.x - margin, 0)
+		or box.tile_left > view.end.x + margin
+		or box.tile_top > view.end.y + margin
+		or box.tile_bottom < maxi(view.position.y - margin, 0)
 	)
 
 

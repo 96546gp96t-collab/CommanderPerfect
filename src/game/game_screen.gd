@@ -287,6 +287,8 @@ func _apply_walls() -> void:
 		sky = BackdropPictures.color_of(_graphics.tiles[tile]) if tile >= 0 else sky
 		picture = picture if tile >= 0 else null
 	var holes := _walls.holes(_level, sky, wall != null) if _level != null else null
+	if _level_number == ShipLevels.OUTSIDE_LEVEL and _walls is Keen1Walls:
+		ShipLevels.open_sky_under_ship(holes, _graphics.tiles)
 	if _level_number == ShipLevels.INSIDE_LEVEL and _graphics != null:
 		# The cabin is drawn behind the tiles: their background goes.
 		holes = BackdropHoles.create(

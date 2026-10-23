@@ -26,6 +26,13 @@ var font_count := 0
 var misc_count := 0
 var text_count := 0
 var demo_count := 0
+## How many 16×16 tiles are background tiles; 0 = work it out from the
+## chunks ([GalaxyChunkRanges]). Keen 5 sets it: its last background tiles
+## are empty, so the border cannot be seen in the file.
+var back_tile_count := 0
+## Whether the texts come before the misc chunks at the end of EGAGRAPH
+## (Keen 5: texts, misc, demos); false = misc, texts, demos (Keen 4).
+var texts_before_misc := false
 ## How many maps have a name in the program (the level names and the
 ## "Keen enters ..." texts, one each).
 var level_name_count := 0

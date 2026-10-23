@@ -49,13 +49,21 @@ var strip_height := 0
 ## The picture behind it as shown outside and inside the squeezed rows.
 var outside: Image
 var inside: Image
+## The text's colour: the palette's first bright colour (Keen 4 white).
+var text_color := TEXT_COLOR
 
 
-## The scroller for [param text] in [param font] over [param picture].
-static func create(text: String, font: GalaxyFont, picture: Image) -> GalaxyStoryScroller:
+## The scroller for [param text] in [param font] over [param picture];
+## [param colors] is the palette of this part per colour of the picture
+## (EGA numbers; Keen 4's by default, Keen 5 has its own).
+static func create(
+	text: String, font: GalaxyFont, picture: Image, colors := PICTURE_COLORS
+) -> GalaxyStoryScroller:
 	var scroller := GalaxyStoryScroller.new()
 	scroller._print_strip(text, font)
-	scroller._colour_picture(picture)
+	scroller._colour_picture(picture, colors)
+	if colors != PICTURE_COLORS:
+		scroller.text_color = EgaPalette.color(colors[BRIGHT_BIT])
 	return scroller
 
 
@@ -120,7 +128,7 @@ func _print_strip(text: String, font: GalaxyFont) -> void:
 		y += height
 
 
-func _colour_picture(picture: Image) -> void:
+func _colour_picture(picture: Image, colors: PackedInt32Array) -> void:
 	outside = Image.create_empty(SCREEN_SIZE.x, SCREEN_SIZE.y, false, Image.FORMAT_RGBA8)
 	inside = Image.create_empty(SCREEN_SIZE.x, SCREEN_SIZE.y, false, Image.FORMAT_RGBA8)
 	if picture == null:
@@ -128,5 +136,5 @@ func _colour_picture(picture: Image) -> void:
 	for y in mini(picture.get_height(), SCREEN_SIZE.y):
 		for x in mini(picture.get_width(), SCREEN_SIZE.x):
 			var index := maxi(GalaxyEga.index_of(picture.get_pixel(x, y)), 0)
-			outside.set_pixel(x, y, EgaPalette.color(PICTURE_COLORS[index]))
-			inside.set_pixel(x, y, EgaPalette.color(PICTURE_COLORS[index & (BRIGHT_BIT - 1)]))
+			outside.set_pixel(x, y, EgaPalette.color(colors[index]))
+			inside.set_pixel(x, y, EgaPalette.color(colors[index & (BRIGHT_BIT - 1)]))

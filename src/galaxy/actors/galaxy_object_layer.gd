@@ -4,7 +4,8 @@ extends Node2D
 ## position + the sprite's origin (both in global units, 16 per pixel;
 ## [GalaxySpriteInfo]), where the original draws it ([method pixel_of]), or
 ## with the shared [Interpolation] between the last two logic frames, at
-## the exact place, when motion is smooth.
+## the exact place, when motion is smooth. An object that flashes
+## ([member GalaxyObject.flash_white]) is drawn all white meanwhile.
 ##
 ## The original keeps only a few shifted copies of each sprite (the
 ## sprite table's shift count: 1, 2 or 4), so it can only draw a sprite at
@@ -48,7 +49,21 @@ const PIXELS_PER_BYTE := 8
 ## The shift counts the original knows; any other is drawn on whole
 ## pixels.
 const SHIFT_COUNTS: Array[int] = [1, 2, 4]
+## Draws a sprite in white where it is not see-through (EGA colour 15).
+const WHITE_SHADER := """
+shader_type canvas_item;
+void fragment() {
+	COLOR = vec4(1.0, 1.0, 1.0, texture(TEXTURE, UV).a);
+}
+"""
 
+## Whether the order of the sprites of one priority follows the original
+## all the way (Keen 5, E7): an object that is not drawn (asleep, without a
+## sprite) loses its place, and one whose priority changes goes under the
+## others of its new priority, as the original's sprite list does (Omni
+## RF_RemoveSpriteDraw, RF_AddSpriteDraw). Off: Keen 4's layer as proven,
+## where such an object keeps its place.
+var original_order := false
 var _graphics: GalaxyGraphics
 var _scaled: GalaxyScaledGraphics
 var _items: Array[Item] = []
@@ -59,6 +74,9 @@ var _shown: Dictionary[GalaxyObject, Item] = {}
 var _overlays: Dictionary[GalaxyObject, Array] = {}
 ## The materials objects are drawn with, when not the plain one.
 var _tints: Dictionary[GalaxyObject, Material] = {}
+## The objects drawn white now ([member GalaxyObject.flash_white]).
+var _flashing: Dictionary[GalaxyObject, bool] = {}
+var _white: ShaderMaterial
 
 
 ## The z index of a sprite of [param priority]: 0-2 above the tiles and
@@ -138,6 +156,7 @@ func clear() -> void:
 	_items.clear()
 	_shown.clear()
 	_overlays.clear()
+	_flashing.clear()
 
 
 ## After a logic frame: every awake object with a sprite is drawn where it
@@ -153,6 +172,10 @@ func show_objects(objects: Array[GalaxyObject]) -> void:
 			and not object.hidden
 		)
 		var item: Item = _shown.get(object)
+		if item != null and not shown and original_order:
+			remove(item)
+			_shown.erase(object)
+			item = null
 		if item == null:
 			if not shown:
 				continue
@@ -160,6 +183,7 @@ func show_objects(objects: Array[GalaxyObject]) -> void:
 			item.node.material = _tints.get(object)
 			_shown[object] = item
 		_show(item, shown, object.sprite, object.position + object.draw_offset, object.priority)
+		_show_flash(object, item)
 		_show_overlays(object, shown)
 	for object in _shown.keys():
 		if not present.has(object):
@@ -169,6 +193,9 @@ func show_objects(objects: Array[GalaxyObject]) -> void:
 	for object in _tints.keys():
 		if not present.has(object):
 			_tints.erase(object)
+	for object in _flashing.keys():
+		if not present.has(object):
+			_flashing.erase(object)
 
 
 func items() -> Array[Item]:
@@ -194,10 +221,35 @@ func place(blend: float, smooth: bool) -> void:
 		item.node.position = item.motion.at(blend, true) if smooth else Vector2(item.pixel)
 
 
+## [param object]'s [param item] in white while it flashes, then with its
+## own material again; nothing changes for an object that never flashes.
+func _show_flash(object: GalaxyObject, item: Item) -> void:
+	if object.flash_white == _flashing.has(object):
+		return
+	if object.flash_white:
+		_flashing[object] = true
+		item.node.material = _white_material()
+	else:
+		_flashing.erase(object)
+		item.node.material = _tints.get(object)
+
+
+## Every pixel of the sprite that is not see-through in EGA white.
+func _white_material() -> ShaderMaterial:
+	if _white == null:
+		var shader := Shader.new()
+		shader.code = WHITE_SHADER
+		_white = ShaderMaterial.new()
+		_white.shader = shader
+	return _white
+
+
 func _show(item: Item, shown: bool, sprite: int, position: Vector2i, priority: int) -> void:
 	if item.priority != priority:
 		item.priority = priority
 		item.node.z_index = z_of(priority)
+		if original_order:
+			move_child(item.node, 0)
 	item.node.visible = shown
 	if shown:
 		move(item, sprite, position)

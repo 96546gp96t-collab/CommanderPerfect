@@ -87,6 +87,15 @@ the screen's; when both are out again it turns back to the slanting line.
 Keen 1-3 have no looking and no scroll blocks, and `SplitScreen` is
 unchanged.
 
+## Keen 5
+
+Keen 5 (milestone E11, [keen5/gameplay.md](keen5/gameplay.md), "Two
+players") has Keen 4's two players through the shared Galaxy screens
+(`GalaxyCoopScreen`): the same keys, F7 and Configure > Two Players, the
+same split screen. The keycard is part of the shared inventory (either
+takes it, either uses it); either breaks the fuses; on the world map the
+one Keen rides the teleporter and the elevators for both.
+
 ## The split screen
 
 `SplitScreen` decides where the two cameras look; `TwoPlayerView` draws it.

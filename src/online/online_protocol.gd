@@ -40,9 +40,14 @@ const GAME_ID_KEEN_2 := "commanderperfect-keen2"
 const GAME_ID_KEEN_3 := "commanderperfect-keen3"
 ## Keen 4's id ([constant Keen4Files.GAME_ID]), online since milestone D12.
 const GAME_ID_KEEN_4 := "commanderperfect-keen4"
+## Keen 5's id ([constant Keen5Files.GAME_ID]), online since milestone E11.
+const GAME_ID_KEEN_5 := "commanderperfect-keen5"
 ## Every game of ours: a player who knocks at a host of another one of
-## these is told so, and switches to that game (see [OnlinePlay]).
-const GAME_IDS: Array[String] = [GAME_ID, GAME_ID_KEEN_2, GAME_ID_KEEN_3, GAME_ID_KEEN_4]
+## these is told so, and switches to that game (see [OnlinePlay]). A new
+## game's id goes at the end.
+const GAME_IDS: Array[String] = [
+	GAME_ID, GAME_ID_KEEN_2, GAME_ID_KEEN_3, GAME_ID_KEEN_4, GAME_ID_KEEN_5
+]
 ## Raised whenever a message changes: a host and a player with another
 ## version cannot play together.
 const VERSION := 1

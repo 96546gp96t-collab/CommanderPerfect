@@ -58,16 +58,20 @@ static func create(
 
 
 ## Starts the background work: the sounds first, then the songs, song
-## [param first_song] before the others.
-func start(first_song := 0) -> void:
+## [param first_song] before the others, then [param next_songs] in their
+## order (none by default), then the rest.
+func start(first_song := 0, next_songs := PackedInt32Array()) -> void:
 	for index in pc_sounds.size():
 		_add_task(Kind.PC, index, true)
 		_add_task(Kind.ADLIB, index, true)
 	var order: Array[int] = []
-	if first_song >= 0 and first_song < songs.size():
-		order.append(first_song)
+	var wanted := PackedInt32Array([first_song])
+	wanted.append_array(next_songs)
+	for song in wanted:
+		if song >= 0 and song < songs.size() and not order.has(song):
+			order.append(song)
 	for index in songs.size():
-		if index != first_song:
+		if not order.has(index):
 			order.append(index)
 	for index in order:
 		_add_task(Kind.SONG, index, false)

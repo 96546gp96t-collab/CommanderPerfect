@@ -96,6 +96,44 @@ bestanden in [docs/keen4/file-formats.md](docs/keen4/file-formats.md).
 | D13 | Naast het origineel | ✅ Klaar en gecontroleerd door de architect (branch `milestone-d13-origineel`; drie developers en een tester) |
 | D13.2 | Fixes na de test van de gebruiker: split-screen kijken, trillen in pauzes, cheats, online-pagina, glas in Miragia | 🔶 Gebouwd, in test bij de gebruiker (branch `milestone-d13.2-fixes`) |
 
+## Keen 5: mijlpalen E
+
+Het vijfde deel ("The Armageddon Machine") is **dezelfde engine** als Keen
+4 (Galaxy). Het spel rond de engine (schermen, sessies, opslaan, titel)
+wordt één keer algemeen gemaakt in `src/galaxy/game/`, uit de Keen
+4-klassen; Keen 4 zelf bleef bevroren (besluit van de gebruiker,
+22-10-2026) tot E13 het op het gedeelde spel zette (besluit van 23-10-2026). Keen 5 komt in `src/keen5/`. Wat elke mijlpaal inhoudt staat
+in [docs/keen5/roadmap.md](docs/keen5/roadmap.md), de opzet in
+[docs/keen5/architecture.md](docs/keen5/architecture.md), wat er over Keen
+5 bekend is in [docs/keen5/research.md](docs/keen5/research.md) en de
+bestanden in [docs/keen5/file-formats.md](docs/keen5/file-formats.md).
+
+| # | Mijlpaal | Status |
+|---|---|---|
+| E1 | Onderzoek: code in kaart, Keen 5 v1.4 van de gebruiker uitgelezen, Omnispeak, architectuur, mijlpalen | ✅ Klaar (branch `milestone-e1-onderzoek`); vragen beantwoord op 22-10-2026 |
+| E2 | De bestanden van Keen 5 inlezen, data viewer, vijfde icoon | ✅ Klaar (branch `milestone-e2-bestanden`) |
+| E3 | Het gedeelde Galaxy-spel en een level spelen (sleutelkaart, beveiligingsdeuren, uitgang) | ✅ Klaar (branch `milestone-e3-level`) |
+| E4 | Wezens (alle 15 soorten van levels 1-13, elk een eigen klasse) | ✅ Klaar (branch `milestone-e4-wezens`) |
+| E5 | Platforms op pijlen, zekeringen en de QED | ✅ Klaar (branch `milestone-e5-mechaniek`) |
+| E6 | De wereldkaart (teleporters, liften, Korath III, statusvenster) | ✅ Klaar (branch `milestone-e6-kaart`) |
+| E7 | Einde, game over (de melkweg ontploft), titel en demo's | ✅ Klaar (branch `milestone-e7-einde-titel`) |
+| E8 | Geluid en muziek | ✅ Klaar (branch `milestone-e8-geluid`) |
+| E9 | Menu's en opslaan | ✅ Klaar (branch `milestone-e9-menus`) |
+| E10 | Mooier maken (plaatjes achter de levels, builds) | ✅ Klaar (branch `milestone-e10-extras`) |
+| E11 | Co-op lokaal en online | ✅ Klaar (branch `milestone-e11-coop`) |
+| E12 | Naast het origineel; alle opties uit = het origineel | ✅ Klaar (branch `milestone-e12-origineel`) |
+| E12.1 | Fixes plaatjes: sterren op de kaart, gepakte items, wolken, ramen (en het schip van Keen 1) | 🔶 Gebouwd, in test bij de gebruiker (branch `milestone-e12.1-fixes`) |
+| E13 | Keen 4 op het gedeelde Galaxy-spel | ✅ Klaar (branch `milestone-e13-keen4`) |
+
+**Volgende stap:** E12.1 (de plaatjes) en E13 samen testen. Keen 5 is af (E1-E12) en Keen 4 speelt sinds E13 op
+hetzelfde gedeelde Galaxy-spel (`src/galaxy/game/`). Op de Mac: de apps
+bouwen (`tools/build_macos.sh`, `tools/build_windows.sh`) en Keen 4 even
+naspelen (titel, een level, opslaan en laden, het einde) om te zien dat
+alles is zoals het was; de plaatjes in breedbeeld bekijken (vraag bij E10)
+en Keen 5 met twee spelers en online proberen (twee computers, of de host
+headless; Steam alleen daar). Daarna kan Keen 6 op het gedeelde spel
+(docs/new-episode-guide.md, "Keen 6 on the Galaxy game").
+
 ## Achtergronden Keen 1 en 2: mijlpalen AB
 
 Branch `milestone-a-b-backgrounds` (vanaf `main`, 22-10). Onderzoek en plan:
@@ -238,6 +276,1014 @@ ligt wordt een gat (`docs/graphics.md`, onderzoek §8).
   in `Keen2GuardRobot`; nu kijkt hij de kant op waar hij heen zweeft en
   schiet. Alleen namen/plaatjes gecontroleerd (js-dos overgeslagen op
   verzoek). Test `test_guard_robot_faces_the_way_it_floats_and_fires`.
+
+## Mijlpaal E13: wat er nu is
+
+Keen 4 op het gedeelde Galaxy-spel, op `milestone-e13-keen4` (23-10, 05:28 -
+07:25 UTC), op verzoek van de gebruiker (23-10-2026: `src/keen4/` mocht
+alleen voor deze mijlpaal veranderen). De afwijkingen staan in
+`docs/keen5/architecture.md` ("Keen 4 on the Galaxy game (E13)",
+"Deviations in E13").
+
+- [x] **`Keen4View` op `GalaxyOnlineScreen`**, net als `Keen5View`: de zeven
+  Keen 4-schermen (level, spelen, voorkant, menu, co-op, meespeler, online)
+  zijn weg. In de view zit alleen nog wat Keen 4 alleen doet: de raad,
+  Lindsey, de conciërge, het duikpak, "I can't swim!", de vlucht op de
+  Voet, E+N+D als achtste redding, de geredde leden in de highscores, de
+  testcheats, en de naam en de demo's zoals Keen 4 ze deed.
+- [x] **De spelklassen dun gemaakt**: `Keen4LevelSession`,
+  `Keen4MapSession`, `Keen4Start`, `Keen4Progress`, `Keen4StatusWindow`,
+  `Keen4GameBoxes`, `Keen4Help`, `Keen4Ending`, `Keen4Cheats`,
+  `Keen4TitleLoop`, `Keen4Audio`, `Keen4Settings`, `Keen4SavedGame` zijn
+  subklassen van de Galaxy-klassen met de regels van Keen 4
+  (`Keen4Episode.game_rules()`) en alleen Keen 4's eigen inhoud (zwemmen
+  in level 17, Miragia, het duikpak, RESCUED, het opslagformaat);
+  `Keen4FrontScreen` en `Keen4HighScoreBoard` bewaren alleen namen voor de
+  tests. Keen 4's eigen nummering van de vakjes en de getallen online
+  blijven (`Keen4BoxNames`, `Keen4OnlineState`, met twee kleine adapters).
+  `src/keen4/`: 4.410 regels eruit, 574 erbij; `src/galaxy/game/`: 184
+  erbij, 70 eruit.
+- [x] **Keen 4 doet alles zoals vroeger** door zeven vlaggen in
+  `GalaxyGameRules` (standaard aan, dus Keen 5 verandert niet; Keen 4 zet
+  ze uit): de tekenvolgorde van het origineel, de lucht in geplaatste
+  tegels, de muziek die stopt tussen de maps (Keen 4's liedje speelt door),
+  het stille naspelen van een geladen level, de geluiden van het scherm
+  online, de eerste cel van een map zonder Keen, en Return to Game buiten
+  een spel.
+- [x] **Geen enkele Keen 4-test veranderd.** Zeven Galaxy-functies kregen
+  een andere naam (GDScript weigert een statische functie in een subklasse
+  met andere parameters, en Keen 4's tests roepen Keen 4's functies aan):
+  `start_level`, `start_map`, `begin_replay`, `replay_all`,
+  `save_inventory`, `load_inventory`; daardoor riepen drie andere
+  testbestanden de nieuwe namen aan (alleen de namen:
+  `test_galaxy_game_session`, `test_galaxy_game_saved`,
+  `test_keen5_save_play`). Nieuw: `test_keen4_framed_pages` (de rode
+  helppagina's van v1.4 in het kader, zonder de bestanden: dezelfde code
+  als Keen 5's kader; `test_keen4_v14` slaat over zonder een 1.4-kopie).
+- [x] **Bewijs**: **168 suites groen, 1 overgeslagen (Keen 4 v1.4), 0
+  FAIL, 0 SCRIPT ERROR**; `gdformat`/`gdlint` schoon. Regressies: Keen 4
+  alle 11 gelijk aan de referentie van vóór E2, Keen 5 alle 17 gelijk aan
+  E12's, Keen 2 alles gelijk, Keen 1 gelijk aan E12's (alleen het
+  startscherm van vóór E2 anders: het vijfde icoon). De demo-suite (alle
+  vijf demo's) gelijk. En **naast de E12-build** (een `git worktree`), elk
+  beeld van het venster vergeleken: de titellus 15.000 beelden (intro,
+  demo's 0-4, verhaal, highscores), een spel van 7.500 beelden (nieuw
+  spel, kaart, level 1, statusvenster, help, opslaan, dood en Try Again,
+  laden, E+N+D met de raad en de eindpagina's, naam, highscores), 4:3 met
+  vloeiend over maps 0, 19, 18, 17 (zwemmen) en 1, de kaart met "I can't
+  swim!" en opslaan/laden op de kaart, en een opgeslagen level van de
+  E12-build geladen en verder gespeeld: alles gelijk (de enkele beelden
+  die verschilden, verschilden net zo tussen twee runs van E12 zelf: het
+  naspelen van een geladen level en het xBRZ-voorbereiden lopen op de
+  klok van de computer; het geladen level: E12 deed er in vijf runs één of
+  twee beelden over, en met evenveel beelden zijn alle 1.000 beelden
+  gelijk).
+- [x] Niets veranderd in Keen 1-3, `src/game/` of `src/galaxy/` buiten
+  `game/`; `git diff origin/main` op Keen 1-3: alleen de goedgekeurde
+  regels van eerder.
+- **Twee verschillen die je niet ziet**: zonder de Keen 4-bestanden opent
+  Escape geen leeg bedieningspaneel meer; B+A+T komt in de beelden van een
+  opgeslagen level bij het sluiten van het vak in plaats van bij het
+  openen (naspelen geeft hetzelfde).
+- **Niet gedaan**: de builds voor macOS en Windows (de gebruiker bouwt op
+  de Mac).
+
+## E12.1: fixes (23-10)
+
+Vier meldingen van de gebruiker over Keen 5 in breedbeeld met plaatjes,
+en één over Keen 1, op `milestone-e12.1-fixes` (23-10, 10:50 - 11:30).
+De regels staan in `docs/keen5/gameplay.md` ("Pictures behind the
+levels"), de afwijkingen in `docs/keen5/architecture.md` ("Deviations in
+E12.1"), het schip in `docs/graphics.md`.
+
+- [x] **Wereldkaart: geen sterren meer in het plaatje.** De sterren van
+  het plaatje schoven tegen de sterren van de kaart zelf in als Keen liep
+  (het plaatje beweegt trager). `tools/make_keen5_backgrounds.py` tekent
+  voor kaart 0 geen sterren meer; de melkweg en de maan staan op dezelfde
+  plek (zelfde seed), de vage nevel heeft een iets andere vorm. De
+  sterren van de kaart zelf blijven (het origineel). Alleen
+  `level00.webp` is veranderd.
+- [x] **Gepakte items lieten een vierkant achter** (level 13: een licht
+  blauw vierkant per flesje/snoepje boven de lucht; in de ramen zwarte
+  vakjes: level 6 het "dambord" van zes, level 11 en ook 1, 3, 4 en 12).
+  Oorzaak: sinds E12 kreeg élke tegel die tijdens het spelen verandert de
+  luchtkleur in zijn hele vak (voor de kapotte QED). Nu: een gepakt item
+  (voorgrondtegel weg, achtergrond onveranderd) laat zien wat eromheen
+  is: een vrijgekomen stukje toont het plaatje als het aansluit op wat
+  het plaatje al toonde (in het vak zelf of over de rand), anders de
+  luchtkleur (`GalaxyRevealedSky`). Elke andere verandering (QED, deuren)
+  houdt de E12-regel. Ook de meespeler online doet dit nu.
+- [x] **De paarse wolken van level 13** hadden licht blauwe blokjes in en
+  naast zich: lucht in de krul van een wolk en tussen de stippen van haar
+  rand bleef licht blauw, afgesneden op de rand van de tegel. Nu is een
+  tegel van alleen lucht- en wolkkleuren (721-768) lucht met een wolk:
+  al zijn lucht toont het plaatje, en zo'n vak telt als open lucht. De
+  tekening van de wolk (ook de donkerblauwe rand) blijft.
+- [x] **Ramen met zwarte vakken** (level 11 en het tweede voorbeeld):
+  dat waren de gepakte items hierboven. Alle ramen van alle levels
+  nagelopen (per level de ramen gezocht, origineel / start / na het
+  pakken van alle items naast elkaar): vóór de fix in levels 1, 3, 4, 6,
+  11, 12 en 13 vakken na het pakken; daarna nergens meer, behalve waar
+  het item over de zwarte binnenrand van het kozijn hing (die blijft
+  zwart, zoals de rest van die rand). Gevonden onderweg: **een paal vóór
+  een raam** sloot de strook tussen kozijn en paal af (zwart in levels 6
+  en 12, al bij de start); nu is sterrenlucht achter een paal open lucht
+  waar ze de rand van het vak raakt. Andere tekeningen ervoor (het donker
+  in een item, het glas van de QED, de boog van een deur) blijven zoals
+  ze waren.
+- [x] **Keen 1, het schip als level: grijs onder het schip.** De regel
+  van 22-10 (grijs dat door de tekening is ingesloten blijft grijs) zag
+  het grijs tussen romp, poten en grond als ingesloten. Op wens van de
+  gebruiker een uitzondering alleen voor dit eigen level
+  (`ShipLevels.open_sky_under_ship`): het grijs dat vanaf de onderrand van
+  het schip bereikbaar is, is lucht; de grijze schaduw van het schip zelf
+  blijft. De algemene Keen 1-regel is niet veranderd: de gatenkaarten van
+  levels 1-16 zijn byte voor byte gelijk.
+- [x] **Tests**: nieuw `test_keen5_picture_fixes` (zonder bestanden: een
+  vrijgekomen stuk sluit aan of blijft dicht, een wolk verliest al zijn
+  lucht en telt als open, een paal sluit de strook niet af, het donker
+  in een item blijft, geen sterren in het kaartplaatje; met bestanden op
+  het scherm: flesje in level 13, item in het raam van level 11, de
+  wolken, de strook naast de paal in level 12, niets in 4:3) en
+  `test_keen1_ship_sky`. De schermtests en de sterrentest falen op de oude
+  code (9 fouten). **169 suites groen, 1 overgeslagen (Keen 4 v1.4), 0
+  FAIL, 0 SCRIPT ERROR**; `gdformat` en `gdlint` schoon.
+- [x] **Regressies** tegen e69bccd: Keen 1 (5) en Keen 4 (11) gelijk;
+  Keen 2 gelijk (de eerste run van de basis verschilde door timing bij een
+  koude start, een tweede run is gelijk); Keen 5: alleen
+  `keen5_level13_wide` (de wolken) en `keen5_world_wide` (geen sterren in
+  het plaatje), alle 4:3-beelden gelijk. Niets veranderd in `src/galaxy/`
+  buiten `game/`, niets in `src/keen1-4`; Keen 4 gebruikt `src/galaxy/game/`
+  niet.
+- [x] **Schermafbeeldingen** (macOS, venster, 60 fps): de kaart tijdens
+  het lopen, level 13 met gepakte items en de wolken, het raam van level
+  6 en 11 met gepakte items, het raam met de paal in level 12, het schip
+  van Keen 1; voor en na bekeken.
+- [x] **Apps gebouwd** (Mac en Windows).
+- **Open punten:** een vrijgekomen stuk wordt beslist met wat de vakken
+  eromheen op dat moment tonen (geen nieuwe berekening van de hele map);
+  in alle levels gaf dat het goede beeld.
+- **Om te proberen:** `godot --path . -- --game=5 --level=13` (pak de
+  flesjes in de schacht), `--level=6` (het raam met zes flesjes),
+  `--level=0` (lopen op de kaart); Keen 1: `godot --path . -- --level=100`.
+
+## Mijlpaal E12: wat er nu is
+
+Keen 5 naast het origineel, op `milestone-e12-origineel` (23-10, 03:20 -
+04:58 UTC, met een herstart van de container halverwege). De metingen
+staan in `docs/keen5/research.md` ("Watched in E12"), de regels in
+`docs/keen5/gameplay.md`, de afwijkingen in `docs/keen5/architecture.md`
+("Deviations in E12").
+
+- [x] **Alle wezens die E4 niet zag, in js-dos (v1.4) bekeken** met twee
+  kladkopieën van `GAMEMAPS.CK5` (Keen naast elk wezen) en onze engine op
+  dezelfde bestanden; de sprites in elk beeld gevonden op al hun pixels:
+  **Spirogrip** (150 tics vast, 64 tics los, draaien op dezelfde plek:
+  vraag 5 van §12 beantwoord), **Volteface**, de **rechte en schuine
+  Slicestars**, **Spindred**, **Shockshund** (4 s lang dezelfde keuzes),
+  de **lasers** (elke 120 tics), de **mijn** (het pad van zijn oog op de
+  pixel gelijk, ontploffing op dezelfde plek, 4 × 10 tics pulseren), de
+  **Little Ampton** (keerpunt op de pixel gelijk: E4's ~93 px was de
+  meetmethode). Alles gelijk, behalve:
+- [x] **De Shikadi Master gerepareerd**: in het origineel bleef hij 4, 4,
+  8, 8, 3, 1 en 8 rondes staan (Omnispeak: bijna altijd na één ronde
+  handelen) en twee van drie teleports eindigden op zijn eigen plek. Nu:
+  hij handelt alleen onder 64 van 256, en een plek met een muur in zijn
+  5 × 5 tegels wordt opnieuw geprobeerd (Omnispeak's controle kijkt naar
+  geen enkele tegel). Twee nieuwe tests.
+- [x] **Lift (E6)**: het beeld na de rit stond in js-dos 8 pixels lager:
+  dat komt door js-dos's beelden van 3-4 tics (onze rit met 3-tic-beelden
+  geeft precies 8 pixels lager). Machinesnelheid, geen regel: niet
+  veranderd. Hetzelfde voor een halve stap van de Volteface (de lengte
+  van het eerste beeld na het laden).
+- [x] **Op de pixel**: het doodsvak (Try Again / Exit to Armageddon) 0
+  pixels anders, het bericht van Korath III's zekering (beide beelden) 0,
+  **het geheime einde: alle 9 pagina's 0** (geen fade ervoor: zwart tijdens
+  het laden), game over beeld voor beeld (64 van 65 opgenomen beelden
+  gelijk, één half getekend).
+- [x] **`estimate`/`uncertain`/`guess`/`TODO`** in `src/keen5` en
+  `src/galaxy/game`: geen enkele meer.
+- [x] **Alle opties uit = het origineel**: 4:3, Backgrounds uit, xBRZ uit,
+  vloeiend uit: de **vijf demo's opnieuw beeld voor beeld** tegen E7's
+  opnamen: demo 0 819/820 (de ander de fade), demo 1 990/991, demo 2
+  1343/1343, demo 3 1247/1275 (27 half getekend, 1 fade), demo 4 687/754
+  (66 half getekend, 1 fade): elk beeld van ons dat de opname ving is
+  gelijk. Statusvenster 0 pixels, paneelkaarten 0 (Configure en Quit
+  verschillen door eerdere besluiten). Nieuwe test
+  **`test_keen5_original_mode`**: alle opties uit op de wereldkaart en
+  levels 1, 4, 11, 12, 13: 320 × 200 op het beeld van het origineel, geen
+  plaatje, geen weggehaalde kleur, niets eroverheen geschilderd, geen
+  xBRZ, elke sprite op de pixel van het origineel, het scorevak 4 pixels
+  binnen; ook met de QED kapot en na het uitzetten tijdens het spelen.
+  Keen 4: zijn demo-suite en regressiebeelden ongewijzigd (bevroren).
+- [x] **Open punt van E10 opgelost**: een tegel die tijdens het spelen
+  verandert houdt de luchtkleur in zijn hele vak (alleen breedbeeld met
+  plaatjes), dus de kapotte QED toont geen plaatje meer in zijn raam.
+- [x] **Lessen voor Keen 6** in `docs/new-episode-guide.md` (E3-E12) en
+  een stuk "Keen 6 on the Galaxy game": de velden van `GalaxyGameRules` en
+  de haken die een nieuw deel invult.
+- [x] **Tests**: nieuw `test_keen5_original_mode`; `test_keen5_creatures_more`
+  (de Master: handelt alleen onder 64, blijft staan zonder vrije plek) en
+  `test_keen5_backgrounds` (de kapotte QED blijft zwart, niets in 4:3)
+  uitgebreid. **167 suites groen, 1 overgeslagen (Keen 4 v1.4), 0 FAIL, 0
+  SCRIPT ERROR.** `gdformat` en `gdlint` schoon.
+- [x] **Regressies**: Keen 1 alleen `launcher.png` anders t.o.v. de
+  referentie van vóór E2 (gelijk aan E11's: het vijfde icoon), Keen 2 (4)
+  en Keen 4 (11) alles gelijk; Keen 5 alle 17 gelijk aan E11.
+  `git diff origin/main` op `src/keen2-4`, hun tests, `src/actors`,
+  `src/map`, `src/game`: alleen de drie regels met het aantal spellen en
+  de ene goedgekeurde regel in `test_keen4_online.gd`; niets veranderd in
+  `src/galaxy/` buiten `game/`.
+- **Wat nog anders is dan het origineel (bewust)**: de laadpauzes van
+  js-dos (zwart voor het einde en de melkweg) niet nagedaan; Configure
+  (Keen 4's toetsenkaart, Two Players, Online) en REALLY QUIT? (de regel
+  van de gebruiker); de willekeurige volgorde van de fizzle in de titel
+  (de onze vast); het gele vlak van de wereldkaart is ook in 4:3 zwart
+  (het beeld van het origineel komt er nooit); de stukken van een mijn en
+  de keuzes van wezens hangen af van de plek in de toevalstabel (in het
+  origineel bij het starten willekeurig); niet gezien (blijven
+  Omnispeak's): de bal van de Master en het schot van de Shockshund die
+  Keen raken, de Spirogrip die naar Keen vliegt, een verdoofde Volteface.
+- **Open punten:** de apps zijn hier niet gebouwd (de gebruiker bouwt op
+  de Mac).
+- **Om te proberen:** `godot --path . -- --game=5 --level=12` (de Master
+  wacht nu langer; Shift+G god mode), F2 voor 4:3 en Options voor de
+  rest uit.
+
+## Mijlpaal E11: wat er nu is
+
+Keen 5 speelt met twee spelers op één toetsenbord en online, op
+`milestone-e11-coop` (23-10, 02:50 - 03:20 UTC). De regels staan in
+`docs/keen5/gameplay.md` ("Two players", "Online"), de klassen en
+afwijkingen in `docs/keen5/architecture.md` ("Keen 5's co-op and online
+(from E11)", "Deviations in E11").
+
+- [x] **Algemene keten uit Keen 4** (D12) in `src/galaxy/game/`:
+  `GalaxyCoopScreen`, `GalaxyJoinedScreen`, `GalaxyOnlineScreen` tussen
+  `GalaxyMenuScreen` en `Keen5View` (de volgorde van Keen 4), met
+  `GalaxyOnlineState` (de gedeelde getallen + haken voor die van een deel),
+  `GalaxyBoxNames`/`GalaxyNamedBoxes` (gedeelde soorten vakjes + vanaf 32
+  die van een deel). Het paneel is nu `GalaxyCoopMenuController` (via
+  `_new_panel()`). Privénamen van Keen 4 behouden. `src/keen4/` en
+  `src/galaxy/` buiten `game/` niet aangeraakt.
+- [x] **Twee spelers op één toetsenbord**: F7 of Configure > Two Players,
+  split-screen met de gedeelde toetsen (ook omhoog/omlaag), speler 2 is
+  `Keen5Keen` in zijn eigen kleuren, de inventaris gedeeld: **de
+  sleutelkaart** die de een pakt opent de beveiligingsdeur voor de ander
+  (en is dan voor beiden op), zonder kaart zegt de deur nee tegen elk;
+  **zekeringen** breekt ieder (level 4: elk één, het level telt 14); de
+  uitgang, de deur naar Korath III en de laatste zekering door wie dan
+  ook beëindigen het level; elke dood kost één leven; wezens gaan op de
+  dichtstbijzijnde Keen af; het sluipplatform let op beiden (E5).
+- [x] **De kaart en de ritten**: één Keen op de kaart, gestuurd met de
+  toetsen van beiden (Keen 4's regel); **wat hij berijdt (teleporter,
+  liften) berijdt hij voor beiden** — er is geen tweede kaart-Keen, dus
+  de rit van het origineel blijft precies zo (opgeschreven in
+  gameplay.md). Het paneel wacht tijdens een rit, als alleen.
+- [x] **Online**: `OnlineProtocol.GAME_ID_KEEN_5` (= `Keen5Files.GAME_ID`)
+  **achteraan** `GAME_IDS`; wie bij een host van een ander deel aanklopt
+  schakelt over (Keen 1-4 ↔ 5, ook via ENet getest). Geen nieuwe
+  berichtsoort: Keen 4's Galaxy-berichten met `Keen5OnlineState` (ook
+  sleutelkaart, resterende zekeringen, levels met 14, aankomst op Korath
+  III); het zekeringbericht en het Korath III-vak gaan bij naam en de
+  meespeler tekent ze uit zijn eigen bestanden; zijn eindpagina's zijn de
+  geheime als de host Korath III's zekering brak. Keen 1-4's berichten
+  byte voor byte gelijk.
+- [x] **Live geprobeerd**: twee vensters (xvfb) via ENet op 127.0.0.1:
+  host Keen 5 level 1, de meespeler erin als speler 2, beiden lopen, het
+  Try Again-vak op beide schermen; level 4: het zekeringbericht op beide
+  schermen gelijk. Split-screen op één toetsenbord in level 2 bekeken
+  (schuine lijn, speler 2 met blauwe helm).
+- [x] **Tests**: nieuw `test_keen5_online` (volgorde van de ids, wisselen
+  tussen Keen 4- en Keen 5-hosts ook via ENet, Steam-lobby's, de getallen
+  heen en terug, foute getallen genegeerd, de bytes van een Keen
+  5-snapshot vast), `test_keen5_coop` (echte data: sleutelkaart en
+  beveiligingsdeur, twee zekeringen, uitgang, Korath-deur, dood, wezens),
+  en de boomsuites `test_keen5_coop_screen` (F7, paneel, split-screen,
+  kaart met lift voor beiden, Try Again met speler 2's toetsen,
+  zekeringbericht, opslaan) en `test_keen5_online_play` (twee echte
+  schermen via ENet: speler 2, inventaris met kaart, tegels,
+  zekeringbericht, Korath-vak, alleen de host loopt op de kaart, geheim
+  einde, weggaan en stoppen). Goedgekeurde uitzondering:
+  `tests/test_keen4_online.gd:26` zegt nu "Keen 4 is de vierde".
+  **166 suites groen, 1 overgeslagen (Keen 4 v1.4), 0 FAIL, 0 SCRIPT
+  ERROR.** `gdformat` en `gdlint` schoon.
+- [x] **Regressies**: Keen 1 alleen `launcher.png` anders t.o.v. de
+  referentie van vóór E2 (gelijk aan E9's en E10's: het vijfde icoon),
+  Keen 2 (4) en Keen 4 (11) alles gelijk; Keen 5 alle 17 gelijk aan E10.
+  `git diff origin/main` op `src/keen2-4`, hun tests, `src/actors`,
+  `src/map`, `src/game`: alleen de drie regels met het aantal spellen en
+  de ene goedgekeurde regel in `test_keen4_online.gd`.
+- **Open punten:** Steam niet te testen in de cloud. `test_keen5_online_play`
+  gebruikt (als Keen 4's) de echte poort 24800. Eén keer viel
+  `test_keen4_coop_screen` ("the screen splits") toen er tegelijk andere
+  Godot-processen draaiden; alleen en in de volle run daarna groen (niet
+  door E11: Keen 4 is niet veranderd). De apps zijn hier niet gebouwd (de
+  gebruiker bouwt op de Mac). In `docs/keen5/roadmap.md` staat de
+  voortgangsregel van E10 in de tabel "Inschatting" (niet verplaatst).
+- **Om te proberen:** `godot --path . -- --game=5 --level=1`, F7 voor
+  speler 2 (zijn toetsen onder Configure > Two Players); online via
+  Configure > Online Game.
+
+## Mijlpaal E10: wat er nu is
+
+Keen 5 heeft zijn eigen plaatjes achter de levels, op
+`milestone-e10-extras` (23-10, 02:07 - 02:50 UTC). De regels staan in
+`docs/keen5/gameplay.md` ("Pictures behind the levels"), de klassen en
+afwijkingen in `docs/keen5/architecture.md` ("Keen 5's pictures behind
+the levels (from E10)", "Deviations in E10").
+
+- [x] **Alle 14 maps bekeken** (breedbeeld, met de dekking): Keen 5's
+  muren en vloeren zijn voorgrondtegels, de achterwanden patronen. Effen
+  achtergrond is er alleen buiten: **zwarte ruimte** (tegel 0 en 34
+  sterrentegels; rond het station in level 1 en op de kaart, in de ramen)
+  en **de lichtblauwe lucht van Korath III** (tegel 105, level 13). Maar
+  tegel 0 is ook de binnenkant van elke deur, en zwart zit overal in de
+  tekening (strepen, lijnen, roosters).
+- [x] **Eigen regel** (`Keen5BackdropPictures`, `Keen5OpenSky`): een tegel
+  verliest de luchtkleur aan de rand helemaal als hij grotendeels lucht
+  is, anders alleen brede stukken (4×4), nooit een streep of lijn; en
+  alleen wat pixel voor pixel verbonden is met open lucht (sterrentegels,
+  Korath's lucht, de rand van de map) toont het plaatje, de rest wordt in
+  zijn kleur teruggeschilderd. Deuren, dichte zwarte vakken, paalgaten en
+  de ontsnappingscapsules in level 1 blijven zwart; ramen met sterren
+  tonen het plaatje. Een map krijgt er een als hij ergens open lucht
+  heeft: **de wereldkaart en levels 1, 3, 4, 6, 10, 11, 12 en 13**; 2, 5,
+  7, 8 en 9 hebben geen ruimte of lucht.
+- [x] **Negen plaatjes uit code** (`tools/make_keen5_backgrounds.py`,
+  vaste seeds 5000 + map, grove pixels, op het canvas van Keen 3/4): de
+  planeet onder het station (1), een nevelband (3, breed), een
+  blauwwitte ster (4), een geringde reus (6), zwevende rotsen (10), een
+  zwart gat (11), een ontploffende ster (12), een daglucht met twee zonnen
+  en het station hoog in de lucht (13), diepe ruimte met een melkweg
+  (wereldkaart). Het eigen plaatje van de speler in
+  `game_data/keen5/backgrounds/levelNN` wint.
+- [x] **De wereldkaart**: met Backgrounds aan toont de ruimte buiten het
+  sterrenveld (E6: zwart) en het sterrenveld zelf het plaatje (de sterren
+  van de kaart blijven); uit: zwart. 4:3 onveranderd.
+- [x] **Vloeiende beweging en xBRZ nagekeken**: niets te repareren. Alle
+  sprites die Keen 5 tekent (ook de diamanten van de Sphereful en het oog
+  van de mijn) worden door xBRZ geschaald; overlays bewegen vloeiend mee;
+  wit oplichten is een shader. Bekeken: levels 1, 6, 13, de kaart, de
+  Sphereful, een mijn en een GoPlat met Keen, origineel en xBRZ+vloeiend;
+  het controlepaneel blijft met xBRZ scherp in de originele pixels (als
+  Keen 4).
+- [x] **Builds**: niets nodig; beide scripts kopiëren `game_data/keen5`,
+  de export neemt `assets/backgrounds/keen5` mee (zoals Keen 4).
+- [x] **Gedeelde code**: alleen `src/galaxy/game/` (nieuw
+  `GalaxyGameBackdrops` met twee haken, `rules.make_backdrops`); de
+  standaard is precies het oude gedrag. Niets veranderd in `src/galaxy/`
+  buiten `game/`.
+- [x] **Tests**: nieuw `test_keen5_backgrounds` (zonder bestanden: de
+  map met precies deze negen plaatjes, 16:9 of breder, het eigen plaatje
+  van de speler wint, regels op zelfgemaakte tegels en maps: deur zwart,
+  raam met sterren en de rand open, welke maps; met bestanden: de echte
+  maps met een plaatje, de sterrentegels, en op het scherm: level 4's deur
+  zwart en raam met plaatje, **niets in 4:3, niets met de optie uit**, de
+  ruimte van de wereldkaart met plaatje en zwart met de optie uit);
+  `test_keen5_keen` kent de luchttegels. **162 suites groen, 1 overgeslagen
+  (Keen 4 v1.4), 0 FAIL, 0 SCRIPT ERROR.**
+  `gdformat` en `gdlint` schoon.
+- [x] **Regressies**: Keen 5 tegen E9: alleen `keen5_level1_wide` en
+  `keen5_level11_wide` anders (het plaatje naast het station en in het
+  raam), de rest gelijk; nieuw: level 13 en de kaart direct gespeeld, in
+  beide beeldverhoudingen. Keen 1 alleen `launcher.png` anders (gelijk aan
+  E9's: het vijfde icoon), Keen 2 (4) en Keen 4 (11) alles gelijk.
+  `git diff origin/main` op `src/keen2-4`, hun tests, `src/actors`,
+  `src/map`, `src/game`: alleen de twee regels met het aantal spellen.
+- **Open punten:** als de QED breekt (level 12) tonen ~70 pixels in het
+  raam even het plaatje tot het level eindigt (de map wordt niet opnieuw
+  doorgerekend). Naast de spuitmonden op de romp van level 1 blijven
+  smalle zwarte randjes. Real-ESRGAN niet (besluit). De apps zijn hier
+  niet gebouwd (de gebruiker bouwt op de Mac).
+- **Vraag voor de gebruiker (advies gebouwd):** de wereldkaart toont het
+  plaatje ook achter het sterrenveld (één ruimte, geen harde rand); de
+  ramen van het station tonen het plaatje ook. Alternatieven: alleen
+  buiten het sterrenveld, of niet in de ramen.
+- **Om te proberen:** `godot --path . -- --game=5 --level=1` (breedbeeld,
+  F2 wisselt naar 4:3), `--level=13`, `--level=0`; Options:
+  Backgrounds uit geeft het origineel.
+
+## Mijlpaal E9: wat er nu is
+
+Keen 5 heeft zijn controlepaneel en kan opslaan, op `milestone-e9-menus`
+(23-10, 01:12 - 02:05 UTC). De regels staan in `docs/keen5/gameplay.md`
+("The control panel", "Saving and loading", "Difficulty"), de klassen en
+afwijkingen in `docs/keen5/architecture.md` ("Keen 5's control panel (from
+E9)", "Deviations in E9"), de vergelijking met het origineel in
+`docs/keen5/research.md` ("Watched in E9").
+
+- [x] **Het gedeelde spel**: `GalaxyMenuScreen` (uit `Keen4MenuScreen`,
+  tussen `GalaxyFrontScreen` en `Keen5View`: het paneel, nieuw spel per
+  moeilijkheid, laden, opslaan, End Game, Paddle War op eigen tics, Sound,
+  Music, stille AdLib en scorebox, F1 boven een kaart; de help en "nieuw
+  spel" verhuisden mee uit de voorkant, die nu 535 regels heeft, het
+  menuscherm 513) en `GalaxySavedGame` (uit `Keen4SavedGame`: op de kaart
+  de plek, in een level de start plus elk frame sindsdien, bij laden
+  opnieuw gespeeld; nu stil en zonder de god mode van nu). Nieuwe regels:
+  de kaartplaatjes vanaf het eind, zes slots, `saves_folder()`. Haak
+  `_level_began` in de flow.
+- [x] **Keen 5**: elke toets in de titellus en Escape in het spel openen
+  het paneel (E7 begon direct een spel); Keen 5's eigen horloge en
+  kaartplaatjes (één plek dichter bij het eind dan Keen 4's: MAIN MENU 32
+  … horloge 17, op het oog nagekeken); `Keen5SavedGame` bewaart sleutelkaart,
+  resterende zekeringen, levels met 1/14 en de aankomst op Korath III; Escape
+  wacht tijdens een rit op de kaart (teleporter, liftdeur, vlucht).
+  Opslaan in `user://keen5/saves`, instellingen in
+  `user://keen5/settings.cfg`, nooit in die van Keen 4.
+- [x] **Naast het origineel (js-dos, v1.4)**: hoofdkaart (titellus en in
+  het spel), New Game, Load, Save met getypte naam en opgeslagen, Sound en
+  het begin van Paddle War **0 pixels verschil**; Configure en REALLY QUIT?
+  verschillen alleen waar dat bedoeld is (onze rijen, de regel Choose
+  Game). Laden geeft PAUSED, End Game vraagt en toont de highscores, zoals
+  Keen 4.
+- [x] **Bewijs opslaan/laden**: in level 1 een schermafbeelding, opslaan,
+  verder spelen, laden: het beeld is buiten het PAUSED-vak pixel voor
+  pixel gelijk (1280×800). Op de kaart staat Keen op dezelfde plek; alleen
+  de vlam van de raket begint haar cyclus opnieuw (als Keen 4).
+- [x] **Tests**: nieuw `test_galaxy_game_saved` (fixtures: slot heen en
+  terug, kaart die niet bestaat, frames en gebeurtenissen, een level
+  opnieuw gespeeld, kaartplaatjes Keen 4/5, Keen 5's eigen staat, **elk pad
+  in `user://keen5` en geen `user://keen4` in de bronnen**),
+  `test_keen5_save_play` (echte data: levels 1, 4, 12, 13 op elke
+  moeilijkheid halverwege opgeslagen en terug, met god mode en B+A+T),
+  `test_keen5_menus` (boomsuite: paneel uit de titellus, **elke kaart met
+  Keen 5's plaatje**, nieuw spel per moeilijkheid met 8 ladingen op Easy,
+  opslaan/laden op de kaart en in een level, instellingen bewaard, Paddle
+  War, End Game, F1, rit, **niets veranderd in `user://keen4`**);
+  `test_keen5_front` opent nu het paneel. **161 suites groen, 1
+  overgeslagen (Keen 4 v1.4), 0 FAIL, 0 SCRIPT ERROR.** `gdformat` en
+  `gdlint` schoon.
+- [x] **Controle Keen 1-4**: regressies tegen de nulmeting: Keen 1 alleen
+  `launcher.png` anders (gelijk aan E7's en E8's: het vijfde icoon), Keen 2
+  (4) en Keen 4 (11 beelden) alles gelijk. `git diff origin/main` op
+  `src/keen2-4`, hun tests, `src/actors`, `src/map`, `src/game`: alleen de
+  twee regels met het aantal spellen. Niets veranderd in `src/galaxy/`
+  buiten `game/`.
+- **Niet gedaan:** de apps zijn hier niet gebouwd (de gebruiker bouwt op de
+  Mac). Co-op en online in het paneel komen in E11. De kaarten voor
+  joystick en Gravis-pad van het origineel zijn er niet (als Keen 4).
+  Opslaan tijdens de vlucht in de lift kan niet (Escape wacht).
+- **Om te proberen:** `godot --path . -- --game=5`, een toets: het
+  paneel; New Game op Easy, in een level Escape, Save Game, naam typen,
+  verder spelen, Escape, Load Game: hetzelfde moment terug onder PAUSED.
+  Configure, Options: SCORE BOX uit.
+
+## Mijlpaal E8: wat er nu is
+
+Keen 5 heeft al zijn geluiden en liedjes, op `milestone-e8-geluid` (23-10,
+00:38 - 01:15 UTC). De regels staan in `docs/keen5/gameplay.md` ("Sound and
+music"), de klassen en afwijkingen in `docs/keen5/architecture.md` ("Keen
+5's sound (from E8)", "Deviations in E8"), de metingen in
+`docs/keen5/research.md` ("Watched in E8"), de bestanden in
+`docs/keen5/file-formats.md` ("Checked in E8").
+
+- [x] **Het gedeelde spel**: `GalaxyAudio` (uit `Keen4Audio`, algemeen:
+  namen, aantallen en het lied per map uit de regels, de cache in de map
+  van het deel), `GalaxySettings` (uit `Keen4Settings`: stille AdLib en
+  scorebox in `user://keen5/settings.cfg`); `GalaxyPlayScreen` speelt nu
+  echt (`_play_sound`, `_play_map_song`, `_stop_music`), de muziek stopt
+  zodra het spelen van een map ophoudt (Omni CK_PlayLoop: de vakken tussen
+  de maps zijn stil), help, verhaal, einde en game over spelen het lied van
+  de map die de regels noemen; een `GalaxyScene` vraagt geluid en lied bij
+  naam. Vier nieuwe velden in `GalaxyGameRules`.
+- [x] **Keen 5**: `Keen5Sounds` met de **64 geluiden** (Omnispeak, CG-namen
+  waar Omnispeak UNKNOWN zegt; Keen 5's eigen nummers: de edelsteendeur is
+  60, 18 is de beveiligingsdeur) en de **14 liedjes** (elke map zijn eigen,
+  verhaal map 17, einde 14, game over 18, help 19 — Keen 5 heeft muziek in
+  help); de **melkweg** speelt 54 bij het flitsen, 53 bij de sterren en
+  lied 0 bij GAMEOVER; het **zekeringbericht wacht** tot het
+  uitgangsgeluid uit is (1,48 s; met geluid uit meteen); Shift+S (AdLib,
+  pc-speaker, uit) en Shift+M (muziek) zoals Keen 4, bewaard in de gedeelde
+  instellingen. De voorlopige geluidstabellen uit E4-E6 zijn weg.
+- [x] **Renderen op de achtergrond** in `user://keen5/cache/` (nooit die
+  van Keen 4): eerst het lied van de wereldkaart, dan demo 0 (map 1) en het
+  verhaal (`GalaxySoundLibrary.start` kreeg een optionele volgorde; Keen 4
+  ongewijzigd). Gemeten (4 kernen, lege cache): AdLib-geluiden 1,2 s, het
+  kaartlied 9,7 s, alles 112 s, 85 MB; uit de cache 0,4 s.
+- [x] **Naast het origineel (js-dos, v1.4, geluid opgenomen)**: het lied van
+  level 1 aan het begin van demo 0 (zelfde deeltonen 62/98/392/990 Hz,
+  spectra lopen gelijk op tijdsfactor 1,12 = de bekende js-dos-drift van
+  D9), het kaartlied (dezelfde zes deeltonen), de **sleutelkaart** (7
+  pulsen, 277/332/550/1002 Hz), de **zekering** (hoge toon 3968-5573 Hz,
+  verloop correlatie 0,94), het **uitgangsgeluid** (correlatie 0,90; het
+  bericht komt als het is uitgespeeld; E5's "2,3 s" was wandklok-tijd), en
+  **stilte tussen de maps** (het kaartlied stopt bij de warp, het laadvak
+  is stil, het levellied begint met het level).
+- [x] **Tests**: nieuw `test_keen5_sound` (tabel, elk nummer één keer,
+  Omnispeak/CG-nummers, **een scan van `src/galaxy` en `src/keen5`: elke
+  gespeelde naam heeft een nummer**, lied per map en scherm, cache en
+  instellingen in `user://keen5`, 206 brokken, liedjes 192-205, lengtes),
+  `test_galaxy_game_audio` (fixtures: tabellen uit de regels, eigen cache,
+  resterende tics, Shift+S/M, `GalaxySettings`), `test_keen5_music`
+  (boomsuite: lied per map, stilte tussen maps, dood en Try Again,
+  **wachten op het uitgangsgeluid** en zonder geluid niet, help, titellus,
+  einde, naam intikken, game over, Shift+S/M); `test_keen5_view` zet in
+  de zekeringtest het geluid uit. **158 suites groen, 1 overgeslagen (Keen
+  4 v1.4), 0 FAIL, 0 SCRIPT ERROR.** `gdformat` en `gdlint` schoon.
+- [x] **Controle Keen 1-4**: regressies tegen de nulmeting: Keen 1 alleen
+  `launcher.png` anders (gelijk aan E7's: het vijfde icoon), Keen 2 (4) en
+  Keen 4 (11 beelden) alles gelijk; Keen 4's demo's, geluid en
+  echte-datatests groen. `git diff origin/main` op `src/keen2-4`, hun
+  tests, `src/actors`, `src/map`, `src/game`: alleen de twee regels met het
+  aantal spellen. Eén naad in de engine: `GalaxySoundLibrary.start(...,
+  next_songs)` met standaard geen.
+- **Niet gedaan:** de apps zijn hier niet gebouwd (de gebruiker bouwt op de
+  Mac). Het verhaal-, help-, eind- en game-over-lied niet in js-dos
+  opgenomen (hun plaats is Omnispeak's). Het menu voor stille AdLib en de
+  scorebox komt in E9. Geluiden delen geen kanaal met de muziek (als Keen
+  4, D9). Het origineel wacht vóór elk level ook op het geluid (meestal al
+  klaar na het laadvak); niet nagedaan.
+- **Om te proberen:** `godot --path . -- --game=5` (titellus: stil intro,
+  dan het lied van demo 0; F1 help met eigen muziek), in het spel Shift+S en
+  Shift+M; een zekering kapot (level 4): het uitgangsgeluid, dan het
+  bericht. De eerste start rendert de liedjes (~2 min op de achtergrond).
+
+## Mijlpaal E7: wat er nu is
+
+Keen 5 is van titel tot highscores uit te spelen (zonder geluid), op
+`milestone-e7-einde-titel` (22-10, 23:04 - 23-10, 00:38 UTC). De regels staan
+in `docs/keen5/gameplay.md` ("The title loop", "Help", "The end", "Game
+over", "The high scores", "The cheats"), de klassen en afwijkingen in
+`docs/keen5/architecture.md` ("The Galaxy game", "Keen 5's front (from
+E7)", "Deviations in E7"), de metingen in `docs/keen5/research.md`
+("Watched in E7").
+
+- [x] **Het gedeelde spel** (`src/galaxy/game/`, uit Keen 4's D8-klassen,
+  Keen 4 onaangeraakt): `GalaxyFrontScreen` (nieuwe schakel tussen
+  `GalaxyFlowScreen` en `Keen5View`: titellus, demo's met DEMO-bord, help,
+  eindpagina's, naam intikken, cheats, scènes), `GalaxyTitleLoop`,
+  `GalaxyHelp` (ook de opmaak van help- en eindpagina's met of zonder
+  kader), `GalaxyEnding` (tekst als parameter), `GalaxyHighScoreBoard`
+  (marges, kleur en de extra kolom uit de regels; Keen 5 zonder kolom),
+  `GalaxyCheats`, `GalaxyScene` (een scène over het hele scherm) en
+  `GalaxyEgaFade` (de echte EGA-paletten van het in- en uitfaden, als
+  shader). Ruim 40 nieuwe velden in `GalaxyGameRules` (plaatjes, teksten,
+  liedjes, highscore-marges, kleuren van intro en verhaal).
+- [x] **Keen 5**: begint met de **titellus** (intro met rode woorden, demo
+  0, verhaal in lichtcyaan, demo 1, highscores op map 15, demo 2, demo 3;
+  zelfde volgorde als Keen 4, nagekeken in de opname); een toets start een
+  nieuw spel (het controlepaneel komt in E9), Escape het startscherm;
+  **help** (F1) met vijf onderwerpen in het rode kader; **einde** na de QED
+  of E+N+D: 9 eindpagina's, het **geheime einde** als de zekering van
+  Korath III kapot is, knipperende pijl; **game over = de melkweg
+  ontploft** (`Keen5GalaxyExplosion`: fade, Melkweg, 18 flitsen, 60
+  beelden met 4000 sterren, GAMEOVER 24 s of een toets); daarna de naam
+  op de highscores van map 15, bewaard in `user://keen5/high_scores.json`;
+  B+A+T geeft ook de sleutelkaart; `--random-seed=N` voor herhaalbare
+  beelden.
+- [x] **De demo's beeld voor beeld** (js-dos, de titellus van v1.4
+  opgenomen, elk beeld op het onze gelegd): vóór E7 stierf Keen in demo 2
+  op beeld 193 en in demo 3 op 1064. Vier oorzaken gevonden en opgelost,
+  alle vier met een vlag zodat Keen 4 blijft zoals bewezen: het **gedeelde
+  stapgeheugen** (ck_nextX/Y) bij landen op een platform en bij opzij
+  geduwd worden door een Ampton, **platforms die op de tegelrand stoppen**
+  bij keren (Keen 4 v1.0 kaatst terug), een **opgebruikt mijnstuk dat nog
+  één beeld getekend wordt**, en de **tekenvolgorde** van sprites met
+  dezelfde prioriteit. Nu: demo 0 819/819, demo 1 990/990, demo 2
+  1343/1343, demo 3 1247 gelijk + 27 halfgetekende vangsten, demo 4
+  (highscores) 677 gelijk + 66 halfgetekende vangsten; **elk beeld van ons
+  dat de recorder ving is pixel-gelijk**, alle vijf spelen tot hun eind.
+- [x] **Naast het origineel (js-dos, v1.4)**: help-menu, menu met tweede
+  onderwerp, pagina 1 en 2 **pixel-gelijk**; alle **9 eindpagina's**
+  pixel-gelijk (pijl dof en fel, elke 70 tics); **naam intikken** op map
+  15 pixel-gelijk (met cursor); **game over**: de fade-in (twee
+  tussenstappen), alle flitsen, alle 47 sterrenbeelden die de recorder
+  ving en GAMEOVER pixel-gelijk (58 van 58); intro-scroll 65 van 65
+  gelijk, verhaal 147 van 156 (de rest halfgetekend), DEMO-vak gelijk.
+  Twee dingen anders dan Omnispeak: ingang 7 flitst met de **tweede** rij
+  van de tabel (Omnispeak geeft beide de eerste), en 0x0F is lichtgrijs.
+  Het geheime einde zelf niet in js-dos bekeken (tekst en opmaak gelijk
+  aan het gewone einde, dat pixel-gelijk is).
+- [x] **Tests**: nieuw `test_galaxy_game_front` (titellus, cheats,
+  eindpagina's, help, tabel met marges en kolom, scène, naam en bestand,
+  met de fixtures), `test_keen5_front` (volgorde, kleuren, DEMO-bord,
+  tekenvolgorde, nieuw spel, help-pagina's 13/21/4/15/2, einde en geheim
+  einde, naam op map 15, game over, B+A+T), `test_keen5_galaxy_explosion`
+  (tics 2148, fades, flitsrijen, sterren en randen, toetsen),
+  `test_keen5_demo_sync` (169 sprites op 27 beelden van de vijf demo's,
+  gevonden in beelden die pixel-gelijk zijn aan het origineel; faalt
+  zonder elk van de vier oorzaken). **155 suites groen, 1 overgeslagen
+  (Keen 4 v1.4), 0 FAIL, 0 SCRIPT ERROR.** `gdformat` en `gdlint` schoon.
+- [x] **Controle Keen 1-4**: regressies tegen de nulmeting: Keen 1 alleen
+  `launcher.png` anders (gelijk aan E6's: het vijfde icoon), Keen 2 (4)
+  en Keen 4 (11 beelden) alles gelijk; Keen 4's demo's en
+  echte-datatests groen. `git diff origin/main` op `src/keen2-4`, hun
+  tests, `src/actors`, `src/map`, `src/game`: alleen de twee regels met
+  het aantal spellen. Naden in de engine, alle met de oude werking als
+  standaard: `GalaxyWorld.shared_step`/`shared_landing_step`,
+  `GalaxyPlatform.bounce`, `GalaxyObjectLayer.original_order`, optionele
+  kleuren in intro, verhaal en titellaag; `GalaxyShrapnel` (alleen Keen 5
+  gebruikt het) tekent een opgebruikt stuk nog één beeld.
+  `tools/keen5_regression.sh` is herhaalbaar (`--random-seed=1`, twee
+  runs gelijk) en kreeg intro (breed, 4:3), help-menu, help-pagina,
+  eerste eindpagina en de highscores.
+- **Niet gedaan:** de apps zijn hier niet gebouwd (de gebruiker bouwt op
+  de Mac). Geen geluid (E8). De laadtijd van het origineel (1,5 s zwart
+  vóór de Melkweg, 2,5 s vóór de eindpagina's in js-dos) doen we niet na.
+  De fizzle van de titel volgt een eigen willekeurige volgorde (als Keen
+  4). Het uitfaden van het spel vóór de Melkweg gebruikt dezelfde
+  EGA-paletten maar is niet beeld voor beeld vergeleken.
+- **Om te proberen:** `godot --path . -- --game=5` (titellus; F1 help; een
+  toets: nieuw spel), in het spel E+N+D samen (het einde) of B+A+T; voor
+  game over vier keer doodgaan (de melkweg ontploft, daarna de
+  highscores).
+
+## Mijlpaal E6: wat er nu is
+
+Keen 5 heeft zijn wereldkaart, op `milestone-e6-kaart` (22-10, 22:07-23:05
+UTC). Vanaf de kaart is elk level te spelen, ook Korath III. De regels staan
+in `docs/keen5/gameplay.md` ("The flow of a game", "The world map", "The
+status window"), de klassen en afwijkingen in `docs/keen5/architecture.md`
+("The Galaxy game", "Keen 5's world map", "Deviations in E6"), de metingen
+in `docs/keen5/research.md` (§8, "Watched in E6").
+
+- [x] **Het gedeelde spel** (`src/galaxy/game/`, uit Keen 4's klassen,
+  Keen 4 onaangeraakt): `GalaxyMapSession` (kaart als level, kaart-Keen,
+  camera, ingangen 0xC000+n, gedane levels: info weg, hekken 0xD0nn weg,
+  vlaggen 0xF0nn wapperend of gegooid volgens de regels), `GalaxyProgress`
+  (levels klaar mét waarde, plek op de kaart, haakjes voor extra's in een
+  opgeslagen spel), `GalaxyGameBoxes` (laadvak met aftellen voor elke
+  tekst, "One moment", PAUSED, het vak na een dood met knipperende keuze,
+  "Game Over!" alleen als de episode die tekst heeft),
+  `GalaxyStatusWindow` (kader, labels, cijferbalken; eigen middenrij en
+  onderrij als haakjes) en een nieuwe schakel `GalaxyFlowScreen` (het
+  verloop: kaart → "One moment" → laadvak → level → terug naar de kaart;
+  dood → Try Again / Exit; game over; het statusvenster).
+  `GalaxyPlayScreen` speelt nu ook de kaart. Nieuwe velden in
+  `GalaxyGameRules` (vlaggen, teksten, lettertype, aftelplaatje).
+- [x] **Keen 5's kaart** (`Keen5MapSession`, `Keen5MapKeen`,
+  `Keen5MapRide`): geen water, geen Foot, alleen wapperende vlaggen op
+  (−0x50, −0x1E0); **teleporter** (geluid 41, Keen loopt erop 2 per tic,
+  de tegel flitst 0xA7F/0xA80, sprong naar het doel, wakker maken, naar
+  het zuiden 3 per tic 90 tics, tegel gewist); **liften** (deur dicht uit
+  de sjablonen linksboven, 6 × 8 tics, onzichtbaar 64/12 per tic vliegen,
+  deur open, 32 × 8 naar buiten); **schachten** op Keens rij en na de
+  zekeringlevels 4, 6, 8 en 10, plekken nagekeken in de echte kaart;
+  **Korath III** (deur in level 11 → op info 26, vak "Keen steps out onto
+  Korath III", ook terug uit level 13).
+- [x] **`Keen5Progress`** (1 of 14 per level, de vier schachtzekeringen,
+  de Korath-zekering voor E7, aankomst op Korath III), **statusvenster**
+  met KEYCARD (`Keen5StatusWindow`), Enter opent het; op Korath III heet
+  de plek "Korath III Base" (gezien in het origineel).
+- [x] **Het verloop**: een nieuw spel (`--game=5` zonder `--level`) begint
+  op de kaart achter het vak "Keen purposefully wanders about the
+  Omegamatic"; `--level=0` de kaart meteen; een level vanaf de kaart gaat
+  terug naar de kaart op de plek waar Keen instapte; dood → "You didn't
+  make it past …" met Try Again / Exit to Armageddon; game over en de QED
+  → voorlopig het startscherm (E7). Sleutelkaart en edelstenen weg na elk
+  level en elke dood.
+- [x] **Geel blok in breedbeeld (open punt van E3)**: geen dekking maar
+  een geel opvultegel (850) rond het sterrenveld van het station, waar het
+  originele beeld nooit komt; boven rij 100 nu zwarte ruimte (tegel 0),
+  Korath III's gele grond blijft. In 4:3 verandert niets.
+- [x] **Naast het origineel (js-dos, v1.4)**, met een kladkopie van
+  `GAMEMAPS.CK5` (start op Korath III): het vak "Keen steps out onto
+  Korath III" en de vijf aftelbeelden **pixel-gelijk**; het eerste
+  kaartbeeld gelijk op één geanimeerde tegel na; het **statusvenster
+  pixel-gelijk** (29.184 pixels, op Korath III en bovenin) nadat de
+  KEYCARD-rij een pixel omlaag ging (Omnispeak zit er een hoger); de
+  **teleporter** vanaf de sprong elk beeld pixel-gelijk; de **lift**
+  (boven → midden) instappen en deur dicht pixel-gelijk, na de vlucht staat
+  het beeld van het origineel 8 pixels lager (zijn beelden lopen 2-4 tics,
+  dus de laatste vluchtstap schiet verder door).
+- [x] **Tests**: nieuw `test_galaxy_game_map` (kaartsessie en voortgang
+  met de fixtures), `test_galaxy_game_flow` (het verloop, de vakken, het
+  statusvenster met de fixtures), `test_keen5_map` (teleporter, beide
+  liftkanten, schachten per rij en zekeringen, Korath III, vlaggen en
+  hekken met eigen kaartjes), `test_keen5_map_play` (echte kaart: plekken,
+  elke liftrit, de teleporter, elke ingang, vlaggen, het opvultegel),
+  `test_keen5_status` (KEYCARD, het kaartje, de toetstegels, de vakken);
+  `test_keen5_view` herschreven (nieuw spel op de kaart, elk level 1-13
+  vanaf de kaart en terug, zekering, Korath III, dood met keuze,
+  statusvenster). **151 suites groen, 1 overgeslagen (Keen 4 v1.4), 0
+  FAIL, 0 SCRIPT ERROR.** `gdformat` en `gdlint` schoon.
+- [x] **Controle Keen 1-4**: regressies tegen de nulmeting: Keen 1 alleen
+  `launcher.png` anders (gelijk aan E4's en E5's: het vijfde icoon), Keen
+  2 (4) en Keen 4 (11 beelden) alles gelijk; Keen 4's demo's en
+  echte-datatests groen. `git diff origin/main` op `src/keen2-4`, hun
+  tests, `src/actors`, `src/map`, `src/game`: alleen de twee regels met
+  het aantal spellen. Eén additieve naad in de engine:
+  `GalaxyMapFlag.wave_at(..., waving_only)`. `tools/keen5_regression.sh`
+  kreeg de kaart (4:3, breed, statusvenster); de oude vier beelden zijn
+  gelijk aan E5's, de kaartbeelden twee keer gelijk. Let op: de
+  levelbeelden hangen af van het willekeurige startpunt (`randi()`): in één
+  van drie runs stond in level 1 een wezen anders.
+- **Niet gedaan:** de apps zijn hier niet gebouwd (de gebruiker bouwt op
+  de Mac). Geluiden (deur, teleporter, levelgeluid) worden bij naam
+  gevraagd en zijn stil tot E8. Het vak na een dood niet in js-dos bekeken
+  (zelfde code en indeling als Keen 4's, D7; de teksten komen uit de
+  bestanden van de gebruiker).
+- **Om te proberen:** `godot --path . -- --game=5` (nieuw spel op de
+  kaart; Enter het statusvenster), `-- --game=5 --level=0` (de kaart
+  meteen); met Shift+N naar een level en terug. De lift onderin gaat pas
+  open na levels 1 en 2 (hun hekken staan ervoor).
+
+## Mijlpaal E5: wat er nu is
+
+Keen 5 heeft zijn platforms, zekeringen en de QED, op
+`milestone-e5-mechaniek` (22-10, 21:18-22:06 UTC). Elk level is nu uit te
+spelen, ook 4, 6, 8, 10 en 13 (zekeringen) en 12 (de QED). De regels staan
+in `docs/keen5/gameplay.md` ("Platforms", "Fuses and the QED"), de klassen
+en afwijkingen in `docs/keen5/architecture.md` ("Keen 5's machinery",
+"Deviations in E5"), de metingen in `docs/keen5/research.md` ("Watched in
+E5"), wat in de bestanden staat in `docs/keen5/file-formats.md`
+("Checked in E5").
+
+- [x] **Platforms** (`Keen5Platforms` plaatst ze): rode asplatforms
+  (27-30), paarse (84-87: +0x40, kijken verticaal een kolom verder naar
+  het B-blok, **animeren niet**), vallend (32, Keen 4's), staand (33-35,
+  **omgekeerde moeilijkheid**: 33 alleen Easy, 34 Easy en Normal, 35
+  altijd), het sluipplatform (40: schuift weg als Keen er springend naar
+  kijkt) en de rode en paarse GoPlats (36-39, 80-83) op de pijlen met
+  `GalaxyPathArrows`. Keen "surft" erop (KEENONPLAT, `ride_platform`).
+- [x] **Schakelaars**: een schakelaar draait een pijl om
+  ({2,3,0,1,6,7,4,5}) of zet een B-blok aan/uit; de enige nieuwe naad in de
+  engine is `GalaxyKeen._switched_info` (standaard Keen 4's XOR). Bruggen
+  zoals Keen 4. **Krachtvelden gaan nooit uit**: geen schakelaar wijst
+  ernaar (bestanden).
+- [x] **Zekeringen** (`Keen5Fuses`): top 57 is een vlakke vloer; landen
+  geeft geluid 57, een pogo-landing met snelheid ≥ 48 breekt hem (explosie
+  een tegel links, het puin uit de hoek (0,0)/(0,1), Keen valt door); het
+  aantal komt uit info 41 (`Keen5Inventory.fuses_remaining`); bij 0 eindigt
+  het level 60 tics later (`Keen5LevelEnd`, waarde 14). Daarna **het
+  bericht** (`Keen5Messages`): Keen pratend, dan duim omhoog, elk 30 tics
+  en een toets; level 13 met de eigen tekst.
+- [x] **De QED** (map 12, `Keen5Qed`): geen zekeringtegels in map 12;
+  alleen een scherf van een mijn vernietigt hem (vier explosies, de twee
+  blokken uit de hoek, 60 tics later het einde, waarde 15; voorlopig het
+  volgende level, de eindpagina's in E7).
+- [x] **De bliksem bij de deur naar Korath III**: alleen de 0x0000-deur
+  van level 11 (de teleporter op (7,33)) heeft info 0 op Keens hoofdrij;
+  twee bliksems en geluid 41.
+- [x] **Uitslag per level** (`Keen5LevelSession.result()`: 1, 14 of 15),
+  bewaard in `Keen5View.levels_done` voor E6's `Keen5Progress`.
+- [x] **Naast het origineel (js-dos, v1.4)**: een kladkopie van
+  `GAMEMAPS.CK5` met Keens start verplaatst. GoPlats (level 1): alle 280
+  beelden op dezelfde plekken als bij ons; paarse platform (level 10): 204
+  beelden gelijk, nooit het tweede plaatje; zekering (level 8): breekt na
+  ~856 ms (bij ons 886 ms), Keen stuitert verder, **beide berichtschermen
+  pixel-gelijk**; bliksem (level 11) op dezelfde pixels; de QED (map 12)
+  door een mijn vernietigd, daarna de eindpagina's. Vragen 1-4 van
+  research.md §12 beantwoord.
+- [x] **Tests**: nieuw `test_keen5_platforms` (elk soort, snelheden,
+  keren, omgekeerde moeilijkheid, GoPlats en een omgedraaide pijl,
+  sluipplatform, surfen), `test_keen5_fuses` (pogo/sprong/langzame pogo,
+  telling, einde met 14, map 12, de QED, de bliksem),
+  `test_keen5_mechanics_play` (echte data: levels 4, 6, 8, 10, 13 eindigen
+  door hun zekeringen met 14, map 12 door de QED, de deur in level 11, de
+  berichten, Keen rijdt op elk soort, elk level met platforms in god
+  mode) en `keen5_machine_fixtures.gd`; `test_keen5_view` kreeg het
+  zekeringbericht en het puin in xBRZ. **146 suites groen, 1 overgeslagen
+  (Keen 4 v1.4), 0 FAIL, 0 SCRIPT ERROR.** `gdformat` en `gdlint` schoon.
+- [x] **Controle Keen 1-4**: regressies tegen de nulmeting: Keen 1 alleen
+  `launcher.png` anders (gelijk aan E4's: alleen het vijfde icoon), Keen 2
+  (4) en Keen 4 (11 beelden) alles gelijk; Keen 4's demo's en
+  echte-datatests groen. `git diff origin/main` op `src/keen2-4`, hun
+  tests, `src/actors`, `src/map`, `src/game`: alleen de twee regels met
+  het aantal spellen. `tools/keen5_regression.sh` twee keer gedraaid: alle
+  vier beelden gelijk (andere beelden dan in E4: de wezens en platforms
+  lopen).
+- **Niet gedaan:** de apps zijn hier niet gebouwd (de gebruiker bouwt op
+  de Mac). Het wachten op het einde van het levelgeluid voor het
+  zekeringbericht (~2,3 s in het origineel) komt met het geluid (E8).
+- **Om te proberen:** `godot --path . -- --game=5 --level=4` (paarse
+  GoPlats, twee zekeringen in een schacht), `--level=1` (GoPlats,
+  sluipplatform), `--level=13` (Korath III: vallende platforms, één
+  zekering); Shift+G voor god mode.
+
+## Mijlpaal E4: wat er nu is
+
+Keen 5 heeft al zijn wezens, op `milestone-e4-wezens` (22-10,
+20:31-21:17 UTC). De regels per wezen staan in `docs/keen5/gameplay.md`
+("The creatures"), de klassen en afwijkingen in
+`docs/keen5/architecture.md` ("Keen 5's creatures", "Deviations in E4"),
+de metingen in `docs/keen5/research.md` ("Watched in E4").
+
+- [x] **15 soorten, elk een eigen klasse met eigen actietabel** (getallen
+  uit Omnispeak's `ACTION.CK5`, Omni): Sparky (zoeken, aanloop, charge),
+  Little Ampton (computers, palen op en af, duwt Keen, dodelijk alleen op
+  de paal, stoot Keen van palen), Slicestar (recht met 20 levenspunten en
+  keren bij B-blokken; schuin in een 2 × 2-doos met 50, nooit rechts-op),
+  Shelley (wacht aan een rand, duikt, ontploft door verdover- en
+  vijandschoten, landen en Keens midden; twee scherven), Volteface (volgt
+  de pijlen, 300 tics verdoofd), Shikadi-mijn (zoekt Keen, oog als extra
+  sprite, twee ontploffingszones, zes scherven), Robo Red (10 schoten,
+  schiet terug), Spirogrip, Spindred, Shikadi Master (bal die vonken
+  wordt, teleport, de bugs van het origineel), Shikadi (4 levenspunten,
+  wit oplichten, zapt palen), Shockshund (2, zit, springt, blaft), Sphereful
+  (vier diamanten voor en achter), Korath (onschuldig, duwt) en de
+  laserkanonnen. `Keen5Creatures` plaatst ze per moeilijkheid (Normal
+  zolang er geen menu is).
+- [x] **Naden in de engine** (additief, Keen 4 onveranderd):
+  `GalaxyWorld.sleep_margin` (standaard 4, Keen 5 6),
+  `GalaxyObject.flash_white` met een witte shader in `GalaxyObjectLayer`,
+  nieuw `GalaxyShrapnel` (stuiterende scherven) en `GalaxyPathArrows` (de
+  pijlenregel, ook voor E5's GoPlats). Schoten die alleen op het scherm
+  leven, extra sprites en de doos-botsing bestonden al
+  (`ON_SCREEN_ONLY`, `overlays`, `update_simple_box`).
+- [x] **Keen5Keen**: zijwaarts duwen (Omni CK_PhysPushX) en van een paal
+  stoten zonder duw (anders dan Keen 4).
+- [x] **Naast het origineel (js-dos, v1.4)**: een kladkopie van
+  `GAMEMAPS.CK5` met één wezen bij Keens start in levels 3, 4, 5, 7, 12 en
+  13. Sparky (16 en 32 per tic, aanloop), Little Ampton (heen en terug in
+  258 tics, bij ons 256), Robo Red (64 per 6 tics), Shikadi (heen en weer
+  rond Keen, 128 tics), Shelley (ontploft als Keens midden erin komt) en
+  Sphereful (diamanten) gedragen zich als bij ons. Alle sprite-namen
+  links/rechts op het oog nagekeken: kloppen.
+- [x] **Bekeken**: schermafdrukken van levels 1-13 met wezens; de
+  Sphereful met diamanten in 4:3.
+- [x] **Tests**: nieuw `test_galaxy_creature_seams` (naden),
+  `test_keen5_creatures` en `test_keen5_creatures_more` (mini-levels,
+  `keen5_creature_fixtures.gd`), `test_keen5_creatures_play` (echte data:
+  elke info-waarde bekend, telling per level en moeilijkheid, sprites,
+  Voltefaces op hun pad, elk level 600 frames in god mode).
+  `test_keen5_level` zet Keen in god mode bij de deuren (er zijn nu
+  wezens). **143 suites groen, 1 overgeslagen (Keen 4 v1.4), 0 FAIL, 0
+  SCRIPT ERROR.** `gdformat` en `gdlint` schoon.
+- [x] **Controle Keen 1-4**: regressies tegen de nulmeting: Keen 1 alleen
+  `launcher.png` anders (alleen het vijfde icoon, gelijk aan E3's), Keen 2
+  (4) en Keen 4 (11 beelden) alles gelijk; Keen 4's demo's en
+  echte-datatests groen. `git diff origin/main` op `src/keen2-4`, hun
+  tests, `src/actors`, `src/map`, `src/game`: alleen de twee regels met
+  het aantal spellen.
+- **Niet gedaan:** de apps zijn hier niet gebouwd (de gebruiker bouwt op
+  de Mac). Platforms, zekeringen en de QED zijn E5; de GoPlats schrijven
+  wel al hun startpijl.
+- **Open:** in js-dos niet bekeken (tijd): Volteface, Slicestars, mijn,
+  Spirogrip, Spindred, de teleport van de Master, Shockshund, lasers (de
+  regels zijn Omnispeak's en getest). `tools/keen5_regression.sh` geeft
+  nu andere beelden dan in E3 (er lopen wezens).
+- **Om te proberen:** `godot --path . -- --game=5 --level=3` (Sparkies,
+  Spindreds, Robo Red), `--level=8` (Shelleys, Shockshunds, Shikadi),
+  `--level=11` (Sphereful, Spirogrip, Voltefaces), `--level=12` (mijnen,
+  de Shikadi Master), `--level=13` (25 Koraths); Shift+G voor god mode.
+
+## Mijlpaal E3: wat er nu is
+
+Keen 5 is te spelen, nog zonder wezens, op `milestone-e3-level` (22-10,
+19:50-20:31 UTC). Het algemene Galaxy-spel staat in `src/galaxy/game/`,
+gemaakt uit de Keen 4-klassen; Keen 4 zelf is niet veranderd. De opzet
+staat in `docs/keen5/architecture.md` ("The Galaxy game", "Deviations in
+E3"), de spelregels in het nieuwe `docs/keen5/gameplay.md`.
+
+- [x] **`src/galaxy/game/`** (weg 3): `GalaxyGameRules` (de getallen van
+  een deel: maps, info-waarden, items, sprites, nieuwe-spelwaarden,
+  plaatjes, gebruikersmap; Keen 5 vult ze in `Keen5Episode.game_rules()`),
+  `GalaxyStart`, `GalaxyLevelSession`, `GalaxyLevelScreen`,
+  `GalaxyPlayScreen` (samen 1.223 regels). Keen 4-inhoud (zwemmen, de
+  maan, de raad, statusvenster, wereldkaart, geluid) zit er niet in maar
+  komt via haken: `_new_keen`, `_set_up_keen`, `_place_info`,
+  `_new_inventory`, `_new_session`, `_play_sound`, `_play_map_song`.
+- [x] **Naden in de engine** (additief, Keen 4 byte-gelijk):
+  `GalaxyKeen.spawn(..., keen)` (een subklasse plaatsen), `_is_door` /
+  `_enter_door` (andere deuren), `GalaxyKeenBody._action_rows`,
+  `_item_rows`, `item_sounds` (eigen acties, de Vitalin-spat, het 13e
+  item) en `_touch_other_tile` (onbekende tile-soorten).
+- [x] **Keen 5**: `Keen5View` (het echte spelscherm, de node-indeling van
+  Keen 4), `Keen5LevelSession`, `Keen5Keen` (sleutelkaart, de
+  beveiligingsdeur die in drie stappen van 15 tics opengaat terwijl Keen 45
+  tics naar binnen stapt, uitgang 0xB1B1, deur naar Korath III 0x0000),
+  `Keen5SecurityDoor`, `Keen5Inventory` (de sleutelkaart; kaart en
+  edelstenen weg na elk level en elke dood), `Keen5Sprites` (eigen tabel:
+  Keens sprites zijn vanaf omlaag kijken **niet** die van Keen 4).
+  Scrollblokken alleen info 25; info 70 is item 12 (info − 58).
+- [x] **Het verloop zoals Keen 4 in D4**: zonder `--level` level 1; uitgang
+  → volgend level (13 → 1, 14 overgeslagen); dood → het level opnieuw,
+  een leven minder; geen levens meer → startscherm. Shift+N/P, Shift+G,
+  Shift+I (ook de sleutelkaart). De wereldkaart (0) wordt alleen bekeken.
+- [x] **Naast het origineel (js-dos, v1.4)**: het eerste beeld van level 1
+  is pixel voor pixel gelijk (ook Keen en het scorebord); level 11 en de
+  wereldkaart hetzelfde beeld en dezelfde tiles (alleen wezens, het
+  scorebord op de kaart en animaties verschillen). De beveiligingsdeur is
+  in js-dos niet bereikt (te ver, achter wezens); die regels komen uit
+  Omnispeak en worden met de echte levels getest.
+- [x] **Bekeken** (scratchpad `e3/look`): levels 1, 2, 3, 5, 9, 11, 12,
+  13, 15 en de wereldkaart, in 4:3 en breedbeeld, met xBRZ.
+- [x] **Tests**: nieuw `test_galaxy_game_session` en
+  `test_galaxy_game_screen` (zelfgemaakt deel, `galaxy_game_fixtures.gd`),
+  `test_keen5_keen` (mini-levels, `keen5_level_fixtures.gd`),
+  `test_keen5_level` (echte data: Keen start in elke map, elk level loopt,
+  elke beveiligingsdeur gaat open naar het einde, de uitgang van level 1)
+  en `test_keen5_view`. Het coming-soon-scherm en zijn tests zijn weg.
+  **139 suites groen, 1 overgeslagen (Keen 4 v1.4), 0 FAIL, 0 SCRIPT
+  ERROR.** `gdformat` en `gdlint` schoon.
+- [x] **Controle Keen 1-4**: regressies tegen de nulmeting: Keen 1 alleen
+  `launcher.png` anders (gelijk aan E2's, het vijfde icoon), Keen 2 (4) en
+  Keen 4 (11 beelden) alles gelijk; Keen 4's demo's en echte-datatests
+  groen. `git diff origin/main` op `src/keen2-4`, hun tests, `src/actors`,
+  `src/map`, `src/game`: alleen de twee regels met het aantal spellen.
+  `tools/keen5_regression.sh` (level 1 en 11, 4:3 en breedbeeld) is nieuw.
+- **Niet gedaan:** de apps zijn hier niet gebouwd (de gebruiker bouwt op de
+  Mac). De zekeringlevels (4, 6, 8, 10, 12) hebben geen uitgangsdeur en
+  zijn pas uit te spelen met E5; de bliksem bij deuren komt met E6.
+- **Open:** in breedbeeld toont de wereldkaart (alleen bekeken) rechts een
+  geel blok buiten de kaart: voor E6, als de kaart echt gespeeld wordt.
+- **Om te proberen:** `godot --path . -- --game=5` (level 1, uit te lopen
+  door de uitgangsdeur), `-- --game=5 --level=3` (de beveiligingsdeur
+  helemaal links; Shift+I geeft de sleutelkaart, Shift+G god mode), F2,
+  F5, F6.
+
+## Mijlpaal E2: wat er nu is
+
+De bestanden van Keen 5 worden gelezen, op `milestone-e2-bestanden`
+(22-10, 19:28-19:47 UTC). Er beweegt nog niets. Wat er geleerd is staat in
+`docs/keen5/file-formats.md` ("Texts in KEEN5E.EXE", "Checked in E2"), de
+afwijkingen in `docs/keen5/architecture.md`, "Deviations in E2".
+
+- [x] **Twee velden in `GalaxyEpisode`** (additief, standaard zoals
+  vroeger): `back_tile_count` (0 = uitrekenen; Keen 5: 1512) en
+  `texts_before_misc` (false; Keen 5: true). `GalaxyChunkRanges` gebruikt
+  ze; een opgegeven grens voorbij de tiles geeft null. Keen 4 leest
+  byte-voor-byte hetzelfde (alle Keen 4-tests en -regressies gelijk).
+- [x] **`Keen5Files`** (`game_data/keen5`, `--data-dir-keen5=`, naast de
+  app; `KEEN5E.EXE` of `KEEN5.EXE`) en **`Keen5Episode`**: de headers van
+  1.4 (alle zes ook zonder bekende plaatsen gevonden, ~85 ms), 3 fonts, 7
+  teksten vóór 5 misc-blokken, 5 demo's, de grens 1512, de versie uit de
+  grootte (106.417 bytes = 1.4). Gelezen: 93 plaatjes, 3 gemaskeerd, 346
+  sprites, 104 + 20 kleine tiles, 1512 + 2952 tiles, 16 mapplaatsen (14
+  leeg), 206 geluidsblokken, laden ~75 ms.
+- [x] **Teksten op vorm gevonden** (ook zonder bekende plaatsen): de 16
+  levelnamen met hun "Keen ..."-teksten (maps 0-15, ook de lege 14), het
+  verhaal (37 regels), het statusvenster (12 labels, met KEYCARD), de
+  `game`-reeks (met "Keen steps out onto Korath III" en "Exit to
+  Armageddon"; Keen 5 heeft geen "Game Over!"-tekst), de cheat-reeks, de
+  twee zekeringberichten (op lengte; op regels vond hij een verkeerde
+  plek) en de highscoretabel (0x33D56).
+- [x] **Vijf iconen op het startscherm**: "Keen 5" met Keen lopend (sprite
+  7, op het oog nagekeken: 6/7/14 zijn dezelfde als bij Keen 4) en de naam
+  in Keen 5's eigen lettertype; zonder bestanden grijs met uitleg
+  (screenshot gezien). Met bestanden opent het "Keen 5 - coming soon"
+  (`Keen5View`, Escape of Enter terug); `--game=5 --level=N` zet de
+  levelnaam eronder ("Keen 5 has no map N" als die er niet is).
+- [x] **`--game=5`** (de laagste `--game=` wint), de data viewer
+  (`-- --game=5`; de Galaxy-pagina kreeg een naamparameter, standaard
+  "Keen 4", en het tabblad Program toont nu ook de tekstreeksen) en
+  `tools/export_graphics.gd -- --game=5` (naar `exported/keen5/`, ~4 s;
+  `_export_galaxy` kreeg parameters met Keen 4 als standaard).
+  Bouwscripts nemen `game_data/keen5` mee; beide READMEs noemen Keen 5.
+- [x] Online-id `Keen5Files.GAME_ID` = "commanderperfect-keen5", **niet** in
+  `OnlineProtocol.GAME_IDS` (E11; een test bewaakt dat).
+- [x] **Tests**: nieuwe suites `test_keen5_files` (zelfgemaakte data uit
+  `tests/keen5_fixtures.gd`: grens opgegeven en teksten vóór misc, zonder
+  de velden de oude werking, Keen 4's volgorde onveranderd, bestanden,
+  `--game=5`, vijfde icoon, online-id, het coming-soon-scherm) en
+  `test_keen5_data` (echte data: versie, plekken, aantallen, alle maps,
+  wereldkaart en map 1, namen, tekstreeksen ook zonder bekende plekken,
+  highscores, plaatjes, tileinfo, demo's, misc, geluid, icoon). Aantal
+  spellen 4 → 5 in `test_launcher`, `test_keen2_files`,
+  `test_keen3_files`. **134 suites groen, 1 overgeslagen (Keen 4 v1.4),
+  0 FAIL, 0 SCRIPT ERROR**; zonder `game_data/keen5` slaat
+  `test_keen5_data` netjes over. `gdformat` en `gdlint` schoon.
+- [x] **Controle Keen 1-4**: regressies tegen de nulmeting: Keen 1 alles
+  gelijk behalve `launcher.png`, en dat verschilt alleen binnen het
+  vijfde icoon (op het oog gezien); Keen 2 en Keen 4 (11 beelden) alles
+  gelijk. `git diff origin/main` op `src/keen2-4`, hun tests, `src/actors`,
+  `src/map`, `src/game`: alleen de twee regels met het aantal spellen.
+  `src/galaxy/` alleen de twee velden.
+- **Niet gedaan:** geen vergelijking in js-dos (er is nog niets te spelen);
+  de apps zijn hier niet gebouwd (de gebruiker bouwt op de Mac).
+- **Open:** een uitgepakte 1.4 (266.096 bytes) werkt, maar heet "unknown"
+  (één grootte per versie in de tabel; zie Deviations in E2). Menu- en
+  Paddle War-teksten zoekt E9.
+- **Om te proberen:** het startscherm (vijfde icoon); `godot --path . --
+  --game=5 --level=13`; de data viewer met
+  `godot --path . res://src/viewer/data_viewer.tscn -- --game=5`.
+
+## Mijlpaal E1: wat er nu is
+
+Onderzoek voor Keen 5, op `milestone-e1-onderzoek` (vanaf `main`, 22-10).
+Alleen documenten, geen code.
+
+- [x] Keen 5 van de gebruiker (zip) uitgelezen in de scratchpad met de
+  bestaande Galaxy-lezers: **versie 1.4** (uitgepakt 254.832 bytes, de
+  1.4 van Commander Genius; geen versietekst in de EXE), alle zes headers
+  op inhoud gevonden zonder bekende plaatsen, 93 plaatjes, 346 sprites,
+  16 maps (14 ontbreekt), 206 geluidsblokken (64 + 64 geluiden, 14
+  liedjes). Twee dingen moeten de lezers anders doen: de grens tussen
+  achter- en voorgrondtiles (1512, de code rekent 1440) en de teksten die
+  vóór de misc-blokken staan (`docs/keen5/file-formats.md`).
+- [x] Code in kaart (developer-agent): `src/galaxy/` noemt Keen 4 alleen in
+  commentaar en twee standaardmappen; het spel rond de engine (~4.500
+  regels) zit in `src/keen4/`, 85-95 % niet Keen 4-specifiek.
+- [x] Omnispeak en Commander Genius (onderzoeksagent): alles wat Keen 5
+  anders doet (`docs/keen5/research.md`): de sleutelkaart (item 12),
+  beveiligingsdeuren, zekeringen en de QED, 15 soorten wezens, platforms
+  op pijlen, teleporters en liften op de kaart, Korath III, het geheime
+  einde, game over als ontploffende melkweg.
+- [x] Architectuur (weg 3: algemeen maken in `src/galaxy/game/`, Keen 4
+  bevroren), roadmap E2-E13 (~10-11 u), de antwoorden van de gebruiker.
+- [x] Tests: zonder Keen 2-4 102 suites groen, 31 overgeslagen; een paar
+  Keen 4-suites geven dan `SCRIPT ERROR` (ze slaan niet netjes over, ook
+  op `main`; niet aangeraakt, Keen 4 is bevroren). Daarna uploadde de
+  gebruiker Keen 2 (1.31), 3 en 4 (v1.0) en haalde de sessie Keen 1:
+  **132 suites groen, 1 overgeslagen (Keen 4 v1.4), 0 FAIL, 0 SCRIPT
+  ERROR**, `gdlint` schoon. Dat is de nulmeting voor E2.
+- Besluiten van de gebruiker (22-10-2026): weg 3; alle keuzes van Keen 4
+  gelden ook voor Keen 5; **met alle opties uit speelt en ziet Keen 4 en 5
+  eruit als het origineel**; Keen 2-4 worden per sessie mee geüpload;
+  de uitzondering in `test_keen4_online.gd` en additieve wijzigingen in
+  `src/galaxy/` zijn goedgekeurd.
 
 ## D13.2: fixes (21-10)
 

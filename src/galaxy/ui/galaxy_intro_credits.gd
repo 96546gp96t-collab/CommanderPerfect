@@ -53,6 +53,9 @@ const ONE_WORD := Color8(85, 85, 85)
 const CREDIT_COLORS: PackedInt32Array = [0, 1, 9, 11]
 
 var left_word: GalaxyIntroBitmap
+## The colour of the words while they zoom (Keen 4's dark grey; Keen 5
+## sets red).
+var word_color := ONE_WORD
 var right_word: GalaxyIntroBitmap
 ## The credit pictures, in their colours, see-through where they are dark.
 var credits: Array[Image] = []
@@ -167,7 +170,7 @@ func zoom_image(tics: int) -> Image:
 			var to := mini(left + source[index + 1] * scale / ZOOM_FULL, SCREEN_SIZE.x)
 			from = maxi(from, 0)
 			if to > from:
-				image.fill_rect(Rect2i(from, row + top, to - from, 1), ONE_WORD)
+				image.fill_rect(Rect2i(from, row + top, to - from, 1), word_color)
 	return image
 
 
@@ -221,7 +224,7 @@ func _start_fizzle() -> void:
 	fizzle = zoom_image(ZOOM_TICS)
 	for y in fizzle.get_height():
 		for x in fizzle.get_width():
-			if fizzle.get_pixel(x, y) == ONE_WORD:
+			if fizzle.get_pixel(x, y) == word_color:
 				fizzle.set_pixel(x, y, Color.WHITE)
 
 

@@ -1,5 +1,5 @@
 class_name Keen4MapSession
-extends RefCounted
+extends GalaxyMapSession
 ## Keen 4's world map (map 0) being played (milestone D7; Omni
 ## `ck4_misc.c:CK4_ScanInfoLayer`, `ck_game.c:CK_MapLevelMarkAsDone`,
 ## `ck_play.c:CK_MapCamera`; facts only; docs/keen4/research.md §8):
@@ -14,29 +14,21 @@ extends RefCounted
 ##     Keen;
 ##   - the view follows him as the original's map camera does;
 ##   - jump, pogo or fire on an entrance ends the map ([method entered]).
+## The shared [GalaxyMapSession] by Keen 4's rules since milestone E13.
 
 ## Info values (Omni): Keen on the map, Miragia.
 const MAP_KEEN_INFO := Keen4Episode.MAP_KEEN_INFO
 const MIRAGIA_INFO := 33
-## Done levels mark the map (Omni ck_minDoneLevel, ck_maxDoneLevel).
-const FIRST_DONE_LEVEL := 1
-const LAST_DONE_LEVEL := 17
-## The high byte of an info word: a fence to remove, a flag holder.
-const FENCE := 0xD0
-const FLAG_HOLDER := 0xF0
-const LEVEL_MASK := 0xFF
-const KIND_SHIFT := 8
+## The high byte of an info word: a fence to remove (the shared gate).
+const FENCE := GATE
 ## Where a flag stands from its holder's corner, and where a thrown one
 ## ends (Omni, Keen 4).
 const FLAG_OFFSET := Vector2i(0x60, -0x1E0)
 const THROW_OFFSET := Vector2i(0x60, -0x260)
 
-var map: GalaxyMap
-var world: GalaxyWorld
-var keen: Keen4MapKeen
-var camera: GalaxyCamera
-var flags: Array[GalaxyMapFlag] = []
 var miragia: Keen4Miragia
+## Whether Keen has the wetsuit, while the map is set up.
+var _wetsuit := false
 
 
 ## The world map [param world_map] (read fresh) for a game at
@@ -45,14 +37,21 @@ var miragia: Keen4Miragia
 static func start(
 	data: GalaxyData, world_map: GalaxyMap, progress: Keen4Progress, random_start := 0
 ) -> Keen4MapSession:
-	return create(
-		world_map,
-		data.tile_info,
-		data.graphics.sprite_infos,
-		data.executable.random_table(),
-		progress,
-		random_start
-	)
+	return start_map(data, Keen4Episode.game_rules(), world_map, progress, random_start)
+
+
+## The same by [param game_rules] (the view's).
+static func start_map(
+	data: GalaxyData,
+	game_rules: GalaxyGameRules,
+	world_map: GalaxyMap,
+	progress: GalaxyProgress,
+	random_start := 0
+) -> Keen4MapSession:
+	var session := Keen4MapSession.new()
+	if not session.begin_with(data, game_rules, world_map, progress, random_start):
+		return null
+	return session
 
 
 ## The same from its parts: [param tiles] the tile information,
@@ -66,94 +65,45 @@ static func create(
 	progress: Keen4Progress,
 	random_start := 0
 ) -> Keen4MapSession:
-	var start_place := Keen4Start.find(world_map)
-	if start_place.kind != Keen4Start.Kind.WORLD_MAP:
-		return null
 	var session := Keen4MapSession.new()
-	session.map = world_map
-	session.camera = GalaxyCamera.for_map(
-		Vector2i(world_map.width, world_map.height),
-		GalaxyCamera.blocks_in(world_map, Keen4Episode.COLUMN_BLOCK_INFO, true),
-		GalaxyCamera.blocks_in(world_map, Keen4Episode.ROW_BLOCK_INFO, false)
-	)
-	var world := GalaxyWorld.create(world_map, tiles, sprite_infos)
-	world.camera = session.camera
-	world.random_table = random_table
-	world.random_index = random_start
-	world.map_number = Keen4Episode.WORLD_MAP
-	session.world = world
-	var sprites := Keen4Sprites.all()
-	var at := progress.map_position
-	if at == Vector2i.ZERO:
-		at = start_place.position
-	session.keen = Keen4MapKeen.spawn_keen4(world, at, sprites, progress.wetsuit)
-	session._place_miragia()
-	session._mark_done(progress, sprites)
-	if progress.foot_flight:
-		session.keen.fly_on_foot()
-	session.camera.centre_on(at.x, 0, true, at.y)
+	var rules_4 := Keen4Episode.game_rules()
+	if not session.begin(
+		rules_4, world_map, tiles, sprite_infos, random_table, progress, random_start
+	):
+		return null
 	return session
 
 
-## Runs one logic frame of [param tics] tics ending on tic [param tic],
-## with [param input] held; then the view follows Keen.
-func run_frame(input: KeenInput, tics: int, tic: int) -> void:
-	if world.state != GalaxyWorld.LevelState.PLAYING:
-		return
-	world.tics = tics
-	keen.begin_frame(input)
-	world.run_frame(tics, tic)
-	var box := keen.box
-	camera.follow_map(box.left, box.top, box.right, box.bottom)
+## Sets the map up (see [method GalaxyMapSession.begin]); then Keen flies
+## on the Foot when the last level ended by it.
+func begin(
+	game_rules: GalaxyGameRules,
+	world_map: GalaxyMap,
+	tiles: GalaxyTileInfo,
+	sprite_infos: Array[GalaxySpriteInfo],
+	random_table: PackedByteArray,
+	progress: GalaxyProgress,
+	random_start := 0
+) -> bool:
+	var keen_4 := progress as Keen4Progress
+	_wetsuit = keen_4 != null and keen_4.wetsuit
+	if not super(game_rules, world_map, tiles, sprite_infos, random_table, progress, random_start):
+		return false
+	if keen_4 != null and keen_4.foot_flight:
+		(keen as Keen4MapKeen).fly_on_foot()
+	return true
 
 
-## The level Keen entered, or 0.
-func entered() -> int:
-	return keen.entered if world.state == GalaxyWorld.LevelState.COMPLETED else 0
+## Keen 4's map Keen: he swims with the wetsuit, the Foot carries him.
+func _new_keen() -> GalaxyMapKeen:
+	var map_keen := Keen4MapKeen.new()
+	map_keen.wetsuit = _wetsuit
+	return map_keen
 
 
-## The message a frame asked for ([constant Keen4MapKeen.CANT_SWIM]), once;
-## empty when none.
-func take_conversation() -> StringName:
-	var asked := world.conversation
-	world.conversation = &""
-	return asked
-
-
-## Whether a flag is still in the air.
-func throws_flag() -> bool:
-	for flag in flags:
-		if flag.is_thrown():
-			return true
-	return false
-
-
-func _place_miragia() -> void:
+## Miragia comes and goes (info 33).
+func _place_extras(_progress: GalaxyProgress) -> void:
 	for y in map.height:
 		for x in map.width:
 			if map.tile(GalaxyMap.Layer.INFO, x, y) == MIRAGIA_INFO:
 				miragia = Keen4Miragia.place(world, Vector2i(x, y))
-
-
-## The done levels on the map (Omni CK_MapLevelMarkAsDone): their info
-## words cleared, fences gone, flags at their holders.
-func _mark_done(progress: Keen4Progress, sprites: Dictionary[StringName, int]) -> void:
-	for y in map.height:
-		for x in map.width:
-			var word := map.tile(GalaxyMap.Layer.INFO, x, y)
-			var level := word & LEVEL_MASK
-			if level < FIRST_DONE_LEVEL or level > LAST_DONE_LEVEL:
-				continue
-			if not progress.is_done(level):
-				continue
-			var cell := Vector2i(x, y)
-			world.set_info(cell, 0)
-			var kind := word >> KIND_SHIFT
-			if kind == FENCE:
-				world.set_fore_tile(cell, GalaxyTileKinds.EMPTY_TILE)
-			elif kind == FLAG_HOLDER and level == progress.last_finished:
-				flags.append(
-					GalaxyMapFlag.throw_from(world, keen.position, cell, THROW_OFFSET, sprites)
-				)
-			elif kind == FLAG_HOLDER:
-				flags.append(GalaxyMapFlag.wave_at(world, cell, FLAG_OFFSET, sprites))

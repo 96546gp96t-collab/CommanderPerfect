@@ -46,6 +46,7 @@ were not tested should work as well:
 | Keen 2 | 1.31 | 1.00 |
 | Keen 3 | 1.00 | 1.31 (Steam/GOG) |
 | Keen 4 | 1.0, 1.4 (shareware; Steam/GOG sell 1.4) | other 1.x |
+| Keen 5 | 1.4 (Steam/GOG sell 1.4) | 1.0 |
 
 The game looks like the version you have (Keen 4's 1.4, for example, has
 red help pages); how it plays is the same.
@@ -53,7 +54,7 @@ red help pages); how it plays is the same.
 ### Step 2: put the files in `game_data/`
 
 Each episode gets a folder of its own inside `game_data`: `keen1`, `keen2`,
-`keen3` and `keen4` (create the ones you need). For Keen 1 it must look like
+`keen3`, `keen4` and `keen5` (create the ones you need). For Keen 1 it must look like
 this:
 
 ```
@@ -74,13 +75,14 @@ CommanderPerfect/
 | Keen 2 | `KEEN2.EXE`, `EGAHEAD.CK2`, `EGALATCH.CK2`, `EGASPRIT.CK2` |
 | Keen 3 | `KEEN3.EXE`, `EGAHEAD.CK3`, `EGALATCH.CK3`, `EGASPRIT.CK3` |
 | Keen 4 | `KEEN4E.EXE` (or `KEEN4.EXE`), `EGAGRAPH.CK4`, `GAMEMAPS.CK4`, `AUDIO.CK4` |
+| Keen 5 | `KEEN5E.EXE` (or `KEEN5.EXE`), `EGAGRAPH.CK5`, `GAMEMAPS.CK5`, `AUDIO.CK5` |
 
 - Put the files **directly** in the episode's folder, not in a folder
   inside it.
 - Upper or lower case in the file names does not matter.
 - The files can also stay somewhere else: then start the game with
   `godot --path . -- --data-dir=/path/to/keen1` (and `--data-dir-keen2=`,
-  `--data-dir-keen3=`, `--data-dir-keen4=` for the others).
+  `--data-dir-keen3=`, `--data-dir-keen4=`, `--data-dir-keen5=` for the others).
 - For a built app (see [Building the apps](#building-the-apps)) the folders
   go in `game_data/` **next to** `CommanderPerfect.app` or
   `CommanderPerfect.exe`. The build scripts copy them there for you.
