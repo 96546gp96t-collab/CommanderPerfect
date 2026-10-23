@@ -172,7 +172,7 @@ func _start_story() -> void:
 	_story_tics = 0
 	_front = Front.STORY
 	_title_layer.show_story(_story, 0)
-	_play_song(rules.story_song)
+	_play_map_song(rules.story_song)
 
 
 ## Demo [param index] after its box (the high scores: the high-score map
@@ -276,6 +276,7 @@ func _after_demo_frame() -> bool:
 func _end_demo() -> void:
 	var was_high_scores := _board_sprite.visible and _demo.map_number == rules.high_score_map
 	_played = null
+	_stop_music()
 	_stop_front()
 	if _after_game and was_high_scores:
 		_after_game = false
@@ -344,6 +345,8 @@ func _start_scene(scene: GalaxyScene, then: Callable) -> void:
 	_score_box.visible = false
 	_queue.clear()
 	_show_step()
+	scene.sound_player = _play_sound
+	scene.song_player = _play_map_song
 	_scene = scene
 	_after_scene = then
 	_front = Front.SCENE
@@ -390,7 +393,7 @@ func _open_help() -> void:
 	_front = Front.HELP
 	_title_layer.show_picture(_help.screen())
 	_stop_music()
-	_play_song(rules.help_song)
+	_play_map_song(rules.help_song)
 
 
 func _close_help() -> void:
@@ -410,7 +413,7 @@ func _start_ending(text: int) -> void:
 	_score_box.visible = false
 	_end_pages = GalaxyEnding.create(_data.graphics, rules, text)
 	_front = Front.ENDING
-	_play_song(rules.ending_song)
+	_play_map_song(rules.ending_song)
 	_title_layer.show_picture(_end_pages.screen())
 
 
@@ -449,6 +452,8 @@ func _begin_name_entry(place: int) -> void:
 	_inventory = _new_inventory()
 	var session := _new_session(map, map.number, 0)
 	_play(session, map)
+	# The original only loads the map here, it does not play it: no song.
+	_stop_music()
 	_score_box.visible = false
 	# The original draws only the map's tiles behind the table here (seen
 	# in Keen 4).
@@ -612,14 +617,3 @@ func _new_game(level := GalaxyDifficulty.DEFAULT) -> void:
 	_inventory = _new_inventory()
 	_game_progress = _new_progress()
 	_enter(rules.world_map, false)
-
-
-## Starts song [param _song] (-1: none; silent until the episode has
-## sound).
-func _play_song(_song: int) -> void:
-	pass
-
-
-## Stops the music.
-func _stop_music() -> void:
-	pass

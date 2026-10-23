@@ -151,12 +151,23 @@ var end_text := 4
 var secret_end_text := -1
 var arrow_dim_picture := 41
 var arrow_bright_picture := 42
-## The songs of the screens between the games (-1: none): the story, the
-## end, game over, the help (Keen 5 plays one, Keen 4 stops the music).
+## The songs of the screens between the games, each named by the map
+## whose song it is (Omni StartMusic takes a map; -1: none, the music
+## stops): the story, the end, game over, the help (Keen 5 plays one, Keen
+## 4 stops the music).
 var story_song := 12
 var ending_song := 7
 var game_over_song := -1
 var help_song := -1
+
+## Sound and music (milestone E8; Omni `EPISODE.CK*`): the number of sounds
+## per device (the PC speaker's from chunk 0, the AdLib's after them), the
+## number of songs (the last chunks of the audio file), the sounds by the
+## names the code plays, the song of every map (-1: none).
+var sound_count := 52
+var song_count := 6
+var sound_names: Dictionary[StringName, int] = {}
+var map_songs := PackedInt32Array()
 
 ## The pictures behind the levels: the episode's own folder (such as
 ## res://assets/backgrounds/keen5) and its plain sky tiles; none means no
@@ -168,6 +179,25 @@ var sky_tiles := PackedInt32Array()
 ## Where the episode's high scores are kept (its own user folder).
 func high_scores_path() -> String:
 	return user_folder.path_join("high_scores.json")
+
+
+## Where the episode's rendered AdLib sounds and songs are kept (its own
+## user folder, never another episode's).
+func sound_cache_folder() -> String:
+	return user_folder.path_join("cache")
+
+
+## Where the episode's own settings are kept (the quiet AdLib sounds, the
+## score box; the sound device and the music are the shared settings').
+func settings_path() -> String:
+	return user_folder.path_join("settings.cfg")
+
+
+## The song of map [param map]; -1 for none.
+func song_for_map(map: int) -> int:
+	if map < 0 or map >= map_songs.size():
+		return -1
+	return map_songs[map]
 
 
 ## The message when the files are not found.

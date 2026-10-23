@@ -20,7 +20,10 @@ extends GalaxyPlayScreen
 ##     with Try Again (the level again) or the exit to the map; with no
 ##     life left the game is over ([method _game_over]);
 ##   - the status key drops the status window ([GalaxyStatusWindow]) over
-##     the level or the map; a key lifts it again ([GalaxyStatusDrop]).
+##     the level or the map; a key lifts it again ([GalaxyStatusDrop]);
+##   - the music stops whenever the play of a map ends (Omni CK_PlayLoop
+##     ends with StopMusic): the boxes between the maps are silent, the
+##     next map starts its own song.
 ## The episode's view calls [method _set_up_flow] after
 ## [method GalaxyPlayScreen._set_up_play] and passes its input through
 ## [method _flow_input].
@@ -172,6 +175,7 @@ func _after_frame() -> bool:
 func _after_map_frame() -> void:
 	var level := _on_map.entered()
 	if level > 0:
+		_stop_music()
 		_game_progress.map_position = _on_map.keen.map_position
 		_enter(level, true)
 
@@ -188,6 +192,7 @@ func _after_level_frame() -> void:
 func _finish_level() -> void:
 	var finished := _played
 	_played = null
+	_stop_music()
 	_game_progress.mark_done(_map_number, _done_value(finished))
 	_game_progress.last_finished = _map_number
 	_after_level_done(finished)
@@ -218,6 +223,7 @@ func _back_to_map() -> void:
 ## or the game is over.
 func _lose_level() -> void:
 	_played = null
+	_stop_music()
 	_game_progress.last_finished = -1
 	_inventory.lives -= 1
 	if _inventory.lives < 0:

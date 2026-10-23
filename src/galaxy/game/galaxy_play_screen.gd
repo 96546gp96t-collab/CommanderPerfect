@@ -13,10 +13,17 @@ extends GalaxyLevelScreen
 ## E6). A map without a Keen to play is only shown, the keys looking
 ## around.
 ##
-## The hooks [method _new_session], [method _new_inventory],
-## [method _play_sound], [method _play_map_song] and [method _hold_frame]
-## are where an episode plugs in; [GalaxyFlowScreen] adds the flow of a
-## game between the maps (docs/keen5/architecture.md, "The Galaxy game").
+## The sounds and the music are [GalaxyAudio]'s (milestone E8): every map
+## plays its song from its start (Omni CK_PlayLoop's StartMusic), the
+## objects play their sounds through their world.
+##
+## The hooks [method _new_session], [method _new_inventory] and
+## [method _hold_frame] are where an episode plugs in; [GalaxyFlowScreen]
+## adds the flow of a game between the maps (docs/keen5/architecture.md,
+## "The Galaxy game").
+
+## A demo chunk begins with its map's number, 16 bits.
+const DEMO_MAP_BYTES := 2
 
 var _clock := GalaxyClock.new()
 var _start: GalaxyStart
@@ -47,13 +54,21 @@ var _window_sprite := Sprite2D.new()
 ## draws nothing before a map's first frame, so the sprites of one priority
 ## take their order from that frame (seen in Keen 5's high-score demo, E7).
 var _fresh_sprites := false
+var _audio := GalaxyAudio.new()
+## The episode's own settings (the quiet AdLib sounds, the score box).
+var _galaxy_settings: GalaxySettings
 
 @onready var _score_box: GalaxyScoreBox = %ScoreBox
 
 
 ## After the files are read: the inventory of a new game, the score box,
-## and the sprite that shows the boxes.
+## the sprite that shows the boxes, the sounds (rendered in the background
+## into the episode's cache, [method _first_song_maps] first).
 func _set_up_play() -> void:
+	add_child(_audio)
+	_galaxy_settings = GalaxySettings.load_from(rules.settings_path())
+	_audio.quiet_adlib = _galaxy_settings.quiet_adlib
+	_audio.load_sounds(_data, rules, _user_settings, _first_song_maps())
 	_map_number = rules.first_level
 	_inventory = _new_inventory()
 	_score_box.use_graphics(_data.graphics, rules.sprites.get(&"SCOREBOX", -1))
@@ -119,6 +134,23 @@ func inventory() -> GalaxyInventory:
 	return _inventory
 
 
+## The sounds and the music.
+func audio() -> GalaxyAudio:
+	return _audio
+
+
+## The maps whose songs are rendered first (each takes several seconds the
+## first time): the world map's (a new game), the first demo's map's (the
+## first song of the title loop) and the story's.
+func _first_song_maps() -> PackedInt32Array:
+	var maps := PackedInt32Array([rules.world_map])
+	var first_demo := _data.graphics.demo(0)
+	if first_demo.size() >= DEMO_MAP_BYTES:
+		maps.append(first_demo.decode_u16(0))
+	maps.append(rules.story_song)
+	return maps
+
+
 ## Whether a box or a fade is on the screen (the game waits).
 func shows_message() -> bool:
 	return not _queue.is_empty()
@@ -149,10 +181,10 @@ func _new_session(map: GalaxyMap, number: int, random_start: int) -> GalaxyLevel
 	)
 
 
-## Plays sound [param _name] (an episode with sounds plays it; silent by
-## default, as Keen 5 until milestone E8).
-func _play_sound(_name: StringName, _interrupt := false) -> void:
-	pass
+## Plays sound [param sound_name] by the episode's numbers; with
+## [param interrupt] whatever plays is stopped first.
+func _play_sound(sound_name: StringName, interrupt := false) -> void:
+	_audio.play(sound_name, interrupt)
 
 
 ## A frame of [param _tics] tics that something over the game takes (the
@@ -162,9 +194,16 @@ func _hold_frame(_tics: int) -> bool:
 	return false
 
 
-## Starts the song of map [param _map] (none by default).
-func _play_map_song(_map: int) -> void:
-	pass
+## Starts the song of map [param map] from its beginning (Omni
+## StartMusic); a map without one stops the music.
+func _play_map_song(map: int) -> void:
+	_audio.play_map_song(map)
+
+
+## Stops the music (Omni StopMusic: a map's play ends, a screen without a
+## song).
+func _stop_music() -> void:
+	_audio.stop_music()
 
 
 ## Where between the last two logic frames to draw now: the clock's blend
@@ -305,6 +344,7 @@ func _apply_display_settings() -> void:
 func _look_at(map: GalaxyMap) -> void:
 	_played = null
 	_on_map = null
+	_stop_music()
 	_mode = Mode.LOOK
 	_clock.reset()
 	_galaxy_camera = GalaxyCamera.for_map(
