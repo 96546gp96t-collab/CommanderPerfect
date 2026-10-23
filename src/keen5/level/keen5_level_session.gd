@@ -21,7 +21,7 @@ const DONE_BY_QED := 15
 
 ## The level [param level_map] of Keen 5 ([param data], [param rules]) with
 ## Keen carrying [param carried], or null when Keen does not stand in it
-## (see [method GalaxyLevelSession.start]).
+## (see [method GalaxyLevelSession.start_level]).
 static func start_level(
 	data: GalaxyData,
 	rules: GalaxyGameRules,

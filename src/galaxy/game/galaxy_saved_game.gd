@@ -165,7 +165,7 @@ class Replay:
 
 
 ## A replay of [param recorded] on [param session] (a level just started).
-func replay_on(
+func begin_replay(
 	session: GalaxyLevelSession, recorded: PackedByteArray, each_frame := Callable()
 ) -> Replay:
 	var replay := Replay.new()
@@ -178,8 +178,8 @@ func replay_on(
 
 ## Plays all of [param recorded] on [param session] at once; returns the
 ## absolute tic of its last frame.
-func replay(session: GalaxyLevelSession, recorded: PackedByteArray) -> int:
-	var whole := replay_on(session, recorded)
+func replay_all(session: GalaxyLevelSession, recorded: PackedByteArray) -> int:
+	var whole := begin_replay(session, recorded)
 	whole.play()
 	return whole.tic
 
@@ -209,7 +209,7 @@ func apply(session: GalaxyLevelSession, event: int) -> void:
 func to_dictionary() -> Dictionary:
 	return {
 		DIFFICULTY_KEY: int(difficulty),
-		INVENTORY_KEY: inventory_to_dictionary(inventory),
+		INVENTORY_KEY: save_inventory(inventory),
 		PROGRESS_KEY: progress.to_dictionary(),
 		MAP_KEY: map_number,
 		RANDOM_KEY: random_start,
@@ -239,7 +239,7 @@ func load_dictionary(saved: Dictionary) -> bool:
 		)
 		as GalaxyDifficulty.Level
 	)
-	inventory = inventory_from_dictionary(stored_inventory)
+	inventory = load_inventory(stored_inventory)
 	progress = _new_progress()
 	progress.load_dictionary(stored_progress)
 	random_start = int(saved.get(RANDOM_KEY, 0)) & GalaxyWorld.RANDOM_MASK
@@ -255,7 +255,7 @@ func _is_map(number: int) -> bool:
 	return number >= 0 and number <= rules.last_map and not rules.missing_maps.has(number)
 
 
-func inventory_to_dictionary(carried: GalaxyInventory) -> Dictionary:
+func save_inventory(carried: GalaxyInventory) -> Dictionary:
 	var saved := {
 		"score": carried.score,
 		"next_life_at": carried.next_life_at,
@@ -268,7 +268,7 @@ func inventory_to_dictionary(carried: GalaxyInventory) -> Dictionary:
 	return saved
 
 
-func inventory_from_dictionary(saved: Dictionary) -> GalaxyInventory:
+func load_inventory(saved: Dictionary) -> GalaxyInventory:
 	var carried := _new_inventory()
 	carried.score = int(saved.get("score", 0))
 	carried.next_life_at = int(saved.get("next_life_at", carried.next_life_at))
@@ -285,7 +285,7 @@ func inventory_from_dictionary(saved: Dictionary) -> GalaxyInventory:
 
 ## A copy of [param carried] (what a save keeps of it).
 func copy_inventory(carried: GalaxyInventory) -> GalaxyInventory:
-	return inventory_from_dictionary(inventory_to_dictionary(carried))
+	return load_inventory(save_inventory(carried))
 
 
 ## What an episode's inventory keeps besides (nothing by default).

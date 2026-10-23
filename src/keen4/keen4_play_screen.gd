@@ -62,7 +62,9 @@ var _audio := Keen4Audio.new()
 ## that show them, the sounds (rendered in the background).
 func _set_up_play() -> void:
 	add_child(_audio)
-	_audio.load_sounds(_data, _user_settings)
+	_audio.load_sounds(
+		_data, Keen4Episode.game_rules(), _user_settings, PackedInt32Array([Keen4Episode.WORLD_MAP])
+	)
 	_score_box.use_graphics(_data.graphics, Keen4Sprites.OBJECTS[&"SCOREBOX"])
 	_messages = Keen4Messages.create(_data)
 	_boxes = Keen4GameBoxes.create(_data)

@@ -24,10 +24,11 @@ var rules: GalaxyGameRules
 var map: GalaxyMap
 var world: GalaxyWorld
 var keen: GalaxyKeen
-## The Keen that is played.
+## The Keen that is played (Keen 4's swimmer in level 17:
+## [method _player_body]).
 var player: GalaxyKeenBody:
 	get:
-		return keen
+		return _player_body()
 var camera: GalaxyCamera
 ## Player 2's Keen and his view; null while one plays.
 var partner: GalaxyKeenBody
@@ -43,7 +44,7 @@ var number := -1
 ## null when the map has no standing Keen. [param random_start] is where
 ## the random table starts; [param level] decides which creatures are
 ## there; [param map_number] is the map's number.
-static func start(
+static func start_level(
 	data: GalaxyData,
 	game_rules: GalaxyGameRules,
 	level_map: GalaxyMap,
@@ -58,9 +59,9 @@ static func start(
 	return session
 
 
-## Sets up this session as [method start] describes; returns whether the
-## map has a standing Keen. An episode's own session class calls it on a
-## new object of its class.
+## Sets up this session as [method start_level] describes; returns whether
+## the map has a Keen to play ([method _can_start]). An episode's own
+## session class calls it on a new object of its class.
 func begin(
 	data: GalaxyData,
 	game_rules: GalaxyGameRules,
@@ -72,7 +73,7 @@ func begin(
 ) -> bool:
 	rules = game_rules
 	var start_place := GalaxyStart.find(level_map, rules)
-	if not start_place.is_standing():
+	if not _can_start(start_place):
 		return false
 	map = level_map
 	inventory = carried
@@ -88,12 +89,11 @@ func begin(
 	world.random_table = data.executable.random_table()
 	world.random_index = random_start
 	world.map_number = map_number
-	keen = GalaxyKeen.spawn(world, start_place.cell, start_place.facing, rules.sprites, _new_keen())
-	_set_up_keen(keen)
+	_spawn_player(start_place)
 	carried.charges_per_stunner = rules.charges_for(level)
-	keen.inventory = carried
+	player.inventory = carried
 	_place_objects()
-	camera.centre_on(keen.position.x, keen.box.bottom)
+	camera.centre_on(player.position.x, player.box.bottom)
 	return true
 
 
@@ -120,13 +120,11 @@ func run_frame(input: KeenInput, tics: int, tic: int, partner_input: KeenInput =
 func add_player() -> GalaxyKeenBody:
 	if partner != null:
 		return partner
-	var first := keen
+	var first := player
 	var cell := Vector2i(
 		GalaxyUnits.to_tile(first.position.x), GalaxyUnits.to_tile(first.position.y)
 	)
-	var walker := GalaxyKeen.spawn(world, cell, first.direction.x, rules.sprites, _new_keen())
-	_set_up_keen(walker)
-	partner = walker
+	partner = _spawn_partner(cell, first)
 	world.objects.erase(partner)
 	camera_2 = GalaxyCamera.for_map(
 		Vector2i(map.width, map.height), camera.column_blocks, camera.row_blocks
@@ -183,6 +181,31 @@ func take_conversation() -> StringName:
 	var asked := world.conversation
 	world.conversation = &""
 	return asked
+
+
+## Whether Keen can play the map from [param start_place]: standing (Keen
+## 4 also swims).
+func _can_start(start_place: GalaxyStart) -> bool:
+	return start_place.is_standing()
+
+
+## Places the Keen played at [param start_place]: standing.
+func _spawn_player(start_place: GalaxyStart) -> void:
+	keen = GalaxyKeen.spawn(world, start_place.cell, start_place.facing, rules.sprites, _new_keen())
+	_set_up_keen(keen)
+
+
+## The Keen played: the walking one (Keen 4's swimmer under water).
+func _player_body() -> GalaxyKeenBody:
+	return keen
+
+
+## Player 2's Keen at [param cell], facing as [param first] (the same kind
+## as player 1's).
+func _spawn_partner(cell: Vector2i, first: GalaxyKeenBody) -> GalaxyKeenBody:
+	var walker := GalaxyKeen.spawn(world, cell, first.direction.x, rules.sprites, _new_keen())
+	_set_up_keen(walker)
+	return walker
 
 
 ## The Keen the episode plays with: a [GalaxyKeen], or its own subclass

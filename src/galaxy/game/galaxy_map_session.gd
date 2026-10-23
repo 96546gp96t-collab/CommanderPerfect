@@ -41,7 +41,7 @@ var flags: Array[GalaxyMapFlag] = []
 ## The world map [param world_map] (read fresh) of [param data] by
 ## [param game_rules], for a game at [param progress]; null without a map
 ## Keen. [param random_start] is where the random table starts.
-static func start(
+static func start_map(
 	data: GalaxyData,
 	game_rules: GalaxyGameRules,
 	world_map: GalaxyMap,
@@ -54,7 +54,7 @@ static func start(
 	return session
 
 
-## Sets the map up from [param data] (see [method start]); returns
+## Sets the map up from [param data] (see [method start_map]); returns
 ## whether it has a map Keen.
 func begin_with(
 	data: GalaxyData,

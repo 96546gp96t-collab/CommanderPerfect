@@ -136,7 +136,7 @@ func test_a_level_played_again_is_where_it_was() -> void:
 	var loaded := GalaxySavedGame.new(rules)
 	assert_true(loaded.load_dictionary(game.to_dictionary()), "read")
 	var again := _start(rules, loaded, Keen.level(ROOM))
-	assert_equal(loaded.replay(again, loaded.frames), tic, "played to the same tic")
+	assert_equal(loaded.replay_all(again, loaded.frames), tic, "played to the same tic")
 	_compare(played, again, "after loading")
 	for frame in FRAMES_AFTER_LOAD:
 		var input := _input(FRAMES_BEFORE_SAVE + frame)
@@ -215,7 +215,7 @@ func test_keen5_writes_only_in_its_own_folder() -> void:
 
 
 func _start(rules: GalaxyGameRules, game: GalaxySavedGame, map: GalaxyMap) -> GalaxyLevelSession:
-	return GalaxyLevelSession.start(
+	return GalaxyLevelSession.start_level(
 		Game.data(),
 		rules,
 		map,

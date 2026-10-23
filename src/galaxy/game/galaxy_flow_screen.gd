@@ -99,7 +99,7 @@ func _new_status_window() -> GalaxyStatusWindow:
 ## The world map [param map] for the game's progress, or null without a
 ## map Keen (an episode's own: Keen 5's [Keen5MapSession]).
 func _new_map_session(map: GalaxyMap, random_start: int) -> GalaxyMapSession:
-	return GalaxyMapSession.start(_data, rules, map, _game_progress, random_start)
+	return GalaxyMapSession.start_map(_data, rules, map, _game_progress, random_start)
 
 
 ## Shows map [param number] at once: the world map or a level played when

@@ -110,7 +110,9 @@ func test_a_map_without_keen_is_no_level() -> void:
 	var rules := Game.rules()
 	var map := Keen.level(["......", "######"])
 	var carried := GalaxyInventory.new()
-	assert_true(GalaxyLevelSession.start(Game.data(), rules, map, carried) == null, "no level")
+	assert_true(
+		GalaxyLevelSession.start_level(Game.data(), rules, map, carried) == null, "no level"
+	)
 
 
 func test_only_row_blocks_when_the_episode_has_no_column_blocks() -> void:
@@ -118,7 +120,7 @@ func test_only_row_blocks_when_the_episode_has_no_column_blocks() -> void:
 	var map := Keen.level(OPEN_ROOM)
 	Keen.put_info(map, Vector2i(1, 2), Game.ROW_BLOCK_INFO)
 	Keen.put_info(map, Vector2i(9, 2), Game.ROW_BLOCK_INFO + 1)
-	var session := GalaxyLevelSession.start(Game.data(), rules, map, GalaxyInventory.new())
+	var session := GalaxyLevelSession.start_level(Game.data(), rules, map, GalaxyInventory.new())
 	assert_true(session.camera.row_blocks.has(4), "the row of info 25")
 	assert_true(not session.camera.column_blocks.has(11), "26 is no column block here")
 	assert_equal(session.camera.column_blocks.size(), 2, "only the map's edges")
@@ -132,13 +134,13 @@ func test_items_are_placed_and_sleep() -> void:
 	Keen.put_info(map, Vector2i(3, 1), Game.LOW_STUNNER_INFO)
 	var carried := GalaxyInventory.new()
 	carried.shots = Game.START_SHOTS
-	var session := GalaxyLevelSession.start(Game.data(), rules, map, carried)
+	var session := GalaxyLevelSession.start_level(Game.data(), rules, map, carried)
 	assert_equal(_item_kinds(session), [4, Game.MORE_ITEM], "two items; enough charges")
 	for object in session.world.objects:
 		if object is GalaxyItem:
 			assert_equal(object.activity, GalaxyObject.Activity.INACTIVE, "items sleep")
 	carried.shots = FEW_SHOTS
-	session = GalaxyLevelSession.start(Game.data(), rules, map, carried)
+	session = GalaxyLevelSession.start_level(Game.data(), rules, map, carried)
 	assert_true(_item_kinds(session).has(GalaxyInventory.STUNNER_ITEM), "a stunner for few")
 
 
@@ -217,7 +219,7 @@ func _session(rows: PackedStringArray, open := Vector2i.ZERO) -> GalaxyLevelSess
 				plane[y * map.width + x] = Keen.EMPTY
 	map.planes[GalaxyMap.Layer.FOREGROUND] = plane
 	var carried := GalaxyInventory.new()
-	return GalaxyLevelSession.start(Game.data(), Game.rules(), map, carried)
+	return GalaxyLevelSession.start_level(Game.data(), Game.rules(), map, carried)
 
 
 ## A room as large as the view and its border, Keen on its floor.

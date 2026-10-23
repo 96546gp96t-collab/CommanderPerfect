@@ -32,12 +32,18 @@ static func create(
 	graphics: GalaxyGraphics, game_rules: GalaxyGameRules, text: int
 ) -> GalaxyEnding:
 	var ending := GalaxyEnding.new()
-	ending._graphics = graphics
-	ending._rules = game_rules
-	ending._layout = GalaxyHelp.page_layout(graphics, game_rules)
-	ending._pages = GalaxyTextPages.parse(graphics.text(text))
-	ending._lay_out()
+	ending.set_up(graphics, game_rules, text)
 	return ending
+
+
+## Fills in what [method create] does, for a subclass made with its own
+## [code]new()[/code] (Keen 4's [Keen4Ending]).
+func set_up(graphics: GalaxyGraphics, game_rules: GalaxyGameRules, text: int) -> void:
+	_graphics = graphics
+	_rules = game_rules
+	_layout = GalaxyHelp.page_layout(graphics, game_rules)
+	_pages = GalaxyTextPages.parse(graphics.text(text))
+	_lay_out()
 
 
 func page_count() -> int:

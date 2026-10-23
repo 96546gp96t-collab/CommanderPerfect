@@ -76,7 +76,9 @@ func _check_round_trip(number: int, level: GalaxyDifficulty.Level) -> void:
 		return
 	var again := _start(loaded)
 	var where := "level %d, difficulty %d" % [number, level]
-	assert_equal(loaded.replay(again, loaded.frames), tic, "%s: replayed to the same tic" % where)
+	assert_equal(
+		loaded.replay_all(again, loaded.frames), tic, "%s: replayed to the same tic" % where
+	)
 	_compare(played, again, where + " after loading")
 	assert_true((again.inventory as Keen5Inventory).keycard, "%s: B+A+T's keycard" % where)
 	for frame in FRAMES_AFTER_LOAD:
@@ -105,8 +107,8 @@ func _compare(played: Keen5LevelSession, again: Keen5LevelSession, where: String
 	assert_equal(again.player.action.name, played.player.action.name, "%s: his action" % where)
 	var saved := Keen5SavedGame.new(_rules)
 	assert_equal(
-		saved.inventory_to_dictionary(again.inventory),
-		saved.inventory_to_dictionary(played.inventory),
+		saved.save_inventory(again.inventory),
+		saved.save_inventory(played.inventory),
 		"%s: inventory, keycard and fuses" % where
 	)
 	assert_equal(again.world.random_index, played.world.random_index, "%s: random" % where)

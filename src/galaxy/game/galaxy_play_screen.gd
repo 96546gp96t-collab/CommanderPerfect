@@ -176,7 +176,7 @@ func _new_inventory() -> GalaxyInventory:
 ## [member _inventory], or null when Keen does not stand in it; an episode
 ## gives its own session class (Keen 5's [Keen5LevelSession]).
 func _new_session(map: GalaxyMap, number: int, random_start: int) -> GalaxyLevelSession:
-	return GalaxyLevelSession.start(
+	return GalaxyLevelSession.start_level(
 		_data, rules, map, _inventory, random_start, _difficulty, number
 	)
 

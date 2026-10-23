@@ -21,16 +21,22 @@ var quiet_adlib := false
 ## is missing.
 static func load_from(file_path: String) -> GalaxySettings:
 	var settings := GalaxySettings.new()
-	settings.path = file_path
+	settings.read(file_path)
+	return settings
+
+
+## Takes over the settings stored at [param file_path] (and keeps that
+## path), with the defaults for what is missing.
+func read(file_path: String) -> void:
+	path = file_path
 	if not FileAccess.file_exists(file_path):
-		return settings
+		return
 	var config := ConfigFile.new()
 	if config.load(file_path) != OK:
 		push_error("%s could not be read; using the default settings." % file_path)
-		return settings
-	settings.score_box = bool(config.get_value(SECTION, "score_box", true))
-	settings.quiet_adlib = bool(config.get_value(SECTION, "quiet_adlib", false))
-	return settings
+		return
+	score_box = bool(config.get_value(SECTION, "score_box", true))
+	quiet_adlib = bool(config.get_value(SECTION, "quiet_adlib", false))
 
 
 ## Writes the settings. Returns false (and says why) when that fails.

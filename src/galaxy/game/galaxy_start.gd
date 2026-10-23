@@ -8,11 +8,13 @@ extends RefCounted
 ##     at x = tile × 256, y = tile × 256 − 241 (Omni CK_SpawnKeen): the
 ##     bottom of his hit box then rests on the tile below;
 ##   - Keen on the world map ([member GalaxyGameRules.map_keen_info]) at the
-##     tile's corner (Omni CK_SpawnMapKeen, a new game).
-## Both are drawn with priority 1 (Omni). Keen 4's swimming Keen is Keen 4's
-## own ([Keen4Start]).
+##     tile's corner (Omni CK_SpawnMapKeen, a new game);
+##   - Keen swimming ([member GalaxyGameRules.swimming_keen_info], Keen 4's
+##     level 17 since milestone E13) at the tile's corner, facing right
+##     (Omni CK4_SpawnScubaKeen).
+## All are drawn with priority 1 (Omni).
 
-enum Kind { NONE, STANDING, WORLD_MAP }
+enum Kind { NONE, STANDING, WORLD_MAP, SWIMMING }
 
 const UNITS_PER_TILE := GalaxyCamera.UNITS_PER_TILE
 ## Keen standing starts this many units above the tile's corner (Omni).
@@ -31,16 +33,19 @@ var sprite := -1
 
 
 ## Keen's start in [param map] by [param rules]: the first info value that
-## places him, row by row. [member kind] is NONE when the map has none.
-static func find(map: GalaxyMap, rules: GalaxyGameRules) -> GalaxyStart:
-	var start := GalaxyStart.new()
+## places him, row by row. [member kind] is NONE when the map has none
+## (then at the first cell, or by Keen 4's rules at the last one searched).
+## Filled into [param into] when given (an episode's own subclass).
+static func find(map: GalaxyMap, rules: GalaxyGameRules, into: GalaxyStart = null) -> GalaxyStart:
+	var start := into if into != null else GalaxyStart.new()
 	for y in map.height:
 		for x in map.width:
 			var info := map.tile(GalaxyMap.Layer.INFO, x, y)
 			if start._place(info, Vector2i(x, y), rules):
 				return start
-	start.cell = Vector2i.ZERO
-	start.position = Vector2i.ZERO
+	if rules.looks_from_first_cell:
+		start.cell = Vector2i.ZERO
+		start.position = Vector2i.ZERO
 	return start
 
 
@@ -65,6 +70,9 @@ func _place(info: int, at: Vector2i, rules: GalaxyGameRules) -> bool:
 	elif info == rules.map_keen_info:
 		kind = Kind.WORLD_MAP
 		sprite = rules.map_keen_sprite
+	elif info == rules.swimming_keen_info:
+		kind = Kind.SWIMMING
+		sprite = rules.swimming_keen_sprite
 	else:
 		return false
 	return true

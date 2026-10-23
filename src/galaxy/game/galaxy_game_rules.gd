@@ -203,6 +203,32 @@ var sky_tiles := PackedInt32Array()
 ## or Keen 4's rule when not set.
 var make_backdrops: Callable
 
+## Keen swimming at the start of a map (Keen 4's level 17: info 42 and
+## sprite 187, milestone E13; -1 for an episode without).
+var swimming_keen_info := -1
+var swimming_keen_sprite := -1
+## What the Galaxy game does that Keen 4 did not do before it moved onto
+## it (milestone E13): all on by default (Keen 5's way); Keen 4's rules
+## switch each off, so Keen 4 plays, looks and sounds as before
+## (docs/keen5/architecture.md, "Deviations in E13"):
+##   - the sprites of one priority keep the original's order and are all
+##     drawn anew at a map's first frame (E7);
+var original_sprite_order := true
+##   - a tile placed while a map is played keeps the sky's colour (E12);
+var keeps_sky_in_placed_tiles := true
+##   - the music stops whenever the play of a map ends (E8; Keen 4's song
+##     plays on through the boxes between the maps, D9);
+var music_stops_between_maps := true
+##   - a loaded level is played again silently and without the god mode
+##     of now (E9; Keen 4 with its sounds and the screen's god mode, D10);
+var silent_replay := true
+##   - every sound the screen plays also goes to the joiner online (E11;
+##     Keen 4 sends only the sounds of the world played, D12);
+var screen_sounds_online := true
+##   - a map without Keen's start is looked at from its first cell (Keen 4
+##     from the last cell it searched, D3).
+var looks_from_first_cell := true
+
 
 ## Where the episode's high scores are kept (its own user folder).
 func high_scores_path() -> String:

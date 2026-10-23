@@ -46,11 +46,17 @@ var _pages: GalaxyTextPages
 
 static func create(graphics: GalaxyGraphics, game_rules: GalaxyGameRules) -> GalaxyHelp:
 	var help := GalaxyHelp.new()
-	help._graphics = graphics
-	help._rules = game_rules
-	help._layout = page_layout(graphics, game_rules)
-	help._layout.frame_status = true
+	help.set_up(graphics, game_rules)
 	return help
+
+
+## Fills in what [method create] does, for a subclass made with its own
+## [code]new()[/code] (Keen 4's [Keen4Help]).
+func set_up(graphics: GalaxyGraphics, game_rules: GalaxyGameRules) -> void:
+	_graphics = graphics
+	_rules = game_rules
+	_layout = page_layout(graphics, game_rules)
+	_layout.frame_status = true
 
 
 ## The layout of the episode's help and end pages: framed when the

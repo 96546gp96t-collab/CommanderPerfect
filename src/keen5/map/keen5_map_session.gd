@@ -52,7 +52,7 @@ var ride: Keen5MapRide
 
 
 ## Keen 5's world map [param world_map] of [param data] for a game at
-## [param progress] (see [method GalaxyMapSession.start]).
+## [param progress] (see [method GalaxyMapSession.start_map]).
 static func start_map(
 	data: GalaxyData,
 	game_rules: GalaxyGameRules,

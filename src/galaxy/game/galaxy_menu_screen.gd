@@ -439,7 +439,7 @@ func _resume(game: GalaxySavedGame) -> void:
 	_played.set_wide_width(0)
 	_played.player.god_mode = false
 	_played.world.sound_player = Callable()
-	_replay = game.replay_on(_played, game.frames, _galaxy_map.animate)
+	_replay = game.begin_replay(_played, game.frames, _galaxy_map.animate)
 
 
 func _process(delta: float) -> void:
