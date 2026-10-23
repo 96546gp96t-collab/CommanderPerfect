@@ -278,7 +278,7 @@ ligt wordt een gat (`docs/graphics.md`, onderzoek §8).
 ## Mijlpaal E11: wat er nu is
 
 Keen 5 speelt met twee spelers op één toetsenbord en online, op
-`milestone-e11-coop` (23-10, 02:50 - 03:25 UTC). De regels staan in
+`milestone-e11-coop` (23-10, 02:50 - 03:20 UTC). De regels staan in
 `docs/keen5/gameplay.md` ("Two players", "Online"), de klassen en
 afwijkingen in `docs/keen5/architecture.md` ("Keen 5's co-op and online
 (from E11)", "Deviations in E11").
