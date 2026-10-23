@@ -198,7 +198,8 @@ func test_keen_5_rules_for_the_shared_game() -> void:
 	assert_equal(rules.item_of_info(68), 11, "68 the stunner")
 	assert_equal(rules.item_of_info(Keen5Episode.LOW_STUNNER_INFO), -1, "69 depends")
 	assert_equal(rules.user_folder, "user://keen5", "Keen 5's own folder")
-	assert_true(rules.sky_tiles.is_empty(), "no pictures behind the levels yet")
+	assert_equal(rules.sky_tiles, PackedInt32Array([0, 105]), "space and Korath's sky (E10)")
+	assert_true(rules.make_backdrops.is_valid(), "Keen 5's own rule for the pictures (E10)")
 	assert_true(rules.missing_data_message().begins_with("Keen 5 data not found"), "message")
 
 

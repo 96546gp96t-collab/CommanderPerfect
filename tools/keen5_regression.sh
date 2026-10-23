@@ -43,6 +43,10 @@ shoot() {
 
 shoot "40:shot_keen5_level1_wide,41:F2,50:shot_keen5_level1,51:F2" --level=1
 shoot "40:shot_keen5_level11_wide,41:F2,50:shot_keen5_level11,51:F2" --level=11
+# The pictures behind the levels (E10): Korath III's sky, and the world
+# map's space played directly (the map of a new game is behind the panel).
+shoot "40:shot_keen5_level13_wide,41:F2,50:shot_keen5_level13,51:F2" --level=13
+shoot "40:shot_keen5_world_wide,41:F2,50:shot_keen5_world,51:F2" --level=0
 # A key in the title loop starts a new game (E7).
 shoot "10:Space,260:shot_keen5_map_wide,261:F2,270:shot_keen5_map,272:Enter,310:shot_keen5_map_status,312:Space,340:F2"
 shoot "300:shot_keen5_intro_wide,301:F2,310:shot_keen5_intro,311:F1,320:shot_keen5_help,321:Enter,330:shot_keen5_help_page,331:F2"

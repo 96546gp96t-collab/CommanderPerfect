@@ -170,6 +170,7 @@ const TREE_SUITES: Array[Script] = [
 	preload("res://tests/test_keen5_front.gd"),
 	preload("res://tests/test_keen5_music.gd"),
 	preload("res://tests/test_keen5_menus.gd"),
+	preload("res://tests/test_keen5_backgrounds.gd"),
 ]
 
 var _failure_count := 0
