@@ -2,7 +2,8 @@ extends "res://tests/test_case.gd"
 ## Checks what Keen 5 shows around its games ([Keen5View] on
 ## [GalaxyFrontScreen], milestone E7) with the player's files: the title
 ## loop's order (intro, demo 0, story, demo 1, the high scores, demos 2
-## and 3), its colours, a key starting a new game, the help with its five
+## and 3), its colours, a key opening the control panel (E9) for a new
+## game, the help with its five
 ## topics, the end pages (and the secret end when Korath III's fuse was
 ## broken), the name typed in on map 15 and kept in Keen 5's own folder,
 ## game over as the exploding galaxy, the cheats, and the order of the
@@ -110,10 +111,13 @@ func test_the_high_scores_draw_the_sprites_in_the_originals_order() -> void:
 	assert_true(star > volteface, "the Slicestar over the Volteface")
 
 
-func test_a_key_in_the_title_loop_starts_a_new_game() -> void:
+func test_a_key_in_the_title_loop_opens_the_panel_for_a_new_game() -> void:
 	_create_view()
 	_press_key(KEY_SPACE)
-	assert_true(not _view.in_title_loop(), "the game")
+	assert_true(_view.menus().is_open(), "the control panel (milestone E9)")
+	_press_key(KEY_ENTER)
+	_press_key(KEY_ENTER)
+	assert_true(not _view.in_title_loop(), "New Game, Normal: the game")
 	_run_queue()
 	assert_equal(_view.map_number(), Keen5Episode.WORLD_MAP, "on the world map")
 	assert_true(_view.map_session() != null, "played")
