@@ -278,7 +278,7 @@ ligt wordt een gat (`docs/graphics.md`, onderzoek §8).
 ## Mijlpaal E10: wat er nu is
 
 Keen 5 heeft zijn eigen plaatjes achter de levels, op
-`milestone-e10-extras` (23-10, 02:07 - 02:57 UTC). De regels staan in
+`milestone-e10-extras` (23-10, 02:07 - 02:50 UTC). De regels staan in
 `docs/keen5/gameplay.md` ("Pictures behind the levels"), de klassen en
 afwijkingen in `docs/keen5/architecture.md` ("Keen 5's pictures behind
 the levels (from E10)", "Deviations in E10").
