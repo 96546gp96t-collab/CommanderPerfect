@@ -2,17 +2,22 @@ class_name Keen5Master
 extends Keen5Creature
 ## The Shikadi Master of Keen 5 (Omni `ck5_obj3.c`, facts and numbers only;
 ## docs/keen5/research.md §7): it stands, four pictures of 8 tics; after
-## each round, with 192 in 256, it acts, by turns: it throws a ball at Keen
+## each round, with 64 in 256, it acts, by turns: it throws a ball at Keen
 ## ([Keen5MasterBall]: 48 sideways, −16 up, 30 tics casting and 8 more), or
 ## it teleports: two pictures of 20 tics, then sound "master_teleport", two
 ## sparks running off where it was, and it appears at a random spot near
 ## Keen (up to 16 tiles left of or above his middle column and bottom row,
-## 15 right or below; up to nine tries for a spot inside the map's edges);
+## 15 right or below; up to nine tries for a spot inside the map's edges
+## whose 5 × 5 tiles hold no wall, floor, ceiling or tile drawn in front);
 ## it falls there and stands 60 tics. Touching it kills Keen. A stunner
-## shot is absorbed and it throws at once. Kept from the original: the
-## check whether the new spot is inside a wall does nothing, so the first
-## spot inside the edges is taken; a shot Master faces right unless Keen's
-## x is exactly its own; with no spot found it stays, one unit to the left.
+## shot is absorbed and it throws at once. Kept from the original: a shot
+## Master faces right unless Keen's x is exactly its own; with no spot
+## found it stays, one unit to the left, and stands at once.
+## Seen in the user's v1.4 (milestone E12; research.md, "Watched in E12"):
+## it stood 4, 4, 8, 8, 3, 1 and 8 rounds before acting, so it acts with
+## 64 in 256 (Omnispeak reads the chance the other way round), and two of
+## three teleports in view ended where it stood (Omnispeak's wall check
+## never looks at a tile, so in level 12 it never fails).
 
 ## (Omni CK5_ACT_Master*.)
 const ROWS: PackedStringArray = [
@@ -29,8 +34,9 @@ const ROWS: PackedStringArray = [
 ]
 const RISE := Vector2i(0, -0x180)
 const PRIORITY := 0
-## Below this random number it does not act after a round (Omni).
-const IDLE_CHANCE := 0x40
+## Below this random number it acts after a round (the number Omni's; the
+## way round seen in E12).
+const ACT_CHANCE := 0x40
 ## The ball: where it starts (facing right / left), its speed (Omni).
 const BALL_RIGHT := 0x100
 const BALL_LEFT := 0
@@ -67,7 +73,7 @@ static func spawn(
 ## Think after a round of standing: throw, or teleport after a throw (Omni
 ## CK5_MasterStand).
 func _think_decide() -> void:
-	if world.random() < IDLE_CHANCE:
+	if world.random() >= ACT_CHANCE:
 		return
 	if teleports_next:
 		_continue_as(&"vanish_1")
@@ -105,6 +111,8 @@ func _think_teleport() -> void:
 			continue
 		if tile.x > size.x - FAR_EDGE or tile.y > size.y - FAR_EDGE:
 			continue
+		if not _room_at(tile):
+			continue
 		_appear_at(tile)
 		return
 	world.random()
@@ -140,6 +148,33 @@ func _react_land() -> void:
 			world.remove(self)
 		else:
 			set_action(action.next)
+
+
+## Whether the tiles its box would cover at [param tile] are all free: no
+## side of any of them stops a fall or a walk, none is drawn in front
+## (seen in E12: a spot in a wall is tried again).
+func _room_at(tile: Vector2i) -> bool:
+	for y in range(tile.y + SPOT_BOX_START, tile.y + SPOT_BOX_END):
+		for x in range(tile.x + SPOT_BOX_START, tile.x + SPOT_BOX_END):
+			if _blocks(world.fore_tile(x, y)):
+				return false
+	return true
+
+
+## Whether foreground [param tile] has a solid side or is drawn in front.
+func _blocks(tile: int) -> bool:
+	var info := world.tile_info
+	if info.is_in_front(tile):
+		return true
+	for side in [
+		GalaxyTileInfo.Fore.TOP,
+		GalaxyTileInfo.Fore.RIGHT,
+		GalaxyTileInfo.Fore.BOTTOM,
+		GalaxyTileInfo.Fore.LEFT
+	]:
+		if info.fore(side, tile) != 0:
+			return true
+	return false
 
 
 ## At [param tile]: its place, and the tiles its box covers until it is

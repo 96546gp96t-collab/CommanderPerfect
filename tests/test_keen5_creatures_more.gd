@@ -38,6 +38,21 @@ const ROOM: PackedStringArray = [
 	"............................K.",
 	"##############################",
 ]
+## A corridor four tiles high: no 5 × 5 tiles anywhere are free.
+const CORRIDOR: PackedStringArray = [
+	"##############################",
+	"##############################",
+	"##############################",
+	"##############################",
+	"##############################",
+	"##############################",
+	"##############################",
+	"..............................",
+	"..............................",
+	"..............................",
+	"............................K.",
+	"##############################",
+]
 
 
 func test_a_mine_floats_10_a_tic_towards_keen() -> void:
@@ -258,6 +273,39 @@ func test_a_shikadi_master_teleports_near_keen() -> void:
 		world, func() -> bool: return master.action.name == &"appear", 200
 	)
 	assert_true(stands < 200, "it lands and stands")
+
+
+func test_a_shikadi_master_acts_only_below_64() -> void:
+	var world := Fixtures.world(ROOM, MASTER, [Vector2i(3, 10)] as Array[Vector2i])
+	var master := Fixtures.first(world, Keen5Master) as Keen5Master
+	Fixtures.keen(world).god_mode = true
+	world.random_table = PackedByteArray([Keen5Master.ACT_CHANCE])
+	var acted := Fixtures.run_until(
+		world, func() -> bool: return master.action.name == &"cast_1", 300
+	)
+	assert_equal(acted, 300, "64 or more: it stands on (seen in E12)")
+	world.random_table = PackedByteArray([Keen5Master.ACT_CHANCE - 1])
+	acted = Fixtures.run_until(world, func() -> bool: return master.action.name == &"cast_1", 40)
+	assert_true(acted < 40, "below 64: it throws after the round")
+
+
+func test_a_shikadi_master_without_room_stays_where_it_stood() -> void:
+	var sounds: Array[StringName] = []
+	var world := Fixtures.world(
+		CORRIDOR, MASTER, [Vector2i(3, 10)] as Array[Vector2i], GalaxyDifficulty.DEFAULT, sounds
+	)
+	var master := Fixtures.first(world, Keen5Master) as Keen5Master
+	Fixtures.keen(world).god_mode = true
+	master.teleports_next = true
+	world.random_table = PackedByteArray([Keen5Master.ACT_CHANCE - 1])
+	var start := master.position
+	var gone := Fixtures.run_until(
+		world, func() -> bool: return sounds.has(&"master_teleport"), 300
+	)
+	assert_true(gone < 300, "it tries to teleport")
+	Fixtures.wait(world, 1)
+	assert_equal(master.position, start, "every spot holds a wall: it stays (seen in E12)")
+	assert_equal(master.action.name, &"stand_1", "and stands at once")
 
 
 func test_a_shikadi_takes_four_shots_flashing_white() -> void:
