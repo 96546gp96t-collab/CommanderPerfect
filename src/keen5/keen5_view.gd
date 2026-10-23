@@ -1,14 +1,17 @@
 class_name Keen5View
-extends GalaxyFrontScreen
-## The Keen 5 game screen that the start screen opens (milestones E3-E7):
-## the shared Galaxy game ([GalaxyFrontScreen] on [GalaxyFlowScreen], with
-## Keen 5's numbers from [method Keen5Episode.game_rules]) and what only
-## Keen 5 does (docs/keen5/gameplay.md, "The flow of a game", "The title
-## loop", "The end"):
+extends GalaxyMenuScreen
+## The Keen 5 game screen that the start screen opens (milestones E3-E9):
+## the shared Galaxy game ([GalaxyMenuScreen] on [GalaxyFrontScreen] and
+## [GalaxyFlowScreen], with Keen 5's numbers from
+## [method Keen5Episode.game_rules]) and what only Keen 5 does
+## (docs/keen5/gameplay.md, "The flow of a game", "The title loop", "The
+## end", "The control panel"):
 ##   - it starts with the title loop (the intro, demo 0, the story, demo 1,
-##     the high scores on map 15, demo 2, demo 3); a key starts a new game
-##     (the control panel comes in E9), Escape goes back to the start
-##     screen; [code]-- --game=5 --level=N[/code] opens map N at once (0 the
+##     the high scores on map 15, demo 2, demo 3); a key opens the control
+##     panel (new game on Easy, Normal or Hard; load, save in
+##     [code]user://keen5/saves[/code] ([Keen5SavedGame]), configure,
+##     Paddle War, end game, quit or choose another game);
+##     [code]-- --game=5 --level=N[/code] opens map N at once (0 the
 ##     world map, 1-13 the levels, 15 the high-score map; 14 does not
 ##     exist);
 ##   - a new game starts on the world map, the Omegamatic
@@ -31,11 +34,11 @@ extends GalaxyFrontScreen
 ##     99 charges, a life and the keycard.
 ## The sounds and songs are Keen 5's ([Keen5Sounds], milestone E8): every
 ## map its own song, the story, the help, the end and game over theirs; the
-## fuse message waits for the level-exit sound to end. The menus come later
-## (docs/keen5/roadmap.md).
+## fuse message waits for the level-exit sound to end.
 ##
 ## Keys: the shared ones (arrows, jump, pogo, fire); Enter the status
-## window; F1 the help; Escape the start screen; Shift+N / Shift+P the
+## window; F1 the help; Escape the control panel (not while a ride on the
+## world map holds the game); Shift+N / Shift+P the
 ## next or previous map; Shift+S the sound (AdLib, PC speaker, off) and
 ## Shift+M the music, stored in the shared settings (as Keen 4's);
 ## Shift+G god mode and Shift+I all four gems, the
@@ -49,7 +52,7 @@ extends GalaxyFrontScreen
 const GOD_MODE_MESSAGE := "Cheat: god mode %s"
 const EVERYTHING_MESSAGE := "Cheat: all four gems, the keycard and 99 stunner charges"
 ## Shift+I gives at least this many charges (as Keen 4's).
-const CHEAT_SHOTS := 99
+const CHEAT_SHOTS := GalaxySavedGame.EVERYTHING_SHOTS
 ## Keen's place on the world map below this row is Korath III (Omni
 ## CK_LoadLevel: his box's top tile beyond row 100).
 const KORATH_ROW := Keen5MapSession.KORATH_ROW
@@ -63,8 +66,9 @@ func _init() -> void:
 
 
 func _ready() -> void:
-	# Picking the game on the start screen asks for its menu; Keen 5 has
-	# none yet, so the request is taken here and not left for the next game.
+	# Picking the game on the start screen asks for its menu; Keen 5 starts
+	# with its title loop as the original (a key opens the menu), so the
+	# request is taken here and not left for the next game.
 	GameLaunch.take_menu_request()
 	_set_up_screen()
 	if not _load_data():
@@ -73,6 +77,7 @@ func _ready() -> void:
 	_set_up_play()
 	_set_up_flow()
 	_set_up_front()
+	_set_up_panel()
 	var arguments := OS.get_cmdline_user_args()
 	var random_seed := requested_seed(arguments)
 	if random_seed >= 0:
@@ -99,7 +104,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 	elif event.is_action_pressed("ui_cancel"):
 		get_viewport().set_input_as_handled()
-		_leave()
+		_escape()
 	elif _handle_map_keys(event):
 		get_viewport().set_input_as_handled()
 
@@ -141,6 +146,20 @@ func _new_session(map: GalaxyMap, number: int, random_start: int) -> GalaxyLevel
 
 func _new_map_session(map: GalaxyMap, random_start: int) -> GalaxyMapSession:
 	return Keen5MapSession.start_map(_data, rules, map, _game_progress, random_start)
+
+
+func _new_saved_game() -> GalaxySavedGame:
+	return Keen5SavedGame.new(rules)
+
+
+## A ride on the world map (a teleporter, an elevator's door, the flight
+## in it) holds the game: a save could not put Keen back into it, so the
+## panel waits until it is over (the original's own loops take no key).
+func _panel_waits() -> bool:
+	if _on_map == null:
+		return false
+	var session := _on_map as Keen5MapSession
+	return session.rides() or (session.keen as Keen5MapKeen).is_flying()
 
 
 ## The world map's box says "Keen steps out onto Korath III" when Keen
@@ -288,14 +307,17 @@ func _toggle_god_mode() -> void:
 	_god_mode = not _god_mode
 	if _played != null:
 		_played.player.god_mode = _god_mode
+		_record_event(
+			GalaxySavedGame.Event.GOD_MODE_ON if _god_mode else GalaxySavedGame.Event.GOD_MODE_OFF
+		)
 	_show_message(GOD_MODE_MESSAGE % ("on" if _god_mode else "off"))
 
 
 ## Shift+I in a level or on the map: all four gems, the keycard and at
-## least 99 charges.
+## least 99 charges ([method Keen5SavedGame.give_everything]; kept among a
+## saved level's frames).
 func _give_everything() -> void:
-	_inventory.shots = maxi(_inventory.shots, CHEAT_SHOTS)
-	_inventory.gems = PackedInt32Array([1, 1, 1, 1])
-	(_inventory as Keen5Inventory).keycard = true
+	_new_saved_game().give_everything(_inventory)
+	_record_event(GalaxySavedGame.Event.EVERYTHING)
 	_update_score_box()
 	_show_message(EVERYTHING_MESSAGE)

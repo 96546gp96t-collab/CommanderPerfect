@@ -155,6 +155,23 @@ const HIGH_SCORE_LEFT := 0x28
 const HIGH_SCORE_RIGHT := 0x118
 const HIGH_SCORE_COLOR := 12
 const NO_TILE := -1
+## The control panel's pictures, counted from the end of the range (Omni
+## `GFXCHUNK.CK5`: PIC_MENUCARD 67 … PIC_WRISTWATCH 82 of the pictures
+## 6-98; checked by eye, milestone E9): one less than Keen 4's. The keys'
+## card is BUTTON SETUP, as Keen 4's.
+const MENU_CARDS_FROM_END: Dictionary[StringName, int] = {
+	MenuController.MAIN: 32,
+	GalaxyMenuController.NEW_GAME: 31,
+	MenuController.SLOTS_LOAD: 30,
+	MenuController.SLOTS_SAVE: 29,
+	GalaxyMenuController.CONFIGURE: 28,
+	GalaxyMenuController.SOUND_CARD: 27,
+	GalaxyMenuController.MUSIC_CARD: 26,
+	MenuController.KEY_SET: 23,
+	MenuController.OPTIONS: 21,
+}
+const WATCH_FROM_END := 17
+const PADDLE_WAR_FROM_END := 20
 const USER_FOLDER := "user://keen5"
 const NAME := "Keen 5"
 
@@ -246,8 +263,8 @@ static func game_rules() -> GalaxyGameRules:
 	return rules
 
 
-## The numbers of the screens between the games (milestone E7) and the
-## sounds and songs (E8, [Keen5Sounds]).
+## The numbers of the screens between the games (milestone E7), the
+## sounds and songs (E8, [Keen5Sounds]) and the control panel (E9).
 static func _add_front_rules(rules: GalaxyGameRules) -> void:
 	rules.title_from_end = TITLE_FROM_END
 	rules.story_from_end = STORY_FROM_END
@@ -281,6 +298,9 @@ static func _add_front_rules(rules: GalaxyGameRules) -> void:
 	rules.song_count = Keen5Sounds.SONG_COUNT
 	rules.sound_names = Keen5Sounds.NUMBERS
 	rules.map_songs = Keen5Sounds.MAP_SONGS
+	rules.menu_cards_from_end = MENU_CARDS_FROM_END
+	rules.watch_from_end = WATCH_FROM_END
+	rules.paddle_war_from_end = PADDLE_WAR_FROM_END
 
 
 ## Where the original's high-score table may be, in the known versions.

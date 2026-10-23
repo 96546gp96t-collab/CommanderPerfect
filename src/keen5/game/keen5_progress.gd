@@ -16,6 +16,8 @@ const DONE_BY_FUSE := 14
 ## CK5_ScanInfoLayer), and Korath III's base.
 const SHAFT_FUSE_LEVELS: PackedInt32Array = [4, 6, 8, 10]
 const KORATH_LEVEL := 13
+## The arrival's name in a saved game (milestone E9).
+const KORATH_ARRIVAL_KEY := "korath_arrival"
 
 ## The last level was left by the door to Korath III: the map puts Keen
 ## there once (Omni levelState LS_TeleportToKorath).
@@ -39,3 +41,12 @@ func korath_fuse_broken() -> bool:
 func map_shown() -> void:
 	super()
 	korath_arrival = false
+
+
+## A saved game keeps the arrival on Korath III (milestone E9).
+func _extra_to_dictionary() -> Dictionary:
+	return {KORATH_ARRIVAL_KEY: korath_arrival}
+
+
+func _extra_from_dictionary(saved: Dictionary) -> void:
+	korath_arrival = bool(saved.get(KORATH_ARRIVAL_KEY, false))
