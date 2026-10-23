@@ -64,8 +64,12 @@ var _game := PackedStringArray()
 var _picture_count := 0
 
 
-static func create(data: GalaxyData, game_rules: GalaxyGameRules) -> GalaxyGameBoxes:
-	var boxes := GalaxyGameBoxes.new()
+## The boxes of [param data] for the episode of [param game_rules]; into
+## [param into] when given (a subclass: [GalaxyNamedBoxes]).
+static func create(
+	data: GalaxyData, game_rules: GalaxyGameRules, into: GalaxyGameBoxes = null
+) -> GalaxyGameBoxes:
+	var boxes := into if into != null else GalaxyGameBoxes.new()
 	boxes._rules = game_rules
 	boxes._graphics = data.graphics
 	boxes._names = data.executable.level_names()
@@ -105,6 +109,12 @@ func loading(text: String) -> Array[Image]:
 		window.draw_picture(_picture(_rules.countdown_from_end - 1 - finger), FINGERS_AT)
 		screens.append(window.image())
 	return screens
+
+
+## The loading box with text [param index] of the game run (Keen 5's
+## arrival on Korath III).
+func loading_game_text(index: int) -> Array[Image]:
+	return loading(game_text(index))
 
 
 ## "PAUSED" after a game is loaded, until a key (Omni CK_PlayLoop).

@@ -26,6 +26,9 @@ var data_dir_option := ""
 ## The game's own folder in the user folder (settings, saves, the sound
 ## cache), such as [code]user://keen5[/code].
 var user_folder := ""
+## The game's id online (milestone E11; Keen 5:
+## [constant OnlineProtocol.GAME_ID_KEEN_5]).
+var game_id := ""
 
 ## The world map, the levels and the last map (the high scores).
 var world_map := 0
