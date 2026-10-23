@@ -23,6 +23,8 @@ extends GalaxyMapSession
 ##     station's star field, where the original's view never comes, is
 ##     drawn as black space (tile 0): a wider view (widescreen) would show
 ##     it (files, E6). Korath III's yellow ground below row 100 stays.
+##     With the pictures behind the levels on, the space shows the world
+##     map's picture (E10, [Keen5BackdropPictures]).
 
 ## Info 26: where Keen steps out onto Korath III (Omni CK5_MapKeenTeleSpawn).
 const KORATH_INFO := 26

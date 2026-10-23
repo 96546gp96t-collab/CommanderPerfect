@@ -115,10 +115,55 @@ const LOW_STUNNER_INFO := 69
 const KEYCARD_INFO := 70
 ## Keen on the world map (Omni SPR_MAPKEEN_STAND_W, chunk 244 − 102).
 const MAP_KEEN_SPRITE := 142
-## Keen 5's own pictures behind the levels: none yet (milestone E10), and
-## no sky tiles named, so no level shows one.
+## Keen 5's own pictures behind the levels (milestone E10,
+## [Keen5BackdropPictures]): the plain sky tiles (black space 0, Korath
+## III's light cyan sky 105) and the tiles that are open sky: Korath III's
+## sky (the whole of level 13 is outdoors, its clouds also between the
+## buildings) and the star tiles (files: at least 224 of their 256 pixels
+## black, the rest white, grey or blue stars). Tile 0 is the only
+## all-black tile and also the inside of every door, so it is no sign of
+## open space by itself.
 const BACKDROP_FOLDER := "res://assets/backgrounds/keen5"
-const SKY_TILES: PackedInt32Array = []
+const SPACE_TILE := 0
+const KORATH_SKY_TILE := 105
+const SKY_TILES: PackedInt32Array = [SPACE_TILE, KORATH_SKY_TILE]
+const OPEN_SKY_TILES: PackedInt32Array = [
+	KORATH_SKY_TILE,
+	1,
+	2,
+	3,
+	139,
+	664,
+	665,
+	698,
+	699,
+	700,
+	701,
+	716,
+	717,
+	718,
+	719,
+	734,
+	737,
+	755,
+	771,
+	772,
+	773,
+	789,
+	790,
+	791,
+	807,
+	808,
+	809,
+	825,
+	826,
+	845,
+	863,
+	1100,
+	1101,
+	1103,
+	1120
+]
 ## What Keen 5 shows between its games (Omni `GFXCHUNK.CK5`, chunk − 6
 ## for a picture; files): pictures counted from the end of the range (the
 ## title, the story's picture, the first of four credits, the Milky Way,
@@ -214,6 +259,11 @@ static func create() -> GalaxyEpisode:
 	return episode
 
 
+## Keen 5's pictures behind the levels for [param files] by [param rules].
+static func make_backdrops(files: GameFiles, rules: GalaxyGameRules) -> GalaxyGameBackdrops:
+	return Keen5BackdropPictures.with_open_tiles(files, rules, OPEN_SKY_TILES)
+
+
 ## The numbers of Keen 5 that the shared Galaxy game needs.
 static func game_rules() -> GalaxyGameRules:
 	var rules := GalaxyGameRules.new()
@@ -258,6 +308,7 @@ static func game_rules() -> GalaxyGameRules:
 	rules.countdown_from_end = COUNTDOWN_FROM_END
 	rules.backdrop_folder = BACKDROP_FOLDER
 	rules.sky_tiles = SKY_TILES
+	rules.make_backdrops = make_backdrops
 	rules.cheat_texts = CHEAT_TEXTS
 	_add_front_rules(rules)
 	return rules
