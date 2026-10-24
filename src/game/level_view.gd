@@ -994,3 +994,7 @@ func _point_arrow() -> void:
 
 func _realistic_grade() -> RealisticGrade:
 	return RealisticGrade.keen1()
+
+
+func _realistic_light_tiles() -> Dictionary[int, RealisticLights.Kind]:
+	return Keen1Lights.tiles()

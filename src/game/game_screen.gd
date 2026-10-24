@@ -373,6 +373,8 @@ func _apply_realistic(render_scale: int) -> void:
 			RealisticLook.add_to(_world_2),
 		]
 		_realistic_looks[0].made_lighter.connect(_show_message.bind(LIGHTER_MESSAGE))
+		_realistic_looks[0].lights_source = _realistic_lights.bind(_camera)
+		_realistic_looks[1].lights_source = _realistic_lights.bind(_camera_2)
 	var grade := _realistic_grade()
 	for look in _realistic_looks:
 		look.show_look(grade, _settings.game_size(), render_scale)
@@ -381,6 +383,26 @@ func _apply_realistic(render_scale: int) -> void:
 ## The colours of the realistic look in this game; each game has its own.
 func _realistic_grade() -> RealisticGrade:
 	return RealisticGrade.neutral()
+
+
+## The lights near what [param camera] shows: the game's lit tiles
+## ([method _realistic_light_tiles]) and the shots in a level. Null when no
+## level or map is shown.
+func _realistic_lights(camera: Camera2D) -> RealisticLights:
+	if _level == null or _mode in [Mode.NONE, Mode.TITLE, Mode.HIGH_SCORES]:
+		return null
+	var view_size := Vector2(_settings.game_size())
+	var view := Rect2(camera.get_screen_center_position() - view_size / 2.0, view_size)
+	var lights := RealisticLights.create(view)
+	lights.add_tiles(_level, _realistic_light_tiles())
+	if _mode == Mode.LEVEL and _session != null:
+		lights.add_shots(_session.actors)
+	return lights
+
+
+## The tiles of this game that give light, by tile number; none by default.
+func _realistic_light_tiles() -> Dictionary[int, RealisticLights.Kind]:
+	return {}
 
 
 func _show_message(text: String) -> void:

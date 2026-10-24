@@ -145,7 +145,7 @@ Onderzoek en voorstel: [docs/realistic/research.md](docs/realistic/research.md).
 |---|---|---|
 | R1 | Onderzoek: grafische code van alle vijf de spellen, lagen (sfeer, licht, achtergronden, AI-graphics), modellen, menu-optie, mijlpalen | ✅ Klaar; vragen beantwoord op 24-10-2026 |
 | R2 | De optie REALISTIC (F8) in alle vijf de spellen + sfeer (bloom, kleur, vignet) | 🔶 Gebouwd (branch `milestone-r2-realistisch-optie`); Keen 2-5 nog naast `main` leggen met hun bestanden, framerate meten op de Mac en de pc |
-| R3 | Licht en reliëf (normal maps, lichtbronnen per spel, schaduw) | ⬜ |
+| R3 | Licht en reliëf (reliëf uit het beeld, lichtbronnen per spel) | 🔶 Gebouwd voor Keen 1 (branch `milestone-r3-realistisch-licht`, vanaf R2); tabellen Keen 2-5 wachten op hun bestanden |
 | R4 | Realistische achtergronden (o.a. NASA-foto's van Mars voor Keen 1) | ⬜ |
 | R5 | AI-proef: ~10 plaatjes naast xBRZ (SDXL + ControlNet Tile) | ⬜ toestemming gegeven (24-10): SDXL, met de originele plaatjes als invoer |
 | R6-R8 | AI-graphics Keen 1-3, Keen 4-5, naast elkaar leggen | ⬜ |
@@ -190,8 +190,29 @@ de rest van de sessie, met één melding.
   mooi, ~2x goedkoper.
 - Apps niet gebouwd (kan alleen op de Mac).
 
-**Volgende stap:** de Keen 2-5-bestanden uploaden; dan de regressies en de
-sfeer van Keen 2-5 nakijken. Daarna R3 (licht en reliëf).
+**R3: wat er nu is (24-10).** In dezelfde laag: reliëf uit de helderheid
+van het beeld (elke donkere omlijning wordt een groef, wat erin zit een
+afgeschuinde rand, belicht van linksboven; nooit donkerder dan 75 % of
+lichter dan 130 %), en tot 16 lampen per beeld uit verlichte tiles en
+schoten (`RealisticLights`, Keen 1: `Keen1Lights`, op het oog gekozen uit
+het tilevel: blauwe lampen, EXIT-bord, vuur, elektrische bollen, blauwe
+zuilen, lampen op palen). Werkt voor alle graphics (origineel, xBRZ, HD)
+zonder de tekencode aan te raken. Keen 2-3: schoten geven al licht, tiles
+nog niet; Keen 4-5 nog geen lampen (tabellen maken zodra hun bestanden er
+zijn). Wens van de gebruiker: zien hoe het eruitziet (plaatjes gestuurd).
+
+- [x] Tests: 0 fouten, `test_realistic_look` uitgebreid (lichten bij het
+  beeld, dichtstbij eerst, max 16, tiles en schoten); spelstand gelijk met
+  de optie aan; gdlint schoon.
+- [x] Regressie Keen 1 tegen `main` (optie uit): alle beelden gelijk.
+- [x] Schermafbeeldingen: level 1, 2, 5 (lampen), 7, 11 (vuur), een schot.
+- [ ] Framerate op de Mac en de pc (software hier: 43 → 226 ms; geschat
+  1-2 ms op een Mac-GPU, ~5 ms op een zwakke Intel-GPU). Het vangnet zet
+  bij traagheid gloed en reliëf uit; de meettool zet het vangnet uit.
+- [ ] Muren die schaduw werpen: niet gebouwd (later, als het nodig is).
+
+**Volgende stap:** de Keen 2-5-bestanden uploaden; dan de regressies, de
+sfeer en de lampentabellen van Keen 2-5. Daarna R4 (achtergronden).
 
 ## Achtergronden Keen 1 en 2: mijlpalen AB
 

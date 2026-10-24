@@ -1,8 +1,11 @@
-// The atmosphere of the realistic mode (RealisticLook; layer A of
-// docs/realistic/research.md): light that bleeds from bright things
-// (bloom) and turns white where it is too bright, as in a photo, a colour
-// grade per game that leaves black and white alone, a faint vignette and
-// very fine film grain.
+// The realistic look (RealisticLook; layers A and B of
+// docs/realistic/research.md). Light and relief (R3): every game pixel gets
+// a slope from the brightness around it, so dark outlines become grooves and
+// the things inside them stand out, lit by a light from the upper left;
+// lamps, fire and shots light what is around them (lights[]). Atmosphere
+// (R2): light that bleeds from bright things (bloom) and turns white where
+// it is too bright, as in a photo, a colour grade per game that leaves black
+// and white alone, a faint vignette and very fine film grain.
 // Drawn over the level, below the HUD and the windows, so that text stays as
 // it is.
 shader_type canvas_item;
@@ -31,6 +34,21 @@ uniform float saturation = 1.0;
 uniform float contrast = 0.12;
 uniform float vignette = 0.18;
 uniform float grain = 0.012;
+
+// How much the relief changes the light: 0 flat, 1 fully lit by the slope.
+uniform float relief_strength = 0.5;
+// How steep a step in brightness of one game pixel is.
+uniform float relief_bump = 3.0;
+// Where the light comes from (x right, y down, z towards the viewer).
+uniform vec3 light_direction = vec3(-0.45, -0.6, 0.66);
+// The lights near the view (RealisticLights): x, y in game pixels from the
+// view's top left, radius, strength; and their colour and height above the
+// picture in game pixels.
+uniform int light_count = 0;
+uniform vec4 lights[16];
+uniform vec4 light_colors[16];
+// How much a light brightens the air around it, besides what it lights.
+uniform float halo = 0.12;
 
 const vec3 LUMA = vec3(0.2126, 0.7152, 0.0722);
 // How much of the light beyond white goes into the other channels.
@@ -64,12 +82,68 @@ vec3 burn_out(vec3 color) {
 	return min(color, vec3(1.0)) + vec3(excess * BURN);
 }
 
+// The darkest and the brightest the relief makes a pixel: it never hides
+// what the original shows.
+const float RELIEF_MIN = 0.75;
+const float RELIEF_MAX = 1.3;
+// The relief is read at a game pixel and a half, so that a slope is a bevel
+// and not a single line.
+const float RELIEF_LOD = 0.5;
+const int MAX_LIGHTS = 16;
+
+float height(vec2 uv, float lod) {
+	return dot(textureLod(screen_texture, uv, lod).rgb, LUMA);
+}
+
+// The direction the picture faces at [param uv], from the brightness around
+// it: bright is high, dark is low.
+vec3 surface_normal(vec2 uv, vec2 game_pixel) {
+	float lod = lod_base + RELIEF_LOD;
+	float dx = height(uv + vec2(game_pixel.x, 0.0), lod) - height(uv - vec2(game_pixel.x, 0.0), lod);
+	float dy = height(uv + vec2(0.0, game_pixel.y), lod) - height(uv - vec2(0.0, game_pixel.y), lod);
+	return normalize(vec3(-dx * relief_bump, -dy * relief_bump, 1.0));
+}
+
+// How the slope at [param normal] changes the light, 1 on a flat place.
+float relief(vec3 normal) {
+	vec3 to_light = normalize(light_direction);
+	float lit = dot(normal, to_light) / max(to_light.z, 0.1);
+	return clamp(mix(1.0, lit, relief_strength), RELIEF_MIN, RELIEF_MAX);
+}
+
+// What the lights add at [param point] (game pixels in the view) to a
+// surface of [param base] colour facing [param normal].
+vec3 lamp_light(vec2 point, vec3 normal, vec3 base) {
+	vec3 sum = vec3(0.0);
+	for (int index = 0; index < min(light_count, MAX_LIGHTS); index++) {
+		vec4 light = lights[index];
+		vec2 to_light = light.xy - point;
+		float reach = 1.0 - length(to_light) / light.z;
+		if (reach <= 0.0) {
+			continue;
+		}
+		float falloff = reach * reach;
+		vec3 colour = light_colors[index].rgb;
+		vec3 direction = normalize(vec3(to_light, light_colors[index].a));
+		float facing = max(dot(normal, direction), 0.0);
+		sum += (base * facing + halo * falloff) * colour * light.w * falloff;
+	}
+	return sum;
+}
+
 float hash(vec2 point) {
 	return fract(sin(dot(point, vec2(12.9898, 78.233))) * 43758.5453);
 }
 
 void fragment() {
-	vec3 color = textureLod(screen_texture, SCREEN_UV, 0.0).rgb;
+	vec3 base = textureLod(screen_texture, SCREEN_UV, 0.0).rgb;
+	vec2 game_pixel = SCREEN_PIXEL_SIZE * exp2(lod_base);
+	vec3 normal = vec3(0.0, 0.0, 1.0);
+	if (relief_strength > 0.0) {
+		normal = surface_normal(SCREEN_UV, game_pixel);
+	}
+	vec3 color = base * relief(normal);
+	color += lamp_light(SCREEN_UV * view_size, normal, base);
 	color += bloom(SCREEN_UV) * bloom_strength;
 	color = burn_out(color);
 	// The tints weigh most in the dark and the middle tones; black and

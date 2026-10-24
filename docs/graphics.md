@@ -388,6 +388,32 @@ R2 built the first layer, the atmosphere.
   with the look off and on (see its header); the cloud container renders in
   software, so the real numbers come from the Mac and the Windows PC.
 
+### Light and relief (R3)
+
+The same layer also lights the picture (layer B of the research):
+
+- **Relief.** Every pixel gets a slope from the brightness around it,
+  read one and a half game pixels apart from the screen copy's mipmaps
+  (`surface_normal`): bright is high, dark is low, so a dark outline is a
+  groove and what it holds stands out like a bevel. A light from the upper
+  left (`RealisticGrade.light_direction`) lights the slopes; a flat place
+  keeps its colour, and the relief never makes a pixel darker than 75 % or
+  brighter than 130 % of the original. It works on everything in the level
+  at once (tiles, sprites, the pictures behind the levels), in every game,
+  without normal maps.
+- **Lights.** Every frame `GameScreen._realistic_lights` collects the
+  lights near each camera's view (`RealisticLights`): the tiles of the
+  level that give light (each game's table, `_realistic_light_tiles`;
+  Keen 1's in `Keen1Lights`: the blue lamps, the exit sign, fire, the
+  electric orbs, the blue beams, the lamps on poles, picked by eye from the
+  tile sheet) and the shots (every `RaygunShot`, brighter when it hits). At
+  most 16, the nearest to the middle of the view; the shader lights each
+  surface by how it faces the light (its slope) and adds a faint halo in
+  the air. Galaxy (Keen 4-5) and Keen 2-3 have no tables yet (their files
+  were not here); their shots in Keen 2-3 already light.
+- **Slow computers.** The fallback leaves out the relief too.
+  `tools/measure_frames.gd` keeps the fallback off while it measures.
+
 ## Still open
 
 - The camera scrolls in parts of a game pixel whenever the picture is not

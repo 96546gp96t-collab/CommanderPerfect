@@ -1,9 +1,11 @@
 class_name RealisticLook
 extends CanvasLayer
-## The atmosphere of the realistic mode (option Realistic, F8; layer A of
+## The realistic look (option Realistic, F8; layers A and B of
 ## docs/realistic/research.md): a layer in a World viewport that draws the
-## picture of the level again through realistic_look.gdshader, with bloom,
-## a colour grade ([RealisticGrade]), a vignette and film grain.
+## picture of the level again through realistic_look.gdshader, with relief,
+## the light of lamps, fire and shots ([RealisticLights], from
+## [member lights_source] every frame), bloom, a colour grade
+## ([RealisticGrade]), a vignette and film grain.
 ##
 ## It sits in front of the level and behind the [b]Ui[/b] layer (the HUD,
 ## the windows, the menus), so text and the HUD stay exactly as they are.
@@ -13,8 +15,8 @@ extends CanvasLayer
 ## It must never make the game stutter (docs/realistic/research.md §10):
 ## when the game runs slower than the screen (at most 60 frames per second)
 ## for [constant SLOW_SECONDS] seconds in a row while the look is shown, the
-## bloom, which costs the most, is left out for the rest of the session
-## ([member lighter]).
+## bloom and the relief, which cost the most, are left out for the rest of
+## the session ([member lighter]).
 
 ## Sent once when the look became lighter.
 signal made_lighter
@@ -32,8 +34,16 @@ const WANTED_FPS := 60.0
 ## Whether the bloom is left out, for every look, since the game was slow
 ## with it.
 static var lighter := false
+## Whether a slow game makes the look lighter; off while measuring it
+## (tools/measure_frames.gd).
+static var may_get_lighter := true
+
+## Gives the lights near this look's view every frame; returns null when
+## there are none (no level shown).
+var lights_source := Callable()
 
 var _rect := ColorRect.new()
+var _relief_strength := 0.0
 var _second := 0.0
 var _slow_seconds := 0
 
@@ -72,6 +82,9 @@ func show_look(grade: RealisticGrade, view_size: Vector2i, render_scale: int) ->
 	material.set_shader_parameter("bloom_levels", 0 if lighter else BLOOM_LEVELS)
 	material.set_shader_parameter("shadow_tint", _rgb(grade.shadow_tint))
 	material.set_shader_parameter("highlight_tint", _rgb(grade.highlight_tint))
+	material.set_shader_parameter("light_direction", grade.light_direction)
+	_relief_strength = grade.relief_strength
+	material.set_shader_parameter("relief_strength", 0.0 if lighter else _relief_strength)
 	for parameter: String in [
 		"bloom_strength",
 		"bloom_threshold",
@@ -80,6 +93,8 @@ func show_look(grade: RealisticGrade, view_size: Vector2i, render_scale: int) ->
 		"contrast",
 		"vignette",
 		"grain",
+		"relief_bump",
+		"halo",
 	]:
 		material.set_shader_parameter(parameter, grade.get(parameter))
 
@@ -91,12 +106,14 @@ func hide_look() -> void:
 func _process(delta: float) -> void:
 	if not visible:
 		return
+	_update_lights()
 	if lighter:
 		if _rect.material.get_shader_parameter("bloom_levels") != 0:
 			_rect.material.set_shader_parameter("bloom_levels", 0)
+			_rect.material.set_shader_parameter("relief_strength", 0.0)
 		return
 	_second += delta
-	if _second < 1.0:
+	if _second < 1.0 or not may_get_lighter:
 		return
 	_second = 0.0
 	var refresh := DisplayServer.screen_get_refresh_rate()
@@ -104,6 +121,23 @@ func _process(delta: float) -> void:
 	if note_second(Engine.get_frames_per_second(), wanted):
 		lighter = true
 		made_lighter.emit()
+
+
+func _update_lights() -> void:
+	var lights: RealisticLights = lights_source.call() if lights_source.is_valid() else null
+	var material := _rect.material as ShaderMaterial
+	if lights == null:
+		material.set_shader_parameter("light_count", 0)
+		return
+	var arrays := lights.uniforms()
+	material.set_shader_parameter("light_count", arrays[0].size())
+	if arrays[0].is_empty():
+		return
+	# The arrays always hold the shader's full length.
+	arrays[0].resize(RealisticLights.MAX_LIGHTS)
+	arrays[1].resize(RealisticLights.MAX_LIGHTS)
+	material.set_shader_parameter("lights", arrays[0])
+	material.set_shader_parameter("light_colors", arrays[1])
 
 
 ## Counts one second at [param fps] frames per second, where [param wanted]

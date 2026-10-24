@@ -41,6 +41,7 @@ func _initialize() -> void:
 	var frames := OS.get_environment("FRAMES")
 	if frames.is_valid_int():
 		_frames_per_run = maxi(frames.to_int(), 1)
+	RealisticLook.may_get_lighter = false
 	Engine.max_fps = 0
 	DisplayServer.window_set_vsync_mode(DisplayServer.VSYNC_DISABLED)
 	var path := OS.get_environment("SCENE")
@@ -143,6 +144,4 @@ func _report(realistic: bool) -> void:
 			"pass" if p99 < BUDGET_120_MS else "fail",
 		]
 	)
-	if realistic and RealisticLook.lighter:
-		line += " The glow was switched off: too slow."
 	print(line)

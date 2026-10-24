@@ -111,6 +111,43 @@ func test_a_slow_computer_loses_the_glow_not_frames() -> void:
 	other.free()
 
 
+func test_lights_near_the_view_nearest_first() -> void:
+	var view := Rect2(100, 0, 320, 200)
+	var lights := RealisticLights.create(view)
+	var lamp := RealisticLights.ceiling_lamp
+	lights.add(Vector2(400, 50), lamp)
+	lights.add(Vector2(250, 90), lamp)
+	lights.add(Vector2(2000, 50), lamp)
+	var arrays := lights.uniforms()
+	assert_equal(arrays[0].size(), 2, "the far light is left out")
+	var first := arrays[0][0]
+	assert_equal(Vector2(first.x, first.y), Vector2(158, 104), "nearest first, from the view")
+	assert_equal(first.z, lamp.radius, "its reach")
+	assert_equal(arrays[1][0].w, lamp.height, "its height")
+	for index in RealisticLights.MAX_LIGHTS + 5:
+		lights.add(Vector2(200 + index, 100), lamp)
+	assert_equal(lights.uniforms()[0].size(), RealisticLights.MAX_LIGHTS, "at most the shader's")
+
+
+func test_lights_of_tiles_and_shots() -> void:
+	var level := LevelData.new()
+	level.width = 40
+	level.height = 20
+	level.tiles.resize(level.width * level.height)
+	level.set_tile(Vector2i(3, 2), Keen1Lights.BLUE_LAMP)
+	level.set_tile(Vector2i(39, 19), Keen1Lights.FIRE[0])
+	var lights := RealisticLights.create(Rect2(0, 0, 320, 200))
+	lights.add_tiles(level, Keen1Lights.tiles())
+	var actors: Array[Actor] = [RaygunShot.create(Vector2(100, 100), 1)]
+	lights.add_shots(actors)
+	var where := lights.uniforms()[0]
+	assert_equal(where.size(), 2, "the lamp and the shot; the fire is too far")
+	var lamp_place := Vector2(3, 2) * 16 + RealisticLights.ceiling_lamp.offset
+	var places := [Vector2(where[0].x, where[0].y), Vector2(where[1].x, where[1].y)]
+	assert_true(places.has(lamp_place), "the lamp at its tile")
+	assert_true(Keen1Lights.tiles().has(Keen1Lights.EXIT_SIGN[1]), "every frame of a light")
+
+
 func test_every_game_has_its_own_grade() -> void:
 	var tints: Array[Color] = []
 	for path in VIEW_SCENES:
