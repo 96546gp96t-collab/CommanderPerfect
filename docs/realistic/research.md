@@ -404,6 +404,15 @@ the regression scripts) and are written down per milestone in `PROGRESS.md`.
   weaker). The option is called *Lighting* in the menus. Measured on the
   user's Mac (M5): 1.5 ms per frame off, 3.7 ms on.
 
+- **R5 (branch `milestone-r5-ai-proef`, not merged)**: the AI trial,
+  `tools/realistic_trial.py`: Realistic Vision 5.1 (a photographic Stable
+  Diffusion 1.5), ControlNet tile and the LCM LoRA on the CPU of the cloud
+  container (about 50 s a picture, 140 s at the stronger setting), from
+  the original pictures enlarged by whole pixels. Scenes got real
+  materials in the same shapes; sprites were weak (Keen became a 3D
+  cartoon boy, the stronger setting failed). **The user's decision
+  (24-10): no AI graphics; do not go on with it.** R6-R8 are dropped.
+
 ## Sources
 
 - Godot 2D lights and shadows (normal and specular maps through

@@ -147,8 +147,8 @@ Onderzoek en voorstel: [docs/realistic/research.md](docs/realistic/research.md).
 | R2 | De optie REALISTIC (F8) in alle vijf de spellen + sfeer (bloom, kleur, vignet) | 🔶 Gebouwd (branch `milestone-r2-realistisch-optie`); Keen 2-5 nog naast `main` leggen met hun bestanden, framerate meten op de Mac en de pc |
 | R3 | Licht en reliëf (reliëf uit het beeld, lichtbronnen per spel) | 🔶 Gebouwd voor Keen 1 (branch `milestone-r3-realistisch-licht`, vanaf R2); tabellen Keen 2-5 wachten op hun bestanden |
 | R4 | Realistische achtergronden (o.a. NASA-foto's van Mars voor Keen 1) | ⬜ |
-| R5 | AI-proef: ~10 plaatjes naast xBRZ (SDXL + ControlNet Tile) | ⬜ toestemming gegeven (24-10): SDXL, met de originele plaatjes als invoer |
-| R6-R8 | AI-graphics Keen 1-3, Keen 4-5, naast elkaar leggen | ⬜ |
+| R5 | AI-proef: plaatjes naast het origineel | ❌ Gedraaid en afgewezen door de gebruiker (24-10): niet verder met AI-graphics (tool bewaard op branch `milestone-r5-ai-proef`, niet naar `main`) |
+| R6-R8 | AI-graphics Keen 1-3, Keen 4-5, naast elkaar leggen | ❌ Vervallen (besluit van de gebruiker, 24-10) |
 
 **Besluiten van de gebruiker (24-10-2026, R1):** realistisch belicht
 (vormen blijven, echte materialen, licht en sfeer; sprites niet volledig
@@ -221,8 +221,17 @@ en laat het in vaste stappen lopen (god mode). De optie heet nu
 *Lighting: ORIGINAL / REALISTIC* (wens: "realistische belichting"; de
 menu's zijn Engels).
 
+**Besluit van de gebruiker (24-10): geen AI-graphics.** De proef (R5,
+Realistic Vision + ControlNet Tile, op de CPU in de cloud) gaf echte
+materialen in de omgeving maar zwakke figuren (Keen werd een
+3D-cartoonjongen, de sterke stand mislukte); de gebruiker: "doe dit maar
+allemaal niet. Ga hier niet mee verder". R6-R8 vervallen; de tool blijft
+alleen op `milestone-r5-ai-proef`. De realistische belichting (R2/R3)
+blijft.
+
 **Volgende stap:** de Keen 2-5-bestanden uploaden; dan de regressies, de
-sfeer en de lampentabellen van Keen 2-5. Daarna R4 (achtergronden).
+sfeer en de lampentabellen van Keen 2-5. R4 (achtergronden) alleen als de
+gebruiker dat nog wil.
 
 ## Achtergronden Keen 1 en 2: mijlpalen AB
 
