@@ -111,6 +111,7 @@ def main() -> int:
     parser.add_argument("--control", type=float, default=0.8, help="how close to the shapes")
     parser.add_argument("--scale", type=int, default=2, help="game pixel -> model pixels")
     parser.add_argument("--device", default="cpu")
+    parser.add_argument("--tag", default="", help="added to the file names, to keep variants")
     args = parser.parse_args()
 
     names = [args.only] if args.only else list(ITEMS)
@@ -130,8 +131,9 @@ def main() -> int:
         if mask is not None:
             backdrop = Image.new("RGB", result.size, SPRITE_BACKDROP[:3])
             result = Image.composite(result, backdrop, mask)
-        side_by_side(original, result).save(OUT / f"{name}.png")
-        print(f"{name}: {time.time() - started:.0f} s -> {OUT / (name + '.png')}")
+        path = OUT / f"{name}{args.tag}.png"
+        side_by_side(original, result).save(path)
+        print(f"{name}: {time.time() - started:.0f} s -> {path}")
     return 0
 
 
