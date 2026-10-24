@@ -243,8 +243,21 @@ de gloeiende vloer (241-244, honderden tiles in level 12) als zwak
 `lava`-licht. Tests met Keen 2 en 5: zelfde meldingen als `main`, één
 suite meer geslaagd. Keen 3 en 4 nog niet geüpload.
 
-**Volgende stap:** Keen 3 en 4 uploaden; dan hun regressies en
-lampentabellen. Daarna kan `milestone-r3-realistisch-licht`
+**Keen 3 en 4 (24-10, v1.00 en v1.0 van de gebruiker, zips).** Keen 4:
+`keen4_regression.sh` tegen `main` met de optie uit: alle 11 gelijk (ook
+na de lampentabel). Keen 3 heeft geen regressiescript: een eigen set
+(titel, level 1, lopen, level 4 in breedbeeld en 4:3, kaart) op `main` en
+de branch: alle 6 gelijk (een eerste run verschilde: Godot las net een
+nieuw script in en laadde trager). Lampentabellen `Keen3Lights` (weinig:
+vuurballen, pods, EXIT, rode lamp) en `Keen4Lights` (EXIT, kampvuur,
+raketvlammen, vuurschalen, vuurvelden als `lava`, lampen, komforen in de
+achtergrond). Alle vijf spellen hebben nu hun lampen; elke regressie met
+de optie uit is gelijk aan `main`.
+
+**Volgende stap:** de gebruiker test op de Mac (bouwen vanaf
+`milestone-r3-realistisch-licht`, F8 in elk spel); daarna kan de branch
+naar `main`. Open: de gloed op grote felle vlakken (het gele bord in Keen
+3 level 1) en de Windows-pc meten. Daarna kan `milestone-r3-realistisch-licht`
 naar `main`. R4 (achtergronden) alleen als de gebruiker dat nog wil.
 
 ## Achtergronden Keen 1 en 2: mijlpalen AB

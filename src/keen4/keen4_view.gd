@@ -330,3 +330,11 @@ static func _requested_map() -> int:
 
 func _realistic_grade() -> RealisticGrade:
 	return RealisticGrade.keen4()
+
+
+func _realistic_light_tiles() -> Dictionary[int, RealisticLights.Kind]:
+	return Keen4Lights.foreground()
+
+
+func _realistic_back_light_tiles() -> Dictionary[int, RealisticLights.Kind]:
+	return Keen4Lights.background()

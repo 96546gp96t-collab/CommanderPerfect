@@ -412,8 +412,12 @@ wish of 24-10).
   the world map). Keen 2's is `Keen2Lights` (the blue
   lamps, the hanging lamps, the exit sign, fire and torches, the electric
   orbs and blue beams, and the glowing floor of level 12 as a weak `lava`
-  light, since it comes hundreds of tiles in a row). Keen 3 and 4 have no
-  tables of lit tiles yet (their files were not here).
+  light, since it comes hundreds of tiles in a row). Keen 3's is
+  `Keen3Lights` (fire balls, the glowing pods and a spark, the exit sign,
+  a red dome lamp: Keen 3 has few lights), Keen 4's `Keen4Lights` (exit
+  signs, the campfire, rocket flames and fire bowls, the fields of fire as
+  `lava`, hanging lamps and lamps on poles, and the braziers in the
+  background). All picked by eye from the user's own files.
 - **No relief.** R3 first also gave every pixel a slope from the
   brightness around it (a bevel along every outline). The user found the
   dark edges this made along every object ugly (24-10); it was taken out.

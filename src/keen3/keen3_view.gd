@@ -438,3 +438,7 @@ func _neighbor_level(offset: int) -> int:
 
 func _realistic_grade() -> RealisticGrade:
 	return RealisticGrade.keen3()
+
+
+func _realistic_light_tiles() -> Dictionary[int, RealisticLights.Kind]:
+	return Keen3Lights.tiles()
