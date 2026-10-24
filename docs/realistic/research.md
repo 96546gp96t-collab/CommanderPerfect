@@ -342,7 +342,11 @@ depend on the trial, plus the player's own compute time.
 ### The user's answers (24-10-2026)
 
 1. **Realistically lit**: original shapes, real materials, light, shadow and
-   atmosphere; sprites stay readable (no fully photographic sprites).
+   atmosphere. Added the same day: **it may come close to photorealistic**
+   ("het mag ook tegen foto realistisch aan zitten"), sprites included, as
+   long as the risks are covered and everything runs well ("het is
+   belangrijk dat het allemaal goed loopt"). So the trial aims high and §10
+   sets the checks every step must pass.
 2. **A separate option REALISTIC ON/OFF** in the options of all five games,
    with F8 in a level (§7).
 3. **Yes to an SDXL trial** (SDXL + ControlNet Tile, ~7 GB, into a folder git
@@ -354,6 +358,30 @@ depend on the trial, plus the player's own compute time.
    parked plan in `docs/graphics.md`.
 4. **R2 first** (the option and the atmosphere in all five games), then R3,
    R4 and the AI trial R5.
+
+## 10. How the risks are covered
+
+The user's condition (24-10-2026): the risks must be covered and
+everything must run well. Every risk gets a measure and a check that is
+measured, not judged by eye alone; a milestone is only done when its checks
+pass. The checks run headless where they can (tests, `tools/scripted_play.gd`,
+the regression scripts) and are written down per milestone in `PROGRESS.md`.
+
+| Risk | Measure | Check (pass when) |
+|---|---|---|
+| The option off changes something | All realistic code is behind `DisplaySettings.realistic`; `is_original_picture()` and every existing path are untouched when it is off | `tools/keen1_regression.sh` ... `keen5_regression.sh`: every frame equal to `main` with the option off; all tests green, `gdlint` clean |
+| Gameplay changes with the option on | Only drawing changes; textures keep the original size (`set_size_override`), no game code reads the new images | A new suite plays the same input with the option off and on (each game, a level and the map) and compares the game state every tick: positions, boxes, score, lives, RNG: identical |
+| Frame rate (it must run smoothly) | A budget per layer; lights pooled and capped; post-processing at reduced resolution; work done at level start on worker threads, as xBRZ now | A built-in measurement (frame time over 30 s in the heaviest level of each game, split screen included): on the user's Mac and on the Windows PC at least 60 fps steady, 99 % of frames under 16.7 ms; on a 120 Hz screen with smooth motion under 8.3 ms. If a layer misses the budget it gets a lower setting automatically, never a stutter |
+| Level start gets slow | Normals and holes worked out once and kept (as `GraphicsLoader` keeps xBRZ); the game keeps running with the current graphics until the new ones are ready | Time from level start to the first frame not more than now + 0.3 s; switching F8 never freezes the game |
+| Memory | Packs at 4x (64 px per tile, plenty for 1080p; 8x only if the trial shows it is needed), Galaxy per level as now | Video memory of the heaviest level measured; under 1 GB on the Mac with 16 GB |
+| Flicker in animations | All frames of an animation in one image, fixed seed, low denoise, one reference frame, the original silhouette | A tool compares every animation: the change between two frames of the AI version may not be larger than in the original (per pixel, inside the silhouette, after alignment); every animation is also shown to the user as a moving sheet before it goes into the pack |
+| Seams between tiles | Tiles generated in their neighbourhood; one pass that blends the edge pixels with the neighbours they have in the levels | A tool lays every level out with the pack and measures the colour jump across every tile edge; no edge may jump more than the same edge in the original (enlarged) |
+| Repetition | Per-cell variation in the tile shader (brightness, a large detail texture at the cell's place in the level) | Screenshots of the widest flat areas of each game shown side by side to the user |
+| Readability (items, enemies, hazards) | EGA colour stays the main colour of each item and enemy; light rim on sprites; backgrounds darker and softer than the play layer | Contrast of every sprite and item against the tiles behind it in each level at least that of the original; the user plays a level per game before it counts as done |
+| A broken or missing pack | The pack is checked against the game files as `HdPack` does; on any fault the game says so once and stays on its current graphics | Tests with a missing, too small and corrupt pack: no crash, the status line message, the original picture |
+| Split screen, two players, online | The realistic look hangs on the shared `GameScreen` and the level's canvas, so both halves get it; nothing goes over the network | Scripted play with F7 in each game with the option on; online host and join each with their own setting |
+| The AI trial looks bad | R6-R7 only start after the user approved the trial (R5) | The user's yes on the side-by-side pictures of R5 |
+| Player's compute time | The tool resumes after a stop, does one game at a time and says how long it will take | Measured in R5 on the Mac and written in the guide |
 
 ## Sources
 

@@ -154,7 +154,13 @@ Onderzoek en voorstel: [docs/realistic/research.md](docs/realistic/research.md).
 (vormen blijven, echte materialen, licht en sfeer; sprites niet volledig
 fotografisch); een eigen optie REALISTIC AAN/UIT (F8) in alle vijf de
 spellen; de SDXL-proef mag, maar met de **originele plaatjes** als invoer,
-niet xBRZ ("iets minder mooi"); eerst R2.
+niet xBRZ ("iets minder mooi"); eerst R2. Daarna (zelfde dag): het mag
+ook tegen fotorealistisch aan zitten, sprites ook, mits de risico's zijn
+afgedekt en alles goed loopt. Per risico een maatregel en een meetbare
+controle in `docs/realistic/research.md` §10 (o.a. optie uit = elk beeld
+gelijk aan `main`, spelstand gelijk met de optie aan, minstens 60 fps op de
+Mac en de Windows-pc, geen flikkeren of naden, gemeten door tools);
+een mijlpaal is pas klaar als die controles slagen.
 
 **Volgende stap:** R2 op branch `milestone-r2-realistisch-optie`.
 
