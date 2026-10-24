@@ -147,7 +147,7 @@ Onderzoek en voorstel: [docs/realistic/research.md](docs/realistic/research.md).
 | R2 | De optie REALISTIC (F8) in alle vijf de spellen + sfeer (bloom, kleur, vignet) | 🔶 Gebouwd (branch `milestone-r2-realistisch-optie`); Keen 2-5 nog naast `main` leggen met hun bestanden, framerate meten op de Mac en de pc |
 | R3 | Licht en reliëf (reliëf uit het beeld, lichtbronnen per spel) | 🔶 Gebouwd voor Keen 1 (branch `milestone-r3-realistisch-licht`, vanaf R2); tabellen Keen 2-5 wachten op hun bestanden |
 | R4 | Realistische achtergronden (o.a. NASA-foto's van Mars voor Keen 1) | ⬜ |
-| R5 | AI-proef: ~10 plaatjes naast xBRZ (SDXL + ControlNet Tile) | ⬜ toestemming gegeven (24-10): SDXL, met de originele plaatjes als invoer |
+| R5 | AI-proef: plaatjes naast het origineel | 🔶 Tool klaar (`tools/realistic_trial.py`, branch `milestone-r5-ai-proef`); wacht op toegang tot huggingface.co in de cloud-omgeving |
 | R6-R8 | AI-graphics Keen 1-3, Keen 4-5, naast elkaar leggen | ⬜ |
 
 **Besluiten van de gebruiker (24-10-2026, R1):** realistisch belicht
@@ -211,8 +211,25 @@ zijn). Wens van de gebruiker: zien hoe het eruitziet (plaatjes gestuurd).
   bij traagheid gloed en reliëf uit; de meettool zet het vangnet uit.
 - [ ] Muren die schaduw werpen: niet gebouwd (later, als het nodig is).
 
-**Volgende stap:** de Keen 2-5-bestanden uploaden; dan de regressies, de
-sfeer en de lampentabellen van Keen 2-5. Daarna R4 (achtergronden).
+**Oordeel van de gebruiker over R3 (24-10):** "dit lijkt nog lang niet op
+foto realistisch". Klopt: licht en reliëf maken van pixelart belichte
+pixelart; fotorealistisch kan alleen met nieuwe pixels (de AI-laag). Keuze
+van de gebruiker: de AI-proef nu, hier in de cloud, zodra huggingface.co
+open staat.
+
+**R5: wat er nu is.** `tools/realistic_trial.py`: zes proefplaatjes uit de
+shareware van Keen 1 (level 1, de lamp van level 5, vuur in level 11, de
+kaart, Keen lopend in vier beelden naast elkaar, een Yorp), de originele
+plaatjes per hele pixel vergroot (geen xBRZ), Realistic Vision 5.1 (een
+fotografische SD 1.5) + ControlNet Tile + LCM-LoRA (6 stappen, draait op de
+CPU). Uitkomst naast het origineel in `exported/realistic_trial/` (git
+negeert het). Python-omgeving in de container: `~/aienv/venv` (torch CPU,
+diffusers); gaat verloren met de container.
+
+**Volgende stap:** zodra huggingface.co open staat de proef draaien en de
+plaatjes aan de gebruiker laten zien; daarna (als het mooi is) dezelfde
+tool met SDXL op de Mac. Ook nog: de Keen 2-5-bestanden voor de
+regressies en lampentabellen.
 
 ## Achtergronden Keen 1 en 2: mijlpalen AB
 
