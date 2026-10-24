@@ -236,8 +236,18 @@ CPU). Uitkomst naast het origineel in `exported/realistic_trial/` (git
 negeert het). Python-omgeving in de container: `~/aienv/venv` (torch CPU,
 diffusers); gaat verloren met de container.
 
-**Volgende stap:** zodra huggingface.co open staat de proef draaien en de
-plaatjes aan de gebruiker laten zien; daarna (als het mooi is) dezelfde
+**Proef gedraaid (24-10, cloud, CPU).** huggingface.co open gezet door de
+gebruiker; modellen 5,5 GB. ~50 s per plaatje voorzichtig (sterkte 0,75,
+2x), ~140 s sterk (0,9, ControlNet 0,6, 3x). Eerste indruk van de
+architect: scènes (level 1, kaart, vuur) worden overtuigend materiaal
+(chroom, verfblikken, Mars-bodem, echte vlammen) met dezelfde vormen;
+voorzichtig blijft herkenbaar, sterk wijkt af (kleuren, de lamp, de deur).
+Sprites zijn het zwakke punt: voorzichtig wordt Keen een 3D-cartoonjongen
+(redelijk gelijk tussen de loopbeelden), sterk mislukt (grijs shirt,
+pixelresten); de randen van het masker blijven trapjes. Oordeel van de
+gebruiker volgt.
+
+**Volgende stap:** het oordeel van de gebruiker over de proef; daarna (als het mooi is) dezelfde
 tool met SDXL op de Mac. Ook nog: de Keen 2-5-bestanden voor de
 regressies en lampentabellen.
 
