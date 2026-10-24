@@ -46,6 +46,10 @@ static var flames := Kind.create(Color(1.0, 0.6, 0.25), 64.0, 0.75, Vector2(8, 6
 static var energy := Kind.create(Color(0.55, 0.75, 1.0), 56.0, 0.8, Vector2(8, 8))
 ## A small lamp on a pole.
 static var pole_lamp := Kind.create(Color(1.0, 0.95, 0.8), 40.0, 0.6, Vector2(8, 4))
+## A computer screen.
+static var screen := Kind.create(Color(0.85, 1.0, 0.7), 36.0, 0.45, Vector2(8, 8))
+## A small blinking indicator light.
+static var indicator := Kind.create(Color(1.0, 0.3, 0.25), 24.0, 0.5, Vector2(8, 8))
 ## A flying shot.
 static var shot_light := Kind.create(Color(1.0, 0.9, 0.7), 44.0, 1.0, Vector2(8, 4), 6.0)
 ## A shot hitting something.
@@ -76,14 +80,22 @@ func add(position: Vector2, kind: Kind) -> void:
 ## Adds the lights of the tiles of [param level] near the view: [param kinds]
 ## gives the kind of light of each tile number that has one.
 func add_tiles(level: LevelData, kinds: Dictionary[int, Kind]) -> void:
-	if level == null or kinds.is_empty():
+	if level != null:
+		add_tile_grid(Vector2i(level.width, level.height), level.tile_at, kinds)
+
+
+## Adds the lights of a grid of tiles of [param size] cells near the view;
+## [param tile_at] gives the tile number of a cell, [param kinds] the kind
+## of light of each tile number that has one.
+func add_tile_grid(size: Vector2i, tile_at: Callable, kinds: Dictionary[int, Kind]) -> void:
+	if kinds.is_empty():
 		return
 	var area := _view.grow(MARGIN)
 	var first := Vector2i((area.position / TILE_SIZE).floor()).max(Vector2i.ZERO)
-	var last := Vector2i((area.end / TILE_SIZE).ceil()).min(Vector2i(level.width, level.height))
+	var last := Vector2i((area.end / TILE_SIZE).ceil()).min(size)
 	for y in range(first.y, last.y):
 		for x in range(first.x, last.x):
-			var tile := level.tile_at(Vector2i(x, y))
+			var tile: int = tile_at.call(Vector2i(x, y))
 			if kinds.has(tile):
 				add(Vector2(x, y) * TILE_SIZE, kinds[tile])
 

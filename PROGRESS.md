@@ -229,9 +229,17 @@ allemaal niet. Ga hier niet mee verder". R6-R8 vervallen; de tool blijft
 alleen op `milestone-r5-ai-proef`. De realistische belichting (R2/R3)
 blijft.
 
-**Volgende stap:** de Keen 2-5-bestanden uploaden; dan de regressies, de
-sfeer en de lampentabellen van Keen 2-5. R4 (achtergronden) alleen als de
-gebruiker dat nog wil.
+**Keen 5 (24-10, bestanden v1.4 van de gebruiker).** Regressie tegen
+`main` met de optie uit: alle 17 beelden gelijk. Lampentabel
+`Keen5Lights` (op het oog uit de tile-vellen: EXIT-borden, computers,
+lampjes op de rails, vonken en bogen, knipperende rode lampjes, de rode
+wandlamp buiten); `GalaxyPlayScreen` leest beide lagen, ook op de kaart.
+Keen 2: alleen de graphics geüpload (EGAHEAD, EGALATCH, EGASPRIT); nog
+nodig: KEEN2.EXE en de LEVEL*.CK2. Keen 3 en 4 nog niet geüpload.
+
+**Volgende stap:** de rest van Keen 2 (en Keen 3, 4) uploaden; dan de
+regressies en de lampentabellen. Daarna kan `milestone-r3-realistisch-licht`
+naar `main`. R4 (achtergronden) alleen als de gebruiker dat nog wil.
 
 ## Achtergronden Keen 1 en 2: mijlpalen AB
 

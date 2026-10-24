@@ -350,3 +350,11 @@ func _give_everything() -> void:
 
 func _realistic_grade() -> RealisticGrade:
 	return RealisticGrade.keen5()
+
+
+func _realistic_light_tiles() -> Dictionary[int, RealisticLights.Kind]:
+	return Keen5Lights.foreground()
+
+
+func _realistic_back_light_tiles() -> Dictionary[int, RealisticLights.Kind]:
+	return Keen5Lights.background()

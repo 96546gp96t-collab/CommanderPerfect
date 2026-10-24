@@ -405,8 +405,12 @@ wish of 24-10).
   lights each pixel by how far it is from the lamp and how high the lamp
   hangs, and adds a faint halo in the air. A pixel that is bright already
   in one of its colours (the fire, the shot, a saturated red) gives light
-  rather than taking it, so it is lit less: the fire keeps its colours. Keen 2-5 have no tables of
-  lit tiles yet (their files were not here).
+  rather than taking it, so it is lit less: the fire keeps its colours. Keen 5's table is
+  `Keen5Lights` (both layers: exit signs, computers, the bulbs on the
+  rails, sparks and arcs, blinking red lights, the red lamps of the outer
+  wall; `GalaxyPlayScreen` reads the background and the foreground, also on
+  the world map). Keen 2-4 have no tables of lit tiles yet (their files
+  were not here, or not complete).
 - **No relief.** R3 first also gave every pixel a slope from the
   brightness around it (a bevel along every outline). The user found the
   dark edges this made along every object ugly (24-10); it was taken out.
