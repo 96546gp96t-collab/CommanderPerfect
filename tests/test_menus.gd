@@ -191,7 +191,7 @@ func test_options_change_the_settings() -> void:
 	_press(KEY_DOWN)
 	_press(KEY_ENTER)
 	assert_true(_menus.settings.display.realistic, "realistic on")
-	assert_true(_labels()[-2].ends_with("ON"), "the menu shows realistic")
+	assert_true(_labels()[-2].ends_with("REALISTIC"), "the menu shows the realistic lighting")
 	assert_true(_menus.settings.extra_levels, "extra levels on by default")
 	_press(KEY_DOWN)
 	_press(KEY_ENTER)

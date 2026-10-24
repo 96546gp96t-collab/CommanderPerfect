@@ -129,6 +129,7 @@ Keen 4 is een andere engine (Galaxy); de schatting per mijlpaal staat in
 | R1 Onderzoek | 24-10 | ~30 min | zoekagent ~5 min | In een cloud-sessie, zonder Godot en speldata: grafische code van alle vijf de spellen in kaart, bronnen over 2D-licht, normal maps en AI-modellen; vragen als keuzemenu |
 | R2 Optie en sfeer | 24-10 | ~40 min | | Door de architect zelf: optie in vijf menu's en F8, `RealisticLook` (bloom uit mipmaps, kleursfeer per spel, vignet, korrel), vangnet bij traagheid, meettool, testsuite met spelstand aan/uit; Keen 1-regressie gelijk; Keen 2-5 wachten op hun bestanden |
 | R3 Licht en reliëf | 24-10 | ~55 min | | Door de architect: reliëf uit het schermbeeld (geen normal maps), `RealisticLights` met Keen 1's lampen, vuur, borden en schoten, vangnet ook voor reliëf; plaatjes voor de gebruiker; Keen 2-5 wachten op hun bestanden |
+| R3-fix na de test | 24-10 | ~35 min | | Reliëf eruit (lelijke randen), vuur zwakker en felle kleuren minder belicht, schoten Keen 4-5, optie heet *Lighting*, meettool: elke meting opnieuw en in vaste stappen (de tweede stond op de kaart); gemeten op de Mac van de gebruiker: 1,5 → 3,7 ms |
 
 ## Keen 5 (mijlpalen E1-E13)
 

@@ -41,7 +41,7 @@ static var ceiling_lamp := Kind.create(Color(0.75, 0.85, 1.0), 72.0, 0.9, Vector
 ## A sign that glows, such as an exit.
 static var glowing_sign := Kind.create(Color(1.0, 0.35, 0.3), 40.0, 0.6, Vector2(8, 8))
 ## Fire and lava.
-static var flames := Kind.create(Color(1.0, 0.6, 0.25), 64.0, 1.0, Vector2(8, 6))
+static var flames := Kind.create(Color(1.0, 0.6, 0.25), 64.0, 0.75, Vector2(8, 6))
 ## Electricity, force fields and energy beams.
 static var energy := Kind.create(Color(0.55, 0.75, 1.0), 56.0, 0.8, Vector2(8, 8))
 ## A small lamp on a pole.
@@ -93,7 +93,13 @@ func add_shots(actors: Array[Actor]) -> void:
 	for actor in actors:
 		var flying := actor as RaygunShot
 		if flying != null:
-			add(flying.position, splash_light if flying.is_splashing else shot_light)
+			add_shot(flying.position, flying.is_splashing)
+
+
+## Adds the light of a shot whose sprite is at [param position]; brighter
+## where it [param hit] something.
+func add_shot(position: Vector2, hit: bool) -> void:
+	add(position, splash_light if hit else shot_light)
 
 
 ## The lights for the shader, nearest the middle of the view first: per

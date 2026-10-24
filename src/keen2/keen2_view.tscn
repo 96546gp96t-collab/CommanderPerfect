@@ -198,4 +198,4 @@ layout_mode = 2
 autowrap_mode = 3
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 4
-text = "Esc: back to the start screen    Arrows / WASD: walk    Ctrl / Z: jump    Alt / X: pogo    Space / C: fire    Shift+N / P: next / previous level    Shift+I: all items    Shift+G: god mode    F2: widescreen    F3: pixels    F4: full screen    F5: graphics    F6: smooth motion    F8: realistic    F1: show / hide this line"
+text = "Esc: back to the start screen    Arrows / WASD: walk    Ctrl / Z: jump    Alt / X: pogo    Space / C: fire    Shift+N / P: next / previous level    Shift+I: all items    Shift+G: god mode    F2: widescreen    F3: pixels    F4: full screen    F5: graphics    F6: smooth motion    F8: realistic lighting    F1: show / hide this line"

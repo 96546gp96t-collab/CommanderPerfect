@@ -394,15 +394,15 @@ the regression scripts) and are written down per milestone in `PROGRESS.md`.
   automatic fallback; frame times only in software rendering (the real
   numbers need the Mac and the Windows PC, `tools/measure_frames.gd`).
 
-- **R3 (branch `milestone-r3-realistisch-licht`)**: light and relief in
-  the same layer, without normal maps: slopes from the brightness of the
-  picture (a bevel along every outline, lit from the upper left) and up to
-  16 lights per view from lit tiles and shots (`RealisticLights`; Keen 1's
-  table in `Keen1Lights`). Deviation from §4: normals come from the
-  finished picture on the screen instead of per texture, so one shader
-  covers all five games and every kind of graphics (original, xBRZ, HD,
-  later the AI pack) without touching their drawing code. Shadows cast by
-  walls are not built (a later step if the look asks for it).
+- **R3 (branch `milestone-r3-realistisch-licht`)**: light in the same
+  layer: up to 16 lights per view from lit tiles and shots
+  (`RealisticLights`; Keen 1's table in `Keen1Lights`; Keen 4-5's shots).
+  The relief from the brightness of the picture was built and taken out
+  again after the user's test (ugly dark edges along objects). The user's
+  verdict (24-10): far from photorealistic; the fire and its light on what
+  is around it, and the shots, are nice; the fire a bit too bright (made
+  weaker). The option is called *Lighting* in the menus. Measured on the
+  user's Mac (M5): 1.5 ms per frame off, 3.7 ms on.
 
 ## Sources
 

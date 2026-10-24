@@ -85,6 +85,9 @@ const PAGE_KEYS: Dictionary[Key, int] = {KEY_PAGEUP: -TEXT_LINES, KEY_PAGEDOWN: 
 ## How the options menu names the graphics, in the order of
 ## [enum DisplaySettings.Graphics].
 const GRAPHICS_LABELS: Array[String] = ["ORIGINAL", "XBRZ", "HD"]
+## How the options menu names the lighting: the original's, or the
+## realistic lighting ([member DisplaySettings.realistic]).
+const LIGHTING_LABELS: Array[String] = ["ORIGINAL", "REALISTIC"]
 const FIRST_PRINTABLE := 32
 const LAST_PRINTABLE := 126
 
@@ -407,7 +410,7 @@ func _options_menu() -> Menu:
 		widescreen
 	)
 	menu.add("Graphics      " + GRAPHICS_LABELS[display.graphics], &"graphics")
-	menu.add("Realistic     " + _on_off(display.realistic), &"realistic")
+	menu.add("Lighting      " + LIGHTING_LABELS[int(display.realistic)], &"realistic")
 	if offers_extra_levels:
 		menu.add("Extra levels  " + _on_off(settings.extra_levels), &"extra_levels")
 	return menu
