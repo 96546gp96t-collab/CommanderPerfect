@@ -409,8 +409,11 @@ wish of 24-10).
   `Keen5Lights` (both layers: exit signs, computers, the bulbs on the
   rails, sparks and arcs, blinking red lights, the red lamps of the outer
   wall; `GalaxyPlayScreen` reads the background and the foreground, also on
-  the world map). Keen 2-4 have no tables of lit tiles yet (their files
-  were not here, or not complete).
+  the world map). Keen 2's is `Keen2Lights` (the blue
+  lamps, the hanging lamps, the exit sign, fire and torches, the electric
+  orbs and blue beams, and the glowing floor of level 12 as a weak `lava`
+  light, since it comes hundreds of tiles in a row). Keen 3 and 4 have no
+  tables of lit tiles yet (their files were not here).
 - **No relief.** R3 first also gave every pixel a slope from the
   brightness around it (a bevel along every outline). The user found the
   dark edges this made along every object ugly (24-10); it was taken out.

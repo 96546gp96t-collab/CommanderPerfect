@@ -445,3 +445,7 @@ static func _is_any_press(event: InputEvent) -> bool:
 
 func _realistic_grade() -> RealisticGrade:
 	return RealisticGrade.keen2()
+
+
+func _realistic_light_tiles() -> Dictionary[int, RealisticLights.Kind]:
+	return Keen2Lights.tiles()

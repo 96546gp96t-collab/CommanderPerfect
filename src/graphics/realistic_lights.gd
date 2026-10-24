@@ -46,6 +46,9 @@ static var flames := Kind.create(Color(1.0, 0.6, 0.25), 64.0, 0.75, Vector2(8, 6
 static var energy := Kind.create(Color(0.55, 0.75, 1.0), 56.0, 0.8, Vector2(8, 8))
 ## A small lamp on a pole.
 static var pole_lamp := Kind.create(Color(1.0, 0.95, 0.8), 40.0, 0.6, Vector2(8, 4))
+## A floor of lava or glowing tiles: weak, as it comes many tiles in a row,
+## whose lights add up.
+static var lava := Kind.create(Color(1.0, 0.55, 0.2), 48.0, 0.2, Vector2(8, 4))
 ## A computer screen.
 static var screen := Kind.create(Color(0.85, 1.0, 0.7), 36.0, 0.45, Vector2(8, 8))
 ## A small blinking indicator light.

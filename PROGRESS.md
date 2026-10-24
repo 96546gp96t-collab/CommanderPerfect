@@ -234,11 +234,17 @@ blijft.
 `Keen5Lights` (op het oog uit de tile-vellen: EXIT-borden, computers,
 lampjes op de rails, vonken en bogen, knipperende rode lampjes, de rode
 wandlamp buiten); `GalaxyPlayScreen` leest beide lagen, ook op de kaart.
-Keen 2: alleen de graphics geüpload (EGAHEAD, EGALATCH, EGASPRIT); nog
-nodig: KEEN2.EXE en de LEVEL*.CK2. Keen 3 en 4 nog niet geüpload.
+**Keen 2 (24-10, v1.31 van de gebruiker, zip).** Regressie tegen `main`
+met de optie uit: alle beelden gelijk (een eerste run verschilde op de
+kaart door trager laden, met andere Godot-processen ernaast; alleen
+herhaald: gelijk). Lampentabel `Keen2Lights`: blauwe lampen, hangende
+lampen, EXIT-bord, vuur en fakkels, elektrische bollen, blauwe zuilen, en
+de gloeiende vloer (241-244, honderden tiles in level 12) als zwak
+`lava`-licht. Tests met Keen 2 en 5: zelfde meldingen als `main`, één
+suite meer geslaagd. Keen 3 en 4 nog niet geüpload.
 
-**Volgende stap:** de rest van Keen 2 (en Keen 3, 4) uploaden; dan de
-regressies en de lampentabellen. Daarna kan `milestone-r3-realistisch-licht`
+**Volgende stap:** Keen 3 en 4 uploaden; dan hun regressies en
+lampentabellen. Daarna kan `milestone-r3-realistisch-licht`
 naar `main`. R4 (achtergronden) alleen als de gebruiker dat nog wil.
 
 ## Achtergronden Keen 1 en 2: mijlpalen AB
