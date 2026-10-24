@@ -134,6 +134,25 @@ en Keen 5 met twee spelers en online proberen (twee computers, of de host
 headless; Steam alleen daar). Daarna kan Keen 6 op het gedeelde spel
 (docs/new-episode-guide.md, "Keen 6 on the Galaxy game").
 
+## Realistische graphics voor alle spellen: mijlpalen R
+
+Branch `milestone-r1-realistisch-onderzoek` (vanaf `main`, 24-10). Wens van
+de gebruiker: alle spellen veel mooier, "foto realistisch", met een extra
+optie in het menu om het aan en uit te zetten; alles blijft werken zoals nu.
+Onderzoek en voorstel: [docs/realistic/research.md](docs/realistic/research.md).
+
+| # | Mijlpaal | Status |
+|---|---|---|
+| R1 | Onderzoek: grafische code van alle vijf de spellen, lagen (sfeer, licht, achtergronden, AI-graphics), modellen, menu-optie, mijlpalen | ✅ Klaar; vragen aan de gebruiker open |
+| R2 | De optie REALISTIC (F8) in alle vijf de spellen + sfeer (bloom, kleur, vignet) | ⬜ |
+| R3 | Licht en reliëf (normal maps, lichtbronnen per spel, schaduw) | ⬜ |
+| R4 | Realistische achtergronden (o.a. NASA-foto's van Mars voor Keen 1) | ⬜ |
+| R5 | AI-proef: ~10 plaatjes naast xBRZ (SDXL + ControlNet Tile) | ⬜ toestemming nodig voor de download |
+| R6-R8 | AI-graphics Keen 1-3, Keen 4-5, naast elkaar leggen | ⬜ |
+
+**Volgende stap:** de vragen van R1 (§9 van het onderzoek) beantwoorden;
+daarna R2 op een eigen branch.
+
 ## Achtergronden Keen 1 en 2: mijlpalen AB
 
 Branch `milestone-a-b-backgrounds` (vanaf `main`, 22-10). Onderzoek en plan:
@@ -3935,6 +3954,15 @@ Na de eerste eigen test van de gebruiker:
 - Tests in `test_online_menus.gd`: adressen in de setup, het hosting-venster ververst, `address_lines`, eigen wachtwoord typen en onthouden.
 
 ## Volgende stap
+
+Realistische graphics (R):
+
+1. **Voor de gebruiker:** de vier vragen van R1 beantwoorden
+   (`docs/realistic/research.md`, §9): hoe ver, eigen optie of vierde
+   waarde van Graphics, toestemming voor de AI-modellen, beginnen met R2 of
+   met de AI-proef.
+2. Daarna R2 (branch `milestone-r2-realistisch-optie`): de optie REALISTIC
+   en de sfeerlaag in alle vijf de spellen.
 
 Achtergronden Keen 1 en 2:
 

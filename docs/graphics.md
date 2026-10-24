@@ -366,6 +366,9 @@ level without a wall texture keeps its own background.
 
 ## Plan: HD with new details (parked)
 
+Picked up and widened on 24-10-2026 into a realistic mode for all five
+games: see [realistic/research.md](realistic/research.md).
+
 Real-ESRGAN only sharpens what is there; it cannot add details. For new
 details (texture in stone, shine on pipes, folds in Keen's clothes) a
 generative model is needed. The user parked this on 14-10-2026; the plan

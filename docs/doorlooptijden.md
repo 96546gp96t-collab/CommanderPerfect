@@ -122,6 +122,12 @@ Keen 4 is een andere engine (Galaxy); de schatting per mijlpaal staat in
 | Fix: Guard robot (Keen 2) kijkt achteruit | 22-10 | ~10 min | 10 min (16:35-16:45) | Frames 112-115/116-119 omgewisseld (namen in EGAHEAD.CK2 kloppen niet met de plaatjes); test, apps gebouwd |
 | **Totaal** | 22-10 | **~5 u 55** opgeteld | | De klok liep korter (~4 u 50) doordat AB2 en AB3 tegelijk liepen |
 
+## Realistische graphics (mijlpalen R)
+
+| Mijlpaal | Datum | Werktijd | Agent | Opmerking |
+|---|---|---|---|---|
+| R1 Onderzoek | 24-10 | ~30 min | zoekagent ~5 min | In een cloud-sessie, zonder Godot en speldata: grafische code van alle vijf de spellen in kaart, bronnen over 2D-licht, normal maps en AI-modellen; vragen als keuzemenu |
+
 ## Keen 5 (mijlpalen E1-E13)
 
 Keen 5 is dezelfde engine als Keen 4; de schatting per mijlpaal staat in
