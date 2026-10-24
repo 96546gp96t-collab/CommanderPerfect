@@ -143,15 +143,20 @@ Onderzoek en voorstel: [docs/realistic/research.md](docs/realistic/research.md).
 
 | # | Mijlpaal | Status |
 |---|---|---|
-| R1 | Onderzoek: grafische code van alle vijf de spellen, lagen (sfeer, licht, achtergronden, AI-graphics), modellen, menu-optie, mijlpalen | ✅ Klaar; vragen aan de gebruiker open |
+| R1 | Onderzoek: grafische code van alle vijf de spellen, lagen (sfeer, licht, achtergronden, AI-graphics), modellen, menu-optie, mijlpalen | ✅ Klaar; vragen beantwoord op 24-10-2026 |
 | R2 | De optie REALISTIC (F8) in alle vijf de spellen + sfeer (bloom, kleur, vignet) | ⬜ |
 | R3 | Licht en reliëf (normal maps, lichtbronnen per spel, schaduw) | ⬜ |
 | R4 | Realistische achtergronden (o.a. NASA-foto's van Mars voor Keen 1) | ⬜ |
-| R5 | AI-proef: ~10 plaatjes naast xBRZ (SDXL + ControlNet Tile) | ⬜ toestemming nodig voor de download |
+| R5 | AI-proef: ~10 plaatjes naast xBRZ (SDXL + ControlNet Tile) | ⬜ toestemming gegeven (24-10): SDXL, met de originele plaatjes als invoer |
 | R6-R8 | AI-graphics Keen 1-3, Keen 4-5, naast elkaar leggen | ⬜ |
 
-**Volgende stap:** de vragen van R1 (§9 van het onderzoek) beantwoorden;
-daarna R2 op een eigen branch.
+**Besluiten van de gebruiker (24-10-2026, R1):** realistisch belicht
+(vormen blijven, echte materialen, licht en sfeer; sprites niet volledig
+fotografisch); een eigen optie REALISTIC AAN/UIT (F8) in alle vijf de
+spellen; de SDXL-proef mag, maar met de **originele plaatjes** als invoer,
+niet xBRZ ("iets minder mooi"); eerst R2.
+
+**Volgende stap:** R2 op branch `milestone-r2-realistisch-optie`.
 
 ## Achtergronden Keen 1 en 2: mijlpalen AB
 
@@ -3957,12 +3962,11 @@ Na de eerste eigen test van de gebruiker:
 
 Realistische graphics (R):
 
-1. **Voor de gebruiker:** de vier vragen van R1 beantwoorden
-   (`docs/realistic/research.md`, §9): hoe ver, eigen optie of vierde
-   waarde van Graphics, toestemming voor de AI-modellen, beginnen met R2 of
-   met de AI-proef.
-2. Daarna R2 (branch `milestone-r2-realistisch-optie`): de optie REALISTIC
-   en de sfeerlaag in alle vijf de spellen.
+1. R2 (branch `milestone-r2-realistisch-optie`): de optie REALISTIC (F8)
+   en de sfeerlaag in alle vijf de spellen; vragen van R1 beantwoord op
+   24-10 (zie het blok "Realistische graphics" hierboven).
+2. Daarna R3 (licht), R4 (achtergronden) en de SDXL-proef R5 met de
+   originele plaatjes.
 
 Achtergronden Keen 1 en 2:
 

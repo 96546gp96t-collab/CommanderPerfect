@@ -233,8 +233,9 @@ Kontext as a second candidate in the trial only if SDXL falls short.
 
 - **Same as HD**: the player runs a tool on their own computer; the result
   lands next to the game files (`game_data/keenN/realistic/`, ignored by
-  git) and is never shared. The game reads it like `HdPack` and cuts the
-  transparency from the xBRZ mask, so outlines and holes stay exactly where
+  git) and is never shared. The game reads it like `HdPack` and takes the
+  transparency from the original mask (enlarged, softened; the user's
+  choice: original pictures as input, not xBRZ), so outlines and holes stay exactly where
   the game expects them (backdrop holes, masked tiles, Keen 2's lattice
   walls all keep working, because they are cut from whatever larger tile
   there is).
@@ -254,8 +255,8 @@ Kontext as a second candidate in the trial only if SDXL falls short.
 1. **Flicker in animations.** Every frame of Keen or a Yorp generated alone
    gets different details. Generate all frames of one animation side by
    side on one image, with a fixed seed, low denoise (~0.3-0.45) and one
-   "reference" frame (IP-Adapter); keep the original silhouette (the xBRZ
-   mask). This is the hardest part; the trial must show it works before
+   "reference" frame (IP-Adapter); keep the original silhouette (the
+   original mask). This is the hardest part; the trial must show it works before
    anything else is made.
 2. **Seams between tiles.** Generate each tile in the middle of its
    neighbours as they occur in the levels (or 3x3 copies of itself for
@@ -337,6 +338,22 @@ depend on the trial, plus the player's own compute time.
    into a folder git ignores) be downloaded for a trial on the Mac?
 4. Start with R2 (the option and atmosphere in all five games), or first the
    AI trial (R5)?
+
+### The user's answers (24-10-2026)
+
+1. **Realistically lit**: original shapes, real materials, light, shadow and
+   atmosphere; sprites stay readable (no fully photographic sprites).
+2. **A separate option REALISTIC ON/OFF** in the options of all five games,
+   with F8 in a level (§7).
+3. **Yes to an SDXL trial** (SDXL + ControlNet Tile, ~7 GB, into a folder git
+   ignores), **with the original pictures as input, not xBRZ** ("dat vond
+   ik toch iets minder mooi"). So the trial feeds the original tiles and
+   sprites, enlarged by whole pixels (nearest), to the model; the
+   transparency comes from the original mask enlarged the same way and
+   softened, not from xBRZ. This replaces "Base: the xBRZ images" of the
+   parked plan in `docs/graphics.md`.
+4. **R2 first** (the option and the atmosphere in all five games), then R3,
+   R4 and the AI trial R5.
 
 ## Sources
 
