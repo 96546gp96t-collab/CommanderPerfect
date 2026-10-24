@@ -14,11 +14,6 @@ var saturation := 1.0
 var contrast := 0.12
 var vignette := 0.18
 var grain := 0.012
-## How much the relief (light from [member light_direction] on the slopes
-## of the picture) changes it, and how steep its slopes are.
-var relief_strength := 0.5
-var relief_bump := 3.0
-var light_direction := Vector3(-0.45, -0.6, 0.66)
 ## How much a lamp brightens the air around it.
 var halo := 0.12
 

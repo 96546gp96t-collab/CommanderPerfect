@@ -9,7 +9,7 @@ original until the player switches them on:
 |---|---|---|
 | Graphics | F5 | `ORIGINAL`, `XBRZ`, `HD` (HD only once the player has made it) |
 | Smooth motion | F6 | `OFF`, `ON` |
-| Realistic | F8 | `OFF`, `ON` (all five games; below) |
+| Lighting | F8 | `ORIGINAL`, `REALISTIC` (all five games; below) |
 
 They are stored in `settings.cfg` (`graphics`, `smooth_motion`,
 `realistic`). Widescreen
@@ -388,31 +388,33 @@ R2 built the first layer, the atmosphere.
   with the look off and on (see its header); the cloud container renders in
   software, so the real numbers come from the Mac and the Windows PC.
 
-### Light and relief (R3)
+### Light (R3)
 
-The same layer also lights the picture (layer B of the research):
+The same layer also lights the picture (layer B of the research). In the
+menu the option is called *Lighting* (`ORIGINAL`, `REALISTIC`; the user's
+wish of 24-10).
 
-- **Relief.** Every pixel gets a slope from the brightness around it,
-  read one and a half game pixels apart from the screen copy's mipmaps
-  (`surface_normal`): bright is high, dark is low, so a dark outline is a
-  groove and what it holds stands out like a bevel. A light from the upper
-  left (`RealisticGrade.light_direction`) lights the slopes; a flat place
-  keeps its colour, and the relief never makes a pixel darker than 75 % or
-  brighter than 130 % of the original. It works on everything in the level
-  at once (tiles, sprites, the pictures behind the levels), in every game,
-  without normal maps.
 - **Lights.** Every frame `GameScreen._realistic_lights` collects the
   lights near each camera's view (`RealisticLights`): the tiles of the
   level that give light (each game's table, `_realistic_light_tiles`;
   Keen 1's in `Keen1Lights`: the blue lamps, the exit sign, fire, the
   electric orbs, the blue beams, the lamps on poles, picked by eye from the
-  tile sheet) and the shots (every `RaygunShot`, brighter when it hits). At
-  most 16, the nearest to the middle of the view; the shader lights each
-  surface by how it faces the light (its slope) and adds a faint halo in
-  the air. Galaxy (Keen 4-5) and Keen 2-3 have no tables yet (their files
-  were not here); their shots in Keen 2-3 already light.
-- **Slow computers.** The fallback leaves out the relief too.
-  `tools/measure_frames.gd` keeps the fallback off while it measures.
+  tile sheet) and the shots (every `RaygunShot`, brighter when it hits;
+  in Keen 4-5 `GalaxyPlayScreen` adds the stunner's and the creatures'
+  shots). At most 16, the nearest to the middle of the view; the shader
+  lights each pixel by how far it is from the lamp and how high the lamp
+  hangs, and adds a faint halo in the air. A pixel that is bright already
+  in one of its colours (the fire, the shot, a saturated red) gives light
+  rather than taking it, so it is lit less: the fire keeps its colours. Keen 2-5 have no tables of
+  lit tiles yet (their files were not here).
+- **No relief.** R3 first also gave every pixel a slope from the
+  brightness around it (a bevel along every outline). The user found the
+  dark edges this made along every object ugly (24-10); it was taken out.
+- `tools/measure_frames.gd` keeps the slow-computer fallback off while it
+  measures, starts the game anew for each measurement and moves it on by a
+  fixed 1/60 s per frame, so both measurements see the same game. On the
+  user's MacBook Air (M5, 2940x1846, Keen 1 level 5): 1.53 ms per frame
+  off, 3.70 ms on (99 % under 4.05 ms): 60 and 120 fps both pass.
 
 ## Still open
 

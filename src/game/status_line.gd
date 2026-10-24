@@ -23,7 +23,7 @@ static func picture_text(title: String, settings: DisplaySettings) -> String:
 				GRAPHICS_TITLES[settings.graphics].to_lower(),
 			]
 		)
-		+ (", realistic" if settings.realistic else "")
+		+ (", realistic lighting" if settings.realistic else "")
 	)
 
 

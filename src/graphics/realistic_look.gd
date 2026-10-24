@@ -2,8 +2,8 @@ class_name RealisticLook
 extends CanvasLayer
 ## The realistic look (option Realistic, F8; layers A and B of
 ## docs/realistic/research.md): a layer in a World viewport that draws the
-## picture of the level again through realistic_look.gdshader, with relief,
-## the light of lamps, fire and shots ([RealisticLights], from
+## picture of the level again through realistic_look.gdshader, with the
+## light of lamps, fire and shots ([RealisticLights], from
 ## [member lights_source] every frame), bloom, a colour grade
 ## ([RealisticGrade]), a vignette and film grain.
 ##
@@ -15,8 +15,8 @@ extends CanvasLayer
 ## It must never make the game stutter (docs/realistic/research.md §10):
 ## when the game runs slower than the screen (at most 60 frames per second)
 ## for [constant SLOW_SECONDS] seconds in a row while the look is shown, the
-## bloom and the relief, which cost the most, are left out for the rest of
-## the session ([member lighter]).
+## bloom, which costs the most, is left out for the rest of the session
+## ([member lighter]).
 
 ## Sent once when the look became lighter.
 signal made_lighter
@@ -43,7 +43,6 @@ static var may_get_lighter := true
 var lights_source := Callable()
 
 var _rect := ColorRect.new()
-var _relief_strength := 0.0
 var _second := 0.0
 var _slow_seconds := 0
 
@@ -82,9 +81,6 @@ func show_look(grade: RealisticGrade, view_size: Vector2i, render_scale: int) ->
 	material.set_shader_parameter("bloom_levels", 0 if lighter else BLOOM_LEVELS)
 	material.set_shader_parameter("shadow_tint", _rgb(grade.shadow_tint))
 	material.set_shader_parameter("highlight_tint", _rgb(grade.highlight_tint))
-	material.set_shader_parameter("light_direction", grade.light_direction)
-	_relief_strength = grade.relief_strength
-	material.set_shader_parameter("relief_strength", 0.0 if lighter else _relief_strength)
 	for parameter: String in [
 		"bloom_strength",
 		"bloom_threshold",
@@ -93,7 +89,6 @@ func show_look(grade: RealisticGrade, view_size: Vector2i, render_scale: int) ->
 		"contrast",
 		"vignette",
 		"grain",
-		"relief_bump",
 		"halo",
 	]:
 		material.set_shader_parameter(parameter, grade.get(parameter))
@@ -110,7 +105,6 @@ func _process(delta: float) -> void:
 	if lighter:
 		if _rect.material.get_shader_parameter("bloom_levels") != 0:
 			_rect.material.set_shader_parameter("bloom_levels", 0)
-			_rect.material.set_shader_parameter("relief_strength", 0.0)
 		return
 	_second += delta
 	if _second < 1.0 or not may_get_lighter:

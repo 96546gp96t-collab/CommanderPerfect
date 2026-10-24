@@ -354,6 +354,23 @@ func _apply_display_settings() -> void:
 	_apply_wide_view()
 
 
+## The lights of the realistic look near [param camera]'s view: the shots
+## of Keen's stunner (brighter where one hit) and of the creatures. The
+## lit tiles of Keen 4 and 5 follow when their tables are made.
+func _realistic_lights(camera: Camera2D) -> RealisticLights:
+	var world := _played_world()
+	if world == null or _mode != Mode.LEVEL:
+		return null
+	var lights := RealisticLights.create(_realistic_view(camera))
+	for object in world.objects:
+		var place := Vector2(object.position) / GalaxyUnits.PER_PIXEL
+		if object is GalaxyStunnerShot:
+			lights.add_shot(place, (object as GalaxyStunnerShot).spent)
+		elif object is GalaxyEnemyShot:
+			lights.add_shot(place, false)
+	return lights
+
+
 ## A map where Keen does not play: he stands, the keys look around.
 func _look_at(map: GalaxyMap) -> void:
 	_played = null

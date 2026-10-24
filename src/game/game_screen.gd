@@ -24,7 +24,7 @@ const MAX_RENDER_SCALE := 8
 const EVEN_PIXELS_SHADER := preload("res://src/graphics/even_pixels.gdshader")
 const GRAPHICS_TITLES := StatusLine.GRAPHICS_TITLES
 const MISSING_HD_MESSAGE := "No HD graphics yet: make them with tools/make_hd_graphics.sh"
-const LIGHTER_MESSAGE := "Realistic: no glow, this computer is too slow for it"
+const LIGHTER_MESSAGE := "Realistic lighting: no glow, this computer is too slow for it"
 
 var _mode := Mode.NONE
 var _graphics: EgaGraphics
@@ -142,7 +142,7 @@ func _handle_display_keys(event: InputEvent) -> bool:
 		_show_message("Smooth motion " + ("on" if _settings.smooth_motion else "off"))
 	elif event.is_action_pressed("toggle_realistic"):
 		_settings.realistic = not _settings.realistic
-		_show_message("Realistic " + ("on" if _settings.realistic else "off"))
+		_show_message("Realistic lighting " + ("on" if _settings.realistic else "off"))
 	elif event.is_action_pressed("toggle_help"):
 		_show_help = not _show_help
 		return true
@@ -391,13 +391,17 @@ func _realistic_grade() -> RealisticGrade:
 func _realistic_lights(camera: Camera2D) -> RealisticLights:
 	if _level == null or _mode in [Mode.NONE, Mode.TITLE, Mode.HIGH_SCORES]:
 		return null
-	var view_size := Vector2(_settings.game_size())
-	var view := Rect2(camera.get_screen_center_position() - view_size / 2.0, view_size)
-	var lights := RealisticLights.create(view)
+	var lights := RealisticLights.create(_realistic_view(camera))
 	lights.add_tiles(_level, _realistic_light_tiles())
 	if _mode == Mode.LEVEL and _session != null:
 		lights.add_shots(_session.actors)
 	return lights
+
+
+## What [param camera] shows, in level pixels.
+func _realistic_view(camera: Camera2D) -> Rect2:
+	var view_size := Vector2(_settings.game_size())
+	return Rect2(camera.get_screen_center_position() - view_size / 2.0, view_size)
 
 
 ## The tiles of this game that give light, by tile number; none by default.

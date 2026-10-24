@@ -206,10 +206,20 @@ zijn). Wens van de gebruiker: zien hoe het eruitziet (plaatjes gestuurd).
   de optie aan; gdlint schoon.
 - [x] Regressie Keen 1 tegen `main` (optie uit): alle beelden gelijk.
 - [x] Schermafbeeldingen: level 1, 2, 5 (lampen), 7, 11 (vuur), een schot.
-- [ ] Framerate op de Mac en de pc (software hier: 43 → 226 ms; geschat
-  1-2 ms op een Mac-GPU, ~5 ms op een zwakke Intel-GPU). Het vangnet zet
-  bij traagheid gloed en reliëf uit; de meettool zet het vangnet uit.
+- [x] Framerate op de Mac van de gebruiker (MacBook Air M5, 2940x1846,
+  level 5): 1,53 ms per beeld uit, 3,70 ms aan (99 % onder 4,05 ms): 60
+  en 120 fps gehaald. Windows-pc nog niet gemeten.
 - [ ] Muren die schaduw werpen: niet gebouwd (later, als het nodig is).
+
+**Test van de gebruiker (24-10, op de Mac).** "Nog lang niet realistisch";
+lelijke schaduw langs de randen van objecten (het reliëf); vuur en het
+licht ernaast mooi maar iets te fel; het schot mooi, alleen Keen 4 nog
+zonder. Meettool: de tweede meting stond op de wereldkaart. Opgelost:
+reliëf eruit, vuur zwakker en wat al fel is wordt minder belicht, schoten
+van Keen 4-5 geven licht, de meettool start het spel per meting opnieuw
+en laat het in vaste stappen lopen (god mode). De optie heet nu
+*Lighting: ORIGINAL / REALISTIC* (wens: "realistische belichting"; de
+menu's zijn Engels).
 
 **Volgende stap:** de Keen 2-5-bestanden uploaden; dan de regressies, de
 sfeer en de lampentabellen van Keen 2-5. Daarna R4 (achtergronden).
