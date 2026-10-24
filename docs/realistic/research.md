@@ -383,6 +383,17 @@ the regression scripts) and are written down per milestone in `PROGRESS.md`.
 | The AI trial looks bad | R6-R7 only start after the user approved the trial (R5) | The user's yes on the side-by-side pictures of R5 |
 | Player's compute time | The tool resumes after a stop, does one game at a time and says how long it will take | Measured in R5 on the Mac and written in the guide |
 
+## 11. What is built
+
+- **R2 (branch `milestone-r2-realistisch-optie`)**: the option Realistic
+  (F8, Options in all five games, `settings.cfg` key `realistic`) and the
+  atmosphere layer (bloom, colour grade per game, vignette, grain). How it
+  works: `docs/graphics.md`, "The realistic look (R2)". Checks of §10 done
+  in the cloud: option off = every Keen 1 regression picture equal to
+  `main`; the game state equal with it on (`test_realistic_look`); the
+  automatic fallback; frame times only in software rendering (the real
+  numbers need the Mac and the Windows PC, `tools/measure_frames.gd`).
+
 ## Sources
 
 - Godot 2D lights and shadows (normal and specular maps through

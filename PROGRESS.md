@@ -144,7 +144,7 @@ Onderzoek en voorstel: [docs/realistic/research.md](docs/realistic/research.md).
 | # | Mijlpaal | Status |
 |---|---|---|
 | R1 | Onderzoek: grafische code van alle vijf de spellen, lagen (sfeer, licht, achtergronden, AI-graphics), modellen, menu-optie, mijlpalen | ✅ Klaar; vragen beantwoord op 24-10-2026 |
-| R2 | De optie REALISTIC (F8) in alle vijf de spellen + sfeer (bloom, kleur, vignet) | ⬜ |
+| R2 | De optie REALISTIC (F8) in alle vijf de spellen + sfeer (bloom, kleur, vignet) | 🔶 Gebouwd (branch `milestone-r2-realistisch-optie`); Keen 2-5 nog naast `main` leggen met hun bestanden, framerate meten op de Mac en de pc |
 | R3 | Licht en reliëf (normal maps, lichtbronnen per spel, schaduw) | ⬜ |
 | R4 | Realistische achtergronden (o.a. NASA-foto's van Mars voor Keen 1) | ⬜ |
 | R5 | AI-proef: ~10 plaatjes naast xBRZ (SDXL + ControlNet Tile) | ⬜ toestemming gegeven (24-10): SDXL, met de originele plaatjes als invoer |
@@ -162,7 +162,36 @@ gelijk aan `main`, spelstand gelijk met de optie aan, minstens 60 fps op de
 Mac en de Windows-pc, geen flikkeren of naden, gemeten door tools);
 een mijlpaal is pas klaar als die controles slagen.
 
-**Volgende stap:** R2 op branch `milestone-r2-realistisch-optie`.
+**R2: wat er nu is (24-10).** Optie *Realistic* in Options van alle vijf
+de spellen en F8 (standaard uit, `realistic` in `settings.cfg`). Aan: een
+laag `RealisticLook` vóór de HUD in beide viewports, met
+`realistic_look.gdshader`: gloed op wat echt fel is (helderheid, niet het
+felste kanaal: anders gloeide de lichtrode kaart van Keen 1 helemaal door),
+te fel wordt wit zoals op een foto, een kleursfeer per spel
+(`RealisticGrade`; zwart en wit blijven neutraal), een lichte S-curve,
+vignet en fijne korrel. HUD, vensters, menu's en Galaxy's titels en fades
+blijven onaangeroerd (ze staan erna in `Ui`). Te traag (onder 90 % van het
+schermtempo, max 60, drie seconden achter elkaar): de gloed gaat uit voor
+de rest van de sessie, met één melding.
+
+- [x] Tests: 131 suites groen (41 overgeslagen zonder Keen 2-5), 0 fouten;
+  dezelfde 1001 SCRIPT ERRORs als `main` in deze container (Keen 2-5
+  ontbreken), gdlint schoon. Nieuw: `test_realistic_look` (standaard uit,
+  laag pas als hij aan staat, vóór de HUD, F8 onthouden, eigen sfeer per
+  spel, het vangnet, en Keen 1 level 1 speelt 600 beelden lang precies
+  gelijk met de optie aan); `test_menus` en `test_saving` uitgebreid.
+- [x] Regressie Keen 1 tegen `main` (optie uit): alle vijf beelden gelijk.
+- [x] Schermafbeeldingen (1920x1080): level 1, kaart, menu's, split-screen.
+- [ ] Keen 2-5 naast `main` leggen (`tools/keen2_regression.sh` ...) en de
+  sfeer per spel bekijken: wacht op de bestanden van de gebruiker.
+- [ ] Framerate: `tools/measure_frames.gd` op de Mac en de Windows-pc (de
+  cloud rendert in software: daar 53 ms → 158 ms per beeld, niet
+  representatief). Een bloom-sample per niveau in plaats van vier: even
+  mooi, ~2x goedkoper.
+- Apps niet gebouwd (kan alleen op de Mac).
+
+**Volgende stap:** de Keen 2-5-bestanden uploaden; dan de regressies en de
+sfeer van Keen 2-5 nakijken. Daarna R3 (licht en reliëf).
 
 ## Achtergronden Keen 1 en 2: mijlpalen AB
 
@@ -3968,9 +3997,12 @@ Na de eerste eigen test van de gebruiker:
 
 Realistische graphics (R):
 
-1. R2 (branch `milestone-r2-realistisch-optie`): de optie REALISTIC (F8)
-   en de sfeerlaag in alle vijf de spellen; vragen van R1 beantwoord op
-   24-10 (zie het blok "Realistische graphics" hierboven).
+1. **Voor de gebruiker:** de bestanden van Keen 2-5 uploaden (Keen 2
+   v1.31, Keen 3 v1.00, Keen 4 v1.0/1.4, Keen 5 v1.4), zodat R2 ook daar
+   naast `main` gelegd kan worden. Op de Mac: bouwen vanaf
+   `milestone-r2-realistisch-optie`, F8 in elk spel proberen, en meten:
+   `godot --path . --script res://tools/measure_frames.gd -- --level=1`
+   (en met `SCENE=res://src/keen4/keen4_view.tscn`, `SMOOTH=1`, `TWO=1`).
 2. Daarna R3 (licht), R4 (achtergronden) en de SDXL-proef R5 met de
    originele plaatjes.
 

@@ -4,7 +4,8 @@ extends Control
 ## viewport stretched over the window with every game pixel the same size
 ## ([DisplaySettings]), the graphics (original, xBRZ or HD), full screen or
 ## a window, the camera's limits, the status line and the [Hud], short
-## messages and the [GameWindow]. The keys F1-F6 change how it looks. In
+## messages and the [GameWindow]. The keys F1-F6 and F8 change how it
+## looks; F8 is the realistic look ([RealisticLook]). In
 ## widescreen a level with a picture of its own shows it behind it
 ## ([LevelBackdrop]), when the option is on; in Keen 1 and 2 also a wall
 ## fixed to the level ([LevelWalls], [LevelWall]).
@@ -23,6 +24,7 @@ const MAX_RENDER_SCALE := 8
 const EVEN_PIXELS_SHADER := preload("res://src/graphics/even_pixels.gdshader")
 const GRAPHICS_TITLES := StatusLine.GRAPHICS_TITLES
 const MISSING_HD_MESSAGE := "No HD graphics yet: make them with tools/make_hd_graphics.sh"
+const LIGHTER_MESSAGE := "Realistic: no glow, this computer is too slow for it"
 
 var _mode := Mode.NONE
 var _graphics: EgaGraphics
@@ -71,6 +73,9 @@ var _finale_image: Image
 var _show_help := false
 ## Whether this player is in someone else's online game.
 var _joined_online := false
+## The realistic look of the World and World2 viewports; made the first time
+## the option is on.
+var _realistic_looks: Array[RealisticLook] = []
 
 @onready var _screen: TextureRect = %Screen
 @onready var _world: SubViewport = %World
@@ -113,9 +118,9 @@ func _own_view() -> Rect2:
 	return Rect2(_camera.get_screen_center_position() - view_size / 2.0, view_size)
 
 
-## F1-F6: the help line, widescreen, the shape of the pixels, full screen,
-## the graphics and smooth motion. Returns whether [param event] was one of
-## them.
+## F1-F6 and F8: the help line, widescreen, the shape of the pixels, full
+## screen, the graphics, smooth motion and the realistic look. Returns
+## whether [param event] was one of them.
 func _handle_display_keys(event: InputEvent) -> bool:
 	if event.is_action_pressed("toggle_fullscreen"):
 		_user_settings.fullscreen = not _is_fullscreen()
@@ -135,6 +140,9 @@ func _handle_display_keys(event: InputEvent) -> bool:
 	elif event.is_action_pressed("toggle_smooth_motion"):
 		_settings.smooth_motion = not _settings.smooth_motion
 		_show_message("Smooth motion " + ("on" if _settings.smooth_motion else "off"))
+	elif event.is_action_pressed("toggle_realistic"):
+		_settings.realistic = not _settings.realistic
+		_show_message("Realistic " + ("on" if _settings.realistic else "off"))
 	elif event.is_action_pressed("toggle_help"):
 		_show_help = not _show_help
 		return true
@@ -350,6 +358,29 @@ func _fit_screen() -> void:
 	var smooth_textures := _textures != null and _textures.scaled != null
 	for viewport: SubViewport in [_world, _world_2]:
 		DisplaySettings.set_up_viewport(viewport, game_size, render_scale, smooth_textures)
+	_apply_realistic(render_scale)
+
+
+## Shows or hides the realistic look in both viewports, as the settings say.
+func _apply_realistic(render_scale: int) -> void:
+	if not _settings.realistic:
+		for look in _realistic_looks:
+			look.hide_look()
+		return
+	if _realistic_looks.is_empty():
+		_realistic_looks = [
+			RealisticLook.add_to(_world, _world.get_node_or_null(^"Ui")),
+			RealisticLook.add_to(_world_2),
+		]
+		_realistic_looks[0].made_lighter.connect(_show_message.bind(LIGHTER_MESSAGE))
+	var grade := _realistic_grade()
+	for look in _realistic_looks:
+		look.show_look(grade, _settings.game_size(), render_scale)
+
+
+## The colours of the realistic look in this game; each game has its own.
+func _realistic_grade() -> RealisticGrade:
+	return RealisticGrade.neutral()
 
 
 func _show_message(text: String) -> void:

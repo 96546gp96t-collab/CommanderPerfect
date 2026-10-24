@@ -136,6 +136,8 @@ func test_settings_survive_a_round_trip() -> void:
 	settings.fullscreen = false
 	settings.display.graphics = DisplaySettings.Graphics.XBRZ
 	settings.display.smooth_motion = true
+	assert_true(not settings.display.realistic, "realistic off by default")
+	settings.display.realistic = true
 	KeyBindings.bind("pogo", KEY_P)
 	assert_true(settings.save(), "saved")
 	KeyBindings.reset()
@@ -146,6 +148,7 @@ func test_settings_survive_a_round_trip() -> void:
 	assert_true(not loaded.fullscreen, "in a window")
 	assert_equal(loaded.display.graphics, DisplaySettings.Graphics.XBRZ, "graphics")
 	assert_true(loaded.display.smooth_motion, "smooth motion")
+	assert_true(loaded.display.realistic, "realistic")
 	assert_equal(KeyBindings.keys_of("pogo")[0], KEY_P, "keys")
 	KeyBindings.reset()
 

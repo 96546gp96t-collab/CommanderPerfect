@@ -44,7 +44,7 @@ the spinning ball of the font (characters 9-15) as the cursor.
 | Story | `STORYTXT.CK1`; up/down and Page Up/Page Down scroll |
 | High Scores | The table |
 | Controls | Three sets of keys: "One player", and "Two players: player 1" and "player 2". Pick an action, then press its new key. The new key replaces the first key of the action; a key belongs to one action only among the keys used at the same time (one player's keys and two players' keys may overlap; Status is in both). Left and right Shift, Alt and Ctrl count as different keys. Escape and F1-F7 cannot be used. "Reset to defaults" puts all keys back |
-| Options | Sound, widescreen, 4:3 pixels, full screen and smooth motion on or off; backgrounds (widescreen only); graphics original, xBRZ or HD (HD only once the player has made it, see [graphics.md](graphics.md)); extra levels (the ship as a level of its own and playing the pogo level again, see [world-map.md](world-map.md); on by default) |
+| Options | Sound, widescreen, 4:3 pixels, full screen and smooth motion on or off; backgrounds (widescreen only); graphics original, xBRZ or HD (HD only once the player has made it, see [graphics.md](graphics.md)); realistic on or off (F8, off by default, see [graphics.md](graphics.md)); extra levels (the ship as a level of its own and playing the pogo level again, see [world-map.md](world-map.md); on by default) |
 | Quit to Title | Only during a game: back to the Keen 1 title |
 | Choose Game | Back to the start screen, to choose another game |
 | Quit | Closes the program |
@@ -81,7 +81,7 @@ Everything is kept in the user folder of Godot; on the Mac that is
 
 | File | Contents |
 |---|---|
-| `settings.cfg` | Full screen, widescreen, 4:3 pixels, graphics, smooth motion, sound, the keys, and for playing online your name and the last address you joined |
+| `settings.cfg` | Full screen, widescreen, 4:3 pixels, graphics, smooth motion, realistic, sound, the keys, and for playing online your name and the last address you joined |
 | `saves/slotN.json` | Saved game N: score, lives, raygun charges, pogo stick, ship parts, completed levels and Keen's place on the map |
 | `high_scores.json` | The high score table |
 
@@ -92,8 +92,9 @@ original.
 
 - The original has Escape for "Quit (Y/N)?", F1 for help, F2 for sound, F3
   and F4 for the keyboard and the joystick and F5 for saving. Here Escape
-  opens the menu, which has all of that; F1-F6 have their own jobs (help
-  line, widescreen, pixels, full screen, graphics, smooth motion).
+  opens the menu, which has all of that; F1-F6 and F8 have their own jobs
+  (help line, widescreen, pixels, full screen, graphics, smooth motion, the
+  realistic look).
 - The help text (`HELPTEXT.CK1`) is not shown, because it describes the keys
   of the original.
 - Not included: the demo, "About ID...", "Ordering Info" and "Previews!".

@@ -407,6 +407,7 @@ func _options_menu() -> Menu:
 		widescreen
 	)
 	menu.add("Graphics      " + GRAPHICS_LABELS[display.graphics], &"graphics")
+	menu.add("Realistic     " + _on_off(display.realistic), &"realistic")
 	if offers_extra_levels:
 		menu.add("Extra levels  " + _on_off(settings.extra_levels), &"extra_levels")
 	return menu
@@ -444,6 +445,8 @@ func _toggle_option(id: StringName) -> void:
 			display.backgrounds = not display.backgrounds
 		&"graphics":
 			display.graphics = next_graphics(display.graphics, hd_available)
+		&"realistic":
+			display.realistic = not display.realistic
 		&"extra_levels":
 			settings.extra_levels = not settings.extra_levels
 	settings.save()

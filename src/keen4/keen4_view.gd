@@ -326,3 +326,7 @@ static func _requested_map() -> int:
 		if argument.begins_with(GameLaunch.LEVEL_OPTION):
 			return argument.trim_prefix(GameLaunch.LEVEL_OPTION).to_int()
 	return -1
+
+
+func _realistic_grade() -> RealisticGrade:
+	return RealisticGrade.keen4()
