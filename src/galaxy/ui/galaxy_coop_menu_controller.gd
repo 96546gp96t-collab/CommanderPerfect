@@ -4,8 +4,10 @@ extends GalaxyMenuController
 ## D12; docs/keen4/gameplay.md, "Two players"), on top of
 ## [GalaxyMenuController]. The original's cards stay as they were; the
 ## Configure card gets two choices at its end:
-##   - TWO PLAYERS: a card with Add (Remove) Player 2 (in a game), and the
-##     keys of player 1 and of player 2 when two play;
+##   - TWO PLAYERS: a card with Add (Remove) Player 2 (in a game), the
+##     keys of player 1 and of player 2 when two play, and the controller
+##     of each ([PlayerControllers]: pick one, then press a button on it;
+##     or both automatic);
 ##   - ONLINE GAME: the shared online pages of [MenuController] (hosting,
 ##     joining by IP or Steam, the name), drawn by [GalaxyOnlinePageView].
 ## A player who joined somebody's game gets a main card of his own: Return
@@ -19,6 +21,10 @@ const ONLINE_LABEL := "ONLINE GAME"
 const ADD_LABEL := "ADD PLAYER 2"
 const REMOVE_LABEL := "REMOVE PLAYER 2"
 const KEYS_LABEL := "PLAYER %d KEYS"
+const PAD_LABEL := "PLAYER %d PAD"
+const AUTOMATIC_PADS_LABEL := "BOTH PADS AUTO"
+## Longest text in a controller's box.
+const PAD_BOX_LENGTH := 9
 const LEAVE_LABEL := "LEAVE GAME"
 ## The menus drawn as online pages rather than as cards of the watch.
 const ONLINE_KINDS: Array[StringName] = [ONLINE, HOST_SETUP, HOSTING, STEAM_GAMES, TEXT]
@@ -77,6 +83,8 @@ func _pick(menu: Menu, item: Menu.Item) -> void:
 		KEY_SET:
 			_key_set = item.value
 			_push(GalaxyMenuPages.keys(_key_set))
+		PLAYER_PAD, AUTOMATIC_PADS:
+			_pick_controller(item)
 
 
 func _pick_main(id: StringName) -> void:
@@ -116,5 +124,15 @@ func _two_players_card() -> Menu:
 	menu.add(REMOVE_LABEL if two_players else ADD_LABEL, PARTNER, 0, offers_partner)
 	for player in KeyBindings.PLAYER_ACTIONS.size():
 		menu.add(KEYS_LABEL % (player + 1), KEY_SET, player + 1)
+	for player in PlayerControllers.PLAYER_COUNT:
+		var label := (GAP if player == 0 else "") + PAD_LABEL % (player + 1)
+		var pad := PlayerControllers.describe_short(player, PAD_BOX_LENGTH)
+		menu.add(label + VALUE_SEPARATOR + pad, PLAYER_PAD, player)
+	menu.add(AUTOMATIC_PADS_LABEL, AUTOMATIC_PADS)
 	menu.cursor = 0 if offers_partner else 1
 	return menu
+
+
+func _rebuild_controllers_menu() -> void:
+	if is_open() and top().kind == TWO_PLAYERS:
+		_replace_top(_two_players_card())

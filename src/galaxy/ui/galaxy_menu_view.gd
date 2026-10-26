@@ -17,8 +17,9 @@ extends RefCounted
 ##     (Omni us_menu_itemChecked*: the icons after the normal ones);
 ##   - Paddle War through [GalaxyPaddleWarView];
 ##   - ours (D12): a card without a title picture shows its first line as
-##     its title; the online pages through [GalaxyOnlinePageView], over
-##     the wrist watch (D13.2).
+##     its title (the Two Players card, the Buttons cards; their boxes wait
+##     for a button as the key boxes wait for a key); the online pages through
+##     [GalaxyOnlinePageView], over the wrist watch (D13.2).
 ## The colours were checked against the original (v1.0) pixel for pixel.
 
 ## EGA colours of the panel (seen in v1.0).
@@ -130,7 +131,7 @@ func draw(menus: GalaxyMenuController) -> Image:
 			if below != null:
 				_card(below, menus, menus.depth() - 1)
 			_dialog(menu.header)
-		MenuController.PRESS_KEY:
+		MenuController.PRESS_KEY, MenuController.PRESS_BUTTON, MenuController.NEW_BUTTON:
 			_card(menus.below(), menus, menus.depth() - 1)
 		_:
 			_card(menu, menus, menus.depth())
@@ -190,7 +191,10 @@ func _footer(menus: GalaxyMenuController, depth: int) -> void:
 func _rows(menu: Menu, menus: GalaxyMenuController, at: Vector2i) -> void:
 	var first := clampi(menu.cursor - MAX_ROWS + 1, 0, maxi(0, menu.items.size() - MAX_ROWS))
 	var y := at.y
-	var waiting := menus.top().kind == MenuController.PRESS_KEY
+	var waiting := (
+		menus.top().kind
+		in [MenuController.PRESS_KEY, MenuController.PRESS_BUTTON, MenuController.NEW_BUTTON]
+	)
 	for index in range(first, mini(menu.items.size(), first + MAX_ROWS)):
 		var item := menu.items[index]
 		var label := item.label

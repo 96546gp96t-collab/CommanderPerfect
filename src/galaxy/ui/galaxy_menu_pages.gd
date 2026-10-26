@@ -3,7 +3,8 @@ extends RefCounted
 ## The cards of a Galaxy control panel as lists of choices (Omni
 ## `ck_us_2.c`: the US_CardItem tables; facts only, and seen in Keen 4
 ## v1.0), for [GalaxyMenuController]: the main card, New Game, the save
-## slots, Configure, Sound and Music, the keys and the options.
+## slots, Configure, Sound and Music, the keys, the controller buttons
+## (ours) and the options.
 
 ## The main card's choices, in the original's order.
 const MAIN_LABELS: PackedStringArray = [
@@ -32,6 +33,10 @@ const MUSIC_LABELS: PackedStringArray = ["NO MUSIC", "ADLIB/SOUNDBLASTER"]
 const RADIO := &"radio"
 ## Between the keys of an action in [method KeyBindings.describe].
 const KEY_NAME_SEPARATOR := ", "
+## Ours: the row at the end of a keys card that leads to the controller
+## buttons of the same set, and the title of that card.
+const BUTTONS_LABEL := "BUTTONS"
+const BUTTONS_TITLES: PackedStringArray = ["BUTTONS", "PLAYER 1 BUTTONS", "PLAYER 2 BUTTONS"]
 
 
 ## The main card; Save Game and End Game only in a game.
@@ -110,6 +115,22 @@ static func keys(key_set := 0) -> Menu:
 		# The original's box holds one key: the first (the one that changes).
 		var key_name := KeyBindings.describe(action).get_slice(KEY_NAME_SEPARATOR, 0).capitalize()
 		menu.add(label + GalaxyMenuController.VALUE_SEPARATOR + key_name, StringName(action))
+	menu.add(BUTTONS_LABEL, MenuController.BUTTON_SET, maxi(0, key_set))
+	return menu
+
+
+## Ours: the controller buttons of one set (0 playing alone, 1 or 2 a
+## player of two), each action with its first button in a box, as the keys
+## have; a card without a title picture, so its title is its first line.
+static func buttons(button_set: int) -> Menu:
+	var menu := Menu.create(MenuController.BUTTON_SET, [BUTTONS_TITLES[button_set]])
+	var actions: Dictionary = (
+		KeyBindings.ACTIONS if button_set == 0 else KeyBindings.PLAYER_ACTIONS[button_set - 1]
+	)
+	for action: String in actions:
+		var label: String = actions[action].to_upper()
+		var button_name := ButtonBindings.describe(action).get_slice(KEY_NAME_SEPARATOR, 0)
+		menu.add(label + GalaxyMenuController.VALUE_SEPARATOR + button_name, StringName(action))
 	return menu
 
 

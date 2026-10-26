@@ -1,8 +1,10 @@
 class_name MenuController
 extends Node
 ## The menus of the game, shown in the [GameWindow]: the main menu, the save
-## slots, the controls, the options, the story, short messages and asking
-## for a name for the high score table. Menus stack: Escape goes back one.
+## slots, the controls (the keys, the controller buttons, and the
+## controllers of two players), the
+## options, the story, short messages and asking for a name for the high
+## score table. Menus stack: Escape goes back one.
 ##
 ## For playing online ([member online]): hosting or joining by IP or through
 ## Steam, typing a name, an address or a password, and leaving again. What
@@ -59,6 +61,19 @@ const OVERWRITE := &"overwrite"
 const CONTROLS := &"controls"
 const KEY_SET := &"key_set"
 const PRESS_KEY := &"press_key"
+## Which controller each of two players uses ([PlayerControllers]), and
+## waiting for a button on the controller of one of them.
+const CONTROLLERS := &"controllers"
+const PRESS_BUTTON := &"press_button"
+## Choices of the controllers menu: a player (value 0 or 1), or both
+## automatic.
+const PLAYER_PAD := &"player_pad"
+const AUTOMATIC_PADS := &"automatic_pads"
+## The controller buttons of one set (the row at the end of each key set
+## menu leads there; value: the set as for the keys), and waiting for a new
+## button for one action.
+const BUTTON_SET := &"button_set"
+const NEW_BUTTON := &"new_button"
 const OPTIONS := &"options"
 const STORY := &"story"
 const MESSAGE := &"message"
@@ -123,6 +138,10 @@ var _pending_action := ""
 ## The set of keys shown in the key set menu: 0 for one player, 1 and 2 for
 ## the players when two play.
 var _key_set := 0
+## The player (0 or 1) waiting for a button on his controller.
+var _pending_player := 0
+## The set of buttons shown in the button set menu, as [member _key_set].
+var _button_set := 0
 var _typed_name := ""
 var _place_word := ""
 ## Online: the kind of host being set up, the text being typed and what it
@@ -132,6 +151,10 @@ var _typed_text := ""
 var _text_purpose := &""
 var _after_name := &""
 var _steam_pick := 0
+
+
+func _init() -> void:
+	Input.joy_connection_changed.connect(_on_joy_connection_changed)
 
 
 func is_open() -> bool:
@@ -206,6 +229,10 @@ func handle_input(event: InputEvent) -> void:
 	match _top().kind:
 		PRESS_KEY:
 			_handle_new_key(event)
+		PRESS_BUTTON:
+			_handle_new_button(event)
+		NEW_BUTTON:
+			_handle_new_pad_button(event)
 		NAME:
 			_handle_name_key(event)
 		TEXT:
@@ -267,7 +294,16 @@ func _pick(menu: Menu, item: Menu.Item) -> void:
 		CONTROLS:
 			_pick_key_set(item)
 		KEY_SET:
-			_pick_control(item.id)
+			if item.id == BUTTON_SET:
+				_button_set = item.value
+				_push(_button_set_menu())
+			else:
+				_pick_control(item.id)
+		BUTTON_SET:
+			_pending_action = String(item.id)
+			_push(ControlsPages.button_prompt(_pending_action))
+		CONTROLLERS:
+			_pick_controller(item)
 		OPTIONS:
 			_toggle_option(item.id)
 		ONLINE:
@@ -290,7 +326,7 @@ func _pick_main(id: StringName) -> void:
 			_story_offset = 0
 			_push(Menu.create(STORY))
 		CONTROLS:
-			_push(_controls_menu())
+			_push(ControlsPages.controls())
 		OPTIONS:
 			_push(_options_menu())
 		ONLINE:
@@ -317,21 +353,15 @@ func _slots_menu(kind: StringName, header: PackedStringArray) -> Menu:
 	return menu
 
 
-## The keys for playing alone, and for each of two players.
-func _controls_menu() -> Menu:
-	var menu := Menu.create(CONTROLS, ["  CONTROLS"])
-	menu.add("One player", KEY_SET, 0)
-	menu.add("Two players: player 1", KEY_SET, 1)
-	menu.add("Two players: player 2", KEY_SET, 2)
-	menu.add("Reset to defaults", &"reset")
-	return menu
-
-
 func _pick_key_set(item: Menu.Item) -> void:
+	if item.id == CONTROLLERS:
+		_push(_controllers_menu())
+		return
 	if item.id == &"reset":
 		KeyBindings.reset()
+		ButtonBindings.reset()
 		settings.save()
-		show_message(["All keys are back as", "they were.  Press a key"])
+		show_message(["All keys and buttons are", "back as they were.", "   Press a key"])
 		return
 	_key_set = item.value
 	_push(_key_set_menu())
@@ -339,30 +369,21 @@ func _pick_key_set(item: Menu.Item) -> void:
 
 ## The keys of one set (see [member _key_set]); pick one to change it.
 func _key_set_menu() -> Menu:
-	var title := "  ONE PLAYER" if _key_set == 0 else "  PLAYER %d OF TWO" % _key_set
-	var menu := Menu.create(KEY_SET, [title, "  Pick one to change it"])
-	var actions: Dictionary = (
-		KeyBindings.ACTIONS if _key_set == 0 else KeyBindings.PLAYER_ACTIONS[_key_set - 1]
-	)
-	for action: String in actions:
-		menu.add("%-7s %s" % [actions[action], KeyBindings.describe(action)], StringName(action))
-	return menu
+	return ControlsPages.key_set(_key_set)
+
+
+## The controller buttons of one set (see [member _button_set]).
+func _button_set_menu() -> Menu:
+	return ControlsPages.button_set(_button_set)
+
+
+func _controllers_menu() -> Menu:
+	return ControlsPages.controllers()
 
 
 func _pick_control(id: StringName) -> void:
 	_pending_action = String(id)
-	_push(
-		(
-			Menu
-			. create(
-				PRESS_KEY,
-				[
-					"Press the new key for",
-					"%s, or Escape." % KeyBindings.action_name(_pending_action).to_upper(),
-				]
-			)
-		)
-	)
+	_push(ControlsPages.key_prompt(_pending_action))
 
 
 func _handle_new_key(event: InputEvent) -> void:
@@ -379,6 +400,68 @@ func _handle_new_key(event: InputEvent) -> void:
 	settings.save()
 	_pop()
 	_refresh_controls()
+
+
+## A button or a trigger of any controller becomes the pending action's;
+## Back or Escape leaves it as it was. The game's own buttons (skipping
+## levels) are not taken.
+func _handle_new_pad_button(event: InputEvent) -> void:
+	if event.is_echo():
+		return
+	var key := event as InputEventKey
+	if (key != null and key.physical_keycode == KEY_ESCAPE) or event.is_action_pressed("menu"):
+		_pop()
+		return
+	var code := ButtonBindings.code_of(event)
+	if not ButtonBindings.can_bind(code):
+		return
+	ButtonBindings.bind(_pending_action, code)
+	settings.save()
+	_pop()
+	if is_open() and _top().kind == BUTTON_SET:
+		_replace_top(_button_set_menu())
+
+
+func _pick_controller(item: Menu.Item) -> void:
+	if item.id == AUTOMATIC_PADS:
+		PlayerControllers.reset()
+		_refresh_controllers()
+		return
+	_pending_player = item.value
+	_push(ControlsPages.controller_prompt(_pending_player))
+
+
+## Any button of a controller makes it the pending player's; Escape (on
+## the keyboard: the controller's own buttons all count) leaves it.
+func _handle_new_button(event: InputEvent) -> void:
+	if event.is_echo():
+		return
+	var key := event as InputEventKey
+	if key != null and key.physical_keycode == KEY_ESCAPE:
+		_pop()
+		return
+	var button := event as InputEventJoypadButton
+	if button == null:
+		return
+	PlayerControllers.choose(_pending_player, button.device)
+	_pop()
+	_refresh_controllers()
+
+
+## Stores the new controllers and shows them.
+func _refresh_controllers() -> void:
+	settings.save()
+	_rebuild_controllers_menu()
+
+
+## Rebuilds the menu that shows the controllers when it is on the screen.
+func _rebuild_controllers_menu() -> void:
+	if is_open() and _top().kind == CONTROLLERS:
+		_replace_top(_controllers_menu())
+
+
+func _on_joy_connection_changed(_device: int, _connected: bool) -> void:
+	_rebuild_controllers_menu()
 
 
 ## Rebuilds the menu of the key set so that it shows the new keys.
