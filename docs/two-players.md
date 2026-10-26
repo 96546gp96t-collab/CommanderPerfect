@@ -57,7 +57,35 @@ Ctrl is deliberately not used for two players: on a Mac, Ctrl + an arrow key
 switches desktops, which would happen when player 1 jumps while player 2
 walks.
 
-The controller still steers player 1 only.
+## Controllers
+
+Each of the two players can play with a game controller of his own (milestone
+`milestone-controller`, the user's wish of 26-10-2026), in every game: over
+USB or Bluetooth, Godot sees both the same way. `PlayerControllers` keeps
+the choice; it is stored in `settings.cfg` (`[controls] controllers`).
+
+- **Playing alone** every controller steers Keen, as before.
+- **When two play**, each player's actions (`p1_*`, `p2_*`) also take the
+  controller buttons and the stick of the matching action of playing alone
+  (d-pad or left stick to walk, A jump, B pogo, X fire), but only from that
+  player's own controller (Godot's device number on the input event). His
+  keys keep working next to it. Start (status) and Back (menu) are shared,
+  as Enter and Escape are.
+- **Automatic** (the default): player 1 gets the first connected
+  controller, player 2 the next one. With one controller, player 1 has it
+  and player 2 plays on the keyboard.
+- **Chosen**: in Controls > Controllers (Keen 1-3) or Configure > Two
+  Players (Keen 4 and 5: Player 1 Pad / Player 2 Pad, Both Pads Auto),
+  pick a player and press any button on his controller. A controller
+  belongs to one player only: choosing it for the other makes the first
+  automatic again. A chosen controller is remembered by its GUID (make and
+  model) and which of the connected ones of that kind it was, so two
+  controllers of the same kind stay apart. While it is not connected the
+  menu says "(OFF)" (Keen 4-5: "OFF") and that player has no controller.
+- Controllers that connect or disconnect while playing (Bluetooth) are
+  picked up straight away (`Input.joy_connection_changed`).
+- On the world map, where one Keen walks, every controller steers him, as
+  every key does.
 
 ## Keen 2 and Keen 3
 

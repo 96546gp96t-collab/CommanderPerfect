@@ -931,6 +931,9 @@ map, behind a box, while player 1 dies) from the next level on.
 Z (fire); player 2 the arrows, . (jump), / (pogo), Right Shift (fire).
 Enter (status) and Escape (panel) are shared. Each player's keys are on
 their own card (Configure > Two Players > Player 1 Keys / Player 2 Keys).
+The same card has each player's game controller after a gap (Player 1
+Pad / Player 2 Pad, with the controller in a box as the keys have; Both
+Pads Auto); see [../two-players.md](../two-players.md), "Controllers".
 
 | Question | Decision (D12) |
 |---|---|

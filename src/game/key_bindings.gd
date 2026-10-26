@@ -2,7 +2,8 @@ class_name KeyBindings
 extends RefCounted
 ## The keys for walking, jumping and so on, which the player can change in
 ## the Controls menu. Only keyboard keys are changed; the controller buttons
-## stay as they are.
+## stay as they are (which controller each of two players uses is
+## [PlayerControllers]'s).
 ##
 ## There are three sets of keys. Playing alone uses [constant ACTIONS]: the
 ## arrows or WASD, with the keys of the original. When two play on one
@@ -202,6 +203,8 @@ static func reset() -> void:
 		InputMap.action_erase_events(action)
 		for event: InputEvent in setting.events:
 			InputMap.action_add_event(action, event)
+	# The players' controller buttons were erased with the rest.
+	PlayerControllers.apply()
 
 
 ## The keys of every action, to store in the settings.

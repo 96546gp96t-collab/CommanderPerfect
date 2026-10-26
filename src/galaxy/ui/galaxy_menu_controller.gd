@@ -187,7 +187,10 @@ func is_checked(menu: Menu, index: int) -> bool:
 ## Whether F1 may open the help: on a card, not in a dialog, while a name
 ## or a key is typed, or in Paddle War (Omni: only US_RunCards takes F1).
 func allows_help() -> bool:
-	return is_open() and not _top().kind in [CONFIRM, MESSAGE, SLOT_NAME, PRESS_KEY, PADDLE_WAR]
+	return (
+		is_open()
+		and not _top().kind in [CONFIRM, MESSAGE, SLOT_NAME, PRESS_KEY, PRESS_BUTTON, PADDLE_WAR]
+	)
 
 
 ## The cursor's icon blinks with the game's clock.

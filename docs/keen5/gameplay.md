@@ -612,7 +612,8 @@ co-op and online (from E11)").
   own colours (a blue helmet); on the world map he comes in the next
   level. F7 again (or Remove Player 2) and he leaves.
 - **Keys**: each his own set (Configure > Two Players > Player 1 / 2 Keys,
-  with up and down); the screen splits as in Keen 1-4 when the Keens are
+  with up and down), and each his own game controller (Player 1 / 2 Pad on
+  the same card; [../two-players.md](../two-players.md), "Controllers"); the screen splits as in Keen 1-4 when the Keens are
   apart, each half with its own look up and down, the straight line in a
   small area (Keen 4's D13.2).
 - **A level**: player 2 is Keen 5's Keen (`Keen5Keen`) with the **shared

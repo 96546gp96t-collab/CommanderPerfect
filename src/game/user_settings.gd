@@ -2,7 +2,8 @@ class_name UserSettings
 extends RefCounted
 ## The settings the game remembers between sessions: full screen or a
 ## window, the shape and style of the picture ([DisplaySettings]), whether
-## sound is on, whether the extra levels are on, the keys ([KeyBindings]),
+## sound is on, whether the extra levels are on, the keys ([KeyBindings])
+## and the controllers of two players ([PlayerControllers]),
 ## and for playing online the player's name and the last address he joined.
 ## Stored in a ConfigFile in the user folder of Godot.
 
@@ -39,8 +40,9 @@ var host_password := ""
 
 
 ## The settings stored at [param file_path], with the defaults for whatever
-## is missing. Applies the stored keys to the input map.
+## is missing. Applies the stored keys and controllers to the input map.
 static func load_from(file_path := DEFAULT_PATH) -> UserSettings:
+	PlayerControllers.watch()
 	var settings := UserSettings.new()
 	settings.path = file_path
 	var config := ConfigFile.new()
@@ -78,11 +80,12 @@ static func load_from(file_path := DEFAULT_PATH) -> UserSettings:
 	var keys: Variant = config.get_value(CONTROLS, "keys", {})
 	if keys is Dictionary:
 		KeyBindings.apply_dict(keys)
+	PlayerControllers.apply_array(config.get_value(CONTROLS, "controllers", []))
 	return settings
 
 
-## Writes the settings, with the keys as they are now. Returns false (and
-## says why) when that fails.
+## Writes the settings, with the keys and controllers as they are now.
+## Returns false (and says why) when that fails.
 func save() -> bool:
 	var config := ConfigFile.new()
 	config.set_value(DISPLAY, "widescreen", display.aspect == DisplaySettings.Aspect.WIDESCREEN)
@@ -97,6 +100,7 @@ func save() -> bool:
 	config.set_value(SOUND, "music", music_enabled)
 	config.set_value(GAME, "extra_levels", extra_levels)
 	config.set_value(CONTROLS, "keys", KeyBindings.to_dict())
+	config.set_value(CONTROLS, "controllers", PlayerControllers.to_array())
 	config.set_value(ONLINE, "name", online_name)
 	config.set_value(ONLINE, "address", online_address)
 	config.set_value(ONLINE, "host_password", host_password)
