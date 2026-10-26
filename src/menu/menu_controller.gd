@@ -1,7 +1,8 @@
 class_name MenuController
 extends Node
 ## The menus of the game, shown in the [GameWindow]: the main menu, the save
-## slots, the controls (the keys, and the controllers of two players), the
+## slots, the controls (the keys, the controller buttons, and the
+## controllers of two players), the
 ## options, the story, short messages and asking for a name for the high
 ## score table. Menus stack: Escape goes back one.
 ##
@@ -68,8 +69,11 @@ const PRESS_BUTTON := &"press_button"
 ## automatic.
 const PLAYER_PAD := &"player_pad"
 const AUTOMATIC_PADS := &"automatic_pads"
-## Longest name of a controller in the controllers menu.
-const PAD_TEXT_LENGTH := 20
+## The controller buttons of one set (the row at the end of each key set
+## menu leads there; value: the set as for the keys), and waiting for a new
+## button for one action.
+const BUTTON_SET := &"button_set"
+const NEW_BUTTON := &"new_button"
 const OPTIONS := &"options"
 const STORY := &"story"
 const MESSAGE := &"message"
@@ -136,6 +140,8 @@ var _pending_action := ""
 var _key_set := 0
 ## The player (0 or 1) waiting for a button on his controller.
 var _pending_player := 0
+## The set of buttons shown in the button set menu, as [member _key_set].
+var _button_set := 0
 var _typed_name := ""
 var _place_word := ""
 ## Online: the kind of host being set up, the text being typed and what it
@@ -225,6 +231,8 @@ func handle_input(event: InputEvent) -> void:
 			_handle_new_key(event)
 		PRESS_BUTTON:
 			_handle_new_button(event)
+		NEW_BUTTON:
+			_handle_new_pad_button(event)
 		NAME:
 			_handle_name_key(event)
 		TEXT:
@@ -286,7 +294,14 @@ func _pick(menu: Menu, item: Menu.Item) -> void:
 		CONTROLS:
 			_pick_key_set(item)
 		KEY_SET:
-			_pick_control(item.id)
+			if item.id == BUTTON_SET:
+				_button_set = item.value
+				_push(_button_set_menu())
+			else:
+				_pick_control(item.id)
+		BUTTON_SET:
+			_pending_action = String(item.id)
+			_push(ControlsPages.button_prompt(_pending_action))
 		CONTROLLERS:
 			_pick_controller(item)
 		OPTIONS:
@@ -311,7 +326,7 @@ func _pick_main(id: StringName) -> void:
 			_story_offset = 0
 			_push(Menu.create(STORY))
 		CONTROLS:
-			_push(_controls_menu())
+			_push(ControlsPages.controls())
 		OPTIONS:
 			_push(_options_menu())
 		ONLINE:
@@ -338,25 +353,15 @@ func _slots_menu(kind: StringName, header: PackedStringArray) -> Menu:
 	return menu
 
 
-## The keys for playing alone, and for each of two players.
-func _controls_menu() -> Menu:
-	var menu := Menu.create(CONTROLS, ["  CONTROLS"])
-	menu.add("One player", KEY_SET, 0)
-	menu.add("Two players: player 1", KEY_SET, 1)
-	menu.add("Two players: player 2", KEY_SET, 2)
-	menu.add("Controllers", CONTROLLERS)
-	menu.add("Reset to defaults", &"reset")
-	return menu
-
-
 func _pick_key_set(item: Menu.Item) -> void:
 	if item.id == CONTROLLERS:
 		_push(_controllers_menu())
 		return
 	if item.id == &"reset":
 		KeyBindings.reset()
+		ButtonBindings.reset()
 		settings.save()
-		show_message(["All keys are back as", "they were.  Press a key"])
+		show_message(["All keys and buttons are", "back as they were.", "   Press a key"])
 		return
 	_key_set = item.value
 	_push(_key_set_menu())
@@ -364,30 +369,21 @@ func _pick_key_set(item: Menu.Item) -> void:
 
 ## The keys of one set (see [member _key_set]); pick one to change it.
 func _key_set_menu() -> Menu:
-	var title := "  ONE PLAYER" if _key_set == 0 else "  PLAYER %d OF TWO" % _key_set
-	var menu := Menu.create(KEY_SET, [title, "  Pick one to change it"])
-	var actions: Dictionary = (
-		KeyBindings.ACTIONS if _key_set == 0 else KeyBindings.PLAYER_ACTIONS[_key_set - 1]
-	)
-	for action: String in actions:
-		menu.add("%-7s %s" % [actions[action], KeyBindings.describe(action)], StringName(action))
-	return menu
+	return ControlsPages.key_set(_key_set)
+
+
+## The controller buttons of one set (see [member _button_set]).
+func _button_set_menu() -> Menu:
+	return ControlsPages.button_set(_button_set)
+
+
+func _controllers_menu() -> Menu:
+	return ControlsPages.controllers()
 
 
 func _pick_control(id: StringName) -> void:
 	_pending_action = String(id)
-	_push(
-		(
-			Menu
-			. create(
-				PRESS_KEY,
-				[
-					"Press the new key for",
-					"%s, or Escape." % KeyBindings.action_name(_pending_action).to_upper(),
-				]
-			)
-		)
-	)
+	_push(ControlsPages.key_prompt(_pending_action))
 
 
 func _handle_new_key(event: InputEvent) -> void:
@@ -406,17 +402,24 @@ func _handle_new_key(event: InputEvent) -> void:
 	_refresh_controls()
 
 
-## The controller of each of two players; pick one, then press a button on
-## his controller. Playing alone, every controller works.
-func _controllers_menu() -> Menu:
-	var menu := Menu.create(
-		CONTROLLERS, ["  CONTROLLERS", "  When two play. Alone,", "  every controller works."]
-	)
-	for player in PlayerControllers.PLAYER_COUNT:
-		var pad := PlayerControllers.describe(player, PAD_TEXT_LENGTH)
-		menu.add("Player %d  %s" % [player + 1, pad], PLAYER_PAD, player)
-	menu.add("Both automatic", AUTOMATIC_PADS)
-	return menu
+## A button or a trigger of any controller becomes the pending action's;
+## Back or Escape leaves it as it was. The game's own buttons (skipping
+## levels) are not taken.
+func _handle_new_pad_button(event: InputEvent) -> void:
+	if event.is_echo():
+		return
+	var key := event as InputEventKey
+	if (key != null and key.physical_keycode == KEY_ESCAPE) or event.is_action_pressed("menu"):
+		_pop()
+		return
+	var code := ButtonBindings.code_of(event)
+	if not ButtonBindings.can_bind(code):
+		return
+	ButtonBindings.bind(_pending_action, code)
+	settings.save()
+	_pop()
+	if is_open() and _top().kind == BUTTON_SET:
+		_replace_top(_button_set_menu())
 
 
 func _pick_controller(item: Menu.Item) -> void:
@@ -425,19 +428,7 @@ func _pick_controller(item: Menu.Item) -> void:
 		_refresh_controllers()
 		return
 	_pending_player = item.value
-	_push(
-		(
-			Menu
-			. create(
-				PRESS_BUTTON,
-				[
-					"Press a button on the",
-					"controller of PLAYER %d," % (_pending_player + 1),
-					"or Escape.",
-				]
-			)
-		)
-	)
+	_push(ControlsPages.controller_prompt(_pending_player))
 
 
 ## Any button of a controller makes it the pending player's; Escape (on

@@ -7,7 +7,8 @@ extends RefCounted
 ## Playing alone, every controller steers Keen, as before: the actions of
 ## [constant KeyBindings.ACTIONS] take buttons from any device. When two
 ## play, each player's actions ([constant KeyBindings.PLAYER_ACTIONS]) get
-## the same buttons and sticks, but only from that player's own controller.
+## his own buttons ([ButtonBindings]) and the sticks of playing alone, but
+## only from that player's own controller.
 ##
 ## A player's controller is either chosen (by pressing a button on it in
 ## the menu) or automatic. Automatic players get the connected controllers
@@ -38,8 +39,9 @@ class Pad:
 ## A player without a controller.
 const NO_DEVICE := -1
 const PLAYER_COUNT := 2
-## Which action of playing alone lends its controller buttons to which
-## action of a player (the part after "p1_" / "p2_").
+## Which action of playing alone lends its stick, and its buttons until
+## the player changes them, to which action of a player (the part after
+## "p1_" / "p2_").
 const BUTTONS_FROM: Dictionary[String, String] = {
 	"left": "move_left",
 	"right": "move_right",
@@ -143,9 +145,9 @@ static func devices() -> Array[int]:
 	return result
 
 
-## Puts each player's controller buttons on his actions: the buttons and
-## sticks of the matching action of playing alone, from his device only.
-## His keyboard keys stay as they are.
+## Puts each player's controller buttons on his actions: his buttons
+## ([ButtonBindings]) and the stick of the matching action of playing
+## alone, from his device only. His keyboard keys stay as they are.
 static func apply() -> void:
 	var player_devices := devices()
 	for player in PLAYER_COUNT:
@@ -159,11 +161,14 @@ static func apply() -> void:
 					InputMap.action_erase_event(action, event)
 			if player_devices[player] == NO_DEVICE:
 				continue
+			var device := player_devices[player]
+			for code in ButtonBindings.buttons_of(action):
+				InputMap.action_add_event(action, ButtonBindings.event_of(code, device))
 			for event in InputMap.action_get_events(BUTTONS_FROM[part]):
-				if _is_controller_event(event):
-					var own := event.duplicate() as InputEvent
-					own.device = player_devices[player]
-					InputMap.action_add_event(action, own)
+				if _is_controller_event(event) and not ButtonBindings.is_button_event(event):
+					var stick := event.duplicate() as InputEvent
+					stick.device = device
+					InputMap.action_add_event(action, stick)
 
 
 ## Gives the buttons out again whenever a controller connects or

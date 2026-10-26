@@ -934,6 +934,9 @@ their own card (Configure > Two Players > Player 1 Keys / Player 2 Keys).
 The same card has each player's game controller after a gap (Player 1
 Pad / Player 2 Pad, with the controller in a box as the keys have; Both
 Pads Auto); see [../two-players.md](../two-players.md), "Controllers".
+Each keys card (Keyboard, and each player's) ends with Buttons: a card of
+our own (titled as text) with the controller button of each action in a
+box ("Controller buttons" in the same file).
 
 | Question | Decision (D12) |
 |---|---|

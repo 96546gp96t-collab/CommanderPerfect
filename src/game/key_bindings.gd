@@ -1,9 +1,9 @@
 class_name KeyBindings
 extends RefCounted
 ## The keys for walking, jumping and so on, which the player can change in
-## the Controls menu. Only keyboard keys are changed; the controller buttons
-## stay as they are (which controller each of two players uses is
-## [PlayerControllers]'s).
+## the Controls menu. Only keyboard keys are changed here; the controller
+## buttons are [ButtonBindings]'s, and which controller each of two players
+## uses is [PlayerControllers]'s.
 ##
 ## There are three sets of keys. Playing alone uses [constant ACTIONS]: the
 ## arrows or WASD, with the keys of the original. When two play on one
@@ -194,17 +194,19 @@ static func set_keys(action: String, codes: Array[int]) -> void:
 		InputMap.action_add_event(action, event)
 
 
-## Puts every action back as it is in the project settings.
+## Puts every key back as it is in the project settings. The controller
+## buttons stay ([method ButtonBindings.reset] puts those back).
 static func reset() -> void:
 	for action in all_actions():
 		var setting: Variant = ProjectSettings.get_setting("input/" + action)
 		if not setting is Dictionary:
 			continue
-		InputMap.action_erase_events(action)
+		var codes: Array[int] = []
 		for event: InputEvent in setting.events:
-			InputMap.action_add_event(action, event)
-	# The players' controller buttons were erased with the rest.
-	PlayerControllers.apply()
+			var key := event as InputEventKey
+			if key != null and not _has_modifier(key):
+				codes.append(code_of(key))
+		set_keys(action, codes)
 
 
 ## The keys of every action, to store in the settings.

@@ -87,6 +87,31 @@ the choice; it is stored in `settings.cfg` (`[controls] controllers`).
 - On the world map, where one Keen walks, every controller steers him, as
   every key does.
 
+## Controller buttons
+
+The buttons can be changed as the keys can (`ButtonBindings`, stored in
+`settings.cfg` as `[controls] buttons`), in the same three sets: playing
+alone (the buttons of every controller) and each of two players (the
+buttons of his own controller), so each player has a layout of his own.
+
+- Where: the last row of each page of keys. Keen 1-3: Controls > One
+  player / Two players: player 1 / 2 > Controller buttons. Keen 4-5:
+  Configure > Keyboard > Buttons, and Configure > Two Players > Player 1
+  / 2 Keys > Buttons.
+- Pick an action, then press its new button (or pull a trigger, LT / RT)
+  on any controller. Back or Escape leaves it as it was.
+- The new button replaces the action's first one; a button belongs to one
+  action only within its set (taking it away from the other). The status
+  button is in every set, as its key is.
+- The game's own buttons cannot be used: Back (the menu), LB and RB
+  (Keen 1-3 skip to the previous and next level with them) and the system
+  button in the middle.
+- The sticks always walk; only the buttons change. The names are the Xbox
+  ones (Godot's): A is the bottom button, Cross on a PlayStation
+  controller.
+- "Reset to defaults" (Keen 4-5: Reset Keys) puts the keys and the buttons
+  back. Resetting only the keys (`KeyBindings.reset`) leaves the buttons.
+
 ## Keen 2 and Keen 3
 
 Keen 2 (milestone B9) and Keen 3 (milestone C10) have two players the

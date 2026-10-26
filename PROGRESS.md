@@ -143,6 +143,7 @@ kiezen voor speler 1 en een voor speler 2; alles blijft werken zoals het was.
 | # | Mijlpaal | Status |
 |---|---|---|
 | Controller | Een eigen controller per speler in Keen 1-5 | 🔶 Gebouwd (branch `milestone-controller`), in test bij de gebruiker |
+| Controller-knoppen | De controllerknoppen aanpassen, per speler (keuze van de gebruiker, 26-10) | 🔶 Gebouwd (zelfde branch), in test bij de gebruiker |
 
 **Wat er nu is (26-10).** `PlayerControllers` (`src/game/`) geeft elke
 speler bij twee spelers de knoppen en de stick van zijn eigen controller
@@ -174,10 +175,32 @@ gameplay-docs van Keen 4 en 5.
 - [ ] Met echte controllers testen op de Mac en de pc (in de cloud zijn er
   geen); apps niet gebouwd (kan alleen op de Mac).
 
+**Knoppen aanpassen (26-10).** Vraag van de gebruiker: de knoppen lagen
+vast. Gekozen (keuzemenu): **per speler**. `ButtonBindings` (`src/game/`)
+doet voor de knoppen wat `KeyBindings` voor de toetsen doet, in dezelfde
+drie sets (alleen spelen, speler 1, speler 2); elke speler een eigen
+indeling op zijn eigen controller. Onderaan elke toetsenpagina een regel
+naar de knoppen: Keen 1-3 "Controller buttons", Keen 4-5 "BUTTONS" (een
+eigen kaart met de knop in een vakje). Actie kiezen, knop indrukken of
+trigger (LT/RT) intrekken op een controller; Back of Escape annuleert. Een
+knop hoort bij één actie per set; Status is gedeeld. Niet te kiezen: Back
+(menu), LB/RB (Keen 1-3: vorig/volgend level) en de systeemknop. De
+sticks lopen altijd. Reset to defaults (Keen 4-5: Reset Keys) zet toetsen
+én knoppen terug; `KeyBindings.reset` raakt de knoppen niet meer aan.
+De opbouw van de controls-menu's van Keen 1-3 staat nu in `ControlsPages`
+(`menu_controller.gd` werd te lang voor gdlint).
+
+- [x] Tests: 133 suites groen (41 overgeslagen), 0 fouten, dezelfde 1001
+  SCRIPT ERRORs als `main`, gdlint schoon. Nieuw: `test_button_bindings`.
+- [x] Schermafbeeldingen in Keen 1: toetsenpagina met "Controller
+  buttons", de knoppenpagina.
+- [ ] De BUTTONS-kaarten van Keen 4-5 bekijken (de Keyboard-kaart heeft nu
+  9 regels, het maximum van een kaart).
+
 **Volgende stap:** de gebruiker bouwt de apps (`tools/build_macos.sh`,
 `tools/build_windows.sh`) en probeert met twee Bluetooth-controllers in Keen
-1 (F7, split-screen), Keen 2-3 en Keen 4-5; kiezen in het menu en een
-controller los- en weer aankoppelen. Mogelijk later: speler 2 laten
+1 (F7, split-screen), Keen 2-3 en Keen 4-5; kiezen in het menu, een
+controller los- en weer aankoppelen, en per speler knoppen omzetten. Mogelijk later: speler 2 laten
 meedoen met Start op zijn eigen controller (nu F7 of het menu).
 
 ## Realistische graphics voor alle spellen: mijlpalen R

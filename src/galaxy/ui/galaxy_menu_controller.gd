@@ -20,7 +20,8 @@ extends MenuController
 ##     the box (Enter keeps it, empty: "Untitled") and stays on the card;
 ##   - Configure: Sound and Music (a choice of one, checked at once; Omni
 ##     US_ITEM_Radio), Options (the score box and the shared display
-##     settings), Keyboard (the shared keys), Reset Keys;
+##     settings), Keyboard (the shared keys; ours: at its end Buttons, the
+##     controller buttons), Reset Keys (and buttons);
 ##   - Paddle War ([GalaxyPaddleWar]): [method run_paddle_war] plays its
 ##     tics, Escape leaves it, the end says who won;
 ##   - dialogs ([constant MenuController.MESSAGE], [constant CONFIRM]): Y
@@ -189,7 +190,10 @@ func is_checked(menu: Menu, index: int) -> bool:
 func allows_help() -> bool:
 	return (
 		is_open()
-		and not _top().kind in [CONFIRM, MESSAGE, SLOT_NAME, PRESS_KEY, PRESS_BUTTON, PADDLE_WAR]
+		and not (
+			_top().kind
+			in [CONFIRM, MESSAGE, SLOT_NAME, PRESS_KEY, PRESS_BUTTON, NEW_BUTTON, PADDLE_WAR]
+		)
 	)
 
 
@@ -347,6 +351,7 @@ func _pick_configure(item: Menu.Item) -> void:
 			_push(GalaxyMenuPages.keys())
 		&"reset":
 			KeyBindings.reset()
+			ButtonBindings.reset()
 			settings.save()
 			show_message(["All keys are as they were", PRESS_ANY_KEY])
 
@@ -357,6 +362,10 @@ func _options_menu() -> Menu:
 
 func _key_set_menu() -> Menu:
 	return GalaxyMenuPages.keys()
+
+
+func _button_set_menu() -> Menu:
+	return GalaxyMenuPages.buttons(_button_set)
 
 
 func _slots_menu(kind: StringName, _header: PackedStringArray) -> Menu:
