@@ -179,6 +179,7 @@ const TREE_SUITES: Array[Script] = [
 	preload("res://tests/test_keen5_original_mode.gd"),
 	preload("res://tests/test_keen5_coop_screen.gd"),
 	preload("res://tests/test_keen5_online_play.gd"),
+	preload("res://tests/test_realistic_look.gd"),
 ]
 
 var _failure_count := 0

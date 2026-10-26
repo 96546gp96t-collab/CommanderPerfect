@@ -354,6 +354,42 @@ func _apply_display_settings() -> void:
 	_apply_wide_view()
 
 
+## The lights of the realistic look near [param camera]'s view: the
+## game's lit tiles in both layers ([method _realistic_light_tiles] for the
+## foreground, [method _realistic_back_light_tiles] for the background) and
+## the shots of Keen's stunner (brighter where one hit) and of the
+## creatures.
+func _realistic_lights(camera: Camera2D) -> RealisticLights:
+	var world := _played_world()
+	if world == null or _mode not in [Mode.LEVEL, Mode.MAP]:
+		return null
+	var lights := RealisticLights.create(_realistic_view(camera))
+	var map := world.map
+	var size := Vector2i(map.width, map.height)
+	lights.add_tile_grid(
+		size,
+		func(cell: Vector2i) -> int: return map.tile(GalaxyMap.Layer.BACKGROUND, cell.x, cell.y),
+		_realistic_back_light_tiles()
+	)
+	lights.add_tile_grid(
+		size,
+		func(cell: Vector2i) -> int: return map.tile(GalaxyMap.Layer.FOREGROUND, cell.x, cell.y),
+		_realistic_light_tiles()
+	)
+	for object in world.objects:
+		var place := Vector2(object.position) / GalaxyUnits.PER_PIXEL
+		if object is GalaxyStunnerShot:
+			lights.add_shot(place, (object as GalaxyStunnerShot).spent)
+		elif object is GalaxyEnemyShot:
+			lights.add_shot(place, false)
+	return lights
+
+
+## The background tiles of this game that give light; none by default.
+func _realistic_back_light_tiles() -> Dictionary[int, RealisticLights.Kind]:
+	return {}
+
+
 ## A map where Keen does not play: he stands, the keys look around.
 func _look_at(map: GalaxyMap) -> void:
 	_played = null

@@ -58,7 +58,7 @@ const PLAYER_ACTIONS: Array[Dictionary] = [
 const SHARED_ACTION := "status"
 ## Keys the game itself uses; they cannot be given to an action.
 const RESERVED_KEYS: Array[Key] = [
-	KEY_ESCAPE, KEY_F1, KEY_F2, KEY_F3, KEY_F4, KEY_F5, KEY_F6, KEY_F7
+	KEY_ESCAPE, KEY_F1, KEY_F2, KEY_F3, KEY_F4, KEY_F5, KEY_F6, KEY_F7, KEY_F8
 ]
 ## A code keeps the side of the keyboard above the keycode.
 const LOCATION_SHIFT := 32

@@ -990,3 +990,11 @@ func _point_arrow() -> void:
 	var to_host := _mode == Mode.REMOTE and _remote.kind == OnlineMessages.Scene.LEVEL
 	var shown := not _menus.is_open()
 	_remote.point_arrow(_own_view(), to_partner and shown, to_host and shown)
+
+
+func _realistic_grade() -> RealisticGrade:
+	return RealisticGrade.keen1()
+
+
+func _realistic_light_tiles() -> Dictionary[int, RealisticLights.Kind]:
+	return Keen1Lights.tiles()

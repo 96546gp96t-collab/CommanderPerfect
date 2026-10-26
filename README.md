@@ -123,6 +123,7 @@ Or open the project in the Godot editor and press F5.
 | F5 | Graphics: original, xBRZ or HD |
 | F6 | Smooth motion on or off |
 | F7 | A second player joins or leaves (also in the menu) |
+| F8 | Lighting: original or realistic |
 
 The keys for walking, jumping, pogo and firing can be changed in the menu
 (Controls). All settings are remembered.
@@ -176,7 +177,7 @@ your lives, score, raygun and keycards in the top corners, and in widescreen
 a level that has a picture of its own shows it behind it (level 1 for now;
 Options > Backgrounds switches it off, see
 [docs/graphics.md](docs/graphics.md)). Everything else is switched on in the
-menu (Options) or with F5 and F6:
+menu (Options) or with F5, F6 and F8:
 
 - **Smooth motion** draws everything in between the 60 game ticks per
   second, for smooth movement on fast (120 Hz) screens.
@@ -193,6 +194,12 @@ menu (Options) or with F5 and F6:
 
   The result goes to `game_data/keen1/hd/`. It is made from the original
   game files, so it stays on your computer and is never shared.
+
+- **Lighting: realistic** (F8, all five games) lets lamps, fire and shots
+  light what is around them, bright things glow, and gives each game a
+  colour mood, a faint vignette and film grain; the HUD and the menus stay
+  as they are. Realistic graphics themselves (AI) are being tried, see
+  [docs/realistic/research.md](docs/realistic/research.md).
 
 How all of this works: [docs/graphics.md](docs/graphics.md).
 

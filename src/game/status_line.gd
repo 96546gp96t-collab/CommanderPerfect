@@ -12,15 +12,18 @@ const GRAPHICS_TITLES: Array[String] = ["Original graphics", "xBRZ graphics", "H
 static func picture_text(title: String, settings: DisplaySettings) -> String:
 	var game_size := settings.game_size()
 	return (
-		"%s   %s %d x %d, %s pixels, %s"
-		% [
-			title,
-			settings.aspect_name(),
-			game_size.x,
-			game_size.y,
-			"4:3 monitor" if settings.correct_pixel_aspect else "square",
-			GRAPHICS_TITLES[settings.graphics].to_lower(),
-		]
+		(
+			"%s   %s %d x %d, %s pixels, %s"
+			% [
+				title,
+				settings.aspect_name(),
+				game_size.x,
+				game_size.y,
+				"4:3 monitor" if settings.correct_pixel_aspect else "square",
+				GRAPHICS_TITLES[settings.graphics].to_lower(),
+			]
+		)
+		+ (", realistic lighting" if settings.realistic else "")
 	)
 
 

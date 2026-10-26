@@ -434,3 +434,11 @@ func _neighbor_level(offset: int) -> int:
 		return Keen3Files.FIRST_LEVEL if offset > 0 else Keen3Files.LAST_LEVEL
 	var count := Keen3Files.LAST_LEVEL - Keen3Files.FIRST_LEVEL + 1
 	return Keen3Files.FIRST_LEVEL + posmod(_level_number - Keen3Files.FIRST_LEVEL + offset, count)
+
+
+func _realistic_grade() -> RealisticGrade:
+	return RealisticGrade.keen3()
+
+
+func _realistic_light_tiles() -> Dictionary[int, RealisticLights.Kind]:
+	return Keen3Lights.tiles()

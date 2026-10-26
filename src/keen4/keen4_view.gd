@@ -326,3 +326,15 @@ static func _requested_map() -> int:
 		if argument.begins_with(GameLaunch.LEVEL_OPTION):
 			return argument.trim_prefix(GameLaunch.LEVEL_OPTION).to_int()
 	return -1
+
+
+func _realistic_grade() -> RealisticGrade:
+	return RealisticGrade.keen4()
+
+
+func _realistic_light_tiles() -> Dictionary[int, RealisticLights.Kind]:
+	return Keen4Lights.foreground()
+
+
+func _realistic_back_light_tiles() -> Dictionary[int, RealisticLights.Kind]:
+	return Keen4Lights.background()

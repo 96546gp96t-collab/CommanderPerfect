@@ -126,6 +126,7 @@ static func options(settings: UserSettings, score_box: bool) -> Menu:
 	menu.add("SMOOTH MOTION " + _state(display.smooth_motion), &"smooth_motion")
 	menu.add("BACKGROUNDS " + _state(display.backgrounds), &"backgrounds", 0, widescreen)
 	menu.add("GRAPHICS (%s)" % MenuController.GRAPHICS_LABELS[display.graphics], &"graphics")
+	menu.add("LIGHTING (%s)" % MenuController.LIGHTING_LABELS[int(display.realistic)], &"realistic")
 	return menu
 
 

@@ -134,6 +134,132 @@ en Keen 5 met twee spelers en online proberen (twee computers, of de host
 headless; Steam alleen daar). Daarna kan Keen 6 op het gedeelde spel
 (docs/new-episode-guide.md, "Keen 6 on the Galaxy game").
 
+## Realistische graphics voor alle spellen: mijlpalen R
+
+Branch `milestone-r1-realistisch-onderzoek` (vanaf `main`, 24-10). Wens van
+de gebruiker: alle spellen veel mooier, "foto realistisch", met een extra
+optie in het menu om het aan en uit te zetten; alles blijft werken zoals nu.
+Onderzoek en voorstel: [docs/realistic/research.md](docs/realistic/research.md).
+
+| # | Mijlpaal | Status |
+|---|---|---|
+| R1 | Onderzoek: grafische code van alle vijf de spellen, lagen (sfeer, licht, achtergronden, AI-graphics), modellen, menu-optie, mijlpalen | ✅ Klaar; vragen beantwoord op 24-10-2026 |
+| R2 | De optie REALISTIC (F8) in alle vijf de spellen + sfeer (bloom, kleur, vignet) | 🔶 Gebouwd (branch `milestone-r2-realistisch-optie`); Keen 2-5 nog naast `main` leggen met hun bestanden, framerate meten op de Mac en de pc |
+| R3 | Licht en reliëf (reliëf uit het beeld, lichtbronnen per spel) | 🔶 Gebouwd voor Keen 1 (branch `milestone-r3-realistisch-licht`, vanaf R2); tabellen Keen 2-5 wachten op hun bestanden |
+| R4 | Realistische achtergronden (o.a. NASA-foto's van Mars voor Keen 1) | ⬜ |
+| R5 | AI-proef: plaatjes naast het origineel | ❌ Gedraaid en afgewezen door de gebruiker (24-10): niet verder met AI-graphics (tool bewaard op branch `milestone-r5-ai-proef`, niet naar `main`) |
+| R6-R8 | AI-graphics Keen 1-3, Keen 4-5, naast elkaar leggen | ❌ Vervallen (besluit van de gebruiker, 24-10) |
+
+**Besluiten van de gebruiker (24-10-2026, R1):** realistisch belicht
+(vormen blijven, echte materialen, licht en sfeer; sprites niet volledig
+fotografisch); een eigen optie REALISTIC AAN/UIT (F8) in alle vijf de
+spellen; de SDXL-proef mag, maar met de **originele plaatjes** als invoer,
+niet xBRZ ("iets minder mooi"); eerst R2. Daarna (zelfde dag): het mag
+ook tegen fotorealistisch aan zitten, sprites ook, mits de risico's zijn
+afgedekt en alles goed loopt. Per risico een maatregel en een meetbare
+controle in `docs/realistic/research.md` §10 (o.a. optie uit = elk beeld
+gelijk aan `main`, spelstand gelijk met de optie aan, minstens 60 fps op de
+Mac en de Windows-pc, geen flikkeren of naden, gemeten door tools);
+een mijlpaal is pas klaar als die controles slagen.
+
+**R2: wat er nu is (24-10).** Optie *Realistic* in Options van alle vijf
+de spellen en F8 (standaard uit, `realistic` in `settings.cfg`). Aan: een
+laag `RealisticLook` vóór de HUD in beide viewports, met
+`realistic_look.gdshader`: gloed op wat echt fel is (helderheid, niet het
+felste kanaal: anders gloeide de lichtrode kaart van Keen 1 helemaal door),
+te fel wordt wit zoals op een foto, een kleursfeer per spel
+(`RealisticGrade`; zwart en wit blijven neutraal), een lichte S-curve,
+vignet en fijne korrel. HUD, vensters, menu's en Galaxy's titels en fades
+blijven onaangeroerd (ze staan erna in `Ui`). Te traag (onder 90 % van het
+schermtempo, max 60, drie seconden achter elkaar): de gloed gaat uit voor
+de rest van de sessie, met één melding.
+
+- [x] Tests: 131 suites groen (41 overgeslagen zonder Keen 2-5), 0 fouten;
+  dezelfde 1001 SCRIPT ERRORs als `main` in deze container (Keen 2-5
+  ontbreken), gdlint schoon. Nieuw: `test_realistic_look` (standaard uit,
+  laag pas als hij aan staat, vóór de HUD, F8 onthouden, eigen sfeer per
+  spel, het vangnet, en Keen 1 level 1 speelt 600 beelden lang precies
+  gelijk met de optie aan); `test_menus` en `test_saving` uitgebreid.
+- [x] Regressie Keen 1 tegen `main` (optie uit): alle vijf beelden gelijk.
+- [x] Schermafbeeldingen (1920x1080): level 1, kaart, menu's, split-screen.
+- [ ] Keen 2-5 naast `main` leggen (`tools/keen2_regression.sh` ...) en de
+  sfeer per spel bekijken: wacht op de bestanden van de gebruiker.
+- [ ] Framerate: `tools/measure_frames.gd` op de Mac en de Windows-pc (de
+  cloud rendert in software: daar 53 ms → 158 ms per beeld, niet
+  representatief). Een bloom-sample per niveau in plaats van vier: even
+  mooi, ~2x goedkoper.
+- Apps niet gebouwd (kan alleen op de Mac).
+
+**R3: wat er nu is (24-10).** In dezelfde laag: reliëf uit de helderheid
+van het beeld (elke donkere omlijning wordt een groef, wat erin zit een
+afgeschuinde rand, belicht van linksboven; nooit donkerder dan 75 % of
+lichter dan 130 %), en tot 16 lampen per beeld uit verlichte tiles en
+schoten (`RealisticLights`, Keen 1: `Keen1Lights`, op het oog gekozen uit
+het tilevel: blauwe lampen, EXIT-bord, vuur, elektrische bollen, blauwe
+zuilen, lampen op palen). Werkt voor alle graphics (origineel, xBRZ, HD)
+zonder de tekencode aan te raken. Keen 2-3: schoten geven al licht, tiles
+nog niet; Keen 4-5 nog geen lampen (tabellen maken zodra hun bestanden er
+zijn). Wens van de gebruiker: zien hoe het eruitziet (plaatjes gestuurd).
+
+- [x] Tests: 0 fouten, `test_realistic_look` uitgebreid (lichten bij het
+  beeld, dichtstbij eerst, max 16, tiles en schoten); spelstand gelijk met
+  de optie aan; gdlint schoon.
+- [x] Regressie Keen 1 tegen `main` (optie uit): alle beelden gelijk.
+- [x] Schermafbeeldingen: level 1, 2, 5 (lampen), 7, 11 (vuur), een schot.
+- [x] Framerate op de Mac van de gebruiker (MacBook Air M5, 2940x1846,
+  level 5): 1,53 ms per beeld uit, 3,70 ms aan (99 % onder 4,05 ms): 60
+  en 120 fps gehaald. Windows-pc nog niet gemeten.
+- [ ] Muren die schaduw werpen: niet gebouwd (later, als het nodig is).
+
+**Test van de gebruiker (24-10, op de Mac).** "Nog lang niet realistisch";
+lelijke schaduw langs de randen van objecten (het reliëf); vuur en het
+licht ernaast mooi maar iets te fel; het schot mooi, alleen Keen 4 nog
+zonder. Meettool: de tweede meting stond op de wereldkaart. Opgelost:
+reliëf eruit, vuur zwakker en wat al fel is wordt minder belicht, schoten
+van Keen 4-5 geven licht, de meettool start het spel per meting opnieuw
+en laat het in vaste stappen lopen (god mode). De optie heet nu
+*Lighting: ORIGINAL / REALISTIC* (wens: "realistische belichting"; de
+menu's zijn Engels).
+
+**Besluit van de gebruiker (24-10): geen AI-graphics.** De proef (R5,
+Realistic Vision + ControlNet Tile, op de CPU in de cloud) gaf echte
+materialen in de omgeving maar zwakke figuren (Keen werd een
+3D-cartoonjongen, de sterke stand mislukte); de gebruiker: "doe dit maar
+allemaal niet. Ga hier niet mee verder". R6-R8 vervallen; de tool blijft
+alleen op `milestone-r5-ai-proef`. De realistische belichting (R2/R3)
+blijft.
+
+**Keen 5 (24-10, bestanden v1.4 van de gebruiker).** Regressie tegen
+`main` met de optie uit: alle 17 beelden gelijk. Lampentabel
+`Keen5Lights` (op het oog uit de tile-vellen: EXIT-borden, computers,
+lampjes op de rails, vonken en bogen, knipperende rode lampjes, de rode
+wandlamp buiten); `GalaxyPlayScreen` leest beide lagen, ook op de kaart.
+**Keen 2 (24-10, v1.31 van de gebruiker, zip).** Regressie tegen `main`
+met de optie uit: alle beelden gelijk (een eerste run verschilde op de
+kaart door trager laden, met andere Godot-processen ernaast; alleen
+herhaald: gelijk). Lampentabel `Keen2Lights`: blauwe lampen, hangende
+lampen, EXIT-bord, vuur en fakkels, elektrische bollen, blauwe zuilen, en
+de gloeiende vloer (241-244, honderden tiles in level 12) als zwak
+`lava`-licht. Tests met Keen 2 en 5: zelfde meldingen als `main`, één
+suite meer geslaagd. Keen 3 en 4 nog niet geüpload.
+
+**Keen 3 en 4 (24-10, v1.00 en v1.0 van de gebruiker, zips).** Keen 4:
+`keen4_regression.sh` tegen `main` met de optie uit: alle 11 gelijk (ook
+na de lampentabel). Keen 3 heeft geen regressiescript: een eigen set
+(titel, level 1, lopen, level 4 in breedbeeld en 4:3, kaart) op `main` en
+de branch: alle 6 gelijk (een eerste run verschilde: Godot las net een
+nieuw script in en laadde trager). Lampentabellen `Keen3Lights` (weinig:
+vuurballen, pods, EXIT, rode lamp) en `Keen4Lights` (EXIT, kampvuur,
+raketvlammen, vuurschalen, vuurvelden als `lava`, lampen, komforen in de
+achtergrond). Alle vijf spellen hebben nu hun lampen; elke regressie met
+de optie uit is gelijk aan `main`.
+
+**Volgende stap:** de gebruiker test op de Mac (bouwen vanaf
+`milestone-r3-realistisch-licht`, F8 in elk spel); daarna kan de branch
+naar `main`. Open: de gloed op grote felle vlakken (het gele bord in Keen
+3 level 1) en de Windows-pc meten. Daarna kan `milestone-r3-realistisch-licht`
+naar `main`. R4 (achtergronden) alleen als de gebruiker dat nog wil.
+
 ## Achtergronden Keen 1 en 2: mijlpalen AB
 
 Branch `milestone-a-b-backgrounds` (vanaf `main`, 22-10). Onderzoek en plan:
@@ -3935,6 +4061,17 @@ Na de eerste eigen test van de gebruiker:
 - Tests in `test_online_menus.gd`: adressen in de setup, het hosting-venster ververst, `address_lines`, eigen wachtwoord typen en onthouden.
 
 ## Volgende stap
+
+Realistische graphics (R):
+
+1. **Voor de gebruiker:** op de Mac bouwen vanaf
+   `milestone-r3-realistisch-licht` (bevat R1-R3 en de lampen van alle
+   vijf de spellen) en in elk spel F8 proberen; eventueel meten:
+   `godot --path . --script res://tools/measure_frames.gd -- --level=1`
+   (en met `SCENE=res://src/keen4/keen4_view.tscn`, `SMOOTH=1`, `TWO=1`).
+2. Daarna kan `milestone-r3-realistisch-licht` naar `main`. R4
+   (achtergronden) alleen als de gebruiker dat nog wil. Geen AI-graphics:
+   R5 is afgewezen (24-10), `milestone-r5-ai-proef` gaat niet naar `main`.
 
 Achtergronden Keen 1 en 2:
 

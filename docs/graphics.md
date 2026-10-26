@@ -9,8 +9,10 @@ original until the player switches them on:
 |---|---|---|
 | Graphics | F5 | `ORIGINAL`, `XBRZ`, `HD` (HD only once the player has made it) |
 | Smooth motion | F6 | `OFF`, `ON` |
+| Lighting | F8 | `ORIGINAL`, `REALISTIC` (all five games; below) |
 
-Both are stored in `settings.cfg` (`graphics`, `smooth_motion`). Widescreen
+They are stored in `settings.cfg` (`graphics`, `smooth_motion`,
+`realistic`). Widescreen
 (F2) is on by default, with the HUD in the top corners.
 
 ## How the picture is drawn
@@ -352,6 +354,79 @@ level without a wall texture keeps its own background.
     (`GraphicsTextures.clear_tile_on`); Keen 1 keeps its grey rule, Keen 3
     its own (`Keen3Hud`).
 
+## The realistic look (R2)
+
+Option *Realistic* (F8; Options in all five games), off by default. The
+plan behind it, in layers, is [realistic/research.md](realistic/research.md);
+R2 built the first layer, the atmosphere.
+
+- **Where.** `GameScreen` adds a `RealisticLook` (a canvas layer) to the
+  `World` viewport, just before its `Ui` layer, and one to `World2`, the
+  first time the option is on. The layer draws a rectangle over the view
+  with `realistic_look.gdshader`, which reads what is drawn so far
+  (`hint_screen_texture`): the level, the sprites and the pictures behind
+  it, but not the HUD, the windows, the menus or Galaxy's title and fades
+  (all in `Ui`, after it). In a split screen each half has its own, and the
+  split view shows World2's finished picture.
+- **What.** Bloom from the screen copy's mipmaps (one tap per level, four
+  levels of 2-16 game pixels: `lod_base` is log2 of the viewport's render
+  scale, so the glow is as wide at every window size); light beyond white
+  turns white (`burn_out`); a colour grade per game (`RealisticGrade`:
+  shadow and middle-tone tints that leave black and white neutral, so the
+  EGA colours keep their look; Keen 1 Mars, Keen 2 cold metal, Keen 3
+  violet, Keen 4 forest, Keen 5 teal); a slight S-curve, a lift of black,
+  a vignette and fine grain.
+- **The original stays.** With the option off the layers are hidden (no
+  screen copy is made) or were never made; `is_original_picture()` is
+  false while it is on, so the viewport is larger (as with xBRZ). The game
+  itself never reads the picture: `test_realistic_look` plays Keen 1's
+  level 1 with it off and on and compares the game every frame.
+- **Never a stutter.** When the game runs below 90 % of the screen's rate
+  (at most 60) for three seconds in a row with the look on, the bloom is
+  left out for the rest of the session and the game says so once
+  (`RealisticLook.lighter`). `tools/measure_frames.gd` measures frame times
+  with the look off and on (see its header); the cloud container renders in
+  software, so the real numbers come from the Mac and the Windows PC.
+
+### Light (R3)
+
+The same layer also lights the picture (layer B of the research). In the
+menu the option is called *Lighting* (`ORIGINAL`, `REALISTIC`; the user's
+wish of 24-10).
+
+- **Lights.** Every frame `GameScreen._realistic_lights` collects the
+  lights near each camera's view (`RealisticLights`): the tiles of the
+  level that give light (each game's table, `_realistic_light_tiles`;
+  Keen 1's in `Keen1Lights`: the blue lamps, the exit sign, fire, the
+  electric orbs, the blue beams, the lamps on poles, picked by eye from the
+  tile sheet) and the shots (every `RaygunShot`, brighter when it hits;
+  in Keen 4-5 `GalaxyPlayScreen` adds the stunner's and the creatures'
+  shots). At most 16, the nearest to the middle of the view; the shader
+  lights each pixel by how far it is from the lamp and how high the lamp
+  hangs, and adds a faint halo in the air. A pixel that is bright already
+  in one of its colours (the fire, the shot, a saturated red) gives light
+  rather than taking it, so it is lit less: the fire keeps its colours. Keen 5's table is
+  `Keen5Lights` (both layers: exit signs, computers, the bulbs on the
+  rails, sparks and arcs, blinking red lights, the red lamps of the outer
+  wall; `GalaxyPlayScreen` reads the background and the foreground, also on
+  the world map). Keen 2's is `Keen2Lights` (the blue
+  lamps, the hanging lamps, the exit sign, fire and torches, the electric
+  orbs and blue beams, and the glowing floor of level 12 as a weak `lava`
+  light, since it comes hundreds of tiles in a row). Keen 3's is
+  `Keen3Lights` (fire balls, the glowing pods and a spark, the exit sign,
+  a red dome lamp: Keen 3 has few lights), Keen 4's `Keen4Lights` (exit
+  signs, the campfire, rocket flames and fire bowls, the fields of fire as
+  `lava`, hanging lamps and lamps on poles, and the braziers in the
+  background). All picked by eye from the user's own files.
+- **No relief.** R3 first also gave every pixel a slope from the
+  brightness around it (a bevel along every outline). The user found the
+  dark edges this made along every object ugly (24-10); it was taken out.
+- `tools/measure_frames.gd` keeps the slow-computer fallback off while it
+  measures, starts the game anew for each measurement and moves it on by a
+  fixed 1/60 s per frame, so both measurements see the same game. On the
+  user's MacBook Air (M5, 2940x1846, Keen 1 level 5): 1.53 ms per frame
+  off, 3.70 ms on (99 % under 4.05 ms): 60 and 120 fps both pass.
+
 ## Still open
 
 - The camera scrolls in parts of a game pixel whenever the picture is not
@@ -365,6 +440,9 @@ level without a wall texture keeps its own background.
   misses new details. See the plan below.
 
 ## Plan: HD with new details (parked)
+
+Picked up and widened on 24-10-2026 into a realistic mode for all five
+games: see [realistic/research.md](realistic/research.md).
 
 Real-ESRGAN only sharpens what is there; it cannot add details. For new
 details (texture in stone, shine on pipes, folds in Keen's clothes) a

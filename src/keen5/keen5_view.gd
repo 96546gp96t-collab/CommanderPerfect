@@ -346,3 +346,15 @@ func _give_everything() -> void:
 	_record_event(GalaxySavedGame.Event.EVERYTHING)
 	_update_score_box()
 	_show_message(EVERYTHING_MESSAGE)
+
+
+func _realistic_grade() -> RealisticGrade:
+	return RealisticGrade.keen5()
+
+
+func _realistic_light_tiles() -> Dictionary[int, RealisticLights.Kind]:
+	return Keen5Lights.foreground()
+
+
+func _realistic_back_light_tiles() -> Dictionary[int, RealisticLights.Kind]:
+	return Keen5Lights.background()

@@ -13,8 +13,9 @@ extends RefCounted
 ##
 ## The extras are off by default, so that the game looks like the original:
 ## [member graphics] picks the original pixels, xBRZ or the player's own HD
-## graphics, and [member smooth_motion] draws everything in between the
-## ticks (see docs/graphics.md).
+## graphics, [member smooth_motion] draws everything in between the
+## ticks (see docs/graphics.md), and [member realistic] gives the picture
+## light and atmosphere (see docs/realistic/research.md).
 
 enum Aspect { ORIGINAL, WIDESCREEN }
 enum Graphics { ORIGINAL, XBRZ, HD }
@@ -33,6 +34,9 @@ var smooth_motion := false
 ## instead of their plain background (see [BackdropPictures]). Only in
 ## widescreen: the original picture stays as it was.
 var backgrounds := true
+## The realistic look ([RealisticLook]): off by default, so that the game
+## looks like the original.
+var realistic := false
 
 
 ## Size of the visible part of the level, in game pixels.
@@ -68,15 +72,15 @@ func aspect_name() -> String:
 	return "original" if aspect == Aspect.ORIGINAL else "widescreen"
 
 
-## Whether the picture is drawn exactly like the original: game pixels on
-## whole positions, nothing in between.
 ## Whether pictures behind the levels are shown now.
 func shows_backgrounds() -> bool:
 	return backgrounds and aspect == Aspect.WIDESCREEN
 
 
+## Whether the picture is drawn exactly like the original: game pixels on
+## whole positions, nothing in between.
 func is_original_picture() -> bool:
-	return graphics == Graphics.ORIGINAL and not smooth_motion
+	return graphics == Graphics.ORIGINAL and not smooth_motion and not realistic
 
 
 ## Makes [param viewport] draw a view of [param game_size] game pixels at
