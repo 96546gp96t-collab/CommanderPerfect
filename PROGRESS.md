@@ -4064,14 +4064,14 @@ Na de eerste eigen test van de gebruiker:
 
 Realistische graphics (R):
 
-1. **Voor de gebruiker:** de bestanden van Keen 2-5 uploaden (Keen 2
-   v1.31, Keen 3 v1.00, Keen 4 v1.0/1.4, Keen 5 v1.4), zodat R2 ook daar
-   naast `main` gelegd kan worden. Op de Mac: bouwen vanaf
-   `milestone-r2-realistisch-optie`, F8 in elk spel proberen, en meten:
+1. **Voor de gebruiker:** op de Mac bouwen vanaf
+   `milestone-r3-realistisch-licht` (bevat R1-R3 en de lampen van alle
+   vijf de spellen) en in elk spel F8 proberen; eventueel meten:
    `godot --path . --script res://tools/measure_frames.gd -- --level=1`
    (en met `SCENE=res://src/keen4/keen4_view.tscn`, `SMOOTH=1`, `TWO=1`).
-2. Daarna R3 (licht), R4 (achtergronden) en de SDXL-proef R5 met de
-   originele plaatjes.
+2. Daarna kan `milestone-r3-realistisch-licht` naar `main`. R4
+   (achtergronden) alleen als de gebruiker dat nog wil. Geen AI-graphics:
+   R5 is afgewezen (24-10), `milestone-r5-ai-proef` gaat niet naar `main`.
 
 Achtergronden Keen 1 en 2:
 
