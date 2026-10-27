@@ -164,7 +164,7 @@ Ga met de pijltjestoetsen naar het onderdeel dat je wilt kiezen en druk op Enter
 ^P
 ^G184,108,11
 ^G50,8,27
-Laten we de onderdelen een voor een bekijken.
+Laten we elk onderdeel apart bekijken.
 
 ^c4NIEUW SPEL
 ^c8
@@ -332,7 +332,7 @@ Keen loopt naar de deur, blijft staan, draait zich om en spreekt de page toe.
 
 Keen stapt moedig de deur uit terwijl de page "Sorry" mompelt.
 
-Commander Keen springt in zijn Bonen-met-Spek Megaraket en zet koers naar het Schaduwland....
+Commander Keen springt in zijn Megaraket en vertrekt naar het Schaduwland....
 ^E
 @end
 
@@ -633,7 +633,7 @@ En zo zien ze eruit.
 ^P
 ^G8,8,49
 ^T48,90,63,100
-Die Shikadi zijn er geweest!
+Die Shikadi gaan eraan!
 ^P
 ^G8,100,70
 ^L100,8
@@ -702,7 +702,7 @@ Elke bestelling bevat:
 
 Bel ^c91-800-GAME123 ^c8om te bestellen tijdens kantooruren.  Visa en MasterCard welkom!
 ^P
-^c4AFLEVERING TWEE VAN "GOODBYE, GALAXY!" BESTELLEN
+^c4AFLEVERING TWEE BESTELLEN
 ^c8
 Aflevering twee, "The Armageddon Machine", is een veel groter avontuur dan "Secret of the Oracle".  Een paar spannende redenen om aflevering twee van "Goodbye, Galaxy!" te bestellen:
 

@@ -208,6 +208,16 @@ func test_a_chunk_of_another_release_stays_english() -> void:
 	assert_true(GalaxyTexts.merge_pages(english, "^P\nWoorden\n^E\n").is_empty(), "other commands")
 
 
+func test_a_page_that_runs_over_is_found() -> void:
+	for game in _games:
+		var layout := GalaxyHelp.page_layout(_data(game).graphics, _rules(game))
+		var long := "^P\n" + "woord ".repeat(GalaxyPageLayout.LINE_COUNT * GalaxyPageLayout.RIGHT)
+		layout.lay_out(GalaxyTextPages.parse(long.to_ascii_buffer()), 0)
+		assert_true(layout.overflowed, "too many words")
+		layout.lay_out(GalaxyTextPages.parse("^P\nkort\n^E".to_ascii_buffer()), 0)
+		assert_true(not layout.overflowed, "a short page")
+
+
 ## Name -> how wide and high a text may be, for every boxed text of
 ## [param game].
 func _box_limits(game: int) -> Dictionary[String, Vector2i]:
