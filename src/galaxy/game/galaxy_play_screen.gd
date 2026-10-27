@@ -61,8 +61,6 @@ var _fresh_sprites := false
 var _audio := GalaxyAudio.new()
 ## The episode's own settings (the quiet AdLib sounds, the score box).
 var _galaxy_settings: GalaxySettings
-## The help line (F1) as the scene has it, in English.
-var _help_line_english := ""
 
 @onready var _score_box: GalaxyScoreBox = %ScoreBox
 
@@ -575,11 +573,7 @@ func _look_bounds() -> Rect2:
 func _update_status() -> void:
 	_help_label.visible = _show_help
 	if _show_help:
-		# The scene holds the English line; it is shown in the language in
-		# use, which the panel can change at any time.
-		if _help_line_english.is_empty():
-			_help_line_english = _help_label.text
-		_help_label.text = Lang.text(_help_line_english)
+		_translate_help()
 	if _data == null:
 		return
 	var lines := PackedStringArray()
