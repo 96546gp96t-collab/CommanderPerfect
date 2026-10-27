@@ -1,0 +1,257 @@
+# Nederlands: the engine's own texts of Keen 1, 2 and 3 and the start
+# screen (menus, messages, the status line, the help line, online play).
+# English text = translation; see language.txt for the format. The windows
+# of Keen 1-3 are at most 38 characters wide; lines that are shown one
+# under the other are translated as a pair, so they read on together.
+
+# The start screen.
+Press Escape again to quit = Druk nog eens op Escape om te stoppen
+The files of %s were not found. Put them in %s (see game_data/README.md), next to the app. = De bestanden van %s zijn niet gevonden. Zet ze in %s (zie game_data/README.md), naast de app.
+
+# The main menu.
+MAIN MENU = HOOFDMENU
+Return to Game = Terug naar het spel
+Add Player 2 = Speler 2 erbij
+Remove Player 2 = Speler 2 eruit
+New Game = Nieuw spel
+Continue Game = Spel laden
+Online Game = Online spel
+Save Game = Spel opslaan
+Story = Verhaal
+High Scores = Topscores
+Controls = Besturing
+Options = Opties
+Quit to Title = Naar het titelscherm
+Choose Game = Ander spel kiezen
+Quit = Stoppen
+Press a key = Druk op een toets
+
+# Loading and saving.
+Continue which game? = Welk spel laden?
+Save in which position? = Op welke plaats opslaan?
+That game position = Op die plaats staat
+already exists! = al een spel!
+Overwrite it = Overschrijven
+Keep it = Bewaren
+You can only save the = Opslaan kan alleen
+game on the world map. = op de wereldkaart.
+Game saved in position %d. = Spel opgeslagen op plaats %d.
+Continue it from the main = Laad het weer via het
+menu.  Press a key = hoofdmenu. Druk op een toets
+That game could not be = Dat spel kon niet worden
+read.  Press a key = gelezen. Druk op een toets
+The game could not be saved. = Het spel kon niet worden opgeslagen.
+Score %d, %d levels = Score %d, %d levels
+(damaged) = (beschadigd)
+
+# The controls.
+CONTROLS = BESTURING
+One player = Een speler
+Two players: player %d = Twee spelers: speler %d
+Controllers = Controllers
+CONTROLLERS = CONTROLLERS
+Reset to defaults = Alles terugzetten
+All keys and buttons are = Alle toetsen en knoppen
+back as they were. = zijn weer zoals eerst.
+ONE PLAYER = EEN SPELER
+PLAYER %d OF TWO = SPELER %d VAN TWEE
+Pick one to change it = Kies er een om te wijzigen
+Controller buttons = Controllerknoppen
+BUTTONS: %s = KNOPPEN: %s
+When two play. Alone, = Bij twee spelers. Alleen
+every controller works. = werkt elke controller.
+Player %d  %s = Speler %d  %s
+Both automatic = Allebei automatisch
+Press the new key for = Druk de nieuwe toets voor
+%s, or Escape. = %s, of Escape.
+Press the new button for = Druk de nieuwe knop voor
+%s on a controller, = %s op een controller,
+or Back (Escape). = of Back (Escape).
+Press a button on the = Druk een knop in op de
+controller of PLAYER %d, = controller van SPELER %d,
+or Escape. = of Escape.
+# What the keys do (seven letters at most).
+Left = Links
+Right = Rechts
+Up = Omhoog
+Down = Omlaag
+Jump = Spring
+Pogo = Pogo
+Fire = Schiet
+Status = Status
+
+# A name for the high scores.
+CONGRATULATIONS! = GEFELICITEERD!
+You got %s place! = Je hebt de %s plaats!
+Enter your name: = Typ je naam:
+
+# Playing online.
+%s'S GAME = SPEL VAN %s
+Leave Game = Spel verlaten
+ONLINE GAME = ONLINE SPEL
+Playing with %s = Je speelt met %s
+Nobody joined yet = Nog niemand doet mee
+Stop Hosting = Stoppen met hosten
+Host via Steam = Hosten via Steam
+Host via IP = Hosten via IP
+Join via Steam = Meedoen via Steam
+Join via IP = Meedoen via IP
+Your Name: %s = Je naam: %s
+HOST VIA IP = HOSTEN VIA IP
+HOST VIA STEAM = HOSTEN VIA STEAM
+UDP port %d = UDP-poort %d
+Only your Steam friends = Alleen je Steam-vrienden
+can see the game. = zien het spel.
+Password: %s = Wachtwoord: %s
+none = geen
+Start Hosting = Hosten starten
+Password = Wachtwoord
+Type Password = Wachtwoord typen
+Random Password = Willekeurig wachtwoord
+Network:  %s = Netwerk:  %s
+Internet: %s = Internet: %s
+not found = niet gevonden
+looking up... = zoeken...
+JOIN VIA STEAM = MEEDOEN VIA STEAM
+Your friends' games: = Spellen van je vrienden:
+(none found) = (geen gevonden)
+Look Again = Opnieuw zoeken
+HOSTING = HOSTEN
+Escape > Online Game shows = Escape > Online spel toont
+this again. = dit weer.
+YOUR NAME = JE NAAM
+The other player sees = De andere speler ziet
+this name. = deze naam.
+JOIN VIA IP = MEEDOEN VIA IP
+The host's address: = Het adres van de host:
+YOUR PASSWORD = JE WACHTWOORD
+Your friend types this = Je vriend typt dit om mee
+to join. Capitals count. = te doen. Hoofdletters tellen.
+PASSWORD = WACHTWOORD
+The host's password = Het wachtwoord van de
+(empty if none): = host (leeg als er geen is):
+Opening a Steam lobby... = Een Steam-lobby openen...
+Joining %s... = Meedoen met %s...
+Joining through Steam... = Meedoen via Steam...
+Via Steam, friends only = Via Steam, alleen vrienden
+Via IP, UDP port %d = Via IP, UDP-poort %d
+Joined %s's game = Je doet mee met %s
+%s joined = %s doet mee
+%s left = %s is weg
+The host plays %s. = De host speelt %s.
+Its game files are missing = De bestanden van dat spel
+here. = ontbreken hier.
+The host does not answer. = De host antwoordt niet.
+Is the address right, and = Klopt het adres, en is er
+is there still room? = nog plaats?
+Wrong password. = Verkeerd wachtwoord.
+This game needs a password. = Dit spel wil een wachtwoord.
+# "The host plays another" goes on with both lines after it.
+The host plays another = De host speelt een andere
+version of CommanderPerfect. = versie van CommanderPerfect.
+game: another Keen. = Keen.
+The host has other level = De host heeft andere levels:
+files: another version of = een andere versie van
+the game data. = de spelgegevens.
+Somebody already plays = Er speelt al iemand mee
+along with the host. = met de host.
+Too many wrong passwords. = Te vaak een verkeerd wachtwoord.
+Wait a minute. = Wacht een minuut.
+That is not a = Dat is geen
+CommanderPerfect game. = spel van CommanderPerfect.
+The host did not let you in. = De host liet je niet binnen.
+The host has left the game. = De host heeft het spel verlaten.
+Could not host: port %d = Hosten lukt niet: poort %d
+is already in use. = is al in gebruik.
+Could not host: = Hosten lukt niet:
+The Steam plug-in is not in this build. = De Steam-plug-in zit niet in deze versie.
+Steam is not running, or you are not logged in. = Steam draait niet, of je bent niet ingelogd.
+Steam could not open a lobby. = Steam kon geen lobby openen.
+Steam could not let you into that game. = Steam kon je niet in dat spel laten.
+
+# Messages on the status line.
+Original graphics = Originele graphics
+xBRZ graphics = xBRZ-graphics
+HD graphics = HD-graphics
+on = aan
+off = uit
+Smooth motion %s = Vloeiend bewegen %s
+Realistic lighting %s = Realistisch licht %s
+Preparing %s... = %s klaarmaken...
+No HD graphics yet: make them with tools/make_hd_graphics.sh = Nog geen HD-graphics: maak ze met tools/make_hd_graphics.sh
+Realistic lighting: no glow, this computer is too slow for it = Realistisch licht: geen gloed, deze computer is er te traag voor
+GOD MODE = GODMODUS
+Waiting for %s to start a game = Wachten tot %s een spel begint
+Cheat: all keycards, the pogo stick and a full raygun = Cheat: alle sleutelkaarten, de pogostok en een vol straalgeweer
+Cheat: all keycards and a full raygun = Cheat: alle sleutelkaarten en een vol straalgeweer
+Cheat: god mode %s = Cheat: godmodus %s
+Not while playing online = Niet tijdens online spelen
+Only the host can walk on the world map = Alleen de host loopt over de wereldkaart
+Player 2 left = Speler 2 is weg
+Player 2 joined: player 1 on WASD, player 2 on the arrows = Speler 2 doet mee: speler 1 op WASD, speler 2 op de pijltjes
+Player 2 plays along in the levels = Speler 2 speelt mee in de levels
+Hosting stopped = Hosten gestopt
+%s could not be read. = %s kon niet worden gelezen.
+The texts of the ending could not be read. = De teksten van het einde konden niet worden gelezen.
+Keen 2 has no level %d = Keen 2 heeft geen level %d
+Keen 3 has no level %d = Keen 3 heeft geen level %d
+Keen 1 data not found. Put the files in game_data/keen1 (see game_data/README.md) or start with: -- --data-dir=PATH = De bestanden van Keen 1 zijn niet gevonden. Zet ze in game_data/keen1 (zie game_data/README.md) of start met: -- --data-dir=MAP
+Keen 2 data not found. Put the files in game_data/keen2 or start with: -- --data-dir-keen2=PATH = De bestanden van Keen 2 zijn niet gevonden. Zet ze in game_data/keen2 of start met: -- --data-dir-keen2=MAP
+Keen 3 data not found. Put the files in game_data/keen3 or start with: -- --data-dir-keen3=PATH = De bestanden van Keen 3 zijn niet gevonden. Zet ze in game_data/keen3 of start met: -- --data-dir-keen3=MAP
+The game files in %s could not be read. = De spelbestanden in %s konden niet worden gelezen.
+The Keen 2 files in %s could not be read. = De bestanden van Keen 2 in %s konden niet worden gelezen.
+The Keen 3 files in %s could not be read. = De bestanden van Keen 3 in %s konden niet worden gelezen.
+The world map is missing in %s. = De wereldkaart ontbreekt in %s.
+The tile properties in %s could not be read. = De tegeleigenschappen in %s konden niet worden gelezen.
+The world map could not be read from %s. = De wereldkaart kon niet worden gelezen uit %s.
+Level %d could not be read from %s. = Level %d kon niet worden gelezen uit %s.
+
+# The line about the picture and the inventory (F1, in 4:3).
+%s   %s %d x %d, %s pixels, %s = %s   %s %d x %d, pixels %s, %s
+original = origineel
+widescreen = breedbeeld
+4:3 monitor = voor 4:3-monitor
+square = vierkant
+, realistic lighting = , realistisch licht
+Score %d = Score %d
+Lives %d = Levens %d
+Ammo %d = Schoten %d
+Keycards: %s = Sleutelkaarten: %s
+Yellow = Geel
+Red = Rood
+Green = Groen
+Blue = Blauw
+Ship parts %d/%d = Scheepsonderdelen %d/%d
+World map = Wereldkaart
+Ending = Einde
+Backdrops = Achtergronden
+Level %d = Level %d
+Ship = Schip
+Inside the ship = In het schip
+
+# The help line (F1).
+Esc: menu    Arrows / WASD: walk    Ctrl / Z: jump    Alt / X: pogo    Space / C: fire    Enter: status    Shift+N / P: next / previous map    Shift+I: all items    Shift+G: god mode    F2: widescreen    F3: pixels    F4: full screen    F5: graphics    F6: smooth motion    F8: realistic lighting    F7: player 2 joins / leaves    F1: show / hide this line = Esc: menu    Pijltjes / WASD: lopen    Ctrl / Z: springen    Alt / X: pogo    Spatie / C: schieten    Enter: status    Shift+N / P: volgende / vorige kaart    Shift+I: alle spullen    Shift+G: godmodus    F2: breedbeeld    F3: pixels    F4: volledig scherm    F5: graphics    F6: vloeiend bewegen    F8: realistisch licht    F7: speler 2 erbij / eruit    F1: deze regel tonen / verbergen
+Esc: back to the start screen    Arrows / WASD: walk    Ctrl / Z: jump    Alt / X: pogo    Space / C: fire    Shift+N / P: next / previous level    Shift+I: all items    Shift+G: god mode    F2: widescreen    F3: pixels    F4: full screen    F5: graphics    F6: smooth motion    F8: realistic lighting    F1: show / hide this line = Esc: terug naar het startscherm    Pijltjes / WASD: lopen    Ctrl / Z: springen    Alt / X: pogo    Spatie / C: schieten    Shift+N / P: volgend / vorig level    Shift+I: alle spullen    Shift+G: godmodus    F2: breedbeeld    F3: pixels    F4: volledig scherm    F5: graphics    F6: vloeiend bewegen    F8: realistisch licht    F1: deze regel tonen / verbergen
+
+# In the game's own windows.
+Keens Left = Keens over
+Score = Score
+Press ENTER: = Druk op ENTER:
+Joystick = Joystick
+Battery = Batterij
+Vacuum = Stofzuiger
+Everclear = Everclear
+%s in place! = %s zit erin!
+%s still missing = %s ontbreekt nog
+All parts in! Ready to fly! = Alles zit erin! Klaar voor vertrek!
+
+# The status screen of Keen 1: fixed columns, so short words (SCORE 5,
+# NEXT KEEN 10, LIVES 8, RAYGUN 6, POGO 5, KEYCARDS and SHIP PARTS 11).
+SCORE = SCORE
+NEXT KEEN = EXTRA KEEN
+LIVES = LEVENS
+RAYGUN = GEWEER
+POGO = POGO
+KEYCARDS = SLEUTELS
+SHIP PARTS = ONDERDELEN
+PRESS ENTER = DRUK OP ENTER

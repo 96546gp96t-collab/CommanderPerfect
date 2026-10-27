@@ -49,7 +49,7 @@ func _process(delta: float) -> void:
 	if _quit_time_left <= 0.0:
 		return
 	_quit_time_left -= delta
-	if _quit_time_left <= 0.0 and _message.text == QUIT_MESSAGE:
+	if _quit_time_left <= 0.0 and _message.text == Lang.text(QUIT_MESSAGE):
 		_message.text = ""
 
 
@@ -63,7 +63,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		get_tree().quit()
 		return
 	_quit_time_left = QUIT_SECONDS
-	_message.text = QUIT_MESSAGE
+	_message.text = Lang.text(QUIT_MESSAGE)
 
 
 ## No icon is chosen until the keys or the controller are used, so that
@@ -168,7 +168,7 @@ func _arrange() -> void:
 ## Starts [param game] with its main menu open, or says why it cannot.
 func _start(game: GameCatalog.Game) -> void:
 	if not game.is_available():
-		_message.text = MISSING_FILES_MESSAGE % [game.title, game.data_folder]
+		_message.text = Lang.text(MISSING_FILES_MESSAGE) % [game.title, game.data_folder]
 		_quit_time_left = 0.0
 		return
 	GameLaunch.request_menu()

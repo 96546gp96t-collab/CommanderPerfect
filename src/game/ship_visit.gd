@@ -11,7 +11,8 @@ extends RefCounted
 ## In both, items stay where they are: the parts in their places are not
 ## picked up again.
 
-## A short note: a part went in, or is still missing.
+## A short note: a part went in, or is still missing (in the language in
+## use; online the other player sees it as it is).
 signal note_shown(text: String)
 
 ## Where Keen goes next: back to the map, or into the other ship level.
@@ -85,10 +86,10 @@ func leave() -> void:
 
 func _on_part_installed(part: Inventory.ShipPart, progress: GameProgress) -> void:
 	if progress.all_parts_installed():
-		note_shown.emit(REPAIRED_NOTE)
+		note_shown.emit(Lang.text(REPAIRED_NOTE))
 	else:
-		note_shown.emit("%s in place!" % PART_NAMES[part])
+		note_shown.emit(Lang.text("%s in place!") % Lang.text(PART_NAMES[part]))
 
 
 func _on_part_missing(part: Inventory.ShipPart) -> void:
-	note_shown.emit("%s still missing" % PART_NAMES[part])
+	note_shown.emit(Lang.text("%s still missing") % Lang.text(PART_NAMES[part]))

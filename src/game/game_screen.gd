@@ -81,6 +81,10 @@ var _joined_online := false
 ## The realistic look of the World and World2 viewports; made the first time
 ## the option is on.
 var _realistic_looks: Array[RealisticLook] = []
+## The help line as the scene has it (English), and the language it was last
+## shown in: it is translated again when the language changes.
+var _help_english := ""
+var _help_language := ""
 
 @onready var _screen: TextureRect = %Screen
 @onready var _world: SubViewport = %World
@@ -140,14 +144,14 @@ func _handle_display_keys(event: InputEvent) -> bool:
 		_settings.correct_pixel_aspect = not _settings.correct_pixel_aspect
 	elif event.is_action_pressed("toggle_graphics"):
 		_settings.graphics = MenuController.next_graphics(_settings.graphics, _menus.hd_available)
-		_show_message(GRAPHICS_TITLES[_settings.graphics])
+		_show_message(Lang.text(GRAPHICS_TITLES[_settings.graphics]))
 		_apply_graphics()
 	elif event.is_action_pressed("toggle_smooth_motion"):
 		_settings.smooth_motion = not _settings.smooth_motion
-		_show_message("Smooth motion " + ("on" if _settings.smooth_motion else "off"))
+		_show_message(Lang.text("Smooth motion %s") % on_off(_settings.smooth_motion))
 	elif event.is_action_pressed("toggle_realistic"):
 		_settings.realistic = not _settings.realistic
-		_show_message("Realistic lighting " + ("on" if _settings.realistic else "off"))
+		_show_message(Lang.text("Realistic lighting %s") % on_off(_settings.realistic))
 	elif event.is_action_pressed("toggle_help"):
 		_show_help = not _show_help
 		return true
@@ -172,11 +176,11 @@ func _apply_graphics() -> void:
 	if scaled != null:
 		_use_graphics(scaled)
 	elif _graphics_loader.has_failed(style):
-		_show_message(MISSING_HD_MESSAGE)
+		_show_message(Lang.text(MISSING_HD_MESSAGE))
 		_settings.graphics = DisplaySettings.Graphics.ORIGINAL
 		_use_graphics(null)
 	elif _graphics_loader.is_busy():
-		_show_message("Preparing %s..." % GRAPHICS_TITLES[style])
+		_show_message(Lang.text("Preparing %s...") % Lang.text(GRAPHICS_TITLES[style]))
 
 
 func _use_graphics(scaled: ScaledGraphics) -> void:
@@ -377,7 +381,7 @@ func _apply_realistic(render_scale: int) -> void:
 			RealisticLook.add_to(_world, _world.get_node_or_null(^"Ui")),
 			RealisticLook.add_to(_world_2),
 		]
-		_realistic_looks[0].made_lighter.connect(_show_message.bind(LIGHTER_MESSAGE))
+		_realistic_looks[0].made_lighter.connect(_on_made_lighter)
 		_realistic_looks[0].lights_source = _realistic_lights.bind(_camera)
 		_realistic_looks[1].lights_source = _realistic_lights.bind(_camera_2)
 	var grade := _realistic_grade()
@@ -414,9 +418,39 @@ func _realistic_light_tiles() -> Dictionary[int, RealisticLights.Kind]:
 	return {}
 
 
+## Shows [param text] under the status for a while; the caller translates
+## it.
 func _show_message(text: String) -> void:
 	_message = text
 	_message_time_left = MESSAGE_SECONDS
+
+
+## Puts the help line in the language in use.
+func _translate_help() -> void:
+	if _help_english.is_empty():
+		_help_english = _help_label.text
+	if _help_language != Lang.code():
+		_help_language = Lang.code()
+		_help_label.text = Lang.text(_help_english)
+
+
+func _on_made_lighter() -> void:
+	_show_message(Lang.text(LIGHTER_MESSAGE))
+
+
+## What a message says when player 2 joins ([param two_players]) or leaves:
+## in a level he is there at once, on the map from the next level on.
+static func second_player_message(two_players: bool, in_level: bool) -> String:
+	if not two_players:
+		return Lang.text("Player 2 left")
+	if in_level:
+		return Lang.text("Player 2 joined: player 1 on WASD, player 2 on the arrows")
+	return Lang.text("Player 2 plays along in the levels")
+
+
+## "on" or "off" in a message, in the language in use.
+static func on_off(on: bool) -> String:
+	return Lang.text("on" if on else "off")
 
 
 func _show_error(message: String) -> void:
@@ -453,6 +487,8 @@ func _count_down_window(delta: float) -> void:
 func _update_status() -> void:
 	var playing := _mode in [Mode.MAP, Mode.LEVEL, Mode.LOOK, Mode.REMOTE]
 	_help_label.visible = _show_help and playing and not _menus.is_open()
+	if _help_label.visible:
+		_translate_help()
 	_update_hud()
 	if _level == null:
 		return
@@ -470,18 +506,18 @@ func _update_status() -> void:
 	if not info_line:
 		var notes := PackedStringArray()
 		if playing and _god_mode:
-			notes.append("GOD MODE")
+			notes.append(Lang.text("GOD MODE"))
 		if _joined_online and _mode in [Mode.TITLE, Mode.HIGH_SCORES]:
-			notes.append("Waiting for %s to start a game" % _online.partner_name())
+			notes.append(Lang.text("Waiting for %s to start a game") % _online.partner_name())
 		if _message_time_left > 0.0:
 			notes.append(_message)
 		_status_label.text = "\n".join(notes)
 		return
-	var title := "Ending" if _mode == Mode.ENDING else ShipLevels.title(_level_number)
+	var title := Lang.text("Ending") if _mode == Mode.ENDING else ShipLevels.title(_level_number)
 	var lines := PackedStringArray([StatusLine.picture_text(title, _settings)])
 	if _mode in [Mode.MAP, Mode.LEVEL]:
 		var inventory := StatusLine.inventory_text(_progress.inventory)
-		lines.append(inventory + ("   GOD MODE" if _god_mode else ""))
+		lines.append(inventory + ("   " + Lang.text("GOD MODE") if _god_mode else ""))
 	if _message_time_left > 0.0:
 		lines.append(_message)
 	_status_label.text = "\n".join(lines)

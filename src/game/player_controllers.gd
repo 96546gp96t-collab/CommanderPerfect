@@ -196,7 +196,7 @@ static func describe(player: int, max_length := 0) -> String:
 		var pad := _pad_with_device(pads, device)
 		text = "%d %s" % [pads.find(pad) + 1, short_name(pad.name)]
 	elif is_chosen(player):
-		text = "%s (OFF)" % short_name(str(_chosen[player][NAME_KEY]))
+		text = "%s (%s)" % [short_name(str(_chosen[player][NAME_KEY])), Lang.text("OFF")]
 	else:
 		text = "-"
 	if not is_chosen(player):

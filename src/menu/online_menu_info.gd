@@ -35,13 +35,13 @@ var steam_locked: Array[bool] = []
 func address_lines() -> PackedStringArray:
 	var lines := PackedStringArray()
 	for address in local_addresses.slice(0, MAX_LOCAL_ADDRESSES):
-		lines.append("Network:  " + address)
+		lines.append(Lang.text("Network:  %s") % address)
 	if local_addresses.is_empty():
-		lines.append("Network:  not found")
+		lines.append(Lang.text("Network:  %s") % Lang.text("not found"))
 	var public := public_address
 	if public.is_empty():
-		public = "not found" if public_lookup_done else "looking up..."
-	lines.append("Internet: " + public)
+		public = Lang.text("not found" if public_lookup_done else "looking up...")
+	lines.append(Lang.text("Internet: %s") % public)
 	return lines
 
 

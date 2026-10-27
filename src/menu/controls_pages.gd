@@ -12,23 +12,23 @@ const PAD_TEXT_LENGTH := 20
 
 ## The keys for playing alone and for each of two players, the controllers.
 static func controls() -> Menu:
-	var menu := Menu.create(MenuController.CONTROLS, ["  CONTROLS"])
-	menu.add("One player", MenuController.KEY_SET, 0)
-	menu.add("Two players: player 1", MenuController.KEY_SET, 1)
-	menu.add("Two players: player 2", MenuController.KEY_SET, 2)
-	menu.add("Controllers", MenuController.CONTROLLERS)
-	menu.add("Reset to defaults", &"reset")
+	var menu := Menu.create(MenuController.CONTROLS, ["  " + Lang.text("CONTROLS")])
+	menu.add(Lang.text("One player"), MenuController.KEY_SET, 0)
+	menu.add(Lang.text("Two players: player %d") % 1, MenuController.KEY_SET, 1)
+	menu.add(Lang.text("Two players: player %d") % 2, MenuController.KEY_SET, 2)
+	menu.add(Lang.text("Controllers"), MenuController.CONTROLLERS)
+	menu.add(Lang.text("Reset to defaults"), &"reset")
 	return menu
 
 
 ## The keys of one set (0 playing alone, 1 or 2 a player of two); pick one
 ## to change it. The last row leads to the set's controller buttons.
 static func key_set(set_index: int) -> Menu:
-	var menu := Menu.create(MenuController.KEY_SET, [_title(set_index), "  Pick one to change it"])
+	var menu := Menu.create(MenuController.KEY_SET, [_title(set_index), _pick_one()])
 	for action: String in _actions(set_index):
-		var label := KeyBindings.action_name(action)
+		var label := _action_name(action)
 		menu.add("%-7s %s" % [label, KeyBindings.describe(action)], StringName(action))
-	menu.add("Controller buttons", MenuController.BUTTON_SET, set_index)
+	menu.add(Lang.text("Controller buttons"), MenuController.BUTTON_SET, set_index)
 	return menu
 
 
@@ -36,10 +36,10 @@ static func key_set(set_index: int) -> Menu:
 static func button_set(set_index: int) -> Menu:
 	var menu := Menu.create(
 		MenuController.BUTTON_SET,
-		["  BUTTONS: " + _title(set_index).strip_edges(), "  Pick one to change it"]
+		["  " + Lang.text("BUTTONS: %s") % _title(set_index).strip_edges(), _pick_one()]
 	)
 	for action: String in _actions(set_index):
-		var label := KeyBindings.action_name(action)
+		var label := _action_name(action)
 		menu.add("%-7s %s" % [label, ButtonBindings.describe(action)], StringName(action))
 	return menu
 
@@ -47,36 +47,63 @@ static func button_set(set_index: int) -> Menu:
 ## The controller of each of two players; pick one, then press a button on
 ## his controller. Playing alone, every controller works.
 static func controllers() -> Menu:
-	var menu := Menu.create(
-		MenuController.CONTROLLERS,
-		["  CONTROLLERS", "  When two play. Alone,", "  every controller works."]
+	var menu := (
+		Menu
+		. create(
+			MenuController.CONTROLLERS,
+			[
+				"  " + Lang.text("CONTROLLERS"),
+				"  " + Lang.text("When two play. Alone,"),
+				"  " + Lang.text("every controller works."),
+			]
+		)
 	)
 	for player in PlayerControllers.PLAYER_COUNT:
 		var pad := PlayerControllers.describe(player, PAD_TEXT_LENGTH)
-		menu.add("Player %d  %s" % [player + 1, pad], MenuController.PLAYER_PAD, player)
-	menu.add("Both automatic", MenuController.AUTOMATIC_PADS)
+		var label := Lang.text("Player %d  %s") % [player + 1, pad]
+		menu.add(label, MenuController.PLAYER_PAD, player)
+	menu.add(Lang.text("Both automatic"), MenuController.AUTOMATIC_PADS)
 	return menu
 
 
 static func key_prompt(action: String) -> Menu:
-	var lines := ["Press the new key for", "%s, or Escape." % _upper_name(action)]
+	var lines := [
+		Lang.text("Press the new key for"), Lang.text("%s, or Escape.") % _upper_name(action)
+	]
 	return Menu.create(MenuController.PRESS_KEY, lines)
 
 
 static func button_prompt(action: String) -> Menu:
 	var lines := [
-		"Press the new button for", "%s on a controller," % _upper_name(action), "or Back (Escape)."
+		Lang.text("Press the new button for"),
+		Lang.text("%s on a controller,") % _upper_name(action),
+		Lang.text("or Back (Escape)."),
 	]
 	return Menu.create(MenuController.NEW_BUTTON, lines)
 
 
 static func controller_prompt(player: int) -> Menu:
-	var lines := ["Press a button on the", "controller of PLAYER %d," % (player + 1), "or Escape."]
+	var lines := [
+		Lang.text("Press a button on the"),
+		Lang.text("controller of PLAYER %d,") % (player + 1),
+		Lang.text("or Escape."),
+	]
 	return Menu.create(MenuController.PRESS_BUTTON, lines)
 
 
 static func _title(set_index: int) -> String:
-	return "  ONE PLAYER" if set_index == 0 else "  PLAYER %d OF TWO" % set_index
+	if set_index == 0:
+		return "  " + Lang.text("ONE PLAYER")
+	return "  " + Lang.text("PLAYER %d OF TWO") % set_index
+
+
+static func _pick_one() -> String:
+	return "  " + Lang.text("Pick one to change it")
+
+
+## The name of [param action] in the menu ("Jump"), in the language in use.
+static func _action_name(action: String) -> String:
+	return Lang.text(KeyBindings.action_name(action))
 
 
 static func _actions(set_index: int) -> Array:
@@ -86,4 +113,4 @@ static func _actions(set_index: int) -> Array:
 
 
 static func _upper_name(action: String) -> String:
-	return KeyBindings.action_name(action).to_upper()
+	return _action_name(action).to_upper()

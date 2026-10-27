@@ -1,12 +1,19 @@
 class_name OnlineText
 extends RefCounted
 ## What the player reads when something about playing online did not work,
-## as lines for a window of the game (short enough for its font).
+## as lines for a window of the game (short enough for its font), in the
+## language in use.
 
 
 ## The host plays [param title], whose files this player does not have.
 static func missing_game(title: String) -> PackedStringArray:
-	return _with_prompt(["The host plays %s." % title, "Its game files are missing", "here."])
+	return _with_prompt(
+		[
+			Lang.text("The host plays %s.") % title,
+			Lang.text("Its game files are missing"),
+			Lang.text("here."),
+		]
+	)
 
 
 ## Why joining did not work, for [param reason] from [JoinHandshake] or
@@ -36,27 +43,31 @@ static func join_failed(reason: String) -> PackedStringArray:
 			lines = ["That is not a", "CommanderPerfect game."]
 		_:
 			lines = ["The host did not let you in."]
-	return _with_prompt(lines)
+	return _with_prompt(Lang.texts(lines))
 
 
 static func host_left() -> PackedStringArray:
-	return _with_prompt(["The host has left the game."])
+	return _with_prompt([Lang.text("The host has left the game.")])
 
 
 ## Hosting could not start: [param error] from the transport.
 static func host_failed(error: Error) -> PackedStringArray:
 	if error == ERR_ALREADY_IN_USE or error == ERR_CANT_CREATE:
 		return _with_prompt(
-			["Could not host: port %d" % OnlineProtocol.GAME_PORT, "is already in use."]
+			[
+				Lang.text("Could not host: port %d") % OnlineProtocol.GAME_PORT,
+				Lang.text("is already in use."),
+			]
 		)
-	return _with_prompt(["Could not host:", error_string(error)])
+	return _with_prompt([Lang.text("Could not host:"), error_string(error)])
 
 
-## Something Steam said, as one or more lines.
+## Something Steam said ([SteamService]'s own English), as one or more
+## lines.
 static func steam(reason: String) -> PackedStringArray:
 	var lines := PackedStringArray(["Steam:"])
 	var line := ""
-	for word in reason.split(" "):
+	for word in Lang.text(reason).split(" "):
 		if not line.is_empty() and line.length() + 1 + word.length() > MenuController.TEXT_WIDTH:
 			lines.append(line)
 			line = ""
@@ -66,5 +77,5 @@ static func steam(reason: String) -> PackedStringArray:
 
 
 static func _with_prompt(lines: PackedStringArray) -> PackedStringArray:
-	lines.append_array(["", "   Press a key"])
+	lines.append_array(["", MenuController.press_a_key()])
 	return lines

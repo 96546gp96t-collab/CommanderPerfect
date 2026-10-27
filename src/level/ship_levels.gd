@@ -91,9 +91,9 @@ static func is_ship_level(level_number: int) -> bool:
 static func title(level_number: int) -> String:
 	match level_number:
 		OUTSIDE_LEVEL:
-			return "Ship"
+			return Lang.text("Ship")
 		INSIDE_LEVEL:
-			return "Inside the ship"
+			return Lang.text("Inside the ship")
 	return GameFiles.level_title(level_number)
 
 

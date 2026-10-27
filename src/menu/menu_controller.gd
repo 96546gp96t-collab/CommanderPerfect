@@ -180,30 +180,37 @@ func open_main(in_game: bool, can_save: bool, two_players := false) -> void:
 func _build_main(in_game: bool, can_save: bool, two_players: bool) -> Menu:
 	if online.role == OnlineMenuInfo.Role.CLIENT:
 		return _joined_menu(in_game)
-	var menu := Menu.create(MAIN, ["     MAIN MENU"])
+	var menu := Menu.create(MAIN, ["     " + Lang.text("MAIN MENU")])
 	if in_game:
-		menu.add("Return to Game", CHOICE_RESUME)
+		menu.add(Lang.text("Return to Game"), CHOICE_RESUME)
 		if online.role == OnlineMenuInfo.Role.OFFLINE and offers_second_player:
-			menu.add("Remove Player 2" if two_players else "Add Player 2", CHOICE_SECOND_PLAYER)
-	menu.add("New Game", CHOICE_NEW_GAME)
-	menu.add("Continue Game", SLOTS_LOAD)
+			var label := "Remove Player 2" if two_players else "Add Player 2"
+			menu.add(Lang.text(label), CHOICE_SECOND_PLAYER)
+	menu.add(Lang.text("New Game"), CHOICE_NEW_GAME)
+	menu.add(Lang.text("Continue Game"), SLOTS_LOAD)
 	if offers_online:
-		menu.add("Online Game", ONLINE)
+		menu.add(Lang.text("Online Game"), ONLINE)
 	if in_game:
-		menu.add("Save Game", SLOTS_SAVE if can_save else &"save_not_here")
+		menu.add(Lang.text("Save Game"), SLOTS_SAVE if can_save else &"save_not_here")
 	if not story.is_empty():
-		menu.add("Story", STORY)
-	menu.add("High Scores", CHOICE_HIGH_SCORES)
-	menu.add("Controls", CONTROLS)
-	menu.add("Options", OPTIONS)
+		menu.add(Lang.text("Story"), STORY)
+	menu.add(Lang.text("High Scores"), CHOICE_HIGH_SCORES)
+	menu.add(Lang.text("Controls"), CONTROLS)
+	menu.add(Lang.text("Options"), OPTIONS)
 	if in_game:
-		menu.add("Quit to Title", CHOICE_TITLE)
-	menu.add("Choose Game", CHOICE_CHOOSE_GAME)
-	menu.add("Quit", CHOICE_QUIT)
+		menu.add(Lang.text("Quit to Title"), CHOICE_TITLE)
+	menu.add(Lang.text("Choose Game"), CHOICE_CHOOSE_GAME)
+	menu.add(Lang.text("Quit"), CHOICE_QUIT)
 	return menu
 
 
-## A message that any key closes.
+## "Press a key" under a message, indented as the original's.
+static func press_a_key() -> String:
+	return "   " + Lang.text("Press a key")
+
+
+## A message that any key closes. [param lines] are shown as they are: the
+## caller translates them.
 func show_message(lines: PackedStringArray) -> void:
 	_push(Menu.create(MESSAGE, lines))
 
@@ -290,9 +297,9 @@ func _pick(menu: Menu, item: Menu.Item) -> void:
 				_push(
 					(
 						Menu
-						. create(OVERWRITE, ["That game position", "already exists!"])
-						. add("Overwrite it", &"yes")
-						. add("Keep it", &"no")
+						. create(OVERWRITE, Lang.texts(["That game position", "already exists!"]))
+						. add(Lang.text("Overwrite it"), &"yes")
+						. add(Lang.text("Keep it"), &"no")
 					)
 				)
 			else:
@@ -329,11 +336,13 @@ func _pick(menu: Menu, item: Menu.Item) -> void:
 func _pick_main(id: StringName) -> void:
 	match id:
 		SLOTS_LOAD:
-			_push(_slots_menu(SLOTS_LOAD, ["  Continue which game?"]))
+			_push(_slots_menu(SLOTS_LOAD, ["  " + Lang.text("Continue which game?")]))
 		SLOTS_SAVE:
-			_push(_slots_menu(SLOTS_SAVE, ["  Save in which position?"]))
+			_push(_slots_menu(SLOTS_SAVE, ["  " + Lang.text("Save in which position?")]))
 		&"save_not_here":
-			show_message(["You can only save the", "game on the world map.", "", "   Press a key"])
+			var lines := Lang.texts(["You can only save the", "game on the world map.", ""])
+			lines.append(press_a_key())
+			show_message(lines)
 		STORY:
 			_story_offset = 0
 			_lay_out_story()
@@ -353,7 +362,11 @@ func _save(slot: int) -> void:
 	chosen.emit(CHOICE_SAVE, slot)
 	_stack.clear()
 	show_message(
-		["Game saved in position %d." % slot, "Continue it from the main", "menu.  Press a key"]
+		[
+			Lang.text("Game saved in position %d.") % slot,
+			Lang.text("Continue it from the main"),
+			Lang.text("menu.  Press a key"),
+		]
 	)
 
 
@@ -374,7 +387,9 @@ func _pick_key_set(item: Menu.Item) -> void:
 		KeyBindings.reset()
 		ButtonBindings.reset()
 		settings.save()
-		show_message(["All keys and buttons are", "back as they were.", "   Press a key"])
+		var lines := Lang.texts(["All keys and buttons are", "back as they were."])
+		lines.append(press_a_key())
+		show_message(lines)
 		return
 	_key_set = item.value
 	_push(_key_set_menu())
@@ -652,11 +667,11 @@ func _show_name_entry() -> void:
 		window
 		. show_lines(
 			[
-				"   CONGRATULATIONS!",
+				"   " + Lang.text("CONGRATULATIONS!"),
 				"",
-				"You got %s place!" % _place_word,
+				Lang.text("You got %s place!") % _place_word,
 				"",
-				"Enter your name:",
+				Lang.text("Enter your name:"),
 				_typed_name + cursor,
 			],
 			HighScores.MAX_NAME_LENGTH + 8
@@ -717,10 +732,7 @@ func show_hosting() -> void:
 
 
 func _hosting_menu() -> Menu:
-	var lines := PackedStringArray(["  HOSTING"])
-	lines.append_array(online.host_lines)
-	lines.append_array(["", "Escape > Online Game shows", "this again.", "", "   Press a key"])
-	return Menu.create(HOSTING, lines)
+	return OnlinePages.hosting(online)
 
 
 ## Puts [param menu] in place of the top one, keeping the cursor where it
@@ -732,40 +744,12 @@ func _replace_top(menu: Menu) -> void:
 	_redraw()
 
 
-## The main menu of a player who joined someone else's game: the host
-## decides about new games, loading and saving.
 func _joined_menu(in_game: bool) -> Menu:
-	var title := "  %s'S GAME" % online.partner_name.to_upper()
-	var menu := Menu.create(MAIN, [title])
-	if in_game:
-		menu.add("Return to Game", CHOICE_RESUME)
-	menu.add("Leave Game", CHOICE_LEAVE_ONLINE)
-	if not story.is_empty():
-		menu.add("Story", STORY)
-	menu.add("Controls", CONTROLS)
-	menu.add("Options", OPTIONS)
-	menu.add("Quit", CHOICE_QUIT)
-	return menu
+	return OnlinePages.joined(online, in_game, not story.is_empty())
 
 
-## Hosting or joining; while hosting, how others can join and stopping.
 func _online_menu() -> Menu:
-	var menu := Menu.create(ONLINE, ["  ONLINE GAME"])
-	if online.role == OnlineMenuInfo.Role.HOST:
-		menu.header.append_array(online.host_lines)
-		var partner := online.partner_name
-		menu.header.append(
-			"Playing with " + partner if not partner.is_empty() else "Nobody joined yet"
-		)
-		menu.add("Stop Hosting", CHOICE_LEAVE_ONLINE)
-	else:
-		menu.add("Host via Steam", &"host_steam")
-		menu.add("Host via IP", &"host_ip")
-		menu.add("Join via Steam", &"join_steam")
-		menu.add("Join via IP", &"join_ip")
-	var player_name := settings.online_name if not settings.online_name.is_empty() else "-"
-	menu.add("Your Name: " + player_name, &"name")
-	return menu
+	return OnlinePages.online_menu(online, settings.online_name)
 
 
 func _pick_online(id: StringName) -> void:
@@ -820,21 +804,7 @@ func _open_host_setup(kind: int) -> void:
 
 
 func _host_setup_menu() -> Menu:
-	var by_ip := _host_kind == HOST_BY_IP
-	var header := PackedStringArray(["  HOST VIA IP" if by_ip else "  HOST VIA STEAM"])
-	if by_ip:
-		header.append_array(online.address_lines())
-		header.append("UDP port %d" % OnlineProtocol.GAME_PORT)
-	else:
-		header.append("Only your Steam friends")
-		header.append("can see the game.")
-	header.append("Password: " + (host_password if host_locked else "none"))
-	var menu := Menu.create(HOST_SETUP, header)
-	menu.add("Start Hosting", &"start")
-	menu.add("Password      " + _on_off(host_locked), &"lock")
-	menu.add("Type Password", &"type_password")
-	menu.add("Random Password", &"new_password")
-	return menu
+	return OnlinePages.host_setup(online, _host_kind == HOST_BY_IP, host_password, host_locked)
 
 
 func _pick_host_setup(id: StringName) -> void:
@@ -858,13 +828,7 @@ func _pick_host_setup(id: StringName) -> void:
 
 
 func _steam_games_menu() -> Menu:
-	var menu := Menu.create(STEAM_GAMES, ["  JOIN VIA STEAM", "Your friends' games:"])
-	for index in online.steam_games.size():
-		menu.add(online.steam_games[index], &"game", index)
-	if online.steam_games.is_empty():
-		menu.add("(none found)", &"none", 0, false)
-	menu.add("Look Again", &"refresh")
-	return menu
+	return OnlinePages.steam_games(online)
 
 
 func _pick_steam_game(item: Menu.Item) -> void:
@@ -970,19 +934,7 @@ func _finish_text(text: String) -> void:
 
 
 func _show_text_entry() -> void:
-	var lines: PackedStringArray
-	var width := PASSWORD_LENGTH + 2
-	match _text_purpose:
-		TEXT_PLAYER_NAME:
-			lines = ["  YOUR NAME", "", "The other player sees", "this name.", ""]
-		TEXT_ADDRESS:
-			lines = ["  JOIN VIA IP", "", "The host's address:", ""]
-			width = ADDRESS_LENGTH + 2
-		TEXT_HOST_PASSWORD:
-			lines = [
-				"  YOUR PASSWORD", "", "Your friend types this", "to join. Capitals count.", ""
-			]
-		_:
-			lines = ["  PASSWORD", "", "The host's password", "(empty if none):", ""]
+	var lines := OnlinePages.text_prompt(_text_purpose)
+	var width := ADDRESS_LENGTH + 2 if _text_purpose == TEXT_ADDRESS else PASSWORD_LENGTH + 2
 	lines.append(_typed_text + String.chr(MenuView.cursor_char(_seconds)))
 	window.show_lines(lines, width)

@@ -64,8 +64,9 @@ func summary(slot: int) -> String:
 		return ""
 	var game := read(slot)
 	if game == null:
-		return "(damaged)"
-	return "Score %d, %d levels" % [game.inventory.score, game.completed_levels().size()]
+		return Lang.text("(damaged)")
+	var levels := game.completed_levels().size()
+	return Lang.text("Score %d, %d levels") % [game.inventory.score, levels]
 
 
 func _path(slot: int) -> String:

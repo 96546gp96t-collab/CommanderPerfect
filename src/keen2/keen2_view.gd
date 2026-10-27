@@ -35,9 +35,6 @@ const MISSING_DATA_MESSAGE := (
 )
 const UNREADABLE_MESSAGE := "The Keen 2 files in %s could not be read."
 const NOT_PLAYABLE_MESSAGE := "Keen 2 has no level %d"
-const PLAYER_2_LEFT_MESSAGE := "Player 2 left"
-const PLAYER_2_JOINED_MESSAGE := "Player 2 joined: player 1 on WASD, player 2 on the arrows"
-const PLAYER_2_LATER_MESSAGE := "Player 2 plays along in the levels"
 ## Keen 2's own pictures behind the levels (Keen 1's are never used).
 const BACKGROUNDS_FOLDER := "res://assets/backgrounds/keen2"
 ## How long "Keens Left" stays open (as Keen 1's), unless a button closes it.
@@ -57,7 +54,7 @@ func _ready() -> void:
 		return
 	var first := Keen2LevelPlay.requested_level(OS.get_cmdline_user_args())
 	if first != 0 and not Keen2LevelPlay.is_playable(first):
-		_show_message(NOT_PLAYABLE_MESSAGE % first)
+		_show_message(Lang.text(NOT_PLAYABLE_MESSAGE) % first)
 		first = 0
 	if first != 0:
 		_start_level(first)
@@ -71,7 +68,7 @@ func _ready() -> void:
 ## is; on the map he plays along from the next level on.
 func _toggle_second_player() -> void:
 	if _online.is_active():
-		_show_message(NOT_ONLINE_MESSAGE)
+		_show_message(Lang.text(NOT_ONLINE_MESSAGE))
 		return
 	_two_players = not _two_players
 	if _mode == Mode.LEVEL and _session != null:
@@ -80,12 +77,7 @@ func _toggle_second_player() -> void:
 			_second_player.start(_session, _session.keen.position, view_center)
 		else:
 			_second_player.stop()
-	if not _two_players:
-		_show_message(PLAYER_2_LEFT_MESSAGE)
-	elif _mode == Mode.LEVEL:
-		_show_message(PLAYER_2_JOINED_MESSAGE)
-	else:
-		_show_message(PLAYER_2_LATER_MESSAGE)
+	_show_message(second_player_message(_two_players, _mode == Mode.LEVEL))
 
 
 ## A new game (or [param game], a loaded one) on the world map.
@@ -97,7 +89,7 @@ func _start_game(game: Keen2Progress) -> void:
 	if play.start_map():
 		_show_lives(play.inventory.lives)
 	else:
-		_show_error("The world map could not be read from %s." % files.directory)
+		_show_error(Lang.text("The world map could not be read from %s.") % files.directory)
 
 
 func _exit_tree() -> void:
@@ -256,11 +248,11 @@ func _load_data() -> bool:
 	if files == null:
 		files = Keen2Files.locate()
 	if files == null:
-		_show_error(MISSING_DATA_MESSAGE)
+		_show_error(Lang.text(MISSING_DATA_MESSAGE))
 		return false
 	var data := Keen2GameData.load_from(files)
 	if data == null:
-		_show_error(UNREADABLE_MESSAGE % files.directory)
+		_show_error(Lang.text(UNREADABLE_MESSAGE) % files.directory)
 		return false
 	_graphics = data.graphics
 	_properties = data.properties
@@ -299,7 +291,8 @@ func _load_data() -> bool:
 
 func _start_level(number: int) -> void:
 	if not play.start(number):
-		_show_error("Level %d could not be read from %s." % [number, files.directory])
+		var unreadable := Lang.text("Level %d could not be read from %s.")
+		_show_error(unreadable % [number, files.directory])
 
 
 ## Shows the level that [member play] has just started.
@@ -402,12 +395,12 @@ func _handle_cheat_keys(event: InputEvent) -> bool:
 		return false
 	if event.is_action_pressed("cheat_items"):
 		_progress.inventory.give_everything()
-		_show_message("Cheat: all keycards and a full raygun")
+		_show_message(Lang.text("Cheat: all keycards and a full raygun"))
 	elif event.is_action_pressed("cheat_god"):
 		_god_mode = not _god_mode
 		if _session != null:
 			_session.set_invincible(_god_mode)
-		_show_message("Cheat: god mode " + ("on" if _god_mode else "off"))
+		_show_message(Lang.text("Cheat: god mode %s") % on_off(_god_mode))
 	elif event.is_action_pressed("next_level"):
 		_start_level(_neighbor_level(1))
 	elif event.is_action_pressed("previous_level"):

@@ -92,11 +92,11 @@ func _load_data() -> Keen3GameData:
 	if files == null:
 		files = Keen3Files.locate()
 	if files == null:
-		_show_error(MISSING_DATA_MESSAGE)
+		_show_error(Lang.text(MISSING_DATA_MESSAGE))
 		return null
 	var data := Keen3GameData.load_from(files)
 	if data == null:
-		_show_error(UNREADABLE_MESSAGE % files.directory)
+		_show_error(Lang.text(UNREADABLE_MESSAGE) % files.directory)
 		return null
 	_graphics = data.graphics
 	_properties = data.properties
@@ -159,7 +159,7 @@ func _play_game_sound(sound: Sound.Id) -> void:
 func _show_lives(lives: int) -> void:
 	_play_game_sound(Sound.Id.KEENS_LEFT)
 	_window.open(LIVES_CELLS)
-	_window.put_text(Vector2i(LIVES_TITLE_COLUMN, 0), LIVES_TITLE)
+	_window.put_text(Vector2i(LIVES_TITLE_COLUMN, 0), Lang.text(LIVES_TITLE))
 	for life in clampi(lives, 0, MAX_LIVES_SHOWN):
 		_window.put_sprite(LIFE_FIRST_CELL + Vector2i(life * LIFE_CELLS, 0), LIFE_SPRITE)
 	_window_time_left = LIVES_SECONDS

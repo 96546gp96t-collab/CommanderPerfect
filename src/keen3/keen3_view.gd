@@ -88,7 +88,7 @@ func _ready() -> void:
 		_start_level(first)
 	else:
 		if first != 0:
-			_show_message(NOT_PLAYABLE_MESSAGE % first)
+			_show_message(Lang.text(NOT_PLAYABLE_MESSAGE) % first)
 		_show_title()
 		if wants_menu:
 			_open_main_menu()
@@ -194,7 +194,7 @@ func _start_game(game: Keen3Progress) -> void:
 	if play.start_map():
 		_show_lives(play.inventory.lives)
 	else:
-		_show_error("The world map could not be read from %s." % files.directory)
+		_show_error(Lang.text("The world map could not be read from %s.") % files.directory)
 
 
 ## Runs the ticks for [param delta] seconds and shows the result.
@@ -239,7 +239,8 @@ func _map_actors() -> Array[Actor]:
 
 func _start_level(number: int) -> void:
 	if not play.start(number):
-		_show_error("Level %d could not be read from %s." % [number, files.directory])
+		var unreadable := Lang.text("Level %d could not be read from %s.")
+		_show_error(unreadable % [number, files.directory])
 
 
 ## Shows the level that [member play] has just started.
@@ -413,12 +414,12 @@ func _handle_cheat_keys(event: InputEvent) -> bool:
 		return false
 	if event.is_action_pressed("cheat_items"):
 		_progress.inventory.give_everything()
-		_show_message("Cheat: all keycards and a full raygun")
+		_show_message(Lang.text("Cheat: all keycards and a full raygun"))
 	elif event.is_action_pressed("cheat_god"):
 		_god_mode = not _god_mode
 		if _session != null:
 			_session.set_invincible(_god_mode)
-		_show_message("Cheat: god mode " + ("on" if _god_mode else "off"))
+		_show_message(Lang.text("Cheat: god mode %s") % on_off(_god_mode))
 	elif event.is_action_pressed("next_level"):
 		_start_level(_neighbor_level(1))
 	elif event.is_action_pressed("previous_level"):

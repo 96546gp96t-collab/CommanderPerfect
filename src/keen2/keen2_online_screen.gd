@@ -178,7 +178,7 @@ func _leave_online() -> void:
 	_online.leave()
 	_on_online_stopped()
 	if _mode != Mode.TITLE:
-		_show_message(HOSTING_STOPPED_MESSAGE)
+		_show_message(Lang.text(HOSTING_STOPPED_MESSAGE))
 
 
 ## (Host) the other player joined: in a level his Keen appears at once.
@@ -242,7 +242,7 @@ func _on_remote_scene(kind: OnlineMessages.Scene, number: int, tiles: PackedInt3
 func _show_remote_map(kind: OnlineMessages.Scene, number: int, tiles: PackedInt32Array) -> void:
 	var level := LevelData.parse(files.read(files.level_file(number)))
 	if level == null:
-		_show_message("%s could not be read." % files.level_file(number))
+		_show_message(Lang.text("%s could not be read.") % files.level_file(number))
 		return
 	_clear_screen()
 	_level = level
@@ -292,7 +292,7 @@ func _handle_joined_input(event: InputEvent) -> bool:
 		return false
 	for action in MOVE_ACTIONS:
 		if event.is_action_pressed(action):
-			_show_message(ONLY_HOST_WALKS_MESSAGE)
+			_show_message(Lang.text(ONLY_HOST_WALKS_MESSAGE))
 			return true
 	return false
 
