@@ -83,7 +83,7 @@ func _show_screen(mode: Mode, area: Rect2i) -> bool:
 	var file_name := files.level_file(Keen2Files.TITLE_LEVEL)
 	var backdrops := LevelData.parse(files.read(file_name))
 	if backdrops == null:
-		_show_message("%s could not be read." % file_name)
+		_show_message(Lang.text("%s could not be read.") % file_name)
 		return false
 	_clear_screen()
 	_level = Backdrops.screen(backdrops, area)
@@ -176,7 +176,7 @@ func _on_menu_chosen(id: StringName, slot: int) -> void:
 		MenuController.CHOICE_SAVE:
 			play.progress.map_position = play.map_session.keen.position
 			if not _saves.write(slot, play.progress):
-				_show_message(SAVE_FAILED_MESSAGE)
+				_show_message(Lang.text(SAVE_FAILED_MESSAGE))
 		MenuController.CHOICE_HIGH_SCORES:
 			_show_high_scores()
 		MenuController.CHOICE_TITLE:
@@ -190,7 +190,7 @@ func _on_menu_chosen(id: StringName, slot: int) -> void:
 func _load_game(slot: int) -> void:
 	var game := _saves.read(slot)
 	if game == null:
-		_menus.show_message(LOAD_FAILED_LINES)
+		_menus.show_message(Lang.texts(LOAD_FAILED_LINES))
 		return
 	_start_game(Keen2Progress.from_game(game))
 

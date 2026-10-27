@@ -283,7 +283,7 @@ func _host_by_ip(player_name: String, password: String) -> void:
 ## Hosts through Steam; hosting starts once Steam has opened the lobby.
 func _host_through_steam(password: String) -> void:
 	_steam_wish = [true, password]
-	_tell(["Opening a Steam lobby..."])
+	_tell([Lang.text("Opening a Steam lobby...")])
 	steam.open_lobby(not password.is_empty())
 
 
@@ -295,7 +295,7 @@ func _join_by_ip(address: String, player_name: String, password: String) -> void
 	if error != OK:
 		_stop(OnlineText.join_failed(OnlineSession.NO_ANSWER))
 		return
-	_tell(["Joining " + address + "..."])
+	_tell([Lang.text("Joining %s...") % address])
 
 
 ## Joins the friend's game at [param index] of the last list.
@@ -310,7 +310,7 @@ func _join_through_steam(index: int, password: String) -> void:
 		_switch_game(lobby_game, join)
 		return
 	_steam_wish = [false, password]
-	_tell(["Joining through Steam..."])
+	_tell([Lang.text("Joining through Steam...")])
 	steam.enter_lobby(int(_steam_games[index][0]))
 
 
@@ -332,7 +332,7 @@ func _on_addresses_wanted() -> void:
 ## Shows [param lines] in a window that any key closes.
 func _tell(lines: PackedStringArray) -> void:
 	menus.close_all()
-	lines.append_array(["", "   Press a key"])
+	lines.append_array(["", MenuController.press_a_key()])
 	menus.show_message(lines)
 
 
@@ -398,11 +398,11 @@ func _address_info() -> OnlineMenuInfo:
 func _host_lines() -> PackedStringArray:
 	var lines := PackedStringArray()
 	if _over_steam:
-		lines.append("Via Steam, friends only")
+		lines.append(Lang.text("Via Steam, friends only"))
 	else:
-		lines.append("Via IP, UDP port %d" % OnlineProtocol.GAME_PORT)
+		lines.append(Lang.text("Via IP, UDP port %d") % OnlineProtocol.GAME_PORT)
 		lines.append_array(_address_info().address_lines())
-	lines.append("Password: " + (_password if not _password.is_empty() else "none"))
+	lines.append(OnlinePages.password_line(_password))
 	return lines
 
 
@@ -451,7 +451,7 @@ func _on_joined(host_name: String) -> void:
 	_steam_wish.clear()
 	menus.close_all()
 	joined.emit(host_name)
-	_notice.show_text("Joined %s's game" % host_name)
+	_notice.show_text(Lang.text("Joined %s's game") % host_name)
 
 
 func _on_join_failed(reason: String) -> void:
@@ -493,7 +493,7 @@ func _resume_join() -> void:
 		return
 	if join.lobby_id != 0:
 		_steam_wish = [false, join.password]
-		_tell(["Joining through Steam..."])
+		_tell([Lang.text("Joining through Steam...")])
 		steam.enter_lobby(join.lobby_id)
 	else:
 		_join_by_ip(join.address, settings.online_name, join.password)
@@ -509,7 +509,7 @@ func _on_partner_joined(player_name: String) -> void:
 	_maker.reset()
 	if sound_enabled:
 		_ping.play()
-	_notice.show_text("%s joined" % player_name)
+	_notice.show_text(Lang.text("%s joined") % player_name)
 	_send_scene()
 	partner_joined.emit(player_name)
 	_refresh_menu()
@@ -517,7 +517,7 @@ func _on_partner_joined(player_name: String) -> void:
 
 func _on_partner_left(player_name: String) -> void:
 	_partner_input.clear()
-	_notice.show_text("%s left" % player_name)
+	_notice.show_text(Lang.text("%s left") % player_name)
 	partner_left.emit(player_name)
 	_refresh_menu()
 

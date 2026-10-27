@@ -28,7 +28,7 @@ const PADDING := 2
 const GAP := 6
 ## Space between the lives and the score, so that they look apart.
 const SCORE_GAP := 12
-const SCORE_LABEL := "Score "
+const SCORE_LABEL := "Score"
 ## Text is 8 pixels high, icons 16: this puts the text in the middle.
 const TEXT_OFFSET := (ICON - CHAR) / 2
 ## Baby blue, close to white, with a soft blue edge.
@@ -113,7 +113,7 @@ func _draw() -> void:
 
 func _draw_left_panel() -> void:
 	var lives := str(_lives)
-	var score := SCORE_LABEL + str(_score)
+	var score := Lang.text(SCORE_LABEL) + " " + str(_score)
 	var width := ICON + lives.length() * CHAR + SCORE_GAP + score.length() * CHAR
 	var inside := _panel(Vector2(MARGIN, MARGIN), width)
 	var keen := _textures.sprite(LIFE_SPRITE)

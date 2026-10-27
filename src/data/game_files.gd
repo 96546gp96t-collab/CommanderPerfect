@@ -162,13 +162,14 @@ func level_file(level_number: int) -> String:
 	return "LEVEL%02d.%s" % [level_number, extension]
 
 
-## Name of a level for menus and status lines, e.g. "Level 3" or "World map".
+## Name of a level for menus and status lines, e.g. "Level 3" or "World map",
+## in the language in use.
 static func level_title(level_number: int) -> String:
 	match level_number:
 		WORLD_MAP_LEVEL:
-			return "World map"
+			return Lang.text("World map")
 		ENDING_LEVEL:
-			return "Ending"
+			return Lang.text("Ending")
 		BACKDROPS_LEVEL:
-			return "Backdrops"
-	return "Level %d" % level_number
+			return Lang.text("Backdrops")
+	return Lang.text("Level %d") % level_number

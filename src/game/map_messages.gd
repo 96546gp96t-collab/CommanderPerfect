@@ -20,9 +20,10 @@ const PART_COLUMNS: PackedInt32Array = [3, 7, 11, 15]
 ## "Keens Left", with a little Keen for every life.
 static func show_lives(window: GameWindow, lives: int) -> void:
 	var shown := clampi(lives, 0, MAX_LIVES_SHOWN)
-	var width := maxi(LIVES_TITLE.length(), shown * LIFE_CELLS)
+	var title := Lang.text(LIVES_TITLE)
+	var width := maxi(title.length(), shown * LIFE_CELLS)
 	window.open(Vector2i(width, 3))
-	window.put_text(Vector2i((width - LIVES_TITLE.length()) / 2, 0), LIVES_TITLE)
+	window.put_text(Vector2i((width - title.length()) / 2, 0), title)
 	var first := (width - shown * LIFE_CELLS) / 2
 	for life in shown:
 		window.put_sprite(Vector2i(first + life * LIFE_CELLS, 1), LIFE_SPRITE)

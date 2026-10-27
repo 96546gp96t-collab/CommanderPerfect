@@ -121,19 +121,20 @@ func _ready() -> void:
 
 	_files = GameFiles.locate()
 	if _files == null:
-		_show_error(MISSING_DATA_MESSAGE)
+		_show_error(Lang.text(MISSING_DATA_MESSAGE))
 		return
 	_graphics = EgaGraphics.load_from(_files)
 	if _graphics == null:
-		_show_error("The game files in %s could not be read." % _files.directory)
+		_show_error(Lang.text("The game files in %s could not be read.") % _files.directory)
 		return
 	_level_numbers = _files.level_numbers()
 	if not _level_numbers.has(GameFiles.WORLD_MAP_LEVEL):
-		_show_error("The world map is missing in %s." % _files.directory)
+		_show_error(Lang.text("The world map is missing in %s.") % _files.directory)
 		return
 	_properties = TileProperties.load_from(_files, _graphics.tiles.size())
 	if _properties == null:
-		_show_error("The tile properties in %s could not be read." % GameFiles.EXECUTABLE)
+		var unreadable := Lang.text("The tile properties in %s could not be read.")
+		_show_error(unreadable % GameFiles.EXECUTABLE)
 		return
 
 	_textures = GraphicsTextures.create(_graphics)
@@ -342,17 +343,17 @@ func _handle_game_input(event: InputEvent) -> void:
 		return
 	elif event.is_action_pressed("cheat_items"):
 		_progress.inventory.give_everything()
-		_show_message("Cheat: all keycards, the pogo stick and a full raygun")
+		_show_message(Lang.text("Cheat: all keycards, the pogo stick and a full raygun"))
 	elif event.is_action_pressed("toggle_second_player"):
 		if _online.is_active():
-			_show_message("Not while playing online")
+			_show_message(Lang.text("Not while playing online"))
 		else:
 			_toggle_second_player()
 	elif event.is_action_pressed("cheat_god"):
 		_god_mode = not _god_mode
 		if _session != null:
 			_session.set_invincible(_god_mode)
-		_show_message("Cheat: god mode " + ("on" if _god_mode else "off"))
+		_show_message(Lang.text("Cheat: god mode %s") % on_off(_god_mode))
 	elif event.is_action_pressed("next_level"):
 		_go_to(_neighbor_level(1))
 	elif event.is_action_pressed("previous_level"):
@@ -369,7 +370,7 @@ func _handle_joined_input(event: InputEvent) -> void:
 		return
 	for action in ["move_left", "move_right", "move_up", "move_down", "jump", "pogo", "fire"]:
 		if event.is_action_pressed(action):
-			_show_message(ONLY_HOST_WALKS_MESSAGE)
+			_show_message(Lang.text(ONLY_HOST_WALKS_MESSAGE))
 			get_viewport().set_input_as_handled()
 			return
 
@@ -480,7 +481,7 @@ func _on_menu_chosen(id: StringName, slot: int) -> void:
 		MenuController.CHOICE_SAVE:
 			_progress.map_position = _map_session.keen.position
 			if not _saves.write(slot, _progress):
-				_show_message("The game could not be saved.")
+				_show_message(Lang.text("The game could not be saved."))
 		MenuController.CHOICE_HIGH_SCORES:
 			_show_high_scores()
 		MenuController.CHOICE_TITLE:
@@ -502,7 +503,7 @@ func _on_menu_chosen(id: StringName, slot: int) -> void:
 func _load_game(slot: int) -> void:
 	var game := _saves.read(slot)
 	if game == null:
-		_menus.show_message(["That game could not be", "read.  Press a key"])
+		_menus.show_message(Lang.texts(["That game could not be", "read.  Press a key"]))
 		return
 	_progress = game
 	_god_mode = false
@@ -731,12 +732,7 @@ func _toggle_second_player() -> void:
 			_second_player.start(_session, _session.keen.position, view_center)
 		else:
 			_second_player.stop()
-	if not _two_players:
-		_show_message("Player 2 left")
-	elif _mode == Mode.LEVEL:
-		_show_message("Player 2 joined: player 1 on WASD, player 2 on the arrows")
-	else:
-		_show_message("Player 2 plays along in the levels")
+	_show_message(second_player_message(_two_players, _mode == Mode.LEVEL))
 
 
 ## Shows a special map to look around in.
@@ -783,7 +779,7 @@ func _on_ship_level_over(number: int, outcome: LevelSession.Outcome) -> void:
 
 func _start_ending() -> void:
 	if _ending_texts == null:
-		_show_message("The texts of the ending could not be read.")
+		_show_message(Lang.text("The texts of the ending could not be read."))
 		return
 	_close_window()
 	_ending = EndingSequence.create(_ending_texts, _files.read(GameFiles.END_TEXT))
@@ -846,7 +842,7 @@ func _load_map(number: int, area := Rect2i()) -> bool:
 		_mode = Mode.NONE
 		_level_map.clear()
 		_follow(_free_look)
-		_show_message("%s could not be read." % file_name)
+		_show_message(Lang.text("%s could not be read.") % file_name)
 		return false
 	if area.has_area():
 		_level = _level.crop(area)
@@ -907,7 +903,7 @@ func _leave_online() -> void:
 	_online.leave()
 	_on_online_stopped()
 	if _mode != Mode.TITLE:
-		_show_message("Hosting stopped")
+		_show_message(Lang.text("Hosting stopped"))
 
 
 func _on_partner_joined(_player_name: String) -> void:

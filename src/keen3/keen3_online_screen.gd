@@ -32,9 +32,6 @@ const ONLINE_WINDOW_SECONDS := 6.0
 const ONLY_HOST_WALKS_MESSAGE := "Only the host can walk on the world map"
 const HOSTING_STOPPED_MESSAGE := "Hosting stopped"
 const NOT_ONLINE_MESSAGE := "Not while playing online"
-const PLAYER_2_LEFT_MESSAGE := "Player 2 left"
-const PLAYER_2_JOINED_MESSAGE := "Player 2 joined: player 1 on WASD, player 2 on the arrows"
-const PLAYER_2_LATER_MESSAGE := "Player 2 plays along in the levels"
 const MOVE_ACTIONS: Array[String] = [
 	"move_left", "move_right", "move_up", "move_down", "jump", "pogo", "fire"
 ]
@@ -219,7 +216,7 @@ func _on_menu_chosen(id: StringName, slot: int) -> void:
 ## where player 1's is; on the map he plays along from the next level on.
 func _toggle_second_player() -> void:
 	if _online.is_active():
-		_show_message(NOT_ONLINE_MESSAGE)
+		_show_message(Lang.text(NOT_ONLINE_MESSAGE))
 		return
 	_two_players = not _two_players
 	if _mode == Mode.LEVEL and _session != null:
@@ -228,12 +225,7 @@ func _toggle_second_player() -> void:
 			_second_player.start(_session, _session.keen.position, view_center)
 		else:
 			_second_player.stop()
-	if not _two_players:
-		_show_message(PLAYER_2_LEFT_MESSAGE)
-	elif _mode == Mode.LEVEL:
-		_show_message(PLAYER_2_JOINED_MESSAGE)
-	else:
-		_show_message(PLAYER_2_LATER_MESSAGE)
+	_show_message(second_player_message(_two_players, _mode == Mode.LEVEL))
 
 
 ## A level has started: player 2 on the keyboard, or the one online, plays
@@ -286,7 +278,7 @@ func _leave_online() -> void:
 	_online.leave()
 	_on_online_stopped()
 	if _mode != Mode.TITLE:
-		_show_message(HOSTING_STOPPED_MESSAGE)
+		_show_message(Lang.text(HOSTING_STOPPED_MESSAGE))
 
 
 ## (Host) the other player joined: in a level his Keen appears at once, and
@@ -360,7 +352,7 @@ func _on_remote_scene(kind: OnlineMessages.Scene, number: int, tiles: PackedInt3
 func _show_remote_map(kind: OnlineMessages.Scene, number: int, tiles: PackedInt32Array) -> void:
 	var level := LevelData.parse(files.read(files.level_file(number)))
 	if level == null:
-		_show_message("%s could not be read." % files.level_file(number))
+		_show_message(Lang.text("%s could not be read.") % files.level_file(number))
 		return
 	_clear_screen()
 	_level = level
@@ -459,7 +451,7 @@ func _handle_joined_input(event: InputEvent) -> bool:
 		return false
 	for action in MOVE_ACTIONS:
 		if event.is_action_pressed(action):
-			_show_message(ONLY_HOST_WALKS_MESSAGE)
+			_show_message(Lang.text(ONLY_HOST_WALKS_MESSAGE))
 			return true
 	return false
 
