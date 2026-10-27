@@ -112,7 +112,7 @@ func _show_remote_waiting() -> void:
 	_window_sprite.visible = false
 	_screen.modulate = Color.WHITE
 	_title_layer.show_picture(_title_picture())
-	_show_message(WAITING_MESSAGE % _host_name)
+	_show_message(Lang.text(WAITING_MESSAGE) % _host_name)
 
 
 ## The host shows scene [param scene_id]: map [param number] with
@@ -205,7 +205,7 @@ func _remote_input() -> KeenInput:
 	var input := KeenInput.from_actions()
 	var pressed := input.direction != 0 or input.vertical != 0 or input.jump or input.pogo
 	if pressed and _map_number == rules.world_map and _message_time_left <= 0.0:
-		_show_message(HOST_WALKS_MESSAGE)
+		_show_message(Lang.text(HOST_WALKS_MESSAGE))
 	return input
 
 

@@ -86,7 +86,7 @@ func next_mode(settings: UserSettings) -> String:
 	var next: Mode = (mode + Mode.size() - 1) % Mode.size() as Mode
 	settings.sound_device = mode_name(next)
 	set_mode(next)
-	return SOUND_MODE_TITLES[next]
+	return Lang.text(SOUND_MODE_TITLES[next])
 
 
 ## Music on or off (the Shift+M key); stored in [param settings]. Returns
@@ -94,4 +94,4 @@ func next_mode(settings: UserSettings) -> String:
 func toggle_music(settings: UserSettings) -> String:
 	settings.music_enabled = not music_on
 	set_music(settings.music_enabled)
-	return "Music " + ("on" if music_on else "off")
+	return Lang.text("Music on" if music_on else "Music off")

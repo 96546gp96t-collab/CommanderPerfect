@@ -1,0 +1,125 @@
+# Nederlands: the engine's own texts of Keen 4 and 5 (the shared Galaxy
+# game), see language.txt for the format. The watch's labels are in capitals
+# as the original's; the watch screen is 160 pixels wide (font 1), so the
+# words are short (tests/test_language_galaxy.gd measures them).
+
+# The main card (and the one of a player in somebody else's game).
+NEW GAME = NIEUW SPEL
+LOAD GAME = LAAD SPEL
+SAVE GAME = BEWAAR SPEL
+CONFIGURE = INSTELLINGEN
+RETURN TO GAME = TERUG NAAR SPEL
+RETURN TO DEMO = TERUG NAAR DEMO
+END GAME = EINDE SPEL
+PADDLE WAR = PADDLE WAR
+QUIT = AFSLUITEN
+LEAVE GAME = VERLAAT SPEL
+
+# New Game.
+BEGIN EASY GAME = START MAKKELIJK SPEL
+BEGIN NORMAL GAME = START NORMAAL SPEL
+BEGIN HARD GAME = START MOEILIJK SPEL
+
+# Configure, Sound and Music.
+SOUND = GELUID
+MUSIC = MUZIEK
+KEYBOARD = TOETSENBORD
+RESET KEYS = HERSTEL TOETSEN
+TWO PLAYERS = TWEE SPELERS
+ONLINE GAME = ONLINE SPEL
+NO SOUND EFFECTS = GEEN GELUIDSEFFECTEN
+PC SPEAKER = PC-SPEAKER
+ADLIB/SOUNDBLASTER = ADLIB/SOUNDBLASTER
+QUIET ADLIB/SOUNDBLASTER = ZACHT ADLIB/SOUNDBLASTER
+NO MUSIC = GEEN MUZIEK
+
+# The keys and the controller buttons.
+LEFT = LINKS
+RIGHT = RECHTS
+UP = OMHOOG
+DOWN = OMLAAG
+JUMP = SPRINGEN
+POGO = POGO
+FIRE = SCHIETEN
+STATUS = STATUS
+BUTTONS = KNOPPEN
+PLAYER 1 BUTTONS = KNOPPEN SPELER 1
+PLAYER 2 BUTTONS = KNOPPEN SPELER 2
+
+# The Two Players card.
+ADD PLAYER 2 = SPELER 2 ERBIJ
+REMOVE PLAYER 2 = SPELER 2 ERUIT
+PLAYER %d KEYS = SPELER %d TOETSEN
+PLAYER %d PAD = SPELER %d PAD
+BOTH PADS AUTO = BEIDE PADS AUTO
+AUTO = AUTO
+
+# The footer and the save slots.
+Arrows move = Pijlen bewegen
+Enter selects = Enter kiest
+Type name = Typ naam
+Enter accepts = Enter bewaart
+ESC to quit = ESC om te stoppen
+ESC to back out = ESC om terug te gaan
+Empty = Leeg
+Untitled = Naamloos
+(damaged) = (beschadigd)
+
+# The questions and messages on the watch.
+ESC TO BACK OUT = ESC OM TERUG TE GAAN
+REALLY QUIT? = ECHT STOPPEN?
+PRESS Y TO QUIT = DRUK Y OM TE STOPPEN
+PRESS C TO CHOOSE GAME = DRUK C: ANDER SPEL
+REALLY END CURRENT GAME? = SPEL ECHT BEEINDIGEN?
+PRESS Y TO END IT = DRUK Y OM TE BEEINDIGEN
+YOU'RE IN A GAME = JE ZIT IN EEN SPEL
+PRESS Y FOR NEW GAME = DRUK Y VOOR NIEUW SPEL
+PRESS Y TO LOAD GAME = DRUK Y OM TE LADEN
+Press any key = Druk op een toets
+You won! = Je hebt gewonnen!
+You lost! = Je hebt verloren!
+All keys are as they were = Alle toetsen weer als eerst
+Score box now %s = Scorevak nu %s
+on = aan
+off = uit
+The game could not be saved = Kon het spel niet bewaren
+That game could not be read = Kon dat spel niet lezen
+
+# Typing a name, an address or a password for playing online.
+YOUR NAME = JE NAAM
+The other player sees this name. = De andere speler ziet deze naam.
+JOIN VIA IP = MEEDOEN VIA IP
+The host's address: = Het adres van de host:
+YOUR PASSWORD = JE WACHTWOORD
+Your friend types this to join. = Je vriend typt dit om mee te doen.
+Capitals count. = Hoofdletters tellen mee.
+PASSWORD = WACHTWOORD
+The host's password (empty if none): = Het wachtwoord van de host (leeg als er geen is):
+
+# In a game: the boxes, the help pages and the messages on the status line.
+PAUSED = PAUZE
+pg %d of %d = blz %d/%d
+Player 2 joined = Speler 2 doet mee
+Player 2 joins in the next level = Speler 2 doet mee vanaf het volgende level
+Player 2 left = Speler 2 is weg
+Waiting for %s = Wachten op %s
+Only the host can walk on the world map = Alleen de host loopt over de wereldkaart
+%s has no map %d = %s heeft geen kaart %d
+Preparing %s... = %s klaarmaken...
+Map %d: %s = Kaart %d: %s
+Map %d = Kaart %d
+xBRZ graphics = xBRZ-graphics
+Sound off = Geluid uit
+Sound: PC speaker = Geluid: pc-speaker
+Sound: AdLib = Geluid: AdLib
+Music on = Muziek aan
+Music off = Muziek uit
+Cheat: god mode %s = Cheat: godmodus %s
+Cheat: all four gems and 99 stunner charges = Cheat: alle vier edelstenen en 99 schoten voor de stunner
+Cheat: all four gems, the keycard and 99 stunner charges = Cheat: alle vier edelstenen, de sleutelkaart en 99 schoten voor de stunner
+%s data not found. Put the files in %s or start with: -- %sPATH = De bestanden van %s zijn niet gevonden. Zet ze in %s of start met: -- %sPAD
+The %s files in %s could not be read. = De bestanden van %s in %s konden niet gelezen worden.
+
+# The help line (F1) of Keen 4 and of Keen 5.
+Esc: back to the start screen    Arrows / WASD: look around    Shift+N / P: next / previous map    F2: widescreen    F3: pixels    F4: full screen    F5: graphics    F6: smooth motion    F8: realistic lighting    F1: show / hide this line = Esc: terug naar het startscherm    Pijlen / WASD: rondkijken    Shift+N / P: volgende / vorige kaart    F2: breedbeeld    F3: pixels    F4: volledig scherm    F5: graphics    F6: vloeiend    F8: realistisch licht    F1: deze regel tonen / verbergen
+F1: help    Esc: back to the start screen    F7: player 2    Shift+N / P: next / previous map    Shift+G: god mode    Shift+I: gems, keycard, charges    F2: widescreen    F3: pixels    F4: full screen    F5: graphics    F6: smooth motion    F8: realistic lighting    Shift+F1: show / hide this line = F1: hulp    Esc: terug naar het startscherm    F7: speler 2    Shift+N / P: volgende / vorige kaart    Shift+G: godmodus    Shift+I: edelstenen, sleutelkaart, schoten    F2: breedbeeld    F3: pixels    F4: volledig scherm    F5: graphics    F6: vloeiend    F8: realistisch licht    Shift+F1: deze regel tonen / verbergen

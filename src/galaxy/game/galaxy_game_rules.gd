@@ -11,6 +11,11 @@ extends RefCounted
 ## The defaults are Keen 4's numbers where Keen 4 and 5 agree (Omni
 ## `EPISODE.CK4`, `EPISODE.CK5`; docs/keen5/research.md §1, §5, §6).
 
+## The messages when the files are not found (the name, the folder, the
+## option), or cannot be read (the name, the folder).
+const MISSING_DATA_MESSAGE := "%s data not found. Put the files in %s or start with: -- %sPATH"
+const UNREADABLE_MESSAGE := "The %s files in %s could not be read."
+
 ## The episode's name in messages ("Keen 5").
 var name := ""
 ## Returns the episode's [GameFiles], or null when they are not found
@@ -275,15 +280,12 @@ func song_for_map(map: int) -> int:
 
 ## The message when the files are not found.
 func missing_data_message() -> String:
-	return (
-		"%s data not found. Put the files in %s or start with: -- %sPATH"
-		% [name, data_folder, data_dir_option]
-	)
+	return Lang.text(MISSING_DATA_MESSAGE) % [name, data_folder, data_dir_option]
 
 
 ## The message when the files in [param directory] cannot be read.
 func unreadable_message(directory: String) -> String:
-	return "The %s files in %s could not be read." % [name, directory]
+	return Lang.text(UNREADABLE_MESSAGE) % [name, directory]
 
 
 ## Whether map [param number] is one of the episode's levels (not the

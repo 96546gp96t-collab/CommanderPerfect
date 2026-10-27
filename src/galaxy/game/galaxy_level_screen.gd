@@ -22,6 +22,9 @@ extends GameScreen
 ## ([GameScreen] finds its nodes by name); Keen 1-3's nodes (LevelMap,
 ## Keen, ActorLayer, ...) stay empty and hidden.
 
+## While xBRZ is made for the level (the graphics' title in it).
+const PREPARING_MESSAGE := "Preparing %s..."
+
 ## The episode played: where its files are, its maps and sprites. Set by the
 ## episode's view before it enters the tree.
 var rules: GalaxyGameRules
@@ -149,7 +152,8 @@ func _apply_graphics() -> void:
 	var want_scaled := _settings.graphics == DisplaySettings.Graphics.XBRZ
 	if want_scaled and not _scaled_ready():
 		if _scaled.is_busy() and not _showing_scaled:
-			_show_message("Preparing %s..." % GRAPHICS_TITLES[_settings.graphics])
+			var title := Lang.text(GRAPHICS_TITLES[_settings.graphics])
+			_show_message(Lang.text(PREPARING_MESSAGE) % title)
 		return
 	if want_scaled != _showing_scaled or (want_scaled and _stand_ins):
 		_showing_scaled = want_scaled

@@ -13,6 +13,9 @@ const SLOT_COUNT := 6
 const DEFAULT_DIRECTORY := "user://keen4/saves"
 ## Bumped when the format changes, so that old files are recognised.
 const FORMAT_VERSION := 1
+## The name shown for a slot whose file cannot be read (in the language in
+## use).
+const DAMAGED_NAME := "(damaged)"
 
 var directory := DEFAULT_DIRECTORY
 var count := SLOT_COUNT
@@ -35,7 +38,7 @@ func name_of(slot: int) -> String:
 	if not exists(slot):
 		return ""
 	var data := _read_file(slot)
-	return str(data.get("name", "")) if not data.is_empty() else "(damaged)"
+	return str(data.get("name", "")) if not data.is_empty() else Lang.text(DAMAGED_NAME)
 
 
 ## Writes [param game] with [param saved_name] to slot [param slot].

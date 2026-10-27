@@ -58,6 +58,9 @@ const FILLER_WORDS: PackedStringArray = ["CONTROLLER", "WIRELESS", "GAMEPAD", "J
 const GUID_KEY := "guid"
 const NAME_KEY := "name"
 const INDEX_KEY := "index"
+## The words of [method describe_short] (the Galaxy watch's box).
+const AUTO_WORD := "AUTO"
+const OFF_WORD := "OFF"
 
 ## Per player: an empty dictionary when his controller is automatic, else
 ## the chosen one ({guid, name, index}).
@@ -211,9 +214,9 @@ static func describe_short(player: int, max_length: int) -> String:
 	if device != NO_DEVICE:
 		number = str(pads.find(_pad_with_device(pads, device)) + 1)
 	if not is_chosen(player):
-		return "AUTO " + number
+		return Lang.text(AUTO_WORD) + " " + number
 	if device == NO_DEVICE:
-		return "OFF"
+		return Lang.text(OFF_WORD)
 	var pad := _pad_with_device(pads, device)
 	return ("%s %s" % [number, short_name(pad.name)]).left(max_length)
 

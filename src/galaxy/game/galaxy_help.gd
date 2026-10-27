@@ -111,7 +111,7 @@ func screen() -> Image:
 	if in_menu():
 		return _menu()
 	var stages := _layout.lay_out(_pages, page)
-	var number := PAGE_NUMBER % [page + 1, page_count()]
+	var number := Lang.text(PAGE_NUMBER) % [page + 1, page_count()]
 	if _layout.frame != null:
 		_layout.print_at(number, FRAMED_PAGE_NUMBER_AT, FRAMED_PAGE_NUMBER_COLOR)
 	else:
