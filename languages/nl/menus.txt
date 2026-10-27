@@ -49,6 +49,7 @@ CONTROLS = BESTURING
 One player = Een speler
 Two players: player %d = Twee spelers: speler %d
 Controllers = Controllers
+CONTROLLERS = CONTROLLERS
 Reset to defaults = Alles terugzetten
 All keys and buttons are = Alle toetsen en knoppen
 back as they were. = zijn weer zoals eerst.
