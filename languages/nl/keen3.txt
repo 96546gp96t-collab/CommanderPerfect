@@ -1,0 +1,266 @@
+# Nederlands: the texts of Keen 3's files (all from KEEN3.EXE), by their
+# names (src/language/keen3_texts.gd). Written without accents: the
+# original font has none. "\x1F" is the original's hard break, "\x09" its
+# ball, "\x0F" and "\x13" its arrows, "\x97" to "\x9A" the little Keen face.
+
+# The status screen: 11 lines; the full lines are 28 characters wide (the
+# labels, red on gray), the empty ones are the dividers between the white
+# value areas. The numbers and pictures stand at fixed places.
+@text keen3.status
+    SCORE     EXTRA KEEN BIJ
+
+    KEENS            PISTOOL
+
+
+
+ ANKHTIJD    SLEUTELKAARTEN
+
+
+
+     DRUK OP EEN TOETS
+@end
+
+# Mortimer in level 16: nine boxes of a fixed size, typed letter by letter
+# (5x1, 12x1, 18x1, 38x5, 38x5, 31x2, 35x4, 34x1 and 38x3).
+@text keen3.mortimer.1 = Nee..
+@text keen3.mortimer.2 = Onmogelijk!
+@text keen3.mortimer.3 = MORTIMER McMIRE!!!
+
+@text keen3.mortimer.4
+Mortimer is al zo lang je je kunt
+herinneren een doorn in je oog. Jouw
+IQ-test gaf 314--die van Mortimer
+315. Dat wreef hij je altijd in, en
+geen dag liet hij je het vergeten.
+@end
+
+@text keen3.mortimer.5
+Alle flauwe grappen, het treiteren,
+je hoofd in de wc--bij elke gedachte
+knars je harder met je tanden. En nu
+wil hij de Aarde vernietigen! Je hebt
+er genoeg van!
+@end
+
+@text keen3.mortimer.6
+"OK MORTIMER, WAT IS ER? WAAROM
+WIL JE DE AARDE VERNIETIGEN?"
+@end
+
+@text keen3.mortimer.7
+"Jij en al die hersenloze watjes
+verdienen de dood! Ik ben de
+slimste van de hele melkweg. Toch,
+meneer DRIE VEERTIEN! Ah ha ha!"
+@end
+
+@text keen3.mortimer.8 = "Dat zet ik je betaald, Mortimer!"
+
+@text keen3.mortimer.9
+"Kom maar op! Je komt nooit langs
+mijn gruwelijke Mangelmachine! Bereid
+je voor op de dood, Commander Clown!"
+@end
+
+# The pages of the ending, in frames of 38x4, 38x3, 38x3 and 12x1.
+@text keen3.ending.1
+Nu Mortimer McMire uit beeld is en
+zijn breingolfgordels hen niet langer
+sturen, zijn de Vorticons bevrijd van
+hun geestelijke slavernij.
+@end
+
+@text keen3.ending.2
+"Commander Keen, ter ere van uw
+verdiensten bij onze bevrijding uit
+de ketenen van het Grote Intellect,"
+@end
+
+@text keen3.ending.3
+"willen ik en de andere Vorticons die
+u niet hebt afgeslacht u de Grote V
+geven, onze hoogste onderscheiding."
+@end
+
+@text keen3.ending.4 = "Bedankt!"
+
+# The box over the finale picture: 10 wide.
+@text keen3.theend
+Einde...
+Voorlopig!
+@end
+
+# The footer of the end text's reader, 38 wide.
+@text keen3.endtext.footer
+  ESC om te stoppen / \x0F \x13 om te lezen
+@end
+
+# The ship on the world map: a window of 32x6, the prompt on its last row.
+@text keen3.ship.1
+Je stapt in je schip, hangt wat
+rond, gaat je vervelen en
+herinnert je dan dat je het
+Grote Intellect moet vinden!
+@end
+
+@text keen3.ship.2
+Je gaat het schip in, luiert wat
+en zet dan je zoektocht naar het
+Grote Intellect voort!
+@end
+
+@text keen3.ship.3
+Je hebt zin om in het schip uit
+te rusten, maar het raadsel wie
+het Grote Intellect is, doet je
+van gedachten veranderen.
+@end
+
+@text keen3.ship.4
+Het schip ingaan lijkt je wel
+leuk, maar nu moet je eerst het
+Grote Intellect vinden en hem
+verslaan!
+@end
+
+@text keen3.ship.prompt
+       druk op een toets:
+@end
+
+@text keen3.endtext
+~\x1F
+~          GEFELICITEERD!\x1F
+~
+
+Je hebt de laatste episode van de Commander Keen-trilogie uitgespeeld!
+
+Heb je tijdens het spelen:
+
+\x09De geheime stad in episode een gevonden?\x1F
+\x09De reis naar het geheime eiland in deze episode gemaakt?\x1F
+\x09Het Galactische Alfabet opgeschreven en alle bordjes in alle drie de
+episodes gelezen?
+
+
+Voor het geval je ze nog niet zelf hebt besteld: alle drie de episodes zijn
+verkrijgbaar bij Apogee Software Productions. Ze kosten maar $15 per stuk of
+$30 voor de hele trilogie!
+
+
+Stuur je cheque of postwissel naar:
+
+
+Apogee Software Productions\x1F
+P.O. Box 476389\x1F
+Garland, TX   75047
+
+
+Of bel: 1-800-852-5659.
+
+
+(Alleen Amerikaanse dollars, en tel er $2 verzendkosten bij op.)
+
+
+
+ \x97\x98    Commander Keen zegt:\x1F
+ \x99\x9A        "Hopelijk vond je de\x1F
+            trilogie leuk. Ik wel!"
+
+
+~              HET EINDE?
+@end
+
+@text keen3.story
+~            COMMANDER KEEN\x1F
+~                 in\x1F
+~     "De Invasie van de Vorticons"
+
+
+Billy Blaze, een achtjarig genie, heeft in zijn clubhuis in de achtertuin
+hard gewerkt en van oude soepblikken, rubberlijm en plastic slangetjes een
+interstellair ruimteschip gebouwd. Terwijl zijn ouders een avondje uit zijn
+en de oppas in slaap is gevallen, sluipt Billy naar zijn werkplaats in de
+achtertuin, zet de footballhelm van zijn broer op en verandert in...
+
+  COMMANDER KEEN--hoeder van de Aarde!
+
+In zijn schip, de Bean-with-Bacon Megarocket, deelt Keen met ijzeren hand
+galactische gerechtigheid uit!
+
+
+In onze vorige episode verijdelde Commander Keen het plan van de Vorticons om
+de Aarde te vernietigen. Het uitgeschakelde moederschip hinkte naar huis om
+zijn mislukking te melden aan het Grote Intellect. Na een kort dutje knalt
+Keen door de hersenkrakende leegte van de ruimte tussen de Aarde en Vorticon
+VI. De Vorticons liggen op de loer, hun gemene wapens knetterend van
+opgekropte energie, met maar een gedachte in hun hoofd....
+
+
+~   Episode Drie: Keen Moet Sterven!
+
+Keen schiet door een hyperruimtepoort en komt aan op Vorticon VI, waar hij
+landt op het eiland Vortiville. Hier wachten hem de geestdodende
+verschrikkingen van het leven in een buitenwijk. Daarna reist hij naar New
+Vorticon, waar het leven een duistere, gevaarlijke onderneming is. Ook moet
+hij het opnemen tegen de gewelddadige troepen die zijn samengetrokken in de
+militaire basis van de Vorticons. Daarna wacht hem het onmogelijke doolhof
+van de Grotten der Vergetelheid! Komt hij voorbij die hindernis, dan bereikt
+hij eindelijk het Kasteel van het Grote Intellect, waar al zijn overtuigingen
+en angsten samenkomen in een titanische, schokkende finale! Mis het
+ongelooflijke, verpletterende slot van de Commander Keen-trilogie niet!
+
+
+~        WAT KEEN MOET DOEN
+
+Als Commander Keen moet je je een weg banen door alle gevaren van Vorticon VI
+en het geheim van het Grote Intellect ontdekken. De Vorticon-oudste aan boord
+van het moederschip vertelde je twee dingen. Een: de Vorticons zijn niet
+slecht--het Grote Intellect stuurt ze met "hersengordels". En twee: het Grote
+Intellect komt van de Aarde! Wie zou hij kunnen zijn?
+
+
+~   INFORMATIE OVER DE VORTICON-CULTUUR
+
+Het leven van de Vorticons lijkt veel op het onze, op het volgende na: blauwe
+huid, lange oren, slagtanden, zwevende auto's, teleportatieapparaten, enzovoort.
+
+Andere bewoners zijn onder meer de snel geschrokken Foobs en het volk van
+joviale, ongelooflijk slechte zangers: de Meeps.
+
+Een gevaarlijke kant van het leven op Vorticon VI is het speelgoed van de
+kinderen. Ze spelen graag een soort "bikkelen" waarbij de bal zo groot is als
+hun lijf en de bikkels dodelijk zijn! Pas op!
+
+En kijk uit voor Vorticon-moeders--die zijn erg beschermend.
+
+Er gaat ook een gerucht over het reuzenbeest van Loch Mess, liefkozend
+"Messie" genoemd.
+
+De verdediging van Vorticon VI op het land bestaat uit de VortiNinja's, de
+dodelijkste vechtmacht van de melkweg. Ze zijn door het Grote Intellect
+getraind om geen gevangenen te nemen.
+
+
+~   HET AVONTUUR GAAT VERDER...
+
+Je taak ligt voor je. Pak ze aan, Commander Keen!
+
+
+
+ \x97\x98 Commander Keen zegt:\x1F
+ \x99\x9A  "Je gelooft nooit\x1F
+      hoe het afloopt!"
+@end
+
+# The high score table: the names of a new table, and the words for the
+# places.
+@text keen3.scores.name.1 = Yorpy
+@text keen3.scores.name.2 = Gargile
+@text keen3.scores.name.3 = Zzapp!
+@text keen3.scores.place.1 = eerste
+@text keen3.scores.place.2 = tweede
+@text keen3.scores.place.3 = derde
+@text keen3.scores.place.4 = vierde
+@text keen3.scores.place.5 = vijfde
+@text keen3.scores.place.6 = zesde
+@text keen3.scores.place.7 = laatste

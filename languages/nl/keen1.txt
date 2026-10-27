@@ -1,0 +1,289 @@
+# Nederlands: the texts of Keen 1's files (KEEN1.EXE, STORYTXT.CK1 and
+# ENDTEXT.CK1), by their names (src/language/keen1_texts.gd). Written
+# without accents: the original font has none. "\x1F" is the original's
+# hard break, "\x09" its ball, "\x97" to "\x9A" the little Keen face.
+
+# The statues (levels 2, 6, 9, 10, 11, 12 and 15).
+@text keen1.hint.2
+Je hoort in je
+hoofd:
+
+Jammer dat je het
+Standaard Galactisch
+Alfabet niet kunt
+lezen, mens.
+@end
+
+@text keen1.hint.6
+Een bericht galmt
+door je hoofd:
+
+De teleporter in
+het ijs stuurt je
+naar de donkere
+kant van Mars.
+@end
+
+@text keen1.hint.9
+Een stem zoemt in
+je hoofd:
+
+Er is een verborgen
+stad. Zoek in het
+donkere deel van de
+stad in het zuiden.
+@end
+
+@text keen1.hint.10
+Je ziet deze woorden
+in je hoofd:
+
+Op het eind heb je
+een straalpistool
+nodig, maar niet om
+de Vorticon neer te
+schieten...
+@end
+
+@text keen1.hint.11
+Je hoort in je
+hoofd:
+
+ GAAARRRRRGG!
+@end
+
+@text keen1.hint.12
+Een Yorps gefluister
+zegt:
+
+Zoek naar donkere,
+verborgen stenen. Je
+ziet slechts hun
+linkerbovenhoek.
+@end
+
+@text keen1.hint.15
+Een Yorpse gedachte
+brult:
+
+Je kunt de Vorticon
+Commandant niet
+rechtstreeks doden.
+@end
+
+@text keen1.hint.prompt = Druk op ENTER:
+
+# The ship: the pictures of the missing parts stand on the empty lines.
+@text keen1.ship.missing
+Je schip mist nog de
+volgende onderdelen:
+
+
+
+
+    GA ZE HALEN!
+@end
+
+# The ending.
+@text keen1.ending.ship
+Commander Keen keert terug naar de
+Bean-with-Bacon Megarocket en zet de
+ontbrekende onderdelen er snel in.
+Hij moet voor zijn ouders thuis zijn!
+@end
+
+@text keen1.ending.home.1
+Keen komt thuis en
+rent naar boven, voor
+zijn ouders er zijn.
+@end
+
+@text keen1.ending.home.2
+Ssst, schat...eens
+kijken of kleine Billy
+al slaapt.
+@end
+
+@text keen1.ending.home.3
+Billy...? Slaap je a--
+WAT IS DAT EENOGIGE
+GROENE DING OP JE
+KAMER!!!!???
+Ah, mam, mag ik hem
+houden?
+@end
+
+@text keen1.ending.home.4
+Nou, daar praten we
+morgen over, jongen.
+Ga maar lekker slapen.
+@end
+
+@text keen1.ending.home.5
+Oke, mam. Welterusten.
+@end
+
+@text keen1.ending.home.6
+Welterusten, schat.
+@end
+
+@text keen1.ending.home.7
+Maar voor Commander Keen
+is er geen slaap! Het
+Vorticon-moederschip hangt
+boven de Aarde, klaar om
+haar te vernietigen!
+@end
+
+@text keen1.endtext
+~\x1F
+~          WORDT VERVOLGD...\x1F
+~
+
+
+Je moet een weg vinden naar het Vorticon-moederschip en alle afschuwelijke
+Tantalusstralen vernietigen! Lukt dat niet--DAN ONTPLOFT DE AARDE! Mis
+episode twee niet!
+
+
+En daarna op naar Vorticon VI, waar de hele planeet op je komst wacht! Baan je
+een weg door alle steden en militaire bases van de Vorticons, en maak je klaar
+voor de laatste confrontatie met het Grote Intellect! Je gelooft je ogen niet
+bij de schokkende finale!
+
+
+De laatste episodes zijn verkrijgbaar bij Apogee Software Productions. Ze
+kosten maar $15 per stuk of $30 voor de hele trilogie!
+
+
+Stuur je cheque of postwissel naar:
+
+
+Apogee Software Productions\x1F
+P.O. Box 476389\x1F
+Garland, TX   75047
+
+
+Of bel: 1-800-852-5659.
+
+
+(Alleen Amerikaanse dollars, en tel er $2 verzendkosten bij op.)
+
+
+
+ \x97\x98    Commander Keen zegt:\x1F
+ \x99\x9A        "Hopelijk vond je het\x1F
+            spel leuk. Ik wel!"
+
+
+~      HET EINDE (voorlopig...)
+@end
+
+@text keen1.story
+~            COMMANDER KEEN\x1F
+~                 in\x1F
+~     "De Invasie van de Vorticons"
+
+
+Billy Blaze, een achtjarig genie, heeft in zijn clubhuis in de achtertuin
+hard gewerkt en van oude soepblikken, rubberlijm en plastic slangetjes een
+interstellair ruimteschip gebouwd. Terwijl zijn ouders een avondje uit zijn
+en de oppas in slaap is gevallen, sluipt Billy naar zijn werkplaats in de
+achtertuin, zet de footballhelm van zijn broer op en verandert in...
+
+  COMMANDER KEEN--hoeder van de Aarde!
+
+In zijn schip, de Bean-with-Bacon Megarocket, deelt Keen met ijzeren hand
+galactische gerechtigheid uit!
+
+
+~   Episode Een: Gestrand op Mars
+
+
+In deze episode horen buitenaardse wezens van de planeet Vorticon VI over het
+achtjarige genie, en ze beramen zijn ondergang. Terwijl Keen de bergen van
+Mars verkent, stelen de Vorticons onmisbare onderdelen van zijn schip en
+brengen ze naar verre steden op Mars! Kan Keen alle onderdelen van zijn schip
+terugvinden en de invasie van de Vorticons afslaan? Is hij terug voordat zijn
+ouders thuiskomen? Blijf kijken!
+
+~   WAT DE VORTICONS HEBBEN GESTOLEN
+
+De Bean-with-Bacon Megarocket is gebouwd van spullen uit huis die jij tot
+ruimteschiponderdelen hebt "omgebouwd":
+
+\x09 JOYSTICK (van de spelcomputer van je broer) Handmatige vluchtbesturing.
+
+\x09 ACCU (uit de auto van je moeder) Stroom voor de elektrische systemen.
+
+\x09 STOFZUIGER (uit de keuken, flink aangepast) Ionenaandrijving (met
+instelbare tapijthoogte).
+
+\x09 EVERCLEAR (uit de drankkast van je vader) Brandstof.
+
+
+
+De Vorticons hebben deze onderdelen naar de uithoeken van Mars gebracht en
+houden ze daar goed in de gaten. Zoek de leden van deze Vorticon-voorpost op
+en ontworstel de onderdelen aan hun gemene klauwen!
+
+~         INFORMATIE OVER MARS
+
+Buiten medeweten van de NASA veroorzaakte de landing van de Viking op Mars
+een enorme politieke omwenteling. De Viking landde namelijk precies op de
+tirannieke Marskoning! De Yorps (de uiterst vriendelijke eenogige
+Marsbewoners) waren bevrijd van hun slavernij, en de Gargs (de gemene,
+agressieve Marsbewoners) waren woedend.
+
+De Marsbewoners bouwden robots voor eenvoudig werk en bewakingsdienst. Pas op
+voor de tankachtige Bewakingsrobots--ze zijn HEEL goed in hun werk.
+
+Marsbewoners bezoeken de Aarde al tientallen jaren in ufo's. Waarom? Ze komen
+om maar een reden--ZE WILLEN ONS SPEELGOED. Hoepels en skateboards zijn heilig
+voor ze! Wie weet...misschien heb jij ook wat aan speelgoed!
+
+Overal staan bordjes. Je hebt ze nog niet kunnen ontcijferen....
+
+~        HET AVONTUUR BEGINT...
+
+Je taak ligt voor je. Pak ze, Commander Keen!
+
+______________________________________
+~
+
+En mis episode Twee en Drie van de "Invasie van de Vorticons"-trilogie niet!
+
+
+~  Episode Twee: De Aarde Ontploft
+
+Keen heeft zijn schip in elkaar gezet en is naar huis gevlogen, maar daar
+hangt het Vorticon-moederschip boven de Aarde, klaar om alle steden en
+wereldwonderen te vernietigen! Keen moet ongezien aan boord sluipen, de
+dreigende vernietiging van de Aarde stoppen en het moederschip onschadelijk
+maken! Als dat mislukt...ONTPLOFT DE AARDE! (Geen druk, hoor.)
+
+~   Episode Drie: Keen Moet Sterven!
+
+Keen vliegt naar de planeet Vorticon VI om de melkweg voor eens en altijd te
+verlossen van de Vorticon-dreiging. De hele planeet wacht op zijn komst, met
+maar een bevel--Commander Keen moet sterven! Welk kwaad wezen zit hier
+achter? Blijf kijken voor de spannende, schokkende finale!
+
+
+ \x97\x98 Commander Keen zegt:\x1F
+ \x99\x9A  "Je gelooft nooit wat er\x1F
+      gebeurt in Episode Drie!"
+@end
+
+# The high score table: the names of a new table, and the words for the
+# places ("Je hebt de ... plaats!").
+@text keen1.scores.name.1 = Yorpy
+@text keen1.scores.name.2 = Gargile
+@text keen1.scores.name.3 = Zzapp!
+@text keen1.scores.place.1 = eerste
+@text keen1.scores.place.2 = tweede
+@text keen1.scores.place.3 = derde
+@text keen1.scores.place.4 = vierde
+@text keen1.scores.place.5 = vijfde
+@text keen1.scores.place.6 = zesde
+@text keen1.scores.place.7 = laatste
