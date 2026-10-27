@@ -187,3 +187,47 @@ in the files themselves.
 4. A player's own languages go in a folder **`languages` next to
    `game_data`** (next to the app); the languages that come with the game
    are inside the app. Every language found is in the list.
+
+## 7. What is built
+
+### Languages (`src/language/`)
+
+- `LanguageFile`: the file format of §3 (`English = translation`,
+  `@alien`, `@text name = ...` and `@text name` ... `@end`, `@name`).
+- `Languages`: a language is a folder `languages/<code>/` with `.txt` files,
+  all merged; the app's own (`res://languages`, exported through the
+  `include_filter` of `export_presets.cfg`) and the player's `languages`
+  next to `game_data` / the app (`GameFiles.candidate_directories_in`); the
+  player's files win. English needs no files.
+- `Lang`: the language in use for every game (static). `text` (engine
+  texts by their English), `game`/`game_lines` (texts of the game files by
+  name), `alien`; a missing translation stays English; `fold` makes
+  accented letters plain for the original fonts and turns `\xNN` into a
+  picture character. `UserSettings` keeps `language` and `alien_text`
+  (section `game`) and switches `Lang` when it loads.
+- The Options of Keen 1-3 (`OptionsPages`, values lined up in a column as
+  wide as the longest name of the language needs) and of Keen 4-5
+  (`GalaxyMenuPages.options`, the languages on a radio card) end with Alien
+  text and Language. Picking a language rebuilds the menus on the stack in
+  it at once.
+
+### Alien signs
+
+- `AlienSigns.find`: groups of whole-word tiles (touching cells of one
+  group are one sign, whatever their layout or animation frame) and words
+  of letter tiles (gaps of up to two tiles are spaces; lines straight
+  under each other are one sign; stacked single letters are one word).
+- `AlienSignTables`: per game what §2 lists; Keen 4 and 5 per layer.
+- `AlienSignLabels`: a Node2D in the World viewport (over everything but
+  Galaxy's cover), told by the game screen what level is shown, its signs,
+  where the Keens are and how a plate looks; for each Keen the closest sign
+  within 48x40 pixels of it fades in its plate above the sign, in the
+  language in use. `AlienSignPlates`: Keen 1-3 as their windows, Keen 4-5
+  white with a black edge in the window font.
+- Hooked into `GameScreen` (Keen 1-3; Keen 1's table by default, Keen 2
+  and 3 their own) and `GalaxyPlayScreen` (both layers; Keen 4 and 5 give
+  their tables). Only drawing: nothing of the game state changes, so online
+  and saved games are untouched.
+- Dutch: `languages/nl/alien.txt`. Tests: `tests/test_alien_signs.gd`
+  (finding, the real levels of all five games, the plate near Keen only,
+  the language switch, Keen 1 level 1 in the real screen).

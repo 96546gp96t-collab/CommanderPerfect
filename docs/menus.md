@@ -44,7 +44,7 @@ the spinning ball of the font (characters 9-15) as the cursor.
 | Story | `STORYTXT.CK1`; up/down and Page Up/Page Down scroll |
 | High Scores | The table |
 | Controls | Three sets of keys: "One player", and "Two players: player 1" and "player 2". Pick an action, then press its new key. The new key replaces the first key of the action; a key belongs to one action only among the keys used at the same time (one player's keys and two players' keys may overlap; Status is in both). Left and right Shift, Alt and Ctrl count as different keys. Escape and F1-F7 cannot be used. "Controllers": which game controller each of two players uses (see [two-players.md](two-players.md), "Controllers"); pick a player, then press any button on his controller (Escape leaves it as it was); "Both automatic" undoes the choice. The last row of each set of keys, "Controller buttons", shows that set's controller buttons (see [two-players.md](two-players.md), "Controller buttons"): pick an action, then press its new button or pull a trigger on any controller (Back or Escape leaves it). "Reset to defaults" puts all keys and buttons back (the choice of controllers stays) |
-| Options | Sound, widescreen, 4:3 pixels, full screen and smooth motion on or off; backgrounds (widescreen only); graphics original, xBRZ or HD (HD only once the player has made it, see [graphics.md](graphics.md)); lighting original or realistic (F8, off by default, see [graphics.md](graphics.md)); extra levels (the ship as a level of its own and playing the pogo level again, see [world-map.md](world-map.md); on by default) |
+| Options | Sound, widescreen, 4:3 pixels, full screen and smooth motion on or off; backgrounds (widescreen only); graphics original, xBRZ or HD (HD only once the player has made it, see [graphics.md](graphics.md)); lighting original or realistic (F8, off by default, see [graphics.md](graphics.md)); extra levels (the ship as a level of its own and playing the pogo level again, see [world-map.md](world-map.md); on by default); alien text original or translated (off by default: when on, a sign in the alien alphabet shows what it says when Keen is close, see [language/research.md](language/research.md)); language (a list of the languages found, English first; shared by every game). Keen 4 and 5 have the same last two rows on their Options card ("ALIEN TEXT (OFF)", "LANGUAGE (ENGLISH)", the languages on a card of their own) |
 | Quit to Title | Only during a game: back to the Keen 1 title |
 | Choose Game | Back to the start screen, to choose another game |
 | Quit | Closes the program |
@@ -81,7 +81,7 @@ Everything is kept in the user folder of Godot; on the Mac that is
 
 | File | Contents |
 |---|---|
-| `settings.cfg` | Full screen, widescreen, 4:3 pixels, graphics, smooth motion, realistic, sound, the keys, and for playing online your name and the last address you joined |
+| `settings.cfg` | Full screen, widescreen, 4:3 pixels, graphics, smooth motion, realistic, sound, language and alien text, the keys, and for playing online your name and the last address you joined |
 | `saves/slotN.json` | Saved game N: score, lives, raygun charges, pogo stick, ship parts, completed levels and Keen's place on the map |
 | `high_scores.json` | The high score table |
 
