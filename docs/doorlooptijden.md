@@ -138,6 +138,16 @@ Keen 4 is een andere engine (Galaxy); de schatting per mijlpaal staat in
 | Controller-knoppen | 26-10 | ~35 min | | Door de architect: `ButtonBindings` (drie sets, triggers, gereserveerde knoppen), knoppenpagina's in Keen 1-3 en Keen 4-5, `ControlsPages` afgesplitst, testsuite, docs |
 | Controller | 26-10 | ~45 min | | Door de architect zelf, in een cloud-sessie: invoer van alle vijf de spellen ingelezen, `PlayerControllers` (eigen controller per speler, automatisch of gekozen, Bluetooth aan/uit), Controls > Controllers in Keen 1-3 en de Two Players-kaart van Keen 4-5, testsuite, docs |
 
+## Talen en buitenaardse tekst
+
+| Mijlpaal | Datum | Werktijd | Agent | Opmerking |
+|---|---|---|---|---|
+| Onderzoek | 26-10 | ~45 min | drie onderzoeksagents tegelijk (~5-10 min) | Menu's, spelteksten en het buitenaardse alfabet; de tegels van alle vijf de spellen bekeken (Keen 2-5 geüpload door de gebruiker), vragen als keuzemenu |
+| Taal (basis) | 27-10 | ~1 u | | Door de architect: `LanguageFile`, `Languages`, `Lang`, instellingen, Options-rijen en taallijst in Keen 1-3 en 4-5, tests |
+| Taal (vertalen) | 27-10 | ~45 min klok | vier agents tegelijk: 23, 23, 25 en 45 min | Eigen teksten Keen 1-3 en Keen 4-5, spelteksten Keen 1-3 en Keen 4-5 (catalogi, haken, Nederlands, tests, schermafbeeldingen); samenvoegen door de architect |
+| Alientekst | 27-10 | ~1 u 30 | | Door de architect: alle bordjes ontcijferd, `AlienSigns`, tabellen, plaatjes, testsuite, schermafbeeldingen |
+| **Totaal** | 26-10 t/m 27-10 | **~4 u** klok | | Opgeteld met de agents ~6 u |
+
 ## Keen 5 (mijlpalen E1-E13)
 
 Keen 5 is dezelfde engine als Keen 4; de schatting per mijlpaal staat in

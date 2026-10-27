@@ -203,6 +203,77 @@ De opbouw van de controls-menu's van Keen 1-3 staat nu in `ControlsPages`
 controller los- en weer aankoppelen, en per speler knoppen omzetten. Mogelijk later: speler 2 laten
 meedoen met Start op zijn eigen controller (nu F7 of het menu).
 
+## Talen en buitenaardse tekst (alle spellen)
+
+Branch `milestone-language` (vanaf `main`, 26/27-10). Wens van de
+gebruiker: in de instellingen van elk spel de taal op Nederlands kunnen
+zetten, een nieuwe taal toevoegen door een map neer te zetten (verschijnt
+dan in de lijst), en een optie die de buitenaardse teksten in de levels
+vertaalt. Onderzoek, plan en besluiten:
+[docs/language/research.md](docs/language/research.md).
+
+| # | Mijlpaal | Status |
+|---|---|---|
+| Taal | Taalbestanden, Lang, een rij Taal in Keen 1-5; alle eigen teksten en alle spelteksten in het Nederlands | 🔶 Gebouwd (branch `milestone-language`), in test bij de gebruiker |
+| Alientekst | Bordjes in het buitenaardse alfabet vertaald als Keen dichtbij is, Keen 1-5 | 🔶 Gebouwd (zelfde branch), in test bij de gebruiker |
+
+**Besluiten van de gebruiker (26/27-10):** alle teksten, ook die uit de
+spelbestanden, en de Nederlandse vertaling daarvan mag in git (uitzondering
+op de harde regel, in CLAUDE.md); Nederlands zonder accenten; de vertaling
+van een bordje alleen als Keen dichtbij staat; eigen talen in een map
+`languages` naast `game_data`.
+
+**Wat er nu is (27-10).**
+- `src/language/`: `LanguageFile` (formaat: `English = vertaling`,
+  `@alien`, `@text naam`, `@name`), `Languages` (een taal is een map
+  `languages/<code>/` met .txt-bestanden; die van de app en die naast
+  `game_data`/de app, de laatste wint), `Lang` (de taal van alle spellen;
+  Engels = het spel zoals het was, ontbrekend blijft Engels, accenten worden
+  gewone letters). `settings.cfg`: `language` en `alien_text` (sectie game).
+- Options van Keen 1-3 en Keen 4-5 eindigen met **Alientekst** en **Taal**
+  (Keen 1-3 een lijst, Keen 4-5 een kaart met vinkjes). Kiezen geldt meteen,
+  in alle spellen en op het startscherm.
+- Nederlands in `languages/nl/`: `language.txt` (naam, opties), `menus.txt`
+  (Keen 1-3, online, startscherm), `galaxy.txt` (horloge, berichten Keen
+  4-5), `keen1.txt`-`keen5.txt` (hints, verhaal, eindes, statusvensters,
+  levelnamen, hulppagina's, de raad, zekeringen, Mortimer, ...),
+  `alien.txt` (de bordjes). Een sjabloon voor een nieuwe taal met de Engelse
+  spelteksten: `tools/language_template.gd -- --game=N` (naar `exported/`).
+- Buitenaardse tekst: `AlienSigns` vindt de bordjes per level (hele
+  woordtegels per spel in `AlienSignTables`, en in Keen 2-3 de losse
+  lettertegels A-Z als woorden); `AlienSignLabels` laat boven het bordje
+  dat het dichtst bij een Keen staat een plaatje met de vertaling invloeien,
+  in de stijl van het spel. Ontcijferd: Keen 1 EXIT, THIS IS NEAT, DIE,
+  BEHOLD THE HOLY "POGO" STICK; Keen 2 TANTALUS + steden, GO UP, ON,
+  BLUEPRINT ASME en de kaart; Keen 3 alle plaatsnamen, KILL KEEN, HI HI,
+  MM; Keen 4 EXIT, WATCH OUT, HIGH LOW, HI; Keen 5 WARNING: FUSE STRUCTURE
+  FRAGILE, OK, EXIT, JUMP DOWN AT ARCH.
+- Gebouwd door de architect (basis, bordjes) en vier agents tegelijk in
+  eigen worktrees (eigen teksten Keen 1-3, eigen teksten Keen 4-5,
+  spelteksten Keen 1-3, spelteksten Keen 4-5), daarna samengevoegd.
+
+- [x] Tests: volledige suite groen (zie onder), gdlint schoon. Nieuw:
+  `test_language`, `test_alien_signs`, `test_language_keen1_3`,
+  `test_language_galaxy`, `test_language_game_texts`,
+  `test_language_galaxy_texts` (alles vertaald, past in de vensters met de
+  echte lettertypes, Engels byte-gelijk).
+- [x] Schermafbeeldingen in het Nederlands van menu's, statusschermen,
+  hints, hulppagina's en bordjes (Keen 1 level 1 en 5, Keen 3 level 2, Keen
+  5 level 11).
+- [ ] Spelen op de Mac en de pc (apps niet gebouwd, kan alleen op de Mac).
+- Open: Keen 4 v1.4 (Steam/GOG) heeft andere hulppagina's; die blijven
+  Engels tot er v1.4-bestanden zijn (het einde is wel vertaald). In het
+  statusvenster van Keen 4-5 blijven GEMS en AMMO Engels (Nederlands past
+  niet voor de balkjes). Woorden in plaatjes (kaarttitels van het horloge,
+  het hulpmenu, PRESS A KEY) kunnen niet vertaald worden. Losse
+  lettertegels van Keen 5 (enkele letters op muren) en woorden van items
+  (Keen 1 "HI" met lolly's) krijgen geen plaatje.
+
+**Volgende stap:** de gebruiker bouwt de apps (`tools/build_macos.sh`,
+`tools/build_windows.sh`), zet in Options de Taal op Nederlands en
+Alientekst aan, en loopt in elk spel langs een paar bordjes; leest de
+menu's, hints en hulppagina's na op de toon van de vertaling.
+
 ## Realistische graphics voor alle spellen: mijlpalen R
 
 Branch `milestone-r1-realistisch-onderzoek` (vanaf `main`, 24-10). Wens van
