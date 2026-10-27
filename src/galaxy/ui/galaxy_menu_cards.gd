@@ -17,8 +17,9 @@ class Card:
 
 
 ## The offsets of the cards by the menu's kind (Omni: main 32, 4; new game,
-## sound, music, options, keyboard 8, 0; load and save 4, 3; the keys 0, 0; seen in
-## v1.0: configure 8, 0, not Omnispeak's 0, 0).
+## sound, music, options, keyboard 8, 0; load and save 4, 3; the keys 0, 0;
+## seen in v1.0: configure 8, 0, not Omnispeak's 0, 0; ours: the languages
+## as the options).
 const OFFSETS: Dictionary[StringName, Vector2i] = {
 	MenuController.MAIN: Vector2i(32, 4),
 	GalaxyMenuController.NEW_GAME: Vector2i(8, 0),
@@ -28,6 +29,7 @@ const OFFSETS: Dictionary[StringName, Vector2i] = {
 	GalaxyMenuController.SOUND_CARD: Vector2i(8, 0),
 	GalaxyMenuController.MUSIC_CARD: Vector2i(8, 0),
 	MenuController.OPTIONS: Vector2i(8, 0),
+	OptionsPages.LANGUAGES: Vector2i(8, 0),
 	MenuController.KEY_SET: Vector2i(0, 0),
 }
 

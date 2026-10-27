@@ -42,13 +42,18 @@ func open_main(game_running: bool, can_save := true, partner_in := false) -> voi
 		return
 	_stack.clear()
 	in_game = game_running
+	_main_menu = _client_main_card.bind(game_running)
+	_push(_main_menu.call())
+
+
+func _client_main_card(game_running: bool) -> Menu:
 	var menu := Menu.create(MAIN)
 	if game_running:
 		menu.add(GalaxyMenuPages.MAIN_LABELS[GalaxyMenuPages.RETURN_ROW], CHOICE_RESUME)
 	menu.add(LEAVE_LABEL, CHOICE_LEAVE_ONLINE)
 	menu.add(GalaxyMenuPages.MAIN_LABELS[3], CONFIGURE)
 	menu.add(GalaxyMenuPages.MAIN_LABELS[-1], CHOICE_QUIT)
-	_push(menu)
+	return menu
 
 
 ## Whether the menu on top is one of the online pages.
@@ -85,13 +90,6 @@ func _pick(menu: Menu, item: Menu.Item) -> void:
 			_push(GalaxyMenuPages.keys(_key_set))
 		PLAYER_PAD, AUTOMATIC_PADS:
 			_pick_controller(item)
-
-
-func _pick_main(id: StringName) -> void:
-	if id == CONFIGURE:
-		_push(_configure_card())
-	else:
-		super(id)
 
 
 func _pick_configure(item: Menu.Item) -> void:

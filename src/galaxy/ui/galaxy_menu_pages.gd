@@ -4,7 +4,7 @@ extends RefCounted
 ## `ck_us_2.c`: the US_CardItem tables; facts only, and seen in Keen 4
 ## v1.0), for [GalaxyMenuController]: the main card, New Game, the save
 ## slots, Configure, Sound and Music, the keys, the controller buttons
-## (ours) and the options.
+## (ours), the options and the languages (ours).
 
 ## The main card's choices, in the original's order.
 const MAIN_LABELS: PackedStringArray = [
@@ -140,16 +140,38 @@ static func options(settings: UserSettings, score_box: bool) -> Menu:
 	var display := settings.display
 	var widescreen := display.aspect == DisplaySettings.Aspect.WIDESCREEN
 	var menu := Menu.create(MenuController.OPTIONS)
-	menu.add("SCORE BOX " + _state(score_box), &"score_box")
-	menu.add("WIDESCREEN " + _state(widescreen), &"widescreen")
-	menu.add("4:3 PIXELS " + _state(display.correct_pixel_aspect), &"pixels")
-	menu.add("FULL SCREEN " + _state(settings.fullscreen), &"fullscreen")
-	menu.add("SMOOTH MOTION " + _state(display.smooth_motion), &"smooth_motion")
-	menu.add("BACKGROUNDS " + _state(display.backgrounds), &"backgrounds", 0, widescreen)
-	menu.add("GRAPHICS (%s)" % MenuController.GRAPHICS_LABELS[display.graphics], &"graphics")
-	menu.add("LIGHTING (%s)" % MenuController.LIGHTING_LABELS[int(display.realistic)], &"realistic")
+	menu.add(_named("SCORE BOX", _state(score_box)), &"score_box")
+	menu.add(_named("WIDESCREEN", _state(widescreen)), &"widescreen")
+	menu.add(_named("4:3 PIXELS", _state(display.correct_pixel_aspect)), &"pixels")
+	menu.add(_named("FULL SCREEN", _state(settings.fullscreen)), &"fullscreen")
+	menu.add(_named("SMOOTH MOTION", _state(display.smooth_motion)), &"smooth_motion")
+	menu.add(_named("BACKGROUNDS", _state(display.backgrounds)), &"backgrounds", 0, widescreen)
+	var graphics := Lang.text(MenuController.GRAPHICS_LABELS[display.graphics])
+	menu.add(_named("GRAPHICS", "(%s)" % graphics), &"graphics")
+	var lighting := Lang.text(MenuController.LIGHTING_LABELS[int(display.realistic)])
+	menu.add(_named("LIGHTING", "(%s)" % lighting), &"realistic")
+	menu.add(_named("ALIEN TEXT", _state(settings.alien_text)), &"alien_text")
+	var language := OptionsPages.language_name(settings.language).to_upper()
+	menu.add(_named("LANGUAGE", "(%s)" % language), OptionsPages.LANGUAGE)
+	return menu
+
+
+## Ours: the languages as a card of choices, the one in use checked; a card
+## without a title picture, so its title is its first line.
+static func languages(current: String) -> Menu:
+	var available := Languages.available()
+	var names := PackedStringArray()
+	for code: String in available:
+		names.append(Lang.fold(available[code]).to_upper())
+	var menu := radio(OptionsPages.LANGUAGES, names, maxi(0, available.keys().find(current)))
+	menu.header = PackedStringArray([Lang.text("LANGUAGE")])
 	return menu
 
 
 static func _state(on: bool) -> String:
-	return "(ON)" if on else "(OFF)"
+	return "(%s)" % Lang.text("ON" if on else "OFF")
+
+
+## An option's name in the language in use, then its value.
+static func _named(english: String, value: String) -> String:
+	return Lang.text(english) + " " + value

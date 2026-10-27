@@ -4,6 +4,7 @@ extends SceneTree
 ## loads its files when it is ready) and run in the first frame.
 ##
 ## Usage:  godot --headless --path . --script res://tests/run_tests.gd
+##         [-- --only=test_language,test_menus]   (only those suites)
 
 const SUITES: Array[Script] = [
 	preload("res://tests/test_decompressors.gd"),
@@ -182,7 +183,11 @@ const TREE_SUITES: Array[Script] = [
 	preload("res://tests/test_realistic_look.gd"),
 	preload("res://tests/test_player_controllers.gd"),
 	preload("res://tests/test_button_bindings.gd"),
+	preload("res://tests/test_language.gd"),
 ]
+
+## Command line option that names the only suites to run.
+const ONLY_OPTION := "--only="
 
 var _failure_count := 0
 var _tree_suites_run := false
@@ -204,7 +209,13 @@ func _process(_delta: float) -> bool:
 
 
 func _run(suites: Array[Script]) -> void:
+	var only := _only()
 	for suite_script in suites:
+		if (
+			not only.is_empty()
+			and not only.has(suite_script.resource_path.get_file().get_basename())
+		):
+			continue
 		var suite = suite_script.new()  # Untyped: the members come from test_case.gd.
 		suite.run_all()
 		var suite_name := suite_script.resource_path.get_file().get_basename()
@@ -217,6 +228,14 @@ func _run(suites: Array[Script]) -> void:
 			for failure in suite.failures:
 				print("      " + failure)
 			_failure_count += suite.failures.size()
+
+
+## The suites named with [constant ONLY_OPTION]; empty: all of them.
+static func _only() -> PackedStringArray:
+	for argument in OS.get_cmdline_user_args():
+		if argument.begins_with(ONLY_OPTION):
+			return argument.trim_prefix(ONLY_OPTION).split(",", false)
+	return PackedStringArray()
 
 
 func _finish() -> void:

@@ -4,8 +4,8 @@ extends RefCounted
 ## window, the shape and style of the picture ([DisplaySettings]), whether
 ## sound is on, whether the extra levels are on, the keys ([KeyBindings]),
 ## the controller buttons ([ButtonBindings]) and the controllers of two
-## players ([PlayerControllers]),
-## and for playing online the player's name and the last address he joined.
+## players ([PlayerControllers]), the language ([Lang]) and whether alien
+## signs are translated, and for playing online the player's name and the last address he joined.
 ## Stored in a ConfigFile in the user folder of Godot.
 
 const DEFAULT_PATH := "user://settings.cfg"
@@ -28,6 +28,11 @@ var music_enabled := true
 ## level with the pogo stick again until he has it. On unless the player
 ## switched them off (the user's choice).
 var extra_levels := true
+## The language of every game ([Languages]); English is the original.
+var language := Languages.ENGLISH
+## Whether a sign in the alien alphabet shows its translation when Keen is
+## close ([AlienSigns]); off, as in the original.
+var alien_text := false
 ## The game starts in full screen unless the player switched that off.
 var fullscreen := true
 ## The name shown to the other player when playing online by IP; empty
@@ -49,9 +54,11 @@ static func load_from(file_path := DEFAULT_PATH) -> UserSettings:
 	settings.path = file_path
 	var config := ConfigFile.new()
 	if not FileAccess.file_exists(file_path):
+		Lang.use(settings.language)
 		return settings
 	if config.load(file_path) != OK:
 		push_error("%s could not be read; using the default settings." % file_path)
+		Lang.use(settings.language)
 		return settings
 	var widescreen := bool(config.get_value(DISPLAY, "widescreen", true))
 	settings.display.aspect = (
@@ -71,6 +78,9 @@ static func load_from(file_path := DEFAULT_PATH) -> UserSettings:
 	settings.sound_device = str(config.get_value(SOUND, "device", "adlib"))
 	settings.music_enabled = bool(config.get_value(SOUND, "music", true))
 	settings.extra_levels = bool(config.get_value(GAME, "extra_levels", true))
+	settings.language = str(config.get_value(GAME, "language", Languages.ENGLISH))
+	settings.alien_text = bool(config.get_value(GAME, "alien_text", false))
+	Lang.use(settings.language)
 	var stored_name := str(config.get_value(ONLINE, "name", "")).strip_edges()
 	settings.online_name = PlayerName.clean(stored_name) if not stored_name.is_empty() else ""
 	settings.online_address = str(config.get_value(ONLINE, "address", "")).left(
@@ -104,6 +114,8 @@ func save() -> bool:
 	config.set_value(SOUND, "device", sound_device)
 	config.set_value(SOUND, "music", music_enabled)
 	config.set_value(GAME, "extra_levels", extra_levels)
+	config.set_value(GAME, "language", language)
+	config.set_value(GAME, "alien_text", alien_text)
 	config.set_value(CONTROLS, "keys", KeyBindings.to_dict())
 	config.set_value(CONTROLS, "buttons", ButtonBindings.to_dict())
 	config.set_value(CONTROLS, "controllers", PlayerControllers.to_array())

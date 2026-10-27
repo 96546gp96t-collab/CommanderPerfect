@@ -40,6 +40,10 @@ Real-ESRGAN graphics. Singleplayer comes first; local co-op may follow later.
   ignored).
 - **Never use the name "Commander Keen" or its logo** as branding. Saying the
   engine "plays Keen 1" is fine.
+  Exception (decision of the user, 26-10-2026): the translations of the
+  games' texts in `languages/` (story, hints, endings, help pages, level
+  names, alien signs) may be committed; the English originals themselves
+  still may not.
 - **Do not decompile `KEEN1.EXE` code.** Behaviour is rebuilt from public
   documentation and from watching the game. Reading data tables out of the
   EXE (tile properties etc.) is fine.
@@ -67,6 +71,7 @@ src/online/    Playing online: ENet/Steam transports, the join handshake, snapsh
 src/game/      Game screen (main scene), LevelSession, Inventory, the ending, title and
                high scores, settings, saved games
 src/viewer/    Data viewer scene
+src/language/  Languages: the language files, the translated texts, the alien signs
 src/keen2/     Keen 2 only (classes Keen2...); see docs/keen2/architecture.md
 tests/         Headless test runner and test suites
 tools/         Command-line tools (graphics export, shareware diskette extraction,
@@ -74,6 +79,7 @@ tools/         Command-line tools (graphics export, shareware diskette extractio
 docs/          File formats, Keen's physics, enemies and items, the world map, sounds,
                menus, graphics (xBRZ, HD, smooth motion), two players, online
 addons/        GodotSteam (Steam for online play; macOS and Windows libraries only)
+languages/     The languages that come with the app (one folder per language)
 assets/        Our own pictures (start screen, app icon); never anything from the game files
 game_data/     The player's own game files (ignored by git)
 ```

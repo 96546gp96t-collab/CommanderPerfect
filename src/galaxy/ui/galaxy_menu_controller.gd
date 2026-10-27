@@ -132,7 +132,8 @@ func open_main(game_running: bool, _can_save := true, _two_players := false) -> 
 	_stack.clear()
 	in_game = game_running
 	_unsaved = game_running
-	_push(GalaxyMenuPages.main(in_game))
+	_main_menu = GalaxyMenuPages.main.bind(in_game)
+	_push(_main_menu.call())
 
 
 ## The menu on top; null when the panel is closed.
@@ -182,6 +183,8 @@ func is_checked(menu: Menu, index: int) -> bool:
 			return index == sound_choice
 		MUSIC_CARD:
 			return index == int(music_on)
+		OptionsPages.LANGUAGES:
+			return index == Languages.available().keys().find(settings.language)
 	return false
 
 
@@ -303,6 +306,11 @@ func _pick(menu: Menu, item: Menu.Item) -> void:
 			music_on = item.value != 0
 			chosen.emit(CHOICE_MUSIC, item.value)
 			_redraw()
+		OptionsPages.LANGUAGES:
+			# Checked at once, as the Sound card's choices are.
+			_set_language(Languages.available().keys()[item.value])
+			_relabel_stack()
+			_redraw()
 		_:
 			super(menu, item)
 
@@ -314,7 +322,7 @@ func _pick_main(id: StringName) -> void:
 		SLOTS_LOAD, SLOTS_SAVE:
 			_push(GalaxyMenuPages.slots(id, slots))
 		CONFIGURE:
-			_push(GalaxyMenuPages.configure())
+			_push(_configure_card())
 		CHOICE_END_GAME:
 			if _unsaved:
 				_confirm(END_LINES, CHOICE_END_GAME)
@@ -360,6 +368,10 @@ func _options_menu() -> Menu:
 	return GalaxyMenuPages.options(settings, score_box)
 
 
+func _configure_card() -> Menu:
+	return GalaxyMenuPages.configure()
+
+
 func _key_set_menu() -> Menu:
 	return GalaxyMenuPages.keys()
 
@@ -373,6 +385,9 @@ func _slots_menu(kind: StringName, _header: PackedStringArray) -> Menu:
 
 
 func _toggle_option(id: StringName) -> void:
+	if id == OptionsPages.LANGUAGE:
+		_push(GalaxyMenuPages.languages(settings.language))
+		return
 	if id != &"score_box":
 		super(id)
 		return
@@ -381,6 +396,26 @@ func _toggle_option(id: StringName) -> void:
 	# The card behind the message still shows the old state (seen in v1.0).
 	_options_stale = true
 	show_message(["Score box now " + ("on" if score_box else "off"), PRESS_ANY_KEY])
+
+
+## Every card on the stack again, in the language now in use, with its
+## cursor where it was.
+func _relabel_stack() -> void:
+	for index in _stack.size():
+		var old := _stack[index]
+		var made: Menu = null
+		match old.kind:
+			MAIN:
+				made = _main_menu.call() if _main_menu.is_valid() else null
+			CONFIGURE:
+				made = _configure_card()
+			OPTIONS:
+				made = _options_menu()
+			OptionsPages.LANGUAGES:
+				made = GalaxyMenuPages.languages(settings.language)
+		if made != null:
+			made.cursor = old.cursor
+			_stack[index] = made
 
 
 ## A message goes on a key: Paddle War's end goes back to the main card; the

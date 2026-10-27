@@ -129,6 +129,8 @@ var host_locked := true
 var join_address := ""
 var join_password := ""
 var _stack: Array[Menu] = []
+## Makes the menu at the bottom of the stack again (after a new language).
+var _main_menu := Callable()
 var _seconds := 0.0
 var _story_offset := 0
 ## The slot waiting for "overwrite?" to be answered.
@@ -167,9 +169,13 @@ func is_open() -> bool:
 ## the world map).
 func open_main(in_game: bool, can_save: bool, two_players := false) -> void:
 	_stack.clear()
+	_main_menu = _build_main.bind(in_game, can_save, two_players)
+	_push(_main_menu.call())
+
+
+func _build_main(in_game: bool, can_save: bool, two_players: bool) -> Menu:
 	if online.role == OnlineMenuInfo.Role.CLIENT:
-		_push(_joined_menu(in_game))
-		return
+		return _joined_menu(in_game)
 	var menu := Menu.create(MAIN, ["     MAIN MENU"])
 	if in_game:
 		menu.add("Return to Game", CHOICE_RESUME)
@@ -190,7 +196,7 @@ func open_main(in_game: bool, can_save: bool, two_players := false) -> void:
 		menu.add("Quit to Title", CHOICE_TITLE)
 	menu.add("Choose Game", CHOICE_CHOOSE_GAME)
 	menu.add("Quit", CHOICE_QUIT)
-	_push(menu)
+	return menu
 
 
 ## A message that any key closes.
@@ -306,6 +312,8 @@ func _pick(menu: Menu, item: Menu.Item) -> void:
 			_pick_controller(item)
 		OPTIONS:
 			_toggle_option(item.id)
+		OptionsPages.LANGUAGES:
+			_pick_language(String(item.id))
 		ONLINE:
 			_pick_online(item.id)
 		HOST_SETUP:
@@ -474,29 +482,7 @@ func _refresh_controls() -> void:
 
 
 func _options_menu() -> Menu:
-	var display := settings.display
-	var menu := Menu.create(OPTIONS, ["  OPTIONS"])
-	menu.add("Sound         " + _on_off(settings.sound_enabled), &"sound")
-	menu.add(
-		"Widescreen    " + _on_off(display.aspect == DisplaySettings.Aspect.WIDESCREEN),
-		&"widescreen"
-	)
-	menu.add("4:3 pixels    " + _on_off(display.correct_pixel_aspect), &"pixels")
-	menu.add("Full screen   " + _on_off(settings.fullscreen), &"fullscreen")
-	menu.add("Smooth motion " + _on_off(display.smooth_motion), &"smooth_motion")
-	# Pictures behind the levels only go with widescreen.
-	var widescreen := display.aspect == DisplaySettings.Aspect.WIDESCREEN
-	menu.add(
-		"Backgrounds   " + (_on_off(display.backgrounds) if widescreen else "-"),
-		&"backgrounds",
-		0,
-		widescreen
-	)
-	menu.add("Graphics      " + GRAPHICS_LABELS[display.graphics], &"graphics")
-	menu.add("Lighting      " + LIGHTING_LABELS[int(display.realistic)], &"realistic")
-	if offers_extra_levels:
-		menu.add("Extra levels  " + _on_off(settings.extra_levels), &"extra_levels")
-	return menu
+	return OptionsPages.options(settings, offers_extra_levels)
 
 
 ## The graphics after [param current] when the player switches; HD only
@@ -513,6 +499,11 @@ static func next_graphics(
 func _toggle_option(id: StringName) -> void:
 	var display := settings.display
 	match id:
+		OptionsPages.LANGUAGE:
+			_push(OptionsPages.languages(settings.language))
+			return
+		&"alien_text":
+			settings.alien_text = not settings.alien_text
 		&"sound":
 			settings.sound_enabled = not settings.sound_enabled
 		&"widescreen":
@@ -541,6 +532,28 @@ func _toggle_option(id: StringName) -> void:
 	_stack[-1] = _options_menu()
 	_top().cursor = cursor
 	_redraw()
+
+
+## Speaks [param code] from now on, in every game; back on the options,
+## the menus on the stack are made again in it.
+func _pick_language(code: String) -> void:
+	_set_language(code)
+	_pop()
+	var cursor := _top().cursor
+	_stack[-1] = _options_menu()
+	_top().cursor = cursor
+	if _main_menu.is_valid() and _stack.size() > 1:
+		var main_cursor := _stack[0].cursor
+		_stack[0] = _main_menu.call()
+		_stack[0].cursor = main_cursor
+	_redraw()
+
+
+func _set_language(code: String) -> void:
+	settings.language = code
+	Lang.use(code)
+	settings.save()
+	settings_changed.emit()
 
 
 func _handle_story_key(event: InputEvent) -> void:
@@ -644,7 +657,7 @@ static func _is_confirm(event: InputEvent) -> bool:
 
 
 static func _on_off(on: bool) -> String:
-	return "ON" if on else "OFF"
+	return OptionsPages.on_off(on)
 
 
 ## Shows the friends' games found on Steam; the list is rebuilt when it is

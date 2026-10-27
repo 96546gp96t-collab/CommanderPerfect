@@ -1,0 +1,44 @@
+# Nederlands for CommanderPerfect.
+#
+# A language is a folder in "languages" named after its code ("nl"); every
+# .txt file in it is read (see docs/language/research.md and docs/menus.md):
+#   English text = translation       the engine's own texts
+#   @alien ENGLISH = TRANSLATION     a sign in the alien alphabet
+#   @text name = text                a text from the game files, by its name
+#   @text name ... @end              the same over several lines
+# Dutch is written without accents: the original fonts have none.
+
+@name Nederlands
+
+# The options of every game.
+OPTIONS = OPTIES
+Sound = Geluid
+Widescreen = Breedbeeld
+4:3 pixels = 4:3-pixels
+Full screen = Volledig scherm
+Smooth motion = Vloeiend
+Backgrounds = Achtergronden
+Graphics = Graphics
+Lighting = Licht
+Extra levels = Extra levels
+Alien text = Alientekst
+Language = Taal
+LANGUAGE = TAAL
+ON = AAN
+OFF = UIT
+ORIGINAL = ORIGINEEL
+XBRZ = XBRZ
+HD = HD
+REALISTIC = REALISTISCH
+TRANSLATED = VERTAALD
+
+# The options on the watch of Keen 4 and 5.
+SCORE BOX = SCOREVAK
+WIDESCREEN = BREEDBEELD
+4:3 PIXELS = 4:3-PIXELS
+FULL SCREEN = VOLLEDIG SCHERM
+SMOOTH MOTION = VLOEIEND
+BACKGROUNDS = ACHTERGRONDEN
+GRAPHICS = GRAPHICS
+LIGHTING = LICHT
+ALIEN TEXT = ALIENTEKST

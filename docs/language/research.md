@@ -174,3 +174,16 @@ in the files themselves.
 3. How the alien text shows: painted over the sign in the sign's own
    colours, a label above the sign, or a label only when Keen is close?
 4. Where players put a language of their own.
+
+### The user's answers (26/27-10-2026)
+
+1. **All texts**, also those from the game files (story, hints, endings,
+   help pages, level names, ...), and the Dutch translation of them goes
+   **into git** as an exception to the hard rule (recorded in CLAUDE.md).
+2. **No accents**: Dutch is written without them, and accented letters in
+   a language file are folded to plain ones (é → e) for the original fonts.
+3. The alien text shows **as a label only when Keen is close** to the sign;
+   the sign itself stays as it is.
+4. A player's own languages go in a folder **`languages` next to
+   `game_data`** (next to the app); the languages that come with the game
+   are inside the app. Every language found is in the list.
