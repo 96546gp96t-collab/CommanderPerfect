@@ -70,9 +70,10 @@ func _set_up_menus() -> void:
 func _set_up_texts() -> void:
 	_pictures.set_textures(_textures)
 	if not _data.story.is_empty():
-		_menus.story = TextDocument.layout(_data.story, MenuController.TEXT_WIDTH)
+		_menus.set_story(Keen3Texts.STORY, _data.story)
 	var score_texts := _data.score_texts
 	var names := score_texts.default_names if score_texts != null else PackedStringArray()
+	names = GameTexts.score_names(Keen3Texts.PREFIX, names)
 	_high_scores = Keen2HighScores.load_from(HIGH_SCORES_PATH, Keen3Screens.default_names(names))
 
 
@@ -238,9 +239,8 @@ func _finish_game() -> void:
 	_pending_place = _high_scores.place_for(play.inventory.score) if play != null else -1
 	if _pending_place < 0:
 		return
-	var score_texts := _data.score_texts
-	var words := score_texts.place_names if score_texts != null else PackedStringArray()
-	_menus.ask_name(words[_pending_place] if _pending_place < words.size() else "a")
+	var place := _pending_place
+	_menus.ask_name(GameTexts.place_word(Keen3Texts.PREFIX, _data.score_texts, place, "a"))
 
 
 func _on_name_entered(player_name: String) -> void:

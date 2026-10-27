@@ -377,9 +377,9 @@ func _show_elder_message(number: int) -> void:
 	var index := Keen2LevelPlay.elder_message_index(number)
 	if index >= _elder_messages.size() or _elder_messages[index].is_empty():
 		return
-	var lines := _elder_messages[index].duplicate()
+	var lines := Lang.game_lines(Keen2Texts.ELDER % (index + 1), _elder_messages[index].duplicate())
 	if not "\n".join(lines).to_upper().contains(ELDER_PROMPT_WORD):
-		lines.append_array(["", ELDER_PROMPT])
+		lines.append_array(["", Lang.game(Keen2Texts.ELDER_PROMPT, ELDER_PROMPT)])
 	_window.show_lines(lines)
 	_close_by_itself_online()
 

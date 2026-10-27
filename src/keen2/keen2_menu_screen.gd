@@ -59,9 +59,10 @@ func _set_up_menus() -> void:
 func _set_up_texts() -> void:
 	_pictures.set_textures(_textures)
 	if not _texts.story.is_empty():
-		_menus.story = TextDocument.layout(_texts.story, MenuController.TEXT_WIDTH)
+		_menus.set_story(Keen2Texts.STORY, _texts.story)
 	var score_texts := _texts.score_texts
 	var names := score_texts.default_names if score_texts != null else PackedStringArray()
+	names = GameTexts.score_names(Keen2Texts.PREFIX, names)
 	_high_scores = Keen2HighScores.load_from(Keen2HighScores.DEFAULT_PATH, names)
 
 
@@ -207,9 +208,8 @@ func _finish_game() -> void:
 	if _pending_place < 0:
 		return
 	_sounds.play(Sound.Id.HIGH_SCORE)
-	var score_texts := _texts.score_texts
-	var words := score_texts.place_names if score_texts != null else PackedStringArray()
-	_menus.ask_name(words[_pending_place] if _pending_place < words.size() else "a")
+	var place := _pending_place
+	_menus.ask_name(GameTexts.place_word(Keen2Texts.PREFIX, _texts.score_texts, place, "a"))
 
 
 func _on_name_entered(player_name: String) -> void:

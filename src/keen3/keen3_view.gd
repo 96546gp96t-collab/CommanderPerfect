@@ -355,11 +355,12 @@ func _on_ship_used() -> void:
 func _show_ship_message(index: int) -> void:
 	if index < 0 or index >= _data.ship_messages.size():
 		return
-	var lines: PackedStringArray = _data.ship_messages[index]
+	var lines := Lang.game_lines(Keen3Texts.SHIP % (index + 1), _data.ship_messages[index])
 	_window.open(SHIP_WINDOW)
 	for row in lines.size():
 		_window.put_text(Vector2i(0, row), lines[row])
-	_window.put_text(Vector2i(0, SHIP_WINDOW.y - 1), _data.ship_prompt)
+	var prompt := Lang.game(Keen3Texts.SHIP_PROMPT, _data.ship_prompt)
+	_window.put_text(Vector2i(0, SHIP_WINDOW.y - 1), prompt)
 	_stay_until_a_key()
 
 

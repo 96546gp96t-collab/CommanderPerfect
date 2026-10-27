@@ -71,7 +71,7 @@ static func fill(
 ) -> void:
 	window.open(SIZE)
 	if lines.size() == LINE_COUNT:
-		_put_labels(window, lines)
+		_put_labels(window, GameTexts.fixed_lines(Keen3Texts.STATUS, lines))
 	window.put_text_right(SCORE_END, NUMBER_ROW, str(inventory.score))
 	window.put_text_right(EXTRA_LIFE_END, NUMBER_ROW, str(inventory.next_extra_life()))
 	for life in clampi(inventory.lives, 0, MAX_LIVES_SHOWN):

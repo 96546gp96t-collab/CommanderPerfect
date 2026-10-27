@@ -185,6 +185,7 @@ const TREE_SUITES: Array[Script] = [
 	preload("res://tests/test_button_bindings.gd"),
 	preload("res://tests/test_language.gd"),
 	preload("res://tests/test_alien_signs.gd"),
+	preload("res://tests/test_language_game_texts.gd"),
 ]
 
 ## Command line option that names the only suites to run.

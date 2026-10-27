@@ -51,6 +51,12 @@ var end_text := PackedStringArray()
 ## First line of the end text that is shown.
 var text_offset := 0
 var _ship_start := Vector2.ZERO
+## Which of [enum Keen2Executable.EndingText] each page is.
+var _page_texts: Array[Keen2Executable.EndingText] = []
+## The end text block as read, and the language [member end_text] is laid
+## out in.
+var _end_text_data := PackedByteArray()
+var _end_text_language := ""
 var _confirm_was_held := true
 var _scroll_timer := 0
 
@@ -64,12 +70,13 @@ static func create(
 	var ending := Keen2Ending.new()
 	ending.texts = ending_texts
 	ending._ship_start = ship_start
-	if not end_text_data.is_empty():
-		ending.end_text = TextDocument.layout(end_text_data, TEXT_WIDTH)
+	ending._end_text_data = end_text_data
+	ending._follow_language()
 	for which in HOME_PAGES:
 		var lines := ending._text(which)
 		if not lines.is_empty():
 			ending.pages.append(lines)
+			ending._page_texts.append(which)
 	ending._begin(Stage.SHIP_HOME)
 	return ending
 
@@ -123,13 +130,14 @@ func confirm() -> void:
 
 ## The lines of the window that is open, or none.
 func window_lines() -> PackedStringArray:
+	_follow_language()
 	match stage:
 		Stage.SHIP_HOME:
-			return _text(ENDING.SHIP_HOME) if message_open else PackedStringArray()
+			return _translated(ENDING.SHIP_HOME) if message_open else PackedStringArray()
 		Stage.MOTHERSHIP:
-			return _text(ENDING.MOTHERSHIP) if message_open else PackedStringArray()
+			return _translated(ENDING.MOTHERSHIP) if message_open else PackedStringArray()
 		Stage.AT_HOME:
-			return pages[page]
+			return Lang.game_lines(Keen2Texts.ending_name(_page_texts[page]), pages[page])
 		Stage.END_TEXT:
 			return end_text.slice(text_offset, text_offset + TEXT_LINES)
 	return PackedStringArray()
@@ -158,6 +166,21 @@ func is_finished() -> bool:
 
 func _text(which: Keen2Executable.EndingText) -> PackedStringArray:
 	return texts[which] if which < texts.size() else PackedStringArray()
+
+
+## Text [param which] in the language in use.
+func _translated(which: Keen2Executable.EndingText) -> PackedStringArray:
+	return Lang.game_lines(Keen2Texts.ending_name(which), _text(which))
+
+
+## Lays out the end text again when the language has changed.
+func _follow_language() -> void:
+	if _end_text_data.is_empty() or _end_text_language == Lang.code():
+		return
+	_end_text_language = Lang.code()
+	var data := GameTexts.document(Keen2Texts.END_TEXT, _end_text_data)
+	end_text = TextDocument.layout(data, TEXT_WIDTH)
+	text_offset = clampi(text_offset, 0, maxi(0, end_text.size() - TEXT_LINES))
 
 
 func _next_stage() -> void:

@@ -1,0 +1,255 @@
+# Nederlands: the texts of Keen 2's files (all from KEEN2.EXE), by their
+# names (src/language/keen2_texts.gd). Written without accents: the
+# original font has none. "\x1F" is the original's hard break, "\x97" to
+# "\x9A" the little Keen face.
+
+# The Vorticon Elders.
+@text keen2.elder.1
+De Vorticon-oudste
+in het stasisveld
+zegt:
+De wijze Vorticon
+springt nooit in het
+donker. Sterker nog,
+zelfs onwijze
+Vorticons springen
+niet in het donker.
+@end
+
+@text keen2.elder.2
+De Vorticon-oudste
+zegt door het
+stasisveld heen:
+Het Grote Intellect
+komt niet van Vorticon
+VI--hij komt van de
+planeet Aarde. Zijn
+kwaadaardige
+Hersengordels sturen
+hun geest. Ze zijn
+niet slecht. Schiet
+ze alsjeblieft niet
+neer, mens.
+@end
+
+@text keen2.elder.prompt = Druk op ENTER:
+
+# The cities on the status screen. The names in the left column (1, 3, 5
+# and 7) have room for 6 letters.
+@text keen2.city.1 = Londen
+@text keen2.city.2 = Cairo
+@text keen2.city.3 = Sydney
+@text keen2.city.4 = New York
+@text keen2.city.5 = Parijs
+@text keen2.city.6 = Rome
+@text keen2.city.7 = Moskou
+@text keen2.city.8 = Wash D.C.
+
+# The status screen: 12 lines of at most 28 characters; the numbers, the
+# little Keens, the raygun, the cities and the keycards stand at fixed
+# places under the labels.
+@text keen2.status
+    SCORE     EXTRA KEEN BIJ
+
+    KEENS            PISTOOL
+
+
+
+   STEDEN GERED     SLEUTELS
+
+
+
+
+     DRUK OP EEN TOETS
+@end
+
+# The ending.
+@text keen2.ending.ship_home
+Nadat hij de wapens van het
+Vorticon-moederschip heeft
+uitgeschakeld, koerst Billy naar
+de aarde. Zelfs grote ruimte-
+helden hebben een dutje nodig na
+een horde gewelddadige aliens
+te hebben verslagen!
+@end
+
+@text keen2.ending.mothership
+Het Vorticon-schip hinkt terug
+naar Vorticon VI om te melden
+dat het verslagen is door
+Commander Keen. Het Grote
+Intellect zal niet blij zijn.
+@end
+
+@text keen2.ending.home_1
+Wakker worden, Billy!
+Het heeft gesneeuwd!
+Geen school vandaag!
+@end
+
+@text keen2.ending.home_2
+Geweldig, moeder. Dan
+heb ik tijd om de
+melkweg te verlossen
+van de Vorticon-dreiging
+en het geheim van het
+mysterieuze Grote
+Intellect te ontrafelen!
+@end
+
+@text keen2.ending.home_3
+Goed, schat, maar eet
+eerst een voedzame kom
+Sugar Stoopies met
+extra vitamines.
+@end
+
+@text keen2.ending.home_4
+Oke, mam...
+@end
+
+@text keen2.ending.to_be_continued
+WORDT VERVOLGD....
+@end
+
+@text keen2.endtext
+~\x1F
+~          WORDT VERVOLGD...\x1F
+~
+
+
+En nu op naar Vorticon VI, waar de hele planeet op je komst wacht! Baan je een
+weg door alle steden en militaire bases van de Vorticons, en maak je klaar
+voor de laatste confrontatie met het Grote Intellect! Onderweg denk je na
+over de woorden van de oude Vorticon. Wie is het Grote Intellect? Je gelooft
+je ogen niet bij de schokkende finale!
+
+
+De laatste episodes zijn verkrijgbaar bij Apogee Software Productions. Ze
+kosten maar $15 per stuk of $30 voor de hele trilogie!
+
+
+Stuur je cheque of postwissel naar:
+
+
+Apogee Software Productions\x1F
+P.O. Box 476389\x1F
+Garland, TX   75047
+
+
+Of bel: 1-800-852-5659.
+
+
+(Alleen Amerikaanse dollars, en tel er $2 verzendkosten bij op.)
+
+
+
+ \x97\x98    Commander Keen zegt:\x1F
+ \x99\x9A        "Hopelijk vond je het\x1F
+            spel leuk. Ik wel!"
+
+
+~      HET EINDE (voorlopig...)
+@end
+
+@text keen2.story
+~            COMMANDER KEEN\x1F
+~                 in\x1F
+~     "De Invasie van de Vorticons"
+
+
+Billy Blaze, een achtjarig genie, heeft in zijn clubhuis in de achtertuin
+hard gewerkt en van oude soepblikken, rubberlijm en plastic slangetjes een
+interstellair ruimteschip gebouwd. Terwijl zijn ouders een avondje uit zijn
+en de oppas in slaap is gevallen, sluipt Billy naar zijn werkplaats in de
+achtertuin, zet de footballhelm van zijn broer op en verandert in...
+
+  COMMANDER KEEN--hoeder van de Aarde!
+
+In zijn schip, de Bean-with-Bacon Megarocket, deelt Keen met ijzeren hand
+galactische gerechtigheid uit!
+
+
+In onze vorige episode verijdelde Commander Keen het plan van de Vorticons om
+hem op Mars te laten stranden, en heroverde hij alle onderdelen van zijn schip
+op de gemene Vorticons. Het was gevaarlijk, maar slechts een voorproefje van
+de verschrikkingen die volgen in...
+
+~   Episode Twee: De Aarde Ontploft
+
+Zijn ouders denken dat hij slaapt, maar er is geen tijd voor een dutje--een
+Vorticon-moederschip hangt boven de Aarde, klaar om met zijn dodelijke
+Tantalusstraal elke grote stad te vernietigen! Keen moet ongezien aan boord
+sluipen en elk Tantalusteam van zijn vreselijke taak afhouden. Als dat
+mislukt, ontploft de Aarde! Dan hoeft hij natuurlijk ook niet op tijd thuis
+te zijn voor school.... De Aarde of geen school. Hmmm....
+
+Na lang wikken en wegen besluit Keen de Aarde toch maar te redden. Mis geen
+seconde van deze actievolle, spannende episode van de Commander
+Keen-trilogie!
+
+
+~        WAT KEEN MOET DOEN
+
+Als Commander Keen moet je elke X-14 Tantalusstraal bereiken en vernietigen.
+Ze worden gevoed door cellen van de Grote Paarse Ruimteamoebe. De
+Tantalus-controlekamers liggen verspreid over het schip. Je begint in de
+kombuis van het schip en moet spullen vinden die je helpen bij je missie.
+Toen je je een weg naar binnen schoot, vond je een bijna lege Vorticon
+HyperPistol, het wapen van de Vorticon-elitekrijgers. Kon je er maar meer van
+vinden....
+
+Je hebt de pogostok van je avontuur op Mars nog.
+
+~   INFORMATIE OVER DE VORTICONS
+
+Alle Vorticons worden bestuurd door het Grote Intellect, een mysterieus wezen
+op de planeet Vorticon VI. Daar hoef je je nu niet druk om te maken--je moet
+de Aarde redden door die Tantalusstralen te vernietigen!
+
+Gelukkig voor jou had een van de Vorticons die je op Mars hebt "aangepakt" een
+bouwtekening van het Vorticon-moederschip bij zich. Helaas kun je geen
+Vorticon lezen.
+
+De Vorticons hebben robots, net als de Marsbewoners--alleen zijn
+Vorticon-robots erger.
+
+Sommige delen van het Vorticon-schip lijken onbereikbaar. Je moet de
+bediening van deuren of bruggen vinden om verder te kunnen.
+
+
+~   HET AVONTUUR GAAT VERDER...
+
+Je taak ligt voor je. Pak ze, Commander Keen!
+
+______________________________________
+~
+
+En mis episode Drie van de "Invasie van de Vorticons"-trilogie niet!
+
+~   Episode Drie: Keen Moet Sterven!
+
+Keen vliegt naar de planeet Vorticon VI om de melkweg voor eens en altijd te
+verlossen van de Vorticon-dreiging. De hele planeet wacht op zijn komst, met
+maar een bevel--Commander Keen moet sterven! Welk kwaad wezen zit hier
+achter? Blijf kijken voor de spannende, schokkende finale!
+
+
+ \x97\x98 Commander Keen zegt:\x1F
+ \x99\x9A  "Je gelooft nooit wat er\x1F
+      gebeurt in Episode Drie!"
+@end
+
+# The high score table: the names of a new table, and the words for the
+# places.
+@text keen2.scores.name.1 = Yorpy
+@text keen2.scores.name.2 = Gargile
+@text keen2.scores.name.3 = Zzapp!
+@text keen2.scores.place.1 = eerste
+@text keen2.scores.place.2 = tweede
+@text keen2.scores.place.3 = derde
+@text keen2.scores.place.4 = vierde
+@text keen2.scores.place.5 = vijfde
+@text keen2.scores.place.6 = zesde
+@text keen2.scores.place.7 = laatste

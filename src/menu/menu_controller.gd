@@ -133,6 +133,10 @@ var _stack: Array[Menu] = []
 var _main_menu := Callable()
 var _seconds := 0.0
 var _story_offset := 0
+## The story's name in the language files and its file's bytes (see
+## [method set_story]); empty when the story was set as lines.
+var _story_name := ""
+var _story_data := PackedByteArray()
 ## The slot waiting for "overwrite?" to be answered.
 var _pending_slot := 0
 ## The action waiting for its new key.
@@ -332,6 +336,7 @@ func _pick_main(id: StringName) -> void:
 			show_message(["You can only save the", "game on the world map.", "", "   Press a key"])
 		STORY:
 			_story_offset = 0
+			_lay_out_story()
 			_push(Menu.create(STORY))
 		CONTROLS:
 			_push(ControlsPages.controls())
@@ -554,6 +559,21 @@ func _set_language(code: String) -> void:
 	Lang.use(code)
 	settings.save()
 	settings_changed.emit()
+
+
+## The story from the bytes of its file [param data] ([TextDocument]), by
+## its name [param text_name] in the language files: it is laid out again in
+## the language in use each time it is opened.
+func set_story(text_name: String, data: PackedByteArray) -> void:
+	_story_name = text_name
+	_story_data = data
+	_lay_out_story()
+
+
+func _lay_out_story() -> void:
+	if _story_data.is_empty():
+		return
+	story = TextDocument.layout(GameTexts.document(_story_name, _story_data), TEXT_WIDTH)
 
 
 func _handle_story_key(event: InputEvent) -> void:
