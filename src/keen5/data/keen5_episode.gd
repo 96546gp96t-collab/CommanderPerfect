@@ -80,6 +80,9 @@ const MAP_FLAG_OFFSET := Vector2i(-0x50, -0x1E0)
 const CHEAT_TEXTS := "cheat"
 const CHEAT_LENGTHS: PackedInt32Array = [70, 6, 3]
 const CHEAT_V1_4 := 0x30881
+## The start of the names of Keen 5's texts in a language file
+## ([GalaxyTexts]).
+const TEXT_NAMES := "keen5"
 ## The original's high-score table (files): 8 records of 64 bytes.
 const HIGH_SCORE_COUNT := 8
 const HIGH_SCORES_V1_4 := 0x33D56
@@ -322,6 +325,8 @@ static func _add_front_rules(rules: GalaxyGameRules) -> void:
 	rules.story_from_end = STORY_FROM_END
 	rules.first_credit_from_end = FIRST_CREDIT_FROM_END
 	rules.story_messages = STORY_MESSAGES
+	rules.text_names = TEXT_NAMES
+	rules.translated_runs = translated_runs()
 	rules.intro_word_colors = INTRO_WORD_COLORS
 	rules.story_colors = STORY_COLORS
 	rules.demo_sign_sprite = DEMO_SIGN_SPRITE
@@ -363,3 +368,27 @@ static func high_score_offsets() -> PackedInt32Array:
 ## All of Keen 5 in [param files]; null when something is missing.
 static func load_data(files: GameFiles) -> GalaxyData:
 	return GalaxyData.load_from(files, create())
+
+
+## The texts of each run the game shows
+## ([member GalaxyGameRules.translated_runs]): the story, the status
+## labels, "DEMO", the arrival on Korath III, the three lines after a
+## death, "One moment", the cheat box and both fuse messages.
+static func translated_runs() -> Dictionary[String, PackedInt32Array]:
+	return {
+		STORY_MESSAGES: PackedInt32Array([0]),
+		STATUS_TEXTS: PackedInt32Array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]),
+		GAME_TEXTS:
+		PackedInt32Array(
+			[
+				DEMO_TEXT,
+				KORATH_TEXT,
+				TRY_AGAIN_INTRO_TEXT,
+				TRY_AGAIN_TEXT,
+				EXIT_TEXT,
+				ONE_MOMENT_TEXT
+			]
+		),
+		CHEAT_TEXTS: PackedInt32Array([0]),
+		FUSE_TEXTS: PackedInt32Array([KORATH_FUSE_TEXT, FUSE_TEXT]),
+	}

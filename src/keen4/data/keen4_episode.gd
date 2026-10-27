@@ -73,6 +73,9 @@ const CHEAT_TEXTS := "cheat"
 const CHEAT_LENGTHS: PackedInt32Array = [70, 6, 3]
 const CHEAT_V1_0 := 0x2E0C3
 const CHEAT_V1_4 := 0x2F435
+## The start of the names of Keen 4's texts in a language file
+## ([GalaxyTexts]).
+const TEXT_NAMES := "keen4"
 ## The original's high-score table (files, v1.0 and v1.4): 8 records of
 ## 64 bytes.
 const HIGH_SCORE_COUNT := 8
@@ -215,6 +218,8 @@ static func game_rules() -> GalaxyGameRules:
 	rules.game_texts = GAME_TEXTS
 	rules.cheat_texts = CHEAT_TEXTS
 	rules.story_messages = STORY_MESSAGES
+	rules.text_names = TEXT_NAMES
+	rules.translated_runs = translated_runs()
 	rules.high_score_map = HIGH_SCORE_MAP
 	rules.high_score_count = HIGH_SCORE_COUNT
 	rules.high_score_offsets = high_score_offsets()
@@ -258,3 +263,19 @@ static func menu_cards(picture_count: int) -> GalaxyMenuCards:
 ## All of Keen 4 in [param files]; null when something is missing.
 static func load_data(files: GameFiles) -> GalaxyData:
 	return GalaxyData.load_from(files, create())
+
+
+## The texts of each run the game shows
+## ([member GalaxyGameRules.translated_runs]): all of the council's, the
+## janitor's, the story and the status labels, "Game Over!", "DEMO", the
+## three lines after a death, "One moment" and the cheat box.
+static func translated_runs() -> Dictionary[String, PackedInt32Array]:
+	return {
+		COUNCIL_MESSAGES:
+		PackedInt32Array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]),
+		JANITOR_MESSAGES: PackedInt32Array([0, 1, 2, 3]),
+		STORY_MESSAGES: PackedInt32Array([0]),
+		STATUS_TEXTS: PackedInt32Array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]),
+		GAME_TEXTS: PackedInt32Array([0, 3, 7, 8, 9, 12]),
+		CHEAT_TEXTS: PackedInt32Array([0]),
+	}

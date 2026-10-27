@@ -33,6 +33,10 @@ static func catalog(game: int) -> Dictionary[String, String]:
 			texts = Keen2Texts.catalog(Keen2Files.locate())
 		3:
 			texts = Keen3Texts.catalog(Keen3Files.locate())
+		4:
+			texts = GalaxyTexts.catalog_of(Keen4Episode.game_rules())
+		5:
+			texts = GalaxyTexts.catalog_of(Keen5Episode.game_rules())
 		_:
 			pass
 	return texts

@@ -90,6 +90,8 @@ var _graphics: GalaxyGraphics
 var _font: GalaxyFont
 var _labels := PackedStringArray()
 var _names := PackedStringArray()
+var _text_names := ""
+var _status_run := ""
 ## The picture being drawn, in screen pixels.
 var _screen: Image
 
@@ -107,6 +109,8 @@ func use_data(data: GalaxyData, game_rules: GalaxyGameRules) -> void:
 	_font = data.graphics.font(game_rules.menu_font)
 	_labels = data.executable.texts(game_rules.status_texts)
 	_names = data.executable.level_names()
+	_text_names = game_rules.text_names
+	_status_run = game_rules.status_texts
 
 
 ## The window, on a see-through picture of the whole screen (320 × 200)
@@ -158,15 +162,18 @@ func strap() -> Image:
 	return _masked(STRAP_PICTURE)
 
 
-## The name of map [param map] as the window shows it.
+## The name of map [param map] as the window shows it, in the language in
+## use.
 func map_name(map: int) -> String:
-	return _names[map] if map >= 0 and map < _names.size() else ""
+	var english := _names[map] if map >= 0 and map < _names.size() else ""
+	return GalaxyTexts.level_name(_text_names, map, english)
 
 
 ## The label number [param which] of the status run ([enum Text], or an
-## episode's own beyond them).
+## episode's own beyond them), in the language in use.
 func label(which: int) -> String:
-	return _labels[which] if which >= 0 and which < _labels.size() else ""
+	var english := _labels[which] if which >= 0 and which < _labels.size() else ""
+	return GalaxyTexts.run_text(_text_names, _status_run, which, english)
 
 
 ## The episode's own row at the left of the LEVEL row (nothing by

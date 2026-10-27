@@ -5,7 +5,8 @@ extends RefCounted
 ## CK4_ShowWetsuitMessage; facts only; seen in the original, D6), each a
 ## series of screens ([GalaxyWindow]) that wait for a key one by one. The
 ## texts are the player's own, read from the program
-## ([GalaxyExecutable.messages]); the pictures are the last ones of the
+## ([GalaxyExecutable.messages]), in the language in use
+## ([GalaxyTexts]); the pictures are the last ones of the
 ## picture range (the same order in v1.0 and v1.4: the Oracle elder,
 ## Keen talking, Keen with his thumb up, Keen cross, Lindsey).
 ##
@@ -80,11 +81,11 @@ static func create(data: GalaxyData, into: Keen4Messages = null) -> Keen4Message
 func council(level: int, rescued_before: int) -> Array[Image]:
 	var window := _window()
 	var thanks := THANKS_UNDER_WATER if level == UNDER_WATER_LEVEL else THANKS
-	_speaker_box(window, ORACLE_FROM_END, _text(_council, thanks))
+	_speaker_box(window, ORACLE_FROM_END, _council_text(thanks))
 	var screens: Array[Image] = [window.image()]
 	var answer := FIRST_ANSWER + clampi(rescued_before, 0, ANSWER_COUNT - 1)
-	screens.append_array(_keen_answer(window, _text(_council, answer)))
-	texts = [_text(_council, thanks), _text(_council, answer), _text(_council, answer)]
+	screens.append_array(_keen_answer(window, _council_text(answer)))
+	texts = [_council_text(thanks), _council_text(answer), _council_text(answer)]
 	return screens
 
 
@@ -94,11 +95,12 @@ func janitor() -> Array[Image]:
 	var screens: Array[Image] = []
 	texts = PackedStringArray()
 	for index in JANITOR_TEXTS:
-		texts.append(_text(_janitor, index))
+		var said := _said(Keen4Episode.JANITOR_MESSAGES, _janitor, index)
+		texts.append(said)
 		if index == JANITOR_KEEN:
-			_keen_box(window, _text(_janitor, index))
+			_keen_box(window, said)
 		else:
-			_speaker_box(window, ORACLE_FROM_END, _text(_janitor, index))
+			_speaker_box(window, ORACLE_FROM_END, said)
 		screens.append(window.image())
 	window.open_centred(WINDOW_CELLS)
 	var right := WINDOW_CELLS.x * GalaxyWindow.CELL
@@ -114,19 +116,19 @@ func lindsey(level: int) -> Array[Image]:
 	var window := _window()
 	var wetsuit_hint := level == HINT_WETSUIT_LEVEL
 	var hint := HINT_WETSUIT if wetsuit_hint else HINT_PYRAMID
-	_speaker_box(window, LINDSEY_FROM_END, _text(_council, LINDSEY_SAYS))
-	window.print_centred(_text(_council, hint))
+	_speaker_box(window, LINDSEY_FROM_END, _council_text(LINDSEY_SAYS))
+	window.print_centred(_council_text(hint))
 	var screens: Array[Image] = [window.image()]
 	var thanks := THANKS_HINT_WETSUIT if wetsuit_hint else THANKS_HINT_PYRAMID
-	screens.append_array(_keen_answer(window, _text(_council, thanks)))
-	var said := _text(_council, LINDSEY_SAYS) + _text(_council, hint)
-	texts = [said, _text(_council, thanks), _text(_council, thanks)]
+	screens.append_array(_keen_answer(window, _council_text(thanks)))
+	var said := _council_text(LINDSEY_SAYS) + _council_text(hint)
+	texts = [said, _council_text(thanks), _council_text(thanks)]
 	return screens
 
 
 ## The screens of finding the wetsuit.
 func wetsuit() -> Array[Image]:
-	var said := _text(_council, GOT_WETSUIT)
+	var said := _council_text(GOT_WETSUIT)
 	texts = [said, said]
 	return _keen_answer(_window(), said)
 
@@ -169,5 +171,13 @@ func _picture(from_end: int) -> int:
 	return _picture_count - from_end
 
 
-static func _text(texts: PackedStringArray, index: int) -> String:
-	return texts[index] if index < texts.size() else ""
+## Message [param index] of the council's run in the language in use.
+func _council_text(index: int) -> String:
+	return _said(Keen4Episode.COUNCIL_MESSAGES, _council, index)
+
+
+## Message [param index] of [param run] ([param english], the player's)
+## in the language in use.
+static func _said(run: String, english: PackedStringArray, index: int) -> String:
+	var said := english[index] if index < english.size() else ""
+	return GalaxyTexts.run_text(Keen4Episode.TEXT_NAMES, run, index, said)

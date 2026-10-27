@@ -107,6 +107,11 @@ var try_again_intro_text := 7
 var try_again_text := 8
 var exit_text := 9
 var one_moment_text := 12
+## The start of the names of the episode's texts in a language file
+## ("keen4"; [GalaxyTexts]), and the texts of its runs the game shows, by
+## run: what a language translates.
+var text_names := ""
+var translated_runs: Dictionary[String, PackedInt32Array] = {}
 ## Keen counting down while a map "loads" is this many pictures from the
 ## end of the picture range (Omni PIC_COUNTDOWN5; Keen 4 6, Keen 5 7: its
 ## GAMEOVER picture comes after the count-down).

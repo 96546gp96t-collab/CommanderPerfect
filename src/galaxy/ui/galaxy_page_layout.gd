@@ -56,6 +56,9 @@ var first_picture_chunk := 0
 var frame: GalaxyPageFrame
 ## Whether the frame's bottom is the help's bar with the page number.
 var frame_status := false
+## Whether the last page laid out had more than its lines hold (words or
+## commands left over; a translation that is too long).
+var overflowed := false
 var _graphics: GalaxyGraphics
 var _font: GalaxyFont
 var _image: Image
@@ -97,6 +100,7 @@ func lay_out(pages: GalaxyTextPages, index: int) -> Array[Stage]:
 	_x = LEFT
 	_y = FIRST_LINE_Y
 	_full = false
+	overflowed = false
 	_color = EgaPalette.color(default_color)
 	_line_starts.resize(LINE_COUNT)
 	_line_ends.resize(LINE_COUNT)
@@ -208,6 +212,7 @@ func _word() -> void:
 	while _line_ends[_line] < _x + width:
 		_new_line()
 		if _full:
+			overflowed = true
 			return
 	_draw_text(word, Vector2i(_x, _y), _color)
 	_x += width
@@ -220,9 +225,18 @@ func _new_line() -> void:
 	_line += 1
 	if _line == LINE_COUNT:
 		_full = true
+		overflowed = overflowed or _rest_has_words()
 		return
 	_x = _line_starts[_line]
 	_y += LINE_HEIGHT
+
+
+## Whether anything but spaces and newlines is left on the page.
+func _rest_has_words() -> bool:
+	for at in range(_at, _stop):
+		if _text[at] > SPACE:
+			return true
+	return false
 
 
 func _draw_text(text: String, at: Vector2i, color: Color) -> void:

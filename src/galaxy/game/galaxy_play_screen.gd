@@ -588,7 +588,7 @@ func _update_status() -> void:
 
 
 func _map_title() -> String:
-	var names := _data.executable.level_names()
+	var names := GalaxyTexts.level_names(rules.text_names, _data.executable.level_names())
 	if _map_number >= 0 and _map_number < names.size():
 		var level_name := GalaxyExeTexts.one_line(names[_map_number])
 		return Lang.text(MAP_NAMED_TITLE) % [_map_number, level_name]

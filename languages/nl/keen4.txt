@@ -1,0 +1,877 @@
+# Keen 4: the texts of the game's own files in Dutch (GalaxyTexts,
+# docs/language/research.md). The names:
+#   keen4.level.<map>      the name of a map (status window, the box after a death)
+#   keen4.enter.<map>      "Keen enters ..." while a map loads
+#   keen4.<run>.<index>    a text of the program: status (the status window's
+#                          labels), game (the boxes), cheat, story, council,
+#                          janitor
+#   keen4.text.<chunk>     a help topic or the end, whole: keep every command
+#                          (^P, ^G, ^T, ^L, ^B, ^C, ^E) as it is, in the same
+#                          order; only the words between them are translated
+# "\n" starts a new line. The boxes and the status window keep their size,
+# so the lines are measured (tests/test_language_galaxy_texts.gd).
+
+# The maps.
+@text keen4.level.0 = Schaduwland
+@text keen4.enter.0 = Keen betreedt het\nSchaduwland
+@text keen4.level.1 = Grensdorp
+@text keen4.enter.1 = Keen rent naar\nhet Grensdorp
+@text keen4.level.2 = Slakkendorp
+@text keen4.enter.2 = Keen glipt\nSlakkendorp binnen
+@text keen4.level.3 = De Peilloze Put
+@text keen4.enter.3 = Keen tuimelt in\nde Peilloze Put
+@text keen4.level.4 = Grot der Nazaten
+@text keen4.enter.4 = Keen sjokt omlaag\nde Grot der\nNazaten in
+@text keen4.level.5 = Kille Kloof
+@text keen4.enter.5 = Keen rilt langs\nde Kille Kloof
+@text keen4.level.6 = Crystalus
+@text keen4.enter.6 = Keen spiegelt zich\naan Crystalus
+@text keen4.level.7 = Heuveldorp
+@text keen4.enter.7 = Keen struikelt over\nHeuveldorp
+@text keen4.level.8 = Sand Yego
+@text keen4.enter.8 = Keen zet zijn tanden\nop elkaar en gaat\nSand Yego in
+@text keen4.level.9 = Miragia
+@text keen4.enter.9 = Keen verdwijnt in\nMiragia
+@text keen4.level.10 = Levenswateroase
+@text keen4.enter.10 = Keen kruipt de\nLevenswateroase in
+@text keen4.level.11 = Piramide der Manen
+@text keen4.enter.11 = Keen loopt achteruit\nde Piramide der\nManen in
+@text keen4.level.12 = Piramide der Schaduwen
+@text keen4.enter.12 = Keen sluipt stilletjes\ndoor de Piramide\nder Schaduwen
+@text keen4.level.13 = Piramide van de\nGnosticeense Ouden
+@text keen4.enter.13 = Keen betreedt eerbiedig\nde Piramide van de\nGnosticeense Ouden
+@text keen4.level.14 = Piramide van het\nVerbodene
+@text keen4.enter.14 = Keen stapt aarzelend\nde Piramide van het\nVerbodene binnen
+@text keen4.level.15 = Teereiland
+@text keen4.enter.15 = Keen ploetert over\nhet Teereiland
+@text keen4.level.16 = Vuureiland
+@text keen4.enter.16 = Keen raast over\nhet Vuureiland
+@text keen4.level.17 = Wensput
+@text keen4.enter.17 = Keen stapt hoopvol\nin de Wensput
+@text keen4.level.18 = Bonen-met-Spek\nMegaraket
+@text keen4.enter.18 = Keen stijgt op in de\nBonen-met-Spek\nMegaraket
+
+# The status window (Enter).
+@text keen4.status.0 = LOCATIE
+@text keen4.status.1 = SCORE
+@text keen4.status.2 = EXTRA
+@text keen4.status.3 = GERED
+@text keen4.status.4 = NIVEAU
+@text keen4.status.5 = Makkelijk
+@text keen4.status.6 = Normaal
+@text keen4.status.7 = Moeilijk
+@text keen4.status.8 = GEMS
+@text keen4.status.9 = AMMO
+@text keen4.status.10 = LEVENS
+@text keen4.status.11 = DRUPS
+@text keen4.status.12 = Duikpak
+@text keen4.status.13 = ???
+
+# The boxes between the maps and the cheat.
+@text keen4.game.0 = Spel voorbij!
+@text keen4.game.3 = DEMO
+@text keen4.game.7 = Je kwam niet voorbij
+@text keen4.game.8 = Probeer opnieuw
+@text keen4.game.9 = Naar Schaduwland
+@text keen4.game.12 = Een moment
+@text keen4.cheat.0 = Valsspeeloptie!\n\nJe hebt nu alle\nsleutels, 99 schoten\nen een extra keen!
+
+# Princess Lindsey, the council members and Keen.
+@text keen4.council.0 = Er ligt een uitrusting\nom te zwemmen in het\nDrietandmeer. Die is\nverstopt in Miragia.\n
+@text keen4.council.1 = De weg naar de Piramide\nvan het Verbodene ligt\nonder de Piramide\nder Manen.\n
+@text keen4.council.2 = Bedankt, Hoogheid!
+@text keen4.council.3 = Bedankt voor de\nraadselachtige tip,\nPrinses!\n
+@text keen4.council.4 = Prinses Lindsey zegt:\n
+@text keen4.council.5 = Ik kan niet zwemmen!
+@text keen4.council.6 = Gaaf!  Nu kan ik\nonder water ademen!
+@text keen4.council.7 = Geen punt, o hoeder\nder wijsheid!
+@text keen4.council.8 = Klinkt als een plan,\nbaardmans!
+@text keen4.council.9 = Geen probleemo.
+@text keen4.council.10 = Prima.  Weet je, je\nlijkt sprekend op de\nvorige die ik redde...
+@text keen4.council.11 = Goed idee, opa.
+@text keen4.council.12 = Moge de weg je\nvoeten tegemoet\nkomen, meneer Lid.
+@text keen4.council.13 = Wijs plan, uwe\nstokoudheid.
+@text keen4.council.14 = Jij bent de laatste,\nmakker.  Kom, terug\nnaar de kamer van\nhet Orakel!
+@text keen4.council.15 = Og hgeel ergg bgedankt\ndgat jge mge hgebt\nggered! Igk gga mgeteen\ntgerug ngaar hget\nGorakel. Blub.
+@text keen4.council.16 = O, heel erg bedankt\ndat je me hebt gered!\nIk ga meteen terug\nnaar de kamer van\nhet Orakel.
+
+# The janitor of the Pyramid of the Forbidden.
+@text keen4.janitor.0 = Bedankt voor al die\nmoeite, maar ik ben\nmaar de concierge van\nde Hoge Raad.
+@text keen4.janitor.1 = Dat probeerde ik de\nShikadi ook te zeggen,\nmaar ze wilden gewoon\nniet luisteren...
+@text keen4.janitor.2 = Dit kan maar beter\neen grap zijn.
+@text keen4.janitor.3 = Sorry.  Je bent toch\nniet boos, he?
+
+# The story of the title loop: only letters, spaces and . , - " ! '
+@text keen4.story.0
+Aflevering Vier
+
+Secret of the Oracle
+
+Na de plannen van
+Mortimer McMire een
+verpletterende klap
+te hebben toegediend
+en de lof van het
+Vorticon-volk te
+hebben ontvangen,
+keerde Commander Keen
+terug naar zijn huis
+in de buitenwijk.
+
+Daar moest hij vroeg
+naar bed en kreeg hij
+aardappelpuree.
+
+Maanden later knutselde
+Billy aan zijn nieuwste
+uitvinding, de Fotachyon
+Transceiver, oftewel
+sneller-dan-het-licht
+radio. Na een hoop
+slechte buitenaardse
+sitcoms te hebben
+opgevangen, stuitte hij
+op een vreemd bericht
+van verschrikkelijk
+belang....
+
+@end
+
+# Help: the ComputerWrist.
+@text keen4.text.0
+^P
+^G87,8,7
+^G112,8,9
+^G140,8,8
+^G184,108,11
+Je bent nu in het Help-gedeelte van de ComputerWrist. De ComputerWrist helpt je om Commander Keen te gebruiken zoals jij dat wilt.  Eerst moet je weten hoe je dit Help-artikel leest.
+
+
+
+Blader met de pijltjestoetsen vooruit en terug in de Help. Als je klaar bent met lezen, druk je op Esc.
+
+
+Druk nu op de pijl naar rechts om verder te gaan.
+^P
+^G155,8,10
+^G184,108,11
+^c9HOOFDMENU VAN DE COMPUTERWRIST
+^c8
+Het Hoofdmenu heeft acht keuzes. Dat zijn: Nieuw spel, Spel laden, Spel opslaan, Instellen, Terug naar demo, Spel beeindigen, Paddle War spelen en Stoppen.  Het gekozen onderdeel licht op en er knippert een stip naast.  Onderdelen die je niet kunt kiezen hebben een "X" ervoor.
+
+
+Ga met de pijltjestoetsen naar het onderdeel dat je wilt kiezen en druk op Enter om het te kiezen.
+^P
+^G184,108,11
+^G50,8,27
+Laten we elk onderdeel apart bekijken.
+
+^c4NIEUW SPEL
+^c8
+Je kunt een nieuw spel beginnen op makkelijk, normaal of moeilijk. Dat bepaalt hoeveel wezens het tegen je opnemen, en hoeveel schoten je krijgt voor elke Neural Stunner die je vindt.
+
+Zit je midden in een spel dat je niet hebt opgeslagen, dan wist een nieuw spel dat oude spel voorgoed. Als je dat probeert, wordt je eerst om bevestiging gevraagd.
+^P
+^G184,108,11
+^c4SPEL LADEN
+^c8
+Heb je eerder een spel opgeslagen, dan kun je het met Spel laden weer inladen en verder spelen.  Heb je nog geen spel opgeslagen (meestal als je het spel net hebt), dan kun je Laden niet kiezen.
+
+^c4SPEL OPSLAAN
+^c8
+Je kunt tot zes verschillende spellen opslaan.  Natuurlijk pas als je een spel bent begonnen.  Geef ze een naam naar keuze.  Ga met de pijltjes naar een vrije plek, druk op Enter en typ een naam.  Druk op Enter om het spel op te slaan.  Druk dan op ESC om terug te gaan naar het Hoofdmenu.
+^P
+^G184,108,11
+^c4MENU INSTELLEN
+^c8
+In dit menu vind je geluidsopties, besturingsopties en spelinstellingen die je kunt veranderen.
+
+Voor Geluidseffecten kies je uit geen geluidseffecten, geluidseffecten via de PC Speaker, via Adlib/Sound Blaster, of stille Adlib/Sound Blaster-geluidseffecten. Die laatste is er zodat je de muziek beter hoort.
+
+Voor Muziek kies je uit geen of Adlib/Sound Blaster.
+^P
+^G184,108,11
+^c4OPTIES
+^c8
+Je kunt kiezen of je tijdens het spelen het scorevak in de hoek van het scherm wilt zien.  Het is handig, maar het kan soms je zicht blokkeren!  En op tragere systemen is het weghalen van het scorevak een heel goed idee.  Druk tijdens het spelen gewoon op Enter om het Statusvenster omlaag te halen.
+
+Het tweede onderdeel in het menu Opties is SVGA-compatibiliteit.  Heb je een SVGA-kaart en beeldproblemen, zet dan de compatibiliteitsmodus aan, zodat je kaart met Keen werkt.
+^P
+^G184,108,11
+^c4OPTIES (vervolg)
+^c8
+Het derde onderdeel is Vuren met twee knoppen.  Met een joystick is vuren met het toetsenbord nogal lastig.  Met Vuren met twee knoppen vuurt je Stunner als beide knoppen ingedrukt zijn.  Hoge pogosprongen worden daardoor lastiger, maar als je eraan gewend bent, gaat het prima.
+
+Je kunt met toetsenbord of joystick spelen.  Kies je het toetsenbord, dan kun je de toetsen zelf instellen.  Kies je joystick een of twee, volg dan de aanwijzingen om de joystick te kalibreren.  De huidige besturing staat onderaan het menuvenster.
+^P
+^G184,108,11
+^c4TERUG NAAR DEMO/SPEL
+^c8
+Ging je vanuit een spel naar de ComputerWrist, dan brengt deze optie je terug naar de actie.  Zo niet, dan ga je terug naar de demo.
+
+^c4SPEL BEEINDIGEN
+^c8
+Wil je je huidige spel om wat voor reden ook beeindigen, dan kan dat met deze optie.  De demo wordt dan weer getoond.
+^P
+^G184,108,11
+^c4PADDLE WAR
+^c8
+Terwijl Commander Keen druk bezig was met het bouwen van zijn ComputerWrist, besloot hij er een simpel batjesspel op te zetten.  Hij had "Paddle War" net af toen hij het bericht van de Shikadi hoorde.  Andere spellen komen later vast nog.
+
+^c4STOPPEN
+^c8
+Stoppen stopt, bij gebrek aan een beter woord.
+^P
+^G184,108,11
+^c9VOOR BEZITTERS VAN SUPER VGA
+^c8
+Heb je een Speedstar VGA-kaart of een andere SVGA-kaart die niet 100% compatibel is, typ dan op de opdrachtregel "KEEN4 /COMP" in plaats van alleen "KEEN4". Dat zou al je problemen moeten oplossen.  Je kunt ook in het ComputerWrist-menu Instellen kiezen, dan Opties, en dan SVGA-compatibiliteit.
+
+^P
+^G184,108,11
+^c4ANDERE TOFFE OPDRACHTREGELPARAMETERS
+^c8
+Als een handleiding je vraagt meer te typen dan alleen de naam van het programma dat je wilt starten (zoals wij hierboven), heten die extra stukjes "opdrachtregelparameters".  Een duur woord voor extra informatie die je het programma bij het starten meegeeft. Normaal hoef je ze nooit te typen.  Heeft het programma moeite met je hardware, probeer dan de juiste parameter.
+^P
+^G184,108,11
+Hier zijn een paar opdrachtregelparameters die werken met Commander Keen:
+  KEEN4 /NOAL  (Niet naar AdLib of Sound Blaster zoeken.)
+  KEEN4 /NOJOYS  (Het programma negeert de joystick.)
+  KEEN4 /NOMOUSE  (Het programma negeert de muis.)
+  KEEN4 /HIDDENCARD  (Slaat het zoeken naar de videokaart over, als het programma je videokaart verkeerd lijkt te herkennen en je niet laat spelen.)
+^P
+^G120,108,43
+^G184,108,11
+^C2CONCLUSIE
+^c8
+Ga nu het Bedieningspaneel verkennen, en veel plezier met "Secret of the Oracle"!
+^E
+@end
+
+# Help: the story.
+@text keen4.text.1
+^P
+^G184,108,11
+^c4COMMANDER KEEN in . . . "Goodbye, Galaxy!"
+Keen Aflevering Vier: Secret of the Oracle
+^c8
+Billy Blaze zwoegt in zijn werkplaats in de achtertuin aan zijn nieuwste uitvinding: de Fotachyon Transceiver.  Simpel gezegd is het radio zonder vertraging -- richt hem op een plek in de melkweg en je vangt een signaal op alsof je er zelf bent.  Na een hoop heel slechte buitenaardse sitcoms hoort Billy een vreemd bericht, in de taal Omnispeak die de Vorticons hem hebben geleerd....
+^P
+^G11,8,12
+^G184,108,11
+    brrzzz....giegg....oment van grote triomf...frzzt....ndelijk zal de Melkweg... huzzzzz...ledig vernietigd...pjoeniieeeg...ons nu nog tegenhouden.  We zullen de melkweg opnieuw maken in de naam van de Gannalech.  Macht aan ons ras!  Macht aan de Shikadi!
+
+Dan is de radio stil.
+
+"Dus de Shikadi willen de Melkweg vernietigen, he?" denkt Billy.  "Klinkt als een klus voor...COMMANDER KEEN!"
+^P
+^G184,108,11
+Billy zet opnieuw de footballhelm van zijn broer op en denkt na over drie vragen:
+^c9
+     Wie ZIJN die Shikadi in vredesnaam?
+     Waar zitten ze?
+     Hoe willen ze de melkweg vernietigen?
+^c8
+Billy klimt in de cockpit van de Bonen-met-Spek Megaraket en stelt de lancering in naar Gnosticus IV, het thuis van de Gnosticenen, de hoeders van het Orakel.  Ze zijn hem nog een gunst schuldig, en hij wil antwoorden.  De lancering begint....
+^P
+^G38,8,13
+^G115,8,15
+^G184,108,11
+"Eten, Billy!" roept zijn moeder terwijl ze naar de werkplaats loopt.
+
+"Verdorie!" roept Billy.  Er is geen tijd meer om de lancering te stoppen en het schip af te dekken!  Snel denkend trekt hij zijn Neural Stunner, richt op de deur en wacht.
+
+
+Een "Zzzzap!" later staat zijn moeder bevroren in de deuropening.
+^P
+^G58,8,14
+^G110,108,15
+^G184,108,11
+"Pfoe," zegt Keen.
+
+"Schat?  Wat is er aan de hand?" zegt Billy's vader, die door de achterdeur naar buiten komt.
+
+"Dubbel verdorie!" moppert Billy.  Hij gluurt langs zijn moeder, legt aan en....
+^P
+^G30,8,18
+^G50,260,16
+^G90,8,18
+^G184,108,11
+Op Gnosticus IV rent een Raadspage naar hem toe.
+
+"O, Kapitein Keen!" begint hij.
+
+"Commander Keen," verbetert Billy.
+
+"De Shikadi waren hier. Ze hebben de leden van de Hoge Raad ontvoerd en naar het Schaduwland gebracht, ver in het westen."
+^P
+^G10,8,16
+^G30,260,18
+^G90,8,16
+^G184,108,11
+"Ze hebben ze niet gedood?" vraagt Keen.
+
+"Onmogelijk.  Ze zijn onsterfelijk," zegt de page.  "Ze hebben er alleen voor gezorgd dat ze het Orakel niet kunnen activeren."
+
+"Nou, dan ga ik ze gewoon halen," zegt Keen, en hij draait zich heldhaftig vastberaden om.
+^P
+^G10,8,18
+^G50,260,16
+^G184,108,11
+"Eh, maar Kapitein Keen, ze hebben ook een hoop afschuwelijke wezens en vallen achtergelaten om ze te bewaken," zegt de Raadspage.
+
+"Nou, dan ga ik ze VOORZICHTIG halen," zegt Keen over zijn schouder.
+
+Keen loopt naar de deur, blijft staan, draait zich om en spreekt de page toe.
+^P
+^G10,260,17
+^G100,16,19
+^G140,108,43
+^G184,108,11
+"En als je me nog een keer Kapitein Keen noemt, neem ik je mee."
+
+Keen stapt moedig de deur uit terwijl de page "Sorry" mompelt.
+
+Commander Keen springt in zijn Megaraket en vertrekt naar het Schaduwland....
+^E
+@end
+
+# Help: the game.
+@text keen4.text.2
+^p
+^G184,108,11
+^c4DE TOETSEN TOT AVONTUUR
+^c8
+Laten we alles langsgaan wat je in het spel kunt doen (de genoemde toetsen zijn de standaardtoetsen als je de schijf net hebt).  Wil je weten hoe je het toetsenbord of de joystick instelt, druk dan op Esc en kies "Help with ComputerWrist" in het helpmenu. Commander Keen kan:
+
+^c5LINKS/RECHTS RENNEN
+^c8Beweeg Keen met de pijltjes links en rechts.
+
+^c5SPULLEN PAKKEN
+^c8Je pakt dingen gewoon door ertegenaan te lopen.
+^P
+^G184,108,11
+^c5SPRINGEN
+^c8Druk op Ctrl om Keen te laten springen. (Knop 1 bij besturing met de joystick.)
+
+^c5POGO
+^c8Druk op Alt om je pogostick te gebruiken.  Je springt er hoger mee, maar hij is lastiger te besturen. Druk nog eens op Alt om ermee te stoppen. (Knop 2 bij besturing met de joystick.)
+
+^c5SCHIETEN
+^c8Druk op de spatiebalk (of Ctrl en Alt als je Vuren met twee knoppen hebt gekozen) om je Neural Stunner af te vuren. Hij vuurt in de richting waarin je kijkt.
+^P
+^G184,108,11
+^c5NAAR BINNEN
+^c8Sta je voor een deur, druk dan omhoog om door de deur te gaan.
+
+^c5PAAL KLIMMEN
+^c8Druk omhoog of omlaag als je voor een paal staat om erop te gaan. Druk omhoog of omlaag om de paal op te klauteren of af te glijden.  Druk je naar rechts of links, dan zwaai je om naar die kant. Je gaat snel van de paal af met Springen (Ctrl).
+^P
+^G184,108,11
+^c5RAND VASTGRIJPEN
+^c8Mis je je doel, dan kun je de rand van een oppervlak vastgrijpen.  Druk omhoog of in de richting van het oppervlak waar je op wilt (links of rechts) om jezelf op te trekken. Druk je omlaag of van het oppervlak af, dan val je naar beneden.
+
+^c5SCHAKELAAR OMZETTEN
+^c8Zie je een schakelaar (er zit een rood of groen lampje op), loop er dan voor en druk omhoog.  Schakelaars kunnen dingen om je heen veranderen, zoals, laten we zeggen, bruggen en platforms en zo.
+^P
+^G184,108,11
+^c5NAAR BENEDEN
+^c8Sta je op een platform of een smalle vloer, dan laat je je zakken met de pijl omlaag en springen.
+
+^c5OMHOOG/OMLAAG KIJKEN
+^c8Druk op de pijl omhoog of omlaag om meer van het level in die richting te zien.  Dit is ERG handig als je denkt dat er niets is om op te springen.  Sommige verborgen dingen zie je pas als je omhoog of omlaag kijkt.
+
+^c5DEUR OPENEN
+^c8Deuren hebben sleutels in de vorm van edelstenen nodig in hun houders. Om een edelsteen in de houder te zetten, pak je hem en loop je naar de houder.
+^P
+^G184,108,11
+Om een level te halen moet je ofwel:
+ a) het level verlaten bij het bordje Exit,
+ of b) het Raadslid in het level vinden.
+
+Er zijn tonnen bonusvoorwerpen en geheime kamers in het spel verstopt.  Ga op ontdekking!
+^P
+^G184,108,11
+^c1GEVORDERDE BEWEGINGEN
+^c8
+Er zijn een paar bewegingen die je naar die "onbereikbare" plekken brengen.  Hier zijn ze:
+
+^c5ONMOGELIJKE POGOTRUC
+^c8Ren je naar links of rechts en druk je dan snel na elkaar op Pogo en Springen, dan schiet je schuin weg. Met Vuren met twee knoppen is deze beweging erg lastig.
+
+^c5POGO IN DE LUCHT
+^c8Je kunt je pogostick midden in een gewone sprong pakken, zodat je die eerste sprong goed in de hand hebt.
+^P
+^G184,108,11
+^c5OMLAAG SCHIETEN
+^c8Je kunt over een monster springen en het van bovenaf neerschieten met de pijl omlaag en vuren.  En je kunt omhoog schieten, of schieten terwijl je aan een paal hangt.
+
+^c5SNEL PAAL KLIMMEN
+^c8Je klimt sneller als je de pijl omhoog vasthoudt en steeds op springen drukt.  Het vergt wat oefening, maar het is de moeite waard.
+^P
+^G184,108,11
+^c5TOFFE SPRONGEN
+^c8Op veel plekken zie je een grote boog snoep.  Die liggen meestal zo dat je ze in een toffe sprong kunt pakken.
+
+Er zijn nog meer lastige bewegingen, maar die laten we je zelf ontdekken.
+^P
+^G184,108,11
+^G30,8,20
+^G50,8,21
+^G70,8,22
+^G90,8,23
+^G110,8,24
+^G130,8,25
+^c4WAT COMMANDER KEEN KAN PAKKEN
+^c8
+Shikadi Soda (100 punten)
+
+Drietand-kauwgom (200 punten)
+
+Shikkers Chocoladereep (500 punten)
+
+Toverbal (1000 punten)
+
+Donut (2000 punten)
+
+IJshoorntje (5000 punten)
+^P
+^G184,108,11
+^G85,8,27
+^G105,8,28
+^G125,8,26
+In de lucht zweven regendruppels.  Het water van Gnosticus IV geeft levensenergie, dus als Keen honderd druppels verzamelt, krijgt hij een extra leven!
+
+En er zijn ook een paar handige voorwerpen.
+
+
+Neural Stunner (geeft je meer schoten)
+
+Edelstenen (openen deuren)
+
+Flesje levenswater (extra keen)
+^p
+^G184,108,11
+^G70,8,29
+^G120,8,30
+^c1DE ROLVERDELING
+^c8
+Er zijn nogal wat vijanden in het Schaduwland. Hier is een lijst van de meest voorkomende:
+
+ARACHNUT.  Waanzinnige groene wezens die als een krab lopen, met twee gevaarlijke monden.
+
+
+BERKELOID.  Met deze vurige vent valt niet te spotten.  Hij gooit grote vuurballen!
+
+^P
+^G184,108,11
+^G10,8,31
+^G70,8,32
+BOUNDER.  Deze rode, vriendelijke stuiterkerels kunnen irritant zijn, maar ook handig!
+
+
+
+RAADSLID. Dit zijn de Gnosticenen die je probeert te redden.  Er zitten er acht verstopt in de diepten van het Schaduwland.
+^P
+^G184,108,11
+^G10,8,33
+^G130,8,34
+DOPEFISH.  Het op een na domste wezen van het heelal; dit beest denkt alleen "zwem zwem honger, zwem zwem honger."  Hij eet alles wat leeft en in de buurt beweegt, al heeft hij liever helden.
+
+
+
+
+SPANRUPS.  Deze kalme gele beestjes zitten overal.  Kijk uit waar je stapt, of ze nemen je de maat!
+^P
+^G184,108,11
+^G10,8,35
+^G60,8,36
+LICK.  Deze blauwe zitzakachtige monsters spuwen een dodelijke lik vuur.
+
+
+GEKKE PADDENSTOEL.  Gevaarlijke planten die huppelen en dodelijk zijn bij aanraking.
+^P
+^G184,108,11
+^G10,8,37
+^G80,8,38
+GIFSLAK.  De gewoonste bewoner van het Schaduwland.  Gifslakken betekenen dubbel gevaar -- een keer als je ze aanraakt, en nog een keer als je landt in de plassen gif die ze achterlaten!
+
+PRINSES LINDSEY.  De Prinses is er om je te helpen.  Als je haar vindt, geeft ze je waardevolle informatie waarmee je je zoektocht kunt voltooien.
+^P
+^G184,108,11
+^G10,8,39
+^G50,8,40
+^G110,8,41
+SCHOOLVIS.  Deze vissen zijn echte meelopers.
+
+
+LUCHTPLAAG.  Bijna ongevoelig voor je schoten; deze gasten zijn echt een plaag.  Toch moet er een manier zijn om ze te pakken.
+
+
+WATERGEEST.  Zelfs de Dopefish blijft uit de buurt van deze lastige onderwaterwezens: ze schieten energiestralen op je af!
+^P
+^G184,108,11
+^G10,8,42
+WORMMOND.  Pas op voor deze groene dreigingen.  Ze zijn een stuk groter dan ze lijken!
+
+
+
+Er zijn nog meer monsters, maar ze zelf ontdekken is de helft van de lol!
+^P
+^G184,108,11
+^c1PROBLEMEN?
+^c8
+Krijg je bij het starten van Commander Keen een venster "Out of Memory", dan kun je een paar dingen doen.
+
+TSR'S WEGHALEN. Pas je AUTOEXEC.BAT zo aan dat er geen TSR's worden geladen, dan nemen ze niet het geheugen in dat Commander Keen nodig heeft.  We raden aan je AUTOEXEC.BAT te hernoemen naar AUTOEXEC.OLD en een kopie ervan te bewerken.
+^P
+^G184,108,11
+DOS HOOG LADEN. Heb je minstens een 286 met wat extended memory, plus DOS 5.0, dan kun je DOS in het hoge geheugen laden. Zet gewoon "DOS=HIGH" in je CONFIG.SYS.
+
+ANDERE TIPS.  Keen gebruikt upper memory blocks en EMS als die er zijn.  (Heb je dus een EMS-kaart of een 386-computer, kijk dan in de handleiding van je systeem voor meer informatie.)
+
+^P
+^G184,108,11
+^G100,108,43
+Dat was het!  Ga nu Commander Keen spelen!
+^E
+@end
+
+# Help: about id Software.
+@text keen4.text.3
+^P
+^G10,200,79
+^c4Over Id Software
+^c8
+
+
+
+
+
+
+Het doel van Id Software is baanbrekende spellen maken, zowel in techniek als in ontwerp.  De oorspronkelijke Keen-trilogie was het begin van onze zoektocht naar grotere en betere spellen op de pc.  Wij rusten niet graag op onze lauweren.  Het verleden was goed.  Dit is geweldig.  De toekomst wordt te gek.  Zo kijken wij er altijd naar.
+^P
+^G10,200,79
+^c9Id Software is:
+^c8
+^c4SOFTWARE-ONTWIKKELAARS
+^c8John Carmack
+John Romero
+Jason Blochowiak
+
+^c4TEKENWERK
+^c8Adrian Carmack
+
+^c4CREATIEF DIRECTEUR
+^c8Tom Hall
+
+^c4PRESIDENT
+^c8Mark Rein
+
+^c4MUZIEK GECOMPONEERD DOOR
+^c8Robert Prince
+^E
+@end
+
+# The end.
+@text keen4.text.4
+^P
+^G8,30,49
+^T48,108,62,100
+^L100,8
+Wauw, dit is echt een indrukwekkende manier om deze monoliet van oeroude wijsheid te activeren.
+^T24,168,56,10
+^T24,168,55,140
+^T48,108,61,1
+^T41,154,58,10
+^T41,154,57,140
+^T56,170,59,10
+^T56,170,60,140
+^P
+^G30,80,50
+^T70,120,51,150
+^L100,30
+ klik
+^P
+^G8,110,52
+^L100,8
+Iedereen stil. Het Orakel gaat spreken.
+^T8,110,53,280
+^B100,8,300,20,8
+^T8,110,54,110
+Hmmm. Misschien is de batterij leeg of zo.
+^P
+^G8,30,49
+^T8,194,64,35
+^T8,194,65,35
+^T8,194,64,35
+^T8,194,65,100
+^P
+^G8,30,66
+^G8,60,72
+^L100,8
+De Shikadi zijn een ras van schaduwwezens van de andere kant van de melkweg.
+^P
+^G8,30,66
+^G8,60,71
+^L100,8
+Ze bouwen een Armageddonmachine en willen de melkweg daarmee opblazen, om hem daarna naar hun eigen zin opnieuw op te bouwen.
+^P
+^G8,30,66
+^G8,60,73
+^L100,8
+Ze wonen op de derde planeet van het Korath-stelsel, 71.000 lichtjaar van Gnosticus IV. De Armageddonmachine is bijna klaar.
+^P
+^G8,130,67
+^L100,8
+En zo zien ze eruit.
+^T8,130,68,100
+^B100,8,300,20,8
+^T8,130,69,70
+^T8,130,68,70
+^T8,130,69,70
+^P
+^G8,8,49
+^T48,90,63,100
+Die Shikadi gaan eraan!
+^P
+^G8,100,70
+^L100,8
+ Bedankt voor de primeur, Orakel.  Ik ben pleite.
+^P
+^G48,48,74
+^L100,8
+Ik hoop dat het niet regent op mijn ouders....
+^P
+^L100,8
+Ondertussen, terug op Aarde...
+^P
+^G68,88,75
+^P
+^G88,88,76
+^T88,88,77,140
+^P
+^G68,88,78
+^P
+Mis "The Armageddon Machine" niet, het schokkende slot van "Goodbye, Galaxy!", waarin je ziet:
+
+-- hoe de Shikadi eruitzien
+-- de binnenkant van de "Omegamatic"
+-- een hoop rare robots en aliens
+-- toffe beelden van een ontploffende melkweg
+-- plus een of twee grote verrassingen!
+
+Bel of schrijf nu voor "The Armageddon Machine"!
+^E
+@end
+
+# Help: how to order.
+@text keen4.text.6
+^P
+^c4COMMANDER KEEN BESTELLEN
+^c8
+Je speelt nu aflevering een van Commander Keen: "Goodbye, Galaxy!", getiteld "Secret of the Oracle".  Dit is een episch avontuur in twee delen--mis dus zeker niet de spannende laatste aflevering, "The Armageddon Machine".
+
+Lees de volgende schermen om te weten hoe en waar je de verdere avonturen van Commander Keen bestelt.
+
+KLANTEN BUITEN DE VS: lees vanaf pagina 13 hoe je bestelt.
+^P
+^C4"GOODBYE, GALAXY!" BESTELLEN
+^c8
+In de Verenigde Staten bestel je rechtstreeks bij Apogee Software.  Stuur voor de hele "Goodbye, Galaxy!"-saga $39 (inclusief $4 verzendkosten enz.) naar:
+
+         Apogee Software
+         P.O. Box 476389
+         Garland, TX   75047
+
+Belangrijk:  vermeld het schijfformaat, en of je VGA, EGA of CGA hebt.
+
+Of bel gratis tijdens kantooruren:
+^c91-800-GAME123  (1-800-426-3123)
+^P
+^G86,240,46
+^G126,240,44
+^c4"GOODBYE, GALAXY!" BESTELLEN (vervolg)
+^c8
+Let op:  "Goodbye, Galaxy!" bestaat uit twee afleveringen, die je niet los kunt registreren.  Bestel je "Goodbye, Galaxy!" voor de tweede aflevering ("The Armageddon Machine"), dan registreer je ook deze aflevering, "Secret of the Oracle".
+
+Elke bestelling bevat:
+* Het blad Hints en Trucs
+* Speciale Geheime Cheatcodes!
+* Spannend nieuw bonusspel
+
+Bel ^c91-800-GAME123 ^c8om te bestellen tijdens kantooruren.  Visa en MasterCard welkom!
+^P
+^c4AFLEVERING TWEE BESTELLEN
+^c8
+Aflevering twee, "The Armageddon Machine", is een veel groter avontuur dan "Secret of the Oracle".  Een paar spannende redenen om aflevering twee van "Goodbye, Galaxy!" te bestellen:
+
+* 13 gloednieuwe AdLib/Sound Blaster-liedjes
+* Meer dan 20 nieuwe wezens
+* Tientallen geheime plekken om te vinden
+* Zie hoe een Shikadi eruitziet
+* Meer dan 1,6 MEGABYTE nieuwe graphics
+* Red de Melkweg van de ontploffing
+* De tijd van je leven!
+^P
+^c4AFLEVERING TWEE BESTELLEN (vervolg)
+^c8
+Onthoud: bestel je aflevering twee van "Goodbye, Galaxy!", dan krijg je een nieuwe, bijgewerkte versie van aflevering een, en ben je geregistreerd voor de hele set.
+
+Dan kun je Commander Keen helpen de Melkweg te redden!
+^P
+^c4ANDERE AANBIEDINGEN, ALLEEN BIJ APOGEE
+^c8
+Er zijn nu zes afleveringen van Commander Keen!  Namelijk:
+^c9Commander Keen: "Invasion of the Vorticons"
+^c8Een set van drie afleveringen:
+1) Marooned on Mars
+2) The Earth Explodes
+3) Keen Must Die!
+
+^c9Commander Keen: "Goodbye, Galaxy!"
+^c8Een set van twee afleveringen:
+1) Secret of the Oracle
+2) The Armageddon Machine
+
+^c9Commander Keen: "Aliens Ate My Baby Sitter!"
+^c8Een "Special Edition"-aflevering (zie pagina 9).
+^P
+^c4PRIJZEN EN KORTINGEN VAN APOGEE
+^c8
+Dit zijn de prijzen (alleen in de VS) van alle zes de afleveringen van Commander Keen, met een paar mooie kortingen:
+
+"Invasion of the Vorticons" - $30
+"Goodbye, Galaxy!" - $35
+"Aliens Ate My Baby Sitter!" - $35
+
+^c9Speciale korting:
+^c8"Goodbye, Galaxy!" EN
+"Aliens Ate My Baby Sitter!" - $65
+^P
+^c4PRIJZEN EN KORTINGEN VAN APOGEE
+^c8
+^c9Super Keen Fun-Pak:
+^c8Alle zes de Keen-afleveringen - $90
+(Maar $15 per spel!)
+
+Bel gratis in de VS en Canada:
+^c91-800-GAME123
+^c8
+Tel er altijd $4 verzendkosten bij op.
+^P
+^c4"ALIENS ATE MY BABY SITTER!"
+^c8
+Dit is een "Special Edition"-aflevering die zich afspeelt na "Goodbye, Galaxy!"  (Als Keen tenminste slaagt!)
+
+Billy moet Molly redden, zijn oppas, die door aliens is ontvoerd en meegenomen voor het avondeten--alleen is zij de maaltijd!  Klinkt als een klus voor . . . Commander Keen!
+
+Meer dan ^c92 ENORME MEGABYTES ^c8aan graphics, een volledige AdLib-soundtrack en een hoop hilarische ruimteactie.  Er is geen sharewareversie, maar je kunt de demo met drie levels proberen voor maar $3.  Of bestel het volledige spel voor de prijs op pagina 7.
+^P
+^c4ANDERE BONUSSEN, ENZ.
+^c8
+Bij elke bestelling stuurt Apogee je:
+
+* Het blad Hints en Trucs
+* Een Geheim Cheatwachtwoord
+* Een nieuw bonusspel van Apogee
+
+Bestel je per post, vermeld dan je schijfformaat, 3,5" of 5,25", en ook of je CGA, EGA of VGA hebt.
+
+Bestel je telefonisch via het gratis nummer van Apogee, ^c91-800-426-3123, ^c8bel dan tijdens onze kantooruren:  ma t/m vr, 8.00 - 19.00 uur CST.
+^P
+^c4SOFTWARE CREATIONS BBS
+^c8
+De officiele Home BBS van Apogee Software
+"Gewijd aan het Ontwikkelen
+ en Verspreiden van Shareware"
+
+Voor downloads en de nieuwste spellen van Apogee:
+^c9(508)365-2359 ^c82400 baud-lijnen
+^c9(508)365-9825 ^c89600 CompuCom-lijnen
+^c9(508)365-9668 ^c814.4k dual HST V42/V32bis-lijnen
+
+^P
+De Software Creations BBS is dag en nacht je bron voor nieuwe shareware van Apogee. Log in en kijk in de bestandssectie "Apogee".
+
+^c9ALLEEN VOOR SYSOPS!
+^c8
+Neem contact op met Dan Linton (sysop) als je mee wilt doen aan het officiele Apogee BBS Distribution Network, voor de nieuwste updates en uitgaven, de juiste bestandsbeschrijvingen, enz. Laat een C)omment achter voor de sysop.
+
+^P
+^c4BESTELLEN OVER DE HELE WERELD
+^c8
+^c9AUSTRALIE
+^c8$45 + $5 verzendkosten  ($50 totaal)
+
+Manaccom
+9 Camford Str.
+Milton, QLD 4064
+Australia
+
+Telefoon:  (07) 368-2366
+
+Betaal met:  Mastercard, Visa, Bankcard, Amex.
+^P
+^c9AUSTRALIE
+^c8$45 + $5 verzendkosten  ($50 totaal)
+
+BudgetWare
+P.O. Box 496
+Newtown, NSW  2042
+Australia
+
+Telefoon:     (02) 519-4233
+
+Betaal met:  MasterCard, Visa, Bankcard, cheques.
+^P
+^c9CANADA
+^c8$42 CDN (inclusief verzendkosten enz.)
+
+Distant Markets
+Box 1149, 194 - 3803 Calgary Trail S.
+Edmondton, Alb.  T6J 5M8
+Canada
+
+Bestellen:    1-800-661-7383
+
+Betaal met:  Visa, MasterCard, postwissels.
+^P
+^c9EUROPA (VK)
+^c830 + 5 verzendkosten  (35 pond totaal)
+
+Precision Software Applications
+Tarnwood
+10 High Str.
+Tadlow, Near Royston
+Harts.  SG8 0ES  United Kingdom
+
+Telefoon:  +44 (0) 767 233 02
+
+Betaal met:  Visa, MasterCard, Access, enz.
+^P
+^c9DUITSLAND
+^c849,-- DM plus 10,-- DM verzendkosten.
+(59,-- DM totaal)
+
+CDV-Software
+Ettlingerstr. 5
+7500 Karlsruhe 1
+Germany
+
+Telefoon:  0721-22295
+
+Betaal met:  Visa, MasterCard, EuroCard, AmEx, enz.
+^P
+^G100,10,16
+Deze erkende dealers helpen je beleefd en vlot.  Vraag ook of ze andere goede software van Apogee verkopen.
+
+Staat je land er niet bij, bel dan:
+ USA (214) 278-5655.
+
+
+
+Dat was het.  Veel plezier met Commander Keen!
+
+^E
+@end

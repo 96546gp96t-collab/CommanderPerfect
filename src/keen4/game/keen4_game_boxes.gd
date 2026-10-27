@@ -41,5 +41,10 @@ func cant_swim() -> Image:
 	window.draw_picture(_picture(KEEN_TALK_FROM_END), Vector2i(right, 0))
 	window.narrow(0, PICTURE_WIDTH)
 	window.skip(CANT_SWIM_DOWN)
-	window.print_centred(_text(_council, CANT_SWIM_MESSAGE))
+	var said := _text(_council, CANT_SWIM_MESSAGE)
+	window.print_centred(
+		GalaxyTexts.run_text(
+			_rules.text_names, Keen4Episode.COUNCIL_MESSAGES, CANT_SWIM_MESSAGE, said
+		)
+	)
 	return window.image()

@@ -19,8 +19,9 @@ extends RefCounted
 ##   - "Game Over!" in a window of 16 × 3 cells, when the episode has that
 ##     text (Keen 5 shows a scene instead: none).
 ## The texts are the player's own (the rules' game run, the level names
-## and entry texts); the count-down pictures are counted from the end of
-## the picture range ([member GalaxyGameRules.countdown_from_end]).
+## and entry texts), in the language in use ([GalaxyTexts]); the count-down
+## pictures are counted from the end of the picture range
+## ([member GalaxyGameRules.countdown_from_end]).
 
 const WINDOW_CELLS := Vector2i(26, 8)
 ## The box after a game is loaded (Omni).
@@ -79,16 +80,17 @@ static func create(
 	return boxes
 
 
-## Text [param index] of the episode's game run ("" when there is none).
+## Text [param index] of the episode's game run ("" when there is none),
+## in the language in use.
 func game_text(index: int) -> String:
-	return _text(_game, index)
+	return GalaxyTexts.run_text(_rules.text_names, _rules.game_texts, index, _text(_game, index))
 
 
 ## The box when Keen enters map [param map]: the first screen with the
 ## whole count-down picture, then one per finger counted down (Omni
 ## CK_BeginCacheBox, CK_UpdateCacheBox).
 func entering(map: int) -> Array[Image]:
-	return loading(_text(_entries, map))
+	return loading(GalaxyTexts.entry(_rules.text_names, map, _text(_entries, map)))
 
 
 ## The same box before a demo, with the text "DEMO" (Omni CK_LoadLevel).
@@ -145,7 +147,7 @@ func try_again(map: int, choice: int, tic: int) -> Image:
 	window.skip(INTRO_DOWN)
 	window.print_centred(game_text(_rules.try_again_intro_text))
 	var first := window.print_y + CHOICE_GAP
-	var name := _text(_names, map)
+	var name := GalaxyTexts.level_name(_rules.text_names, map, _text(_names, map))
 	if window.text_height(name) < SHORT_NAME:
 		window.skip(SHORT_NAME_DOWN)
 	window.print_centred(name)

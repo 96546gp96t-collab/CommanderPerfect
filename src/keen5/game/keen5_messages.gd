@@ -45,7 +45,10 @@ static func create(data: GalaxyData, into: Keen5Messages = null) -> Keen5Message
 ## CK5_FuseMessage).
 func fuse(map: int) -> Array[Image]:
 	var which := Keen5Episode.KORATH_FUSE_TEXT if map == KORATH_MAP else Keen5Episode.FUSE_TEXT
-	var text := _fuse[which] if which < _fuse.size() else ""
+	var english := _fuse[which] if which < _fuse.size() else ""
+	var text := GalaxyTexts.run_text(
+		Keen5Episode.TEXT_NAMES, Keen5Episode.FUSE_TEXTS, which, english
+	)
 	var window := GalaxyWindow.create(_graphics, Keen5Episode.MENU_FONT)
 	window.open_centred(WINDOW_CELLS)
 	var right := Vector2i(WINDOW_CELLS.x * GalaxyWindow.CELL - PICTURE_WIDTH, 0)
