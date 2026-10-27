@@ -77,7 +77,9 @@ static func fill(
 ) -> void:
 	var inventory := progress.inventory
 	window.open(SIZE)
-	var box := lines if lines.size() == SIZE.y else FALLBACK_LINES
+	var box := FALLBACK_LINES
+	if lines.size() == SIZE.y:
+		box = GameTexts.fixed_lines(Keen2Texts.STATUS, lines)
 	for row in box.size():
 		window.put_text(Vector2i(0, row), box[row])
 	window.put_text_right(SCORE_END, NUMBER_ROW, str(inventory.score))
@@ -88,9 +90,10 @@ static func fill(
 	window.put_text(CHARGES_CELL, str(inventory.charges))
 	var saved := progress.saved_cities()
 	if city_names.size() == saved.size():
+		var names := Keen2Texts.city_names(city_names)
 		for city in saved.size():
 			if saved[city]:
-				window.put_text(CITY_CELLS[city], city_names[city])
+				window.put_text(CITY_CELLS[city], names[city])
 	for color in KEYCARD_TILES.size():
 		if inventory.keycards[color]:
 			window.put_tile(KEYCARD_CELLS[color], KEYCARD_TILES[color])

@@ -44,6 +44,9 @@ var home_message := 0
 var end_text := PackedStringArray()
 ## First line of the end text that is shown.
 var text_offset := 0
+## ENDTEXT.CK1 as read, and the language [member end_text] is laid out in.
+var _end_text_data := PackedByteArray()
+var _end_text_language := ""
 var _confirm_was_held := true
 var _scroll_timer := 0
 
@@ -52,7 +55,8 @@ var _scroll_timer := 0
 static func create(ending_texts: EndingTexts, end_text_data: PackedByteArray) -> EndingSequence:
 	var ending := EndingSequence.new()
 	ending.texts = ending_texts
-	ending.end_text = TextDocument.layout(end_text_data, TEXT_WIDTH)
+	ending._end_text_data = end_text_data
+	ending._follow_language()
 	return ending
 
 
@@ -90,11 +94,12 @@ func confirm() -> void:
 
 ## The lines of the window that is open, or none.
 func window_lines() -> PackedStringArray:
+	_follow_language()
 	match stage:
 		Stage.AT_SHIP:
-			return texts.returns_to_ship
+			return Lang.game_lines(Keen1Texts.RETURNS_TO_SHIP, texts.returns_to_ship)
 		Stage.AT_HOME:
-			return texts.home_messages[home_message]
+			return Keen1Texts.home_message(home_message, texts.home_messages[home_message])
 		Stage.END_TEXT:
 			return end_text.slice(text_offset, text_offset + TEXT_LINES)
 	return PackedStringArray()
@@ -119,6 +124,16 @@ func map_number() -> int:
 
 func is_finished() -> bool:
 	return stage == Stage.FINISHED
+
+
+## Lays out the end text again when the language has changed.
+func _follow_language() -> void:
+	if _end_text_language == Lang.code():
+		return
+	_end_text_language = Lang.code()
+	var data := GameTexts.document(Keen1Texts.END_TEXT, _end_text_data)
+	end_text = TextDocument.layout(data, TEXT_WIDTH)
+	text_offset = clampi(text_offset, 0, maxi(0, end_text.size() - TEXT_LINES))
 
 
 func _next_stage() -> void:

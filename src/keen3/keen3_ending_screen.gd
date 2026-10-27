@@ -70,7 +70,8 @@ func _flash_border() -> void:
 ## Level 16 has started: Mortimer speaks first.
 func _start_mortimer() -> void:
 	var sound_seconds := _keen_3_sounds.seconds(Keen3Sounds.MORTIMER)
-	_mortimer = Keen3Mortimer.create(_data.mortimer_messages, sound_seconds)
+	var messages := Keen3Texts.numbered(Keen3Texts.MORTIMER, _data.mortimer_messages)
+	_mortimer = Keen3Mortimer.create(messages, sound_seconds)
 	_play_keen3_sound(Keen3Sounds.MORTIMER)
 
 
@@ -229,7 +230,7 @@ func _show_end_text() -> void:
 	var edge := _frame_row(GameWindow.BORDER_BOTTOM_LEFT, GameWindow.BORDER_BOTTOM, width)
 	edge += char(GameWindow.BORDER_BOTTOM_RIGHT)
 	_window.put_text(Vector2i(-1, Keen3Ending.READER_EDGE_ROW), edge)
-	var footer := _data.reader_footer.left(width).rpad(width)
+	var footer := Lang.game(Keen3Texts.READER_FOOTER, _data.reader_footer).left(width).rpad(width)
 	_window.put_text(Vector2i(0, Keen3Ending.READER_FOOTER_ROW), Keen3Window.label_text(footer))
 	var bottom := _frame_row(GameWindow.BORDER_TOP_LEFT, GameWindow.BORDER_TOP, width)
 	bottom += char(GameWindow.BORDER_TOP_RIGHT)

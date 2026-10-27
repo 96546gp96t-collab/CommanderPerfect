@@ -180,11 +180,10 @@ func _load_texts() -> void:
 	_ending_texts = EndingTexts.load_from(_files)
 	_score_texts = ScoreTexts.load_from(_files)
 	var names := _score_texts.default_names if _score_texts != null else PackedStringArray()
+	names = GameTexts.score_names(Keen1Texts.PREFIX, names)
 	_high_scores = HighScores.load_from(HighScores.DEFAULT_PATH, names)
 	if _files.has_file(GameFiles.STORY_TEXT):
-		_menus.story = TextDocument.layout(
-			_files.read(GameFiles.STORY_TEXT), MenuController.TEXT_WIDTH
-		)
+		_menus.set_story(Keen1Texts.STORY, _files.read(GameFiles.STORY_TEXT))
 
 
 func _exit_tree() -> void:
@@ -405,14 +404,13 @@ func _on_enter_pressed() -> void:
 func _on_hint_touched() -> void:
 	if _hints == null:
 		return
-	var lines := _hints.for_level(_level_number)
-	if lines.is_empty():
+	var english := _hints.for_level(_level_number)
+	if english.is_empty():
 		return
 	_online.send_event(OnlineMessages.Event.HINT, _level_number)
 	if _menus.is_open():
 		return
-	lines.append_array(["", HintTexts.PROMPT])
-	_window.show_lines(lines)
+	_window.show_lines(Keen1Texts.hint(_level_number, english))
 	_close_by_itself_online()
 
 
@@ -435,7 +433,8 @@ func _on_ship_used() -> void:
 func _show_missing_parts() -> void:
 	if _ending_texts == null or _menus.is_open():
 		return
-	MapMessages.show_missing_parts(_window, _ending_texts.missing_parts, _progress.inventory)
+	var lines := GameTexts.fixed_lines(Keen1Texts.MISSING_PARTS, _ending_texts.missing_parts)
+	MapMessages.show_missing_parts(_window, lines, _progress.inventory)
 	_buttons_close_window = true
 	_close_by_itself_online()
 
@@ -590,8 +589,7 @@ func _finish_game() -> void:
 		_progress = GameProgress.new()
 		return
 	_sounds.play(Sound.Id.HIGH_SCORE)
-	var words := _score_texts.place_names if _score_texts != null else PackedStringArray()
-	_menus.ask_name(words[_pending_place] if _pending_place < words.size() else "a")
+	_menus.ask_name(GameTexts.place_word(Keen1Texts.PREFIX, _score_texts, _pending_place, "a"))
 
 
 func _on_name_entered(player_name: String) -> void:

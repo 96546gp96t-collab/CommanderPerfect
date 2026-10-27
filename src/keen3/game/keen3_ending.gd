@@ -122,6 +122,10 @@ var end_text := PackedStringArray()
 var text_offset := 0
 var _pages: Array[PackedStringArray] = []
 var _the_end := PackedStringArray()
+## The end text block as read, and the language [member end_text] is laid
+## out in.
+var _end_text_data := PackedByteArray()
+var _end_text_language := ""
 ## Retraces spent in the current wait.
 var _time := 0.0
 var _scroll_time := 0.0
@@ -138,8 +142,8 @@ static func create(
 	var ending := Keen3Ending.new()
 	ending._pages = pages
 	ending._the_end = the_end
-	if not end_text_data.is_empty():
-		ending.end_text = Keen3EndText.layout(end_text_data, TEXT_WIDTH)
+	ending._end_text_data = end_text_data
+	ending._follow_language()
 	return ending
 
 
@@ -232,6 +236,7 @@ func cursor_char() -> int:
 
 ## The lines of the end text on the screen.
 func end_text_lines() -> PackedStringArray:
+	_follow_language()
 	return end_text.slice(text_offset, text_offset + TEXT_LINES)
 
 
@@ -262,7 +267,8 @@ func _add_pages() -> void:
 	boxes = Keen3TypedBoxes.new()
 	for index in mini(_pages.size(), PAGE_FRAME_STARTS.size()):
 		var frame := frame_on_picture(PAGE_FRAME_STARTS[index], PAGE_FRAME_ENDS[index])
-		boxes.add(_pages[index], frame.position, frame.size, PAGE_PAUSE_RETRACES)
+		var lines := Lang.game_lines(Keen3Texts.ENDING_PAGE % (index + 1), _pages[index])
+		boxes.add(lines, frame.position, frame.size, PAGE_PAUSE_RETRACES)
 	boxes.changed.connect(changed.emit)
 
 
@@ -270,8 +276,18 @@ func _add_the_end() -> void:
 	boxes = Keen3TypedBoxes.new()
 	var frame := frame_on_picture(THE_END_FRAME_START, THE_END_FRAME_END)
 	# No pause: the box stays until a key is pressed.
-	boxes.add(_the_end, frame.position, frame.size, INF)
+	boxes.add(Lang.game_lines(Keen3Texts.THE_END, _the_end), frame.position, frame.size, INF)
 	boxes.changed.connect(changed.emit)
+
+
+## Lays out the end text again when the language has changed.
+func _follow_language() -> void:
+	if _end_text_data.is_empty() or _end_text_language == Lang.code():
+		return
+	_end_text_language = Lang.code()
+	var data := GameTexts.document(Keen3Texts.END_TEXT, _end_text_data)
+	end_text = Keen3EndText.layout(data, TEXT_WIDTH)
+	text_offset = clampi(text_offset, 0, maxi(0, end_text.size() - TEXT_LINES))
 
 
 func _start_flash() -> void:
