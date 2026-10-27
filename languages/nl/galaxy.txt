@@ -86,11 +86,11 @@ The game could not be saved = Kon het spel niet bewaren
 That game could not be read = Kon dat spel niet lezen
 
 # Typing a name, an address or a password for playing online.
-YOUR NAME = JOUW NAAM
+YOUR NAME = JE NAAM
 The other player sees this name. = De andere speler ziet deze naam.
 JOIN VIA IP = MEEDOEN VIA IP
 The host's address: = Het adres van de host:
-YOUR PASSWORD = JOUW WACHTWOORD
+YOUR PASSWORD = JE WACHTWOORD
 Your friend types this to join. = Je vriend typt dit om mee te doen.
 Capitals count. = Hoofdletters tellen mee.
 PASSWORD = WACHTWOORD
@@ -101,11 +101,11 @@ PAUSED = PAUZE
 pg %d of %d = blz %d/%d
 Player 2 joined = Speler 2 doet mee
 Player 2 joins in the next level = Speler 2 doet mee vanaf het volgende level
-Player 2 left = Speler 2 is gestopt
+Player 2 left = Speler 2 is weg
 Waiting for %s = Wachten op %s
 Only the host can walk on the world map = Alleen de host loopt over de wereldkaart
 %s has no map %d = %s heeft geen kaart %d
-Preparing %s... = Bezig met %s...
+Preparing %s... = %s klaarmaken...
 Map %d: %s = Kaart %d: %s
 Map %d = Kaart %d
 xBRZ graphics = xBRZ-graphics
@@ -114,7 +114,7 @@ Sound: PC speaker = Geluid: pc-speaker
 Sound: AdLib = Geluid: AdLib
 Music on = Muziek aan
 Music off = Muziek uit
-Cheat: god mode %s = Cheat: onkwetsbaar %s
+Cheat: god mode %s = Cheat: godmodus %s
 Cheat: all four gems and 99 stunner charges = Cheat: alle vier edelstenen en 99 schoten voor de stunner
 Cheat: all four gems, the keycard and 99 stunner charges = Cheat: alle vier edelstenen, de sleutelkaart en 99 schoten voor de stunner
 %s data not found. Put the files in %s or start with: -- %sPATH = De bestanden van %s zijn niet gevonden. Zet ze in %s of start met: -- %sPAD
@@ -122,4 +122,4 @@ The %s files in %s could not be read. = De bestanden van %s in %s konden niet ge
 
 # The help line (F1) of Keen 4 and of Keen 5.
 Esc: back to the start screen    Arrows / WASD: look around    Shift+N / P: next / previous map    F2: widescreen    F3: pixels    F4: full screen    F5: graphics    F6: smooth motion    F8: realistic lighting    F1: show / hide this line = Esc: terug naar het startscherm    Pijlen / WASD: rondkijken    Shift+N / P: volgende / vorige kaart    F2: breedbeeld    F3: pixels    F4: volledig scherm    F5: graphics    F6: vloeiend    F8: realistisch licht    F1: deze regel tonen / verbergen
-F1: help    Esc: back to the start screen    F7: player 2    Shift+N / P: next / previous map    Shift+G: god mode    Shift+I: gems, keycard, charges    F2: widescreen    F3: pixels    F4: full screen    F5: graphics    F6: smooth motion    F8: realistic lighting    Shift+F1: show / hide this line = F1: hulp    Esc: terug naar het startscherm    F7: speler 2    Shift+N / P: volgende / vorige kaart    Shift+G: onkwetsbaar    Shift+I: edelstenen, sleutelkaart, schoten    F2: breedbeeld    F3: pixels    F4: volledig scherm    F5: graphics    F6: vloeiend    F8: realistisch licht    Shift+F1: deze regel tonen / verbergen
+F1: help    Esc: back to the start screen    F7: player 2    Shift+N / P: next / previous map    Shift+G: god mode    Shift+I: gems, keycard, charges    F2: widescreen    F3: pixels    F4: full screen    F5: graphics    F6: smooth motion    F8: realistic lighting    Shift+F1: show / hide this line = F1: hulp    Esc: terug naar het startscherm    F7: speler 2    Shift+N / P: volgende / vorige kaart    Shift+G: godmodus    Shift+I: edelstenen, sleutelkaart, schoten    F2: breedbeeld    F3: pixels    F4: volledig scherm    F5: graphics    F6: vloeiend    F8: realistisch licht    Shift+F1: deze regel tonen / verbergen
