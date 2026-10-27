@@ -42,7 +42,9 @@ func set_up(graphics: GalaxyGraphics, game_rules: GalaxyGameRules, text: int) ->
 	_graphics = graphics
 	_rules = game_rules
 	_layout = GalaxyHelp.page_layout(graphics, game_rules)
-	_pages = GalaxyTextPages.parse(graphics.text(text))
+	_pages = GalaxyTextPages.parse(
+		GalaxyTexts.pages(game_rules.text_names, text, graphics.text(text))
+	)
 	_lay_out()
 
 

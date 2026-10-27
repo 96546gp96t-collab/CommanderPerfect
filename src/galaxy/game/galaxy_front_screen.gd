@@ -163,7 +163,8 @@ func _start_story() -> void:
 	var texts := _data.executable.messages(rules.story_messages)
 	var count := _data.graphics.ranges.picture_count
 	var picture := _data.graphics.picture(count - rules.story_from_end)
-	var text := texts[0] if not texts.is_empty() else ""
+	var english := texts[0] if not texts.is_empty() else ""
+	var text := GalaxyTexts.run_text(rules.text_names, rules.story_messages, 0, english)
 	var font := _data.graphics.font(rules.story_font)
 	if rules.story_colors.is_empty():
 		_story = GalaxyStoryScroller.create(text, font, picture)

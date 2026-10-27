@@ -91,7 +91,10 @@ func act(action: Action) -> bool:
 			Action.DOWN:
 				topic = mini(topic + 1, topic_count() - 1)
 			Action.OPEN:
-				_pages = GalaxyTextPages.parse(_graphics.text(_rules.help_topic_texts[topic]))
+				var chunk := _rules.help_topic_texts[topic]
+				_pages = GalaxyTextPages.parse(
+					GalaxyTexts.pages(_rules.text_names, chunk, _graphics.text(chunk))
+				)
 				page = 0
 			Action.ESCAPE:
 				return false

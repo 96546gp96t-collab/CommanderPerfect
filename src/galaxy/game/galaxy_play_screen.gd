@@ -529,7 +529,7 @@ func _update_status() -> void:
 
 
 func _map_title() -> String:
-	var names := _data.executable.level_names()
+	var names := GalaxyTexts.level_names(rules.text_names, _data.executable.level_names())
 	if _map_number >= 0 and _map_number < names.size():
 		return "Map %d: %s" % [_map_number, GalaxyExeTexts.one_line(names[_map_number])]
 	return "Map %d" % _map_number

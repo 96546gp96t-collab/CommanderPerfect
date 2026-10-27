@@ -47,7 +47,10 @@ static func items_box(data: GalaxyData, game_rules: GalaxyGameRules) -> Image:
 	var window := GalaxyWindow.create(data.graphics, game_rules.menu_font)
 	window.open_centred(BOX_CELLS)
 	var texts := data.executable.texts(game_rules.cheat_texts)
-	window.print_centred(texts[CHEAT_TEXT] if not texts.is_empty() else "")
+	var english := texts[CHEAT_TEXT] if not texts.is_empty() else ""
+	window.print_centred(
+		GalaxyTexts.run_text(game_rules.text_names, game_rules.cheat_texts, CHEAT_TEXT, english)
+	)
 	return window.image()
 
 

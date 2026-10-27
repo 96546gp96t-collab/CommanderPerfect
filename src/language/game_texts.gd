@@ -16,6 +16,10 @@ extends RefCounted
 static func catalog(game: int) -> Dictionary[String, String]:
 	var texts: Dictionary[String, String] = {}
 	match game:
+		4:
+			texts = GalaxyTexts.catalog_of(Keen4Episode.game_rules())
+		5:
+			texts = GalaxyTexts.catalog_of(Keen5Episode.game_rules())
 		_:
 			pass
 	return texts
