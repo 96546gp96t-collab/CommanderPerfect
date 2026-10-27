@@ -215,6 +215,13 @@ The code keeps **indices inside a range**, never chunk numbers.
     uses it to wipe a line).
   The picture numbers are **chunk numbers of this version**; subtract the
   picture range start (6 in 1.0 and 1.4).
+  A translation of a text (`GalaxyTexts`, `languages/<code>/keen4.txt`,
+  name `keen4.text.<chunk>`) is the whole text with the same commands in
+  the same order: the game keeps the commands of the player's own text
+  (pictures, places, colours) and takes only the words between them. A
+  release whose text has other commands (1.4's help, 0-3 and 6) shows that
+  text in English; the end (4) is the same in both. Keen 5 works the same
+  way (`keen5.text.<chunk>`).
 - **Pictures by place** (D8, D13): pictures 0-73 counted from the start
   have the same places in 1.0 and 1.4, and counted from the end the last
   33 (1-33) are the same pictures. 1.4 puts **eight pictures in between**
