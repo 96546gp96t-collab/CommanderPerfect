@@ -264,7 +264,7 @@ van een bordje alleen als Keen dichtbij staat; eigen talen in een map
 - Open: Keen 4 v1.4 (Steam/GOG) heeft andere hulppagina's; die blijven
   Engels tot er v1.4-bestanden zijn (het einde is wel vertaald). In het
   statusvenster van Keen 4-5 blijven GEMS en AMMO Engels (Nederlands past
-  niet voor de balkjes). Woorden in plaatjes (kaarttitels van het horloge,
+  niet voor de balkjes; besluit van de gebruiker, 27-10). Woorden in plaatjes (kaarttitels van het horloge,
   het hulpmenu, PRESS A KEY) kunnen niet vertaald worden. Losse
   lettertegels van Keen 5 (enkele letters op muren) en woorden van items
   (Keen 1 "HI" met lolly's) krijgen geen plaatje.
