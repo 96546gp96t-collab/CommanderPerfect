@@ -163,7 +163,7 @@ func test_the_name_for_the_high_scores_in_dutch() -> void:
 	Lang.missing.clear()
 	_menus.ask_name("eerste")
 	assert_true(_window._size.x <= MenuController.TEXT_WIDTH, "fits")
-	assert_true(_window_has("Je bent eerste geworden!"), "the place")
+	assert_true(_window_has("Je hebt de eerste plaats!"), "the place")
 	_check_nothing_missing("name entry")
 
 

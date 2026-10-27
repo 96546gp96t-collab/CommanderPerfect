@@ -82,7 +82,7 @@ Status = Status
 
 # A name for the high scores.
 CONGRATULATIONS! = GEFELICITEERD!
-You got %s place! = Je bent %s geworden!
+You got %s place! = Je hebt de %s plaats!
 Enter your name: = Typ je naam:
 
 # Playing online.
