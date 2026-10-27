@@ -109,7 +109,7 @@ func _show_level(number: int, random_start := -1) -> void:
 	# A fresh copy: playing changes the map's tiles.
 	var map := _data.maps.load_map(number) if _data.maps.has_map(number) else null
 	if map == null:
-		_show_message(NOT_A_MAP_MESSAGE % [rules.name, number])
+		_show_message(Lang.text(NOT_A_MAP_MESSAGE) % [rules.name, number])
 		return
 	_start = GalaxyStart.find(map, rules)
 	_objects.clear()

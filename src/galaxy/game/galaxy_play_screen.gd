@@ -24,6 +24,10 @@ extends GalaxyLevelScreen
 
 ## A demo chunk begins with its map's number, 16 bits.
 const DEMO_MAP_BYTES := 2
+## The map's title on the help line: its number, and its name when it has
+## one.
+const MAP_NAMED_TITLE := "Map %d: %s"
+const MAP_TITLE := "Map %d"
 
 var _clock := GalaxyClock.new()
 var _start: GalaxyStart
@@ -57,6 +61,8 @@ var _fresh_sprites := false
 var _audio := GalaxyAudio.new()
 ## The episode's own settings (the quiet AdLib sounds, the score box).
 var _galaxy_settings: GalaxySettings
+## The help line (F1) as the scene has it, in English.
+var _help_english := ""
 
 @onready var _score_box: GalaxyScoreBox = %ScoreBox
 
@@ -515,6 +521,12 @@ func _look_bounds() -> Rect2:
 ## graphics above them.
 func _update_status() -> void:
 	_help_label.visible = _show_help
+	if _show_help:
+		# The scene holds the English line; it is shown in the language in
+		# use, which the panel can change at any time.
+		if _help_english.is_empty():
+			_help_english = _help_label.text
+		_help_label.text = Lang.text(_help_english)
 	if _data == null:
 		return
 	var lines := PackedStringArray()
@@ -531,5 +543,6 @@ func _update_status() -> void:
 func _map_title() -> String:
 	var names := _data.executable.level_names()
 	if _map_number >= 0 and _map_number < names.size():
-		return "Map %d: %s" % [_map_number, GalaxyExeTexts.one_line(names[_map_number])]
-	return "Map %d" % _map_number
+		var level_name := GalaxyExeTexts.one_line(names[_map_number])
+		return Lang.text(MAP_NAMED_TITLE) % [_map_number, level_name]
+	return Lang.text(MAP_TITLE) % _map_number

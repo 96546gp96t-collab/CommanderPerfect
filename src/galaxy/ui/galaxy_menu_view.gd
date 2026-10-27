@@ -21,6 +21,8 @@ extends RefCounted
 ##     for a button as the key boxes wait for a key); the online pages through
 ##     [GalaxyOnlinePageView], over the wrist watch (D13.2).
 ## The colours were checked against the original (v1.0) pixel for pixel.
+## The footer and "Empty" are drawn in the language in use ([Lang]); the
+## cards' own texts come translated from [GalaxyMenuController].
 
 ## EGA colours of the panel (seen in v1.0).
 const BACKGROUND := 8
@@ -66,6 +68,13 @@ const SLOT_SIZE := Vector2i(148, 9)
 const SLOT_TEXT := Vector2i(2, 2)
 const EMPTY_TEXT_X := 60
 const EMPTY := "Empty"
+## The footer's texts (Omni USL_DrawMenuFooter).
+const ARROWS_TEXT := "Arrows move"
+const SELECTS_TEXT := "Enter selects"
+const TYPE_NAME_TEXT := "Type name"
+const ACCEPTS_TEXT := "Enter accepts"
+const QUIT_TEXT := "ESC to quit"
+const BACK_OUT_TEXT := "ESC to back out"
 ## Key boxes: 90 pixels from the choice, 40 wide; the key's name at 96
 ## (Omni CK_US_ControlsMenuProc); wider when the name needs it.
 const KEY_BOX_X := 90
@@ -177,9 +186,9 @@ func _text_title(title: String) -> void:
 
 func _footer(menus: GalaxyMenuController, depth: int) -> void:
 	var typing := menus.top().kind == GalaxyMenuController.SLOT_NAME
-	var left_text := "Type name" if typing else "Arrows move"
-	var right_text := "Enter accepts" if typing else "Enter selects"
-	var bottom_text := "ESC to quit" if depth <= 1 else "ESC to back out"
+	var left_text := Lang.text(TYPE_NAME_TEXT if typing else ARROWS_TEXT)
+	var right_text := Lang.text(ACCEPTS_TEXT if typing else SELECTS_TEXT)
+	var bottom_text := Lang.text(QUIT_TEXT if depth <= 1 else BACK_OUT_TEXT)
 	_line(FOOTER_LINE_Y, BRIGHT)
 	_text(left_text, Vector2i(FOOTER_LEFT, FOOTER_Y), NORMAL)
 	_text(right_text, Vector2i(FOOTER_RIGHT - _font.text_width(right_text), FOOTER_Y), NORMAL)
@@ -264,7 +273,7 @@ func _slots(menu: Menu, menus: GalaxyMenuController, at: Vector2i) -> void:
 					String.chr(TYPING_CURSOR), top_left + SLOT_TEXT + Vector2i(cursor_x, 0), BRIGHT
 				)
 		elif item.label.is_empty():
-			_text(EMPTY, top_left + Vector2i(EMPTY_TEXT_X, SLOT_TEXT.y), color)
+			_text(Lang.text(EMPTY), top_left + Vector2i(EMPTY_TEXT_X, SLOT_TEXT.y), color)
 		else:
 			_text(item.label, top_left + SLOT_TEXT, color)
 

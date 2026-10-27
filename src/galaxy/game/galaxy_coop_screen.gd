@@ -84,12 +84,12 @@ func toggle_partner() -> void:
 	_partner_wanted = not _partner_wanted
 	if not _partner_wanted:
 		_remove_partner()
-		_show_message(LEFT_MESSAGE)
+		_show_message(Lang.text(LEFT_MESSAGE))
 	elif _can_join_now():
 		_add_partner()
-		_show_message(JOINED_MESSAGE)
+		_show_message(Lang.text(JOINED_MESSAGE))
 	else:
-		_show_message(JOINS_LATER_MESSAGE)
+		_show_message(Lang.text(JOINS_LATER_MESSAGE))
 
 
 ## The panel with the Two Players card and the online pages.

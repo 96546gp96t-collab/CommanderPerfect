@@ -82,6 +82,10 @@ const PRESS_ANY_KEY := "Press any key"
 ## Paddle War's end (Omni ck_str_paddleWar*).
 const PADDLE_WON_LINES: PackedStringArray = ["You won!", PRESS_ANY_KEY]
 const PADDLE_LOST_LINES: PackedStringArray = ["You lost!", PRESS_ANY_KEY]
+## After Reset Keys, and after the score box was switched (its state, "on"
+## or "off", in the line).
+const KEYS_RESET_LINES: PackedStringArray = ["All keys are as they were", PRESS_ANY_KEY]
+const SCORE_BOX_LINE := "Score box now %s"
 
 ## The cards that keep their cursor from one visit to the next (seen in
 ## v1.0 for Configure; Omni keeps every card's selectedItem); the main
@@ -170,7 +174,7 @@ func run_paddle_war(tics: int, left: bool, right: bool) -> void:
 	game.advance(tics, left, right)
 	if game.is_done():
 		# The original asks before it draws the last tic's ball and paddles.
-		show_message(PADDLE_WON_LINES if game.keen_won() else PADDLE_LOST_LINES)
+		_tell(PADDLE_WON_LINES if game.keen_won() else PADDLE_LOST_LINES)
 	else:
 		_redraw()
 
@@ -349,9 +353,11 @@ static func _godot_random() -> int:
 func _pick_configure(item: Menu.Item) -> void:
 	match item.id:
 		SOUND_CARD:
-			_push(GalaxyMenuPages.radio(SOUND_CARD, GalaxyMenuPages.SOUND_LABELS, sound_choice))
+			var sounds := Lang.texts(GalaxyMenuPages.SOUND_LABELS)
+			_push(GalaxyMenuPages.radio(SOUND_CARD, sounds, sound_choice))
 		MUSIC_CARD:
-			_push(GalaxyMenuPages.radio(MUSIC_CARD, GalaxyMenuPages.MUSIC_LABELS, int(music_on)))
+			var music := Lang.texts(GalaxyMenuPages.MUSIC_LABELS)
+			_push(GalaxyMenuPages.radio(MUSIC_CARD, music, int(music_on)))
 		OPTIONS:
 			_push(_options_menu())
 		KEY_SET:
@@ -361,7 +367,7 @@ func _pick_configure(item: Menu.Item) -> void:
 			KeyBindings.reset()
 			ButtonBindings.reset()
 			settings.save()
-			show_message(["All keys are as they were", PRESS_ANY_KEY])
+			_tell(KEYS_RESET_LINES)
 
 
 func _options_menu() -> Menu:
@@ -395,7 +401,8 @@ func _toggle_option(id: StringName) -> void:
 	chosen.emit(CHOICE_SCORE_BOX, int(score_box))
 	# The card behind the message still shows the old state (seen in v1.0).
 	_options_stale = true
-	show_message(["Score box now " + ("on" if score_box else "off"), PRESS_ANY_KEY])
+	var state := Lang.text("on" if score_box else "off")
+	show_message([Lang.text(SCORE_BOX_LINE) % state, Lang.text(PRESS_ANY_KEY)])
 
 
 ## Every card on the stack again, in the language now in use, with its
@@ -463,7 +470,7 @@ func _handle_slot_name_key(event: InputEvent) -> void:
 func _finish_save() -> void:
 	typed_save_name = typed_save_name.strip_edges()
 	if typed_save_name.is_empty():
-		typed_save_name = UNTITLED
+		typed_save_name = Lang.text(UNTITLED)
 	var slot := _top().items[0].value
 	_stack.pop_back()
 	chosen.emit(CHOICE_SAVE, slot)
@@ -473,11 +480,18 @@ func _finish_save() -> void:
 	_redraw()
 
 
-## Asks [param lines]; yes: the panel closes with [param choice].
+## Shows the message [param lines] in the language in use. Lines from
+## elsewhere (online) come already translated to [method show_message].
+func _tell(lines: PackedStringArray) -> void:
+	show_message(Lang.texts(lines))
+
+
+## Asks [param lines] (in the language in use); yes: the panel closes with
+## [param choice].
 func _confirm(lines: PackedStringArray, choice: StringName, value := 0) -> void:
 	_confirm_choice = choice
 	_confirm_value = value
-	_push(Menu.create(CONFIRM, lines))
+	_push(Menu.create(CONFIRM, Lang.texts(lines)))
 
 
 ## Y or jump says yes; on the quit question C chooses another game; any

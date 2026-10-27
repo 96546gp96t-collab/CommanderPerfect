@@ -120,8 +120,9 @@ func loading_game_text(index: int) -> Array[Image]:
 ## "PAUSED" after a game is loaded, until a key (Omni CK_PlayLoop).
 func paused() -> Image:
 	var window := _window()
-	window.open_centred(Vector2i(PAUSED_TEXT.length() + PAUSED_MARGIN_CELLS, PAUSED_CELLS_HIGH))
-	window.print_in_middle(PAUSED_TEXT)
+	var text := Lang.text(PAUSED_TEXT)
+	window.open_centred(Vector2i(text.length() + PAUSED_MARGIN_CELLS, PAUSED_CELLS_HIGH))
+	window.print_in_middle(text)
 	return window.image()
 
 

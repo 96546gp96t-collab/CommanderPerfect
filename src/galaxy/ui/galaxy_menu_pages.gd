@@ -4,7 +4,8 @@ extends RefCounted
 ## `ck_us_2.c`: the US_CardItem tables; facts only, and seen in Keen 4
 ## v1.0), for [GalaxyMenuController]: the main card, New Game, the save
 ## slots, Configure, Sound and Music, the keys, the controller buttons
-## (ours), the options and the languages (ours).
+## (ours), the options and the languages (ours). Every label is built in
+## the language in use ([Lang]); English stays the original's words.
 
 ## The main card's choices, in the original's order.
 const MAIN_LABELS: PackedStringArray = [
@@ -56,6 +57,7 @@ static func main(in_game: bool) -> Menu:
 		var label := MAIN_LABELS[index]
 		if ids[index] == MenuController.CHOICE_RESUME and not in_game:
 			label = RETURN_TO_DEMO
+		label = Lang.text(label)
 		var only_in_game := (
 			ids[index] in [MenuController.SLOTS_SAVE, GalaxyMenuController.CHOICE_END_GAME]
 		)
@@ -68,7 +70,7 @@ static func main(in_game: bool) -> Menu:
 static func new_game() -> Menu:
 	var menu := Menu.create(GalaxyMenuController.NEW_GAME)
 	for level in DIFFICULTY_LABELS.size():
-		menu.add(DIFFICULTY_LABELS[level], &"level", level)
+		menu.add(Lang.text(DIFFICULTY_LABELS[level]), &"level", level)
 	menu.cursor = GalaxyDifficulty.Level.NORMAL
 	return menu
 
@@ -85,11 +87,11 @@ static func slots(kind: StringName, saves: GalaxySaveSlots) -> Menu:
 
 static func configure() -> Menu:
 	var menu := Menu.create(GalaxyMenuController.CONFIGURE)
-	menu.add("SOUND", GalaxyMenuController.SOUND_CARD)
-	menu.add("MUSIC", GalaxyMenuController.MUSIC_CARD)
-	menu.add("OPTIONS", MenuController.OPTIONS)
-	menu.add(GalaxyMenuController.GAP + "KEYBOARD", MenuController.KEY_SET)
-	menu.add("RESET KEYS", &"reset")
+	menu.add(Lang.text("SOUND"), GalaxyMenuController.SOUND_CARD)
+	menu.add(Lang.text("MUSIC"), GalaxyMenuController.MUSIC_CARD)
+	menu.add(Lang.text("OPTIONS"), MenuController.OPTIONS)
+	menu.add(GalaxyMenuController.GAP + Lang.text("KEYBOARD"), MenuController.KEY_SET)
+	menu.add(Lang.text("RESET KEYS"), &"reset")
 	return menu
 
 
@@ -111,11 +113,11 @@ static func keys(key_set := 0) -> Menu:
 		KeyBindings.ACTIONS if key_set <= 0 else KeyBindings.PLAYER_ACTIONS[key_set - 1]
 	)
 	for action: String in actions:
-		var label: String = actions[action].to_upper()
+		var label := Lang.text(actions[action].to_upper())
 		# The original's box holds one key: the first (the one that changes).
 		var key_name := KeyBindings.describe(action).get_slice(KEY_NAME_SEPARATOR, 0).capitalize()
 		menu.add(label + GalaxyMenuController.VALUE_SEPARATOR + key_name, StringName(action))
-	menu.add(BUTTONS_LABEL, MenuController.BUTTON_SET, maxi(0, key_set))
+	menu.add(Lang.text(BUTTONS_LABEL), MenuController.BUTTON_SET, maxi(0, key_set))
 	return menu
 
 
@@ -123,12 +125,12 @@ static func keys(key_set := 0) -> Menu:
 ## player of two), each action with its first button in a box, as the keys
 ## have; a card without a title picture, so its title is its first line.
 static func buttons(button_set: int) -> Menu:
-	var menu := Menu.create(MenuController.BUTTON_SET, [BUTTONS_TITLES[button_set]])
+	var menu := Menu.create(MenuController.BUTTON_SET, [Lang.text(BUTTONS_TITLES[button_set])])
 	var actions: Dictionary = (
 		KeyBindings.ACTIONS if button_set == 0 else KeyBindings.PLAYER_ACTIONS[button_set - 1]
 	)
 	for action: String in actions:
-		var label: String = actions[action].to_upper()
+		var label := Lang.text(actions[action].to_upper())
 		var button_name := ButtonBindings.describe(action).get_slice(KEY_NAME_SEPARATOR, 0)
 		menu.add(label + GalaxyMenuController.VALUE_SEPARATOR + button_name, StringName(action))
 	return menu

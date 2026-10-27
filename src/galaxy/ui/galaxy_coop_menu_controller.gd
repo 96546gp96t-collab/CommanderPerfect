@@ -11,7 +11,8 @@ extends GalaxyMenuController
 ##   - ONLINE GAME: the shared online pages of [MenuController] (hosting,
 ##     joining by IP or Steam, the name), drawn by [GalaxyOnlinePageView].
 ## A player who joined somebody's game gets a main card of his own: Return
-## to Game, Leave Game, Configure, Quit.
+## to Game, Leave Game, Configure, Quit. Labels are in the language in use
+## ([Lang]); the online pages' own texts are the shared menus'.
 
 ## The Two Players card and its choices.
 const TWO_PLAYERS := &"two_players"
@@ -49,10 +50,11 @@ func open_main(game_running: bool, can_save := true, partner_in := false) -> voi
 func _client_main_card(game_running: bool) -> Menu:
 	var menu := Menu.create(MAIN)
 	if game_running:
-		menu.add(GalaxyMenuPages.MAIN_LABELS[GalaxyMenuPages.RETURN_ROW], CHOICE_RESUME)
-	menu.add(LEAVE_LABEL, CHOICE_LEAVE_ONLINE)
-	menu.add(GalaxyMenuPages.MAIN_LABELS[3], CONFIGURE)
-	menu.add(GalaxyMenuPages.MAIN_LABELS[-1], CHOICE_QUIT)
+		var resume := GalaxyMenuPages.MAIN_LABELS[GalaxyMenuPages.RETURN_ROW]
+		menu.add(Lang.text(resume), CHOICE_RESUME)
+	menu.add(Lang.text(LEAVE_LABEL), CHOICE_LEAVE_ONLINE)
+	menu.add(Lang.text(GalaxyMenuPages.MAIN_LABELS[3]), CONFIGURE)
+	menu.add(Lang.text(GalaxyMenuPages.MAIN_LABELS[-1]), CHOICE_QUIT)
 	return menu
 
 
@@ -64,6 +66,13 @@ func shows_online_page() -> bool:
 ## The lines of the text being typed (a name, an address, a password),
 ## with the cursor.
 func text_lines() -> PackedStringArray:
+	var lines: PackedStringArray = Lang.texts(_text_page_lines())
+	lines.append(_typed_text + ("_" if cursor_shown else " "))
+	return lines
+
+
+## The English lines above the text being typed.
+func _text_page_lines() -> PackedStringArray:
 	var lines: PackedStringArray
 	match _text_purpose:
 		TEXT_PLAYER_NAME:
@@ -74,7 +83,6 @@ func text_lines() -> PackedStringArray:
 			lines = ["YOUR PASSWORD", "Your friend types this to join.", "Capitals count."]
 		_:
 			lines = ["PASSWORD", "The host's password (empty if none):"]
-	lines.append(_typed_text + ("_" if cursor_shown else " "))
 	return lines
 
 
@@ -111,22 +119,23 @@ func _key_set_menu() -> Menu:
 ## from his main card).
 func _configure_card() -> Menu:
 	var menu := GalaxyMenuPages.configure()
-	menu.add(GAP + TWO_PLAYERS_LABEL, TWO_PLAYERS)
+	menu.add(GAP + Lang.text(TWO_PLAYERS_LABEL), TWO_PLAYERS)
 	if online.role != OnlineMenuInfo.Role.CLIENT:
-		menu.add(ONLINE_LABEL, ONLINE)
+		menu.add(Lang.text(ONLINE_LABEL), ONLINE)
 	return menu
 
 
 func _two_players_card() -> Menu:
-	var menu := Menu.create(TWO_PLAYERS, [TWO_PLAYERS_LABEL])
-	menu.add(REMOVE_LABEL if two_players else ADD_LABEL, PARTNER, 0, offers_partner)
+	var menu := Menu.create(TWO_PLAYERS, [Lang.text(TWO_PLAYERS_LABEL)])
+	var partner := Lang.text(REMOVE_LABEL if two_players else ADD_LABEL)
+	menu.add(partner, PARTNER, 0, offers_partner)
 	for player in KeyBindings.PLAYER_ACTIONS.size():
-		menu.add(KEYS_LABEL % (player + 1), KEY_SET, player + 1)
+		menu.add(Lang.text(KEYS_LABEL) % (player + 1), KEY_SET, player + 1)
 	for player in PlayerControllers.PLAYER_COUNT:
-		var label := (GAP if player == 0 else "") + PAD_LABEL % (player + 1)
+		var label := (GAP if player == 0 else "") + Lang.text(PAD_LABEL) % (player + 1)
 		var pad := PlayerControllers.describe_short(player, PAD_BOX_LENGTH)
 		menu.add(label + VALUE_SEPARATOR + pad, PLAYER_PAD, player)
-	menu.add(AUTOMATIC_PADS_LABEL, AUTOMATIC_PADS)
+	menu.add(Lang.text(AUTOMATIC_PADS_LABEL), AUTOMATIC_PADS)
 	menu.cursor = 0 if offers_partner else 1
 	return menu
 

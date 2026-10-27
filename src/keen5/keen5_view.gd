@@ -335,7 +335,7 @@ func _toggle_god_mode() -> void:
 		_record_event(
 			GalaxySavedGame.Event.GOD_MODE_ON if _god_mode else GalaxySavedGame.Event.GOD_MODE_OFF
 		)
-	_show_message(GOD_MODE_MESSAGE % ("on" if _god_mode else "off"))
+	_show_message(Lang.text(GOD_MODE_MESSAGE) % Lang.text("on" if _god_mode else "off"))
 
 
 ## Shift+I in a level or on the map: all four gems, the keycard and at
@@ -345,7 +345,7 @@ func _give_everything() -> void:
 	_new_saved_game().give_everything(_inventory)
 	_record_event(GalaxySavedGame.Event.EVERYTHING)
 	_update_score_box()
-	_show_message(EVERYTHING_MESSAGE)
+	_show_message(Lang.text(EVERYTHING_MESSAGE))
 
 
 func _realistic_grade() -> RealisticGrade:

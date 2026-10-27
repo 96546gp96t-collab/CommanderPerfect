@@ -416,7 +416,7 @@ func _load_game(slot: int) -> void:
 	var game := _new_saved_game()
 	if not game.load_dictionary(_saves.read(slot)):
 		_open_panel()
-		_panel.show_message(LOAD_FAILED_LINES)
+		_panel.show_message(Lang.texts(LOAD_FAILED_LINES))
 		return
 	_begin_game()
 	_replay = null
@@ -501,7 +501,7 @@ func _save_game(slot: int) -> void:
 		game = _snapshot()
 		game.progress.map_position = _on_map.keen.position
 	if game == null or not _saves.write(slot, _panel.typed_save_name, game.to_dictionary()):
-		_panel.show_message(SAVE_FAILED_LINES)
+		_panel.show_message(Lang.texts(SAVE_FAILED_LINES))
 
 
 ## End Game: the game stops; the high scores and the title loop (seen in
