@@ -270,6 +270,59 @@ func _waiting(_tics: int) -> void:
 	pass
 
 
+## The map shown now, whose alien signs can be read; null when none is.
+func _alien_level() -> Object:
+	var world := _played_world()
+	return world.map if world != null and _mode in [Mode.LEVEL, Mode.MAP] else null
+
+
+## The alien signs of the map shown now, in both its layers
+## ([method _alien_sign_tables]).
+func _alien_signs() -> Array[AlienSigns.Sign]:
+	var world := _played_world()
+	var found: Array[AlienSigns.Sign] = []
+	if world == null:
+		return found
+	var map := world.map
+	var tables := _alien_sign_tables()
+	for layer in [GalaxyMap.Layer.BACKGROUND, GalaxyMap.Layer.FOREGROUND]:
+		if layer >= tables.size():
+			continue
+		found.append_array(
+			AlienSigns.find(
+				Vector2i(map.width, map.height),
+				func(cell: Vector2i) -> int: return map.tile(layer, cell.x, cell.y),
+				tables[layer].groups,
+				tables[layer].letters
+			)
+		)
+	return found
+
+
+## This episode's alien signs: the background's table, then the
+## foreground's ([AlienSignTables]); none by default.
+func _alien_sign_tables() -> Array[AlienSignTables.Table]:
+	return []
+
+
+## The middles of the players' Keens, in level pixels.
+func _alien_readers() -> Array[Vector2]:
+	var found: Array[Vector2] = []
+	var world := _played_world()
+	if world == null:
+		return found
+	for keen in world.players():
+		var box := keen.box
+		var middle := Vector2((box.left + box.right) / 2.0, (box.top + box.bottom) / 2.0)
+		found.append(middle / GalaxyUnits.PER_PIXEL)
+	return found
+
+
+## A plate for the translation of an alien sign, in the window font.
+func _alien_plate(lines: PackedStringArray) -> Image:
+	return AlienSignPlates.galaxy(_data.graphics.font(rules.menu_font), lines)
+
+
 ## The world being played.
 func _played_world() -> GalaxyWorld:
 	if _played != null:

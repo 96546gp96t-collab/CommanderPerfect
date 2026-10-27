@@ -1,0 +1,49 @@
+# The signs in the alien alphabet, when "Alien text" is on: what they say
+# in English = what the plate shows. Signs not listed show their English.
+
+# Keen 1-3: the signs drawn as whole tiles.
+@alien EXIT = UITGANG
+@alien THIS IS NEAT = DIT IS TOF
+@alien DIE = STERF
+@alien BEHOLD THE HOLY POGO STICK = AANSCHOUW DE HEILIGE POGOSTICK
+@alien GO UP = GA OMHOOG
+@alien ON = AAN
+@alien BLUEPRINT ASME = BLAUWDRUK ASME
+@alien HI HI = HOI HOI
+@alien HI = HOI
+
+# Keen 2: the cities under the Tantalus Ray, and the Mothership's map.
+@alien TANTALUS LONDON = TANTALUS LONDEN
+@alien TANTALUS PARIS = TANTALUS PARIJS
+@alien TANTALUS MOSCOW = TANTALUS MOSKOU
+@alien TANTALUS D C = TANTALUS WASHINGTON D C
+@alien LONDON = LONDEN
+@alien PARIS = PARIJS
+@alien MOSCOW = MOSKOU
+@alien HOME A = THUIS A
+@alien HOME B = THUIS B
+
+# Keen 3: the places of Vorticon VI.
+@alien LOWER VORTIVILLE = BENEDEN-VORTIVILLE
+@alien WEST VORTIVILLE = WEST-VORTIVILLE
+@alien VALDEN PARK = VALDENPARK
+@alien EARTH = AARDE
+@alien NEW VORTICON = NIEUW-VORTICON
+@alien CENTRAL PARK = CENTRAAL PARK
+@alien SUBWAY = METRO
+@alien THE BONKS = DE BONKS
+@alien NURSERY = KINDEROPVANG
+@alien KILL KEEN = DOOD KEEN
+@alien HALS KITCHEN = HALS KEUKEN
+@alien POOL = ZWEMBAD
+@alien CAPE CANAVORTA = KAAP CANAVORTA
+@alien BARRACKS = KAZERNE
+@alien BRIG = CEL
+
+# Keen 4.
+@alien WATCH OUT = PAS OP
+@alien HIGH LOW = HOOG LAAG
+
+# Keen 5.
+@alien WARNING: FUSE STRUCTURE FRAGILE = LET OP: ZEKERING, BREEKBAAR
+@alien JUMP DOWN AT ARCH = SPRING OMLAAG BIJ DE BOOG

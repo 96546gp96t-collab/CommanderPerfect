@@ -442,3 +442,7 @@ func _realistic_grade() -> RealisticGrade:
 
 func _realistic_light_tiles() -> Dictionary[int, RealisticLights.Kind]:
 	return Keen3Lights.tiles()
+
+
+func _alien_sign_table() -> AlienSignTables.Table:
+	return AlienSignTables.keen3()

@@ -16,6 +16,9 @@ extends Control
 ## What is on the screen; see [LevelView].
 enum Mode { NONE, TITLE, HIGH_SCORES, MAP, LEVEL, GAME_OVER, ENDING, LOOK, REMOTE }
 
+## The alien signs' translations are drawn over everything in the world
+## but Galaxy's cover ([GalaxyViewCover]).
+const ALIEN_LABELS_Z := RenderingServer.CANVAS_ITEM_Z_MAX - 1
 ## Seconds a message such as "Cheat: god mode on" stays on the screen.
 const MESSAGE_SECONDS := 3.0
 ## The largest number of screen pixels per game pixel that the World
@@ -42,6 +45,8 @@ var _backdrop_holes: BackdropHoles
 var _level_number := 0
 var _level: LevelData
 var _user_settings := UserSettings.new()
+## The translations of the alien signs ([method _add_alien_labels]).
+var _alien_labels := AlienSignLabels.new()
 var _settings := _user_settings.display
 var _progress := GameProgress.new()
 var _ending: EndingSequence
@@ -541,14 +546,76 @@ func _map_keen_center() -> Vector2:
 
 
 ## Puts the drawings of the ship into the world: the cabin behind the
-## tiles, the smoke over them and under the sprites.
+## tiles, the smoke over them and under the sprites; and the translations
+## of the alien signs over everything ([method _add_alien_labels]).
 func _add_ship_drawings() -> void:
+	_add_alien_labels()
 	_world.add_child(_ship_interior)
 	_world.move_child(_ship_interior, _level_map.get_index())
 	_world.add_child(_ship_smoke)
 	_world.move_child(_ship_smoke, _actor_layer.get_index())
 	# With the HUD, so that the camera does not move it.
 	_hud.get_parent().add_child(_screen_note)
+
+
+## The translations of the alien signs, over everything in the world
+## (under Galaxy's cover of what lies past the edge of the level).
+func _add_alien_labels() -> void:
+	_alien_labels.z_index = ALIEN_LABELS_Z
+	_world.add_child(_alien_labels)
+	_alien_labels.is_on = func() -> bool: return _user_settings.alien_text
+	_alien_labels.level = _alien_level
+	_alien_labels.find_signs = _alien_signs
+	_alien_labels.readers = _alien_readers
+	_alien_labels.make_plate = _alien_plate
+
+
+## The level or world map shown now, whose alien signs can be read; null
+## when none is.
+func _alien_level() -> Object:
+	if _mode in [Mode.MAP, Mode.LEVEL, Mode.REMOTE]:
+		return _level
+	return null
+
+
+## The alien signs of the level shown now, by the game's table
+## ([method _alien_sign_table]).
+func _alien_signs() -> Array[AlienSigns.Sign]:
+	var table := _alien_sign_table()
+	if _level == null or table == null:
+		return []
+	var level := _level
+	return AlienSigns.find(
+		Vector2i(level.width, level.height), level.tile_at, table.groups, table.letters
+	)
+
+
+## This game's alien signs ([AlienSignTables]): Keen 1's, the game this
+## screen was first made for; the others give their own.
+func _alien_sign_table() -> AlienSignTables.Table:
+	return AlienSignTables.keen1()
+
+
+## The middles of the players' Keens that are shown, in level pixels.
+func _alien_readers() -> Array[Vector2]:
+	var found: Array[Vector2] = []
+	if _keen.visible:
+		var middle := (
+			_map_keen_center()
+			if _mode == Mode.MAP and _map_session != null
+			else _keen.smooth_position() + KeenPhysics.SPRITE_SIZE / 2.0
+		)
+		found.append(middle)
+	if _second_player.is_keen_shown():
+		found.append(_second_player.keen_center())
+	return found
+
+
+## A plate for the translation of an alien sign: a window of the game.
+func _alien_plate(lines: PackedStringArray) -> Image:
+	if _graphics == null:
+		return Image.create_empty(1, 1, false, Image.FORMAT_RGBA8)
+	return AlienSignPlates.keen(_graphics.font_chars, lines)
 
 
 ## Shows the drawings of the ship level that is shown now; nothing for

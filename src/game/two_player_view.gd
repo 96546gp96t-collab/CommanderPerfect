@@ -87,6 +87,11 @@ func hide_remote() -> void:
 	_keen_2.visible = false
 
 
+## Whether player 2's Keen is shown now.
+func is_keen_shown() -> bool:
+	return _keen_2.visible
+
+
 ## The middle of player 2's Keen where it is drawn now.
 func keen_center() -> Vector2:
 	return _middle_of(_keen_2)

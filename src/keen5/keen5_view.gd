@@ -356,5 +356,9 @@ func _realistic_light_tiles() -> Dictionary[int, RealisticLights.Kind]:
 	return Keen5Lights.foreground()
 
 
+func _alien_sign_tables() -> Array[AlienSignTables.Table]:
+	return [AlienSignTables.keen5_background(), AlienSignTables.keen5_foreground()]
+
+
 func _realistic_back_light_tiles() -> Dictionary[int, RealisticLights.Kind]:
 	return Keen5Lights.background()
